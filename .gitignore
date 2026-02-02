@@ -22,3 +22,15 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Ignorar el archivo de valores reales para no subir tu email
+terraform.tfvars
+terraform.tfvars.json
+
+# Ignorar archivos de estado (contienen datos sensibles)
+*.tfstate
+*.tfstate.backup
+
+# Ignorar la carpeta de binarios/plugins
+.terraform/
+.terraform.lock.hcl
