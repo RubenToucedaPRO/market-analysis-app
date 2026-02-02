@@ -1,0 +1,54 @@
+version: '3.8'
+
+# Docker Compose for local development only.
+# In production, use managed database services or configure with proper secrets management.
+
+services:
+  app:
+    build: .
+    container_name: market-analysis-app
+    ports:
+      - "${APP_PORT_EXTERNAL:-8080}:8080"
+    volumes:
+      - .:/app # Mapea tu código local al contenedor para Hot Reload
+      - /app/target # Importante: Aísla el directorio target del contenedor para no mezclarlo con tu compilación local
+    environment:
+      # Configuración para conectar con el contenedor de MySQL
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/market_analysis_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+  mysql:
+    image: mariadb:lts-alpine
+    container_name: market-analysis-mysql
+    # Limita el uso de RAM para que quepa en el plan de Railway
+    command: [
+      "mysqld",
+      "--innodb-buffer-pool-size=64M",
+      "--max-connections=20",
+      "--key-buffer-size=8M"
+    ]
+    ports:
+      - "127.0.0.1:${DB_PORT_EXTERNAL:-3306}:3306"
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - market_analysis_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  market_analysis_mysql_data:
+    driver: local

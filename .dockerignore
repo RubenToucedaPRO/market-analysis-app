@@ -1,0 +1,20 @@
+# Build outputs
+target/
+*.jar
+*.war
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# Git
+.git
+.gitignore
+
+# Docker & OS
+docker-compose.yml
+.dockerignore
+.env
+.DS_Store

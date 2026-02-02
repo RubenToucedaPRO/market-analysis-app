@@ -34,3 +34,13 @@ terraform.tfvars.json
 # Ignorar la carpeta de binarios/plugins
 .terraform/
 .terraform.lock.hcl
+
+# Docker & Environment
+.env
+.env.local
+.env.*.local
+
+# IDEs (Opcional pero recomendado para limpiar el proyecto)
+.idea/
+.vscode/
+*.iml
