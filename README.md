@@ -115,6 +115,92 @@ La aplicación está diseñada siguiendo los principios de **Clean Architecture*
 │ (Persistence, APIs externas, IA)    │
 └─────────────────────────────────────┘
 ```
+```
+market-analysis-app/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/market/analysis/
+│   │   │       ├── presentation/
+│   │   │       │   ├── controllers/          # Controladores REST/MVC
+│   │   │       │   │   └── .gitkeep
+│   │   │       │   └── dto/                  # DTOs de entrada/salida (Response DTOs)
+│   │   │       │       └── .gitkeep
+│   │   │       │
+│   │   │       ├── application/
+│   │   │       │   ├── usecases/             # Casos de uso (servicios de aplicación)
+│   │   │       │   │   └── .gitkeep
+│   │   │       │   ├── mappers/              # Mapeadores entre capas (DTO ↔ Domain)
+│   │   │       │   │   └── .gitkeep
+│   │   │       │   ├── dto/                  # DTOs de aplicación (Command/Query DTOs)
+│   │   │       │   │   └── .gitkeep
+│   │   │       │   └── services/             # Servicios orquestadores
+│   │   │       │       └── .gitkeep
+│   │   │       │
+│   │   │       ├── domain/
+│   │   │       │   ├── entities/             # Entidades del dominio (Agregados)
+│   │   │       │   │   └── .gitkeep
+│   │   │       │   ├── interfaces/           # Puertos (contratos del dominio)
+│   │   │       │   │   └── .gitkeep
+│   │   │       │   ├── rules/                # Reglas técnicas independientes
+│   │   │       │   │   └── .gitkeep
+│   │   │       │   └── exceptions/           # Excepciones de dominio
+│   │   │       │       └── .gitkeep
+│   │   │       │
+│   │   │       └── infrastructure/
+│   │   │           ├── persistence/
+│   │   │           │   ├── repositories/     # Implementaciones Spring Data JPA
+│   │   │           │   │   └── .gitkeep
+│   │   │           │   └── entities/         # Entidades JPA (mapeo BD)
+│   │   │           │       └── .gitkeep
+│   │   │           ├── external/
+│   │   │           │   ├── finnhub/          # Integración API Finnhub
+│   │   │           │   │   └── .gitkeep
+│   │   │           │   └── polygon/          # Integración API Polygon
+│   │   │           │       └── .gitkeep
+│   │   │           ├── ai/
+│   │   │           │   ├── openai/           # Integración OpenAI
+│   │   │           │   │   └── .gitkeep
+│   │   │           │   ├── anthropic/        # Integración Anthropic
+│   │   │           │   │   └── .gitkeep
+│   │   │           │   └── google/           # Integración Google IA
+│   │   │           │       └── .gitkeep
+│   │   │           └── config/               # Configuración Spring Boot
+│   │   │               └── .gitkeep
+│   │   │
+│   │   └── resources/
+│   │       ├── templates/                    # Plantillas Thymeleaf
+│   │       │   └── .gitkeep
+│   │       ├── static/
+│   │       │   ├── css/                      # Estilos Bootstrap 5 + personalizados
+│   │       │   │   └── .gitkeep
+│   │       │   ├── js/                       # Scripts HTMX
+│   │       │   │   └── .gitkeep
+│   │       │   └── images/                   # Assets
+│   │       │       └── .gitkeep
+│   │       ├── application.properties        # Propiedades generales
+│   │       └── application-dev.properties    # Propiedades perfil dev
+│   │
+│   └── test/
+│       ├── java/
+│       │   └── com/market/analysis/
+│       │       ├── unit/                     # Tests unitarios (JUnit 5 + Mockito)
+│       │       │   └── .gitkeep
+│       │       └── integration/              # Tests de integración
+│       │           └── .gitkeep
+│       └── resources/
+│           └── .gitkeep
+│
+├── config/                                   # Configuración externa
+│   └── .gitkeep
+│
+├── docs/                                     # Documentación Markdown
+│   └── .gitkeep
+│
+├── pom.xml                                   # Dependencias Maven (pendiente)
+├── .gitignore                                # Exclusiones Git
+└── README.md                                 # Documentación del proyecto
+```
 
 **Descripción de Capas**
 
