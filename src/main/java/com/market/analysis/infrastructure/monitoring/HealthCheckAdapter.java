@@ -1,4 +1,4 @@
-package com.market.analysis.infrastructure.persistence;
+package com.market.analysis.infrastructure.monitoring;
 
 import java.sql.Connection;
 

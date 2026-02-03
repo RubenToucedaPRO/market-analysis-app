@@ -10,8 +10,8 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 - Estrategias definidas como composiciones de reglas técnicas independientes y reutilizables.
 - Resultados numéricos (R:R, métricas de cumplimiento) son la base de toda evaluación.
 - Modelos de lenguaje (IA) usados únicamente como **análisis interpretativo complementario**, sin afectar resultados ni decisiones.
-- Arquitectura basada en **Clean Architecture**: dominio puro, casos de uso en Application Layer, detalles en Infrastructure Layer.
-- Persistencia: H2 para desarrollo, MySQL opcional en producción.
+- Arquitectura hexagonal basada en **Clean Architecture**: dominio puro, casos de uso en Application Layer, detalles en Infrastructure Layer.
+- Persistencia: H2 para desarrollo, MariaDB opcional en producción.
 - Frontend: Thymeleaf + HTMX + Bootstrap 5, interacción mínima con JavaScript.
 - **README.md** debe ser consultado y respetado en todo momento para asegurar coherencia de descripciones, objetivos, stack y funcionalidades.
 
@@ -143,7 +143,7 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 
 ## 9. Consideraciones Finales para el Asistente
 
-- Respetar siempre **Clean Architecture** y **SRP**.
+- Respetar siempre la **Arquitectura Hexagonal** aplicando **Clean Architecture** y **SRP**.
 - IA **solo como análisis interpretativo**.
 - No ejecutar cambios automáticos en la lógica de evaluación.
 - Documentar cada tarea inmediatamente en `/docs`.

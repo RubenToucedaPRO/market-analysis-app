@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.infrastructure.persistence.HealthCheckAdapter;
+import com.market.analysis.infrastructure.monitoring.HealthCheckAdapter;
 
 /**
  * Unit tests for HealthCheckAdapter.
