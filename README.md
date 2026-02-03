@@ -231,6 +231,45 @@ market-analysis-app/
 └── README.md                  Documentación principal  
 
 ---
+### Estructura Detallada de Paquetes software
+
+src/main/java/com/market/analysis/
+├── domain/                           # Capa pura (sin dependencias)
+│   ├── entities/                     # Entidades y Value Objects
+│   ├── repository/                   # Interfaces de repositorio (PUERTOS)
+│   ├── exceptions/                   # Excepciones de dominio
+│   └── rules/                        # Reglas de negocio
+│
+├── application/                      # Casos de uso y orquestación
+│   ├── dto/                          # DTOs input/output de casos de uso
+│   ├── mappers/                      # Mapeo Domain ↔ DTO
+│   ├── services/                     # Application Services (orquestadores)
+│   ├── usecases/                     # Casos de uso específicos
+│   └── ports/                        # Interfaces de puertos (output adapters)
+│
+├── infrastructure/                   # Detalles técnicos
+│   ├── persistence/                  # Implementación de repositorios
+│   │   ├── entities/                 # Entidades JPA (distintas a domain)
+│   │   └── repositories/             # Implementación repositorio
+│   ├── external/                     # Integraciones externas
+│   │   ├── finnhub/                  # API Finnhub
+│   │   └── polygon/                  # API Polygon
+│   ├── ai/                           # Integraciones IA
+│   │   └── openai/
+│   ├── monitoring/                   # Logs, métricas
+│   └── config/                       # Configuración Spring
+│
+├── presentation/                     # Controladores y respuestas HTTP
+│   ├── controllers/                  # Controladores REST
+│   ├── response/                     # DTOs de respuesta (renombrado)
+│   └── handlers/                     # @ControllerAdvice para excepciones
+│
+└── shared/                           # Utilidades y constantes compartidas
+    ├── utils/                        # Helpers, validadores
+    ├── constants/                    # Constantes globales
+    └── exceptions/                   # Excepciones técnicas globales
+
+---
 
 ### Descripción de Capas
 

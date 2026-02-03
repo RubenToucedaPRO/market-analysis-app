@@ -6,7 +6,7 @@ import javax.sql.DataSource;
 
 import org.springframework.stereotype.Component;
 
-import com.market.analysis.domain.interfaces.HealthCheckPort;
+import com.market.analysis.domain.repository.HealthCheckPort;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

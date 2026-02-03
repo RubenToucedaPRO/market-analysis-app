@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.market.analysis.domain.entities.HealthStatus;
-import com.market.analysis.domain.interfaces.HealthCheckPort;
+import com.market.analysis.domain.repository.HealthCheckPort;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

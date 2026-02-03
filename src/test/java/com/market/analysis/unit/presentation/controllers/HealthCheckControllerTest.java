@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.market.analysis.application.mappers.HealthCheckMapper;
 import com.market.analysis.application.services.HealthCheckService;
 import com.market.analysis.domain.entities.HealthStatus;
-import com.market.analysis.presentation.dto.HealthCheckResponse;
+import com.market.analysis.presentation.response.HealthCheckResponse;
 
 /**
  * Integration tests for HealthCheckController using MockMvc.

@@ -1,4 +1,4 @@
-package com.market.analysis.domain.interfaces;
+package com.market.analysis.domain.repository;
 
 /**
  * Port interface for health check operations.
