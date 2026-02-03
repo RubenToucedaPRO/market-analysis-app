@@ -1,0 +1,57 @@
+name: Java CI tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Permisos necesarios para que el bot publique comentarios en la PR
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code, set up JDK 17, build the project, run tests, and archive test results and code coverage report
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Set up JDK 17, build the project, run tests, and archive test results and code coverage report
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven" # Enable Maven caching IMPORTANTE
+      - name: Show Java version
+        run: java -version
+      # Build the project and run tests
+      - name: Build and run tests
+        run: |
+          mvn -B verify --file pom.xml
+          # Archive test results and code coverage report
+          echo "Maven build and tests completed."
+      # REPORTE 1: RESULTADOS DE TESTS (EnricoMi)
+      # Te dirá: "Pasaron 50 tests, falló 1"
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: (!cancelled())
+        with:
+          files: "target/surefire-reports/**/*.xml"
+      # REPORTE 2: COBERTURA VISUAL (Madrapps)
+      - name: Add coverage to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.7.1
+        if: always()
+        with:
+          paths: target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 80
+          title: "Code Coverage Report"
+          update-comment: true
+      - name: Show info
+        run: |
+          echo "CI workflow completed."
