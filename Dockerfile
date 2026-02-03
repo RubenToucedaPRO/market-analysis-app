@@ -1,6 +1,6 @@
 # ETAPA 1: Construcción (Build)
 # Usamos Maven sobre Alpine para compilar el proyecto
-FROM maven:3.9-eclipse-temurin-17-alpine AS build
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
 # 1. Copiamos el pom.xml primero para aprovechar la caché de capas de Docker
@@ -15,7 +15,7 @@ RUN mvn clean package -DskipTests
 
 # ETAPA 2: Ejecución (Runtime)
 # Usamos una imagen mucho más pequeña que solo contiene el JRE (Java Runtime Environment)
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # 4. Seguridad: Creamos un usuario no-root para ejecutar la app
