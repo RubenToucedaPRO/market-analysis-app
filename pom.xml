@@ -151,12 +151,18 @@
                 <version>0.8.12</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/model/**</exclude>
-                        <exclude>**/*DTO.*</exclude>
-                        <exclude>**/*Exception.*</exclude>
-                        <exclude>**/*Config.*</exclude>
-                        <exclude>**/repository/**</exclude>
-                        <exclude>**/MarketAnalysisApplication.class</exclude>
+                        <exclude>com/market/analysis/MarketAnalysisApplication.class</exclude>
+
+                        <exclude>com/market/analysis/infrastructure/config/**</exclude>
+
+                        <exclude>com/market/analysis/application/dto/**</exclude>
+                        <exclude>com/market/analysis/presentation/dto/**</exclude>
+
+                        <exclude>com/market/analysis/domain/entities/**</exclude>
+                        <exclude>com/market/analysis/domain/exceptions/**</exclude>
+
+                        <exclude>**/*DTO.class</exclude>
+                        <exclude>**/*Config.class</exclude>
                     </excludes>
                 </configuration>
                 <executions>
