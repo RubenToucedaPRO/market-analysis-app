@@ -2,6 +2,8 @@ package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import lombok.Builder;
@@ -44,7 +46,27 @@ public class TickerData {
     private final Map<String, Object> indicators;
 
     /**
-     * Historical OHLCV data if needed for pattern analysis.
+     * Historical OHLCV data for pattern analysis and technical calculations.
+     * Each MarketDataPoint represents a single time period (e.g., daily candle).
      */
-    private final Map<String, Object> historicalData;
+    private final List<MarketDataPoint> historicalData;
+
+    /**
+     * Gets an immutable copy of the historical data list.
+     *
+     * @return unmodifiable list of market data points
+     */
+    public List<MarketDataPoint> getHistoricalData() {
+        return historicalData != null ? List.copyOf(historicalData) : List.of();
+    }
+
+    /**
+     * Custom builder to ensure defensive copying of the historical data list.
+     */
+    public static class TickerDataBuilder {
+        public TickerDataBuilder historicalData(List<MarketDataPoint> historicalData) {
+            this.historicalData = historicalData != null ? new ArrayList<>(historicalData) : new ArrayList<>();
+            return this;
+        }
+    }
 }

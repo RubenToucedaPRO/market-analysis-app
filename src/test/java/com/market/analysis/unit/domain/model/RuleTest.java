@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
@@ -63,7 +64,7 @@ class RuleTest {
                 .volume(1000000L)
                 .timestamp(LocalDateTime.now())
                 .indicators(new HashMap<>())
-                .historicalData(new HashMap<>())
+                .historicalData(List.of())
                 .build();
 
         // Act
@@ -110,7 +111,7 @@ class RuleTest {
                 .volume(1000000L)
                 .timestamp(LocalDateTime.now())
                 .indicators(new HashMap<>())
-                .historicalData(new HashMap<>())
+                .historicalData(List.of())
                 .build();
 
         // Act & Assert
@@ -137,7 +138,7 @@ class RuleTest {
                 .volume(1000000L)
                 .timestamp(LocalDateTime.now())
                 .indicators(new HashMap<>())
-                .historicalData(new HashMap<>())
+                .historicalData(List.of())
                 .build();
 
         // Act & Assert
@@ -164,7 +165,7 @@ class RuleTest {
                 .volume(1000000L)
                 .timestamp(LocalDateTime.now())
                 .indicators(new HashMap<>())
-                .historicalData(new HashMap<>())
+                .historicalData(List.of())
                 .build();
 
         // Act & Assert
@@ -191,7 +192,7 @@ class RuleTest {
                 .volume(1000000L)
                 .timestamp(LocalDateTime.now())
                 .indicators(new HashMap<>())
-                .historicalData(new HashMap<>())
+                .historicalData(List.of())
                 .build();
 
         // Act & Assert
@@ -267,7 +268,7 @@ class RuleTest {
                 .volume(1000000L)
                 .timestamp(LocalDateTime.now())
                 .indicators(new HashMap<>())
-                .historicalData(new HashMap<>())
+                .historicalData(List.of())
                 .build();
 
         // Act
