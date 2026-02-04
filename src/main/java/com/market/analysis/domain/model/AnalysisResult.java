@@ -12,7 +12,8 @@ import lombok.ToString;
 
 /**
  * Entity representing the result of evaluating a strategy against ticker data.
- * Contains the strategy, ticker information, individual rule results, and calculated metrics.
+ * Contains the strategy, ticker information, individual rule results, and
+ * calculated metrics.
  */
 @Getter
 @Builder
@@ -68,7 +69,8 @@ public class AnalysisResult {
      * Validates the consistency of the analysis result.
      * Ensures all required fields are present and valid.
      *
-     * @throws IllegalStateException if the analysis result is not properly configured
+     * @throws IllegalStateException if the analysis result is not properly
+     *                               configured
      */
     public void validateConsistency() {
         if (strategy == null) {
@@ -90,9 +92,8 @@ public class AnalysisResult {
         // Validate that number of rule results matches number of rules in strategy
         if (ruleResults.size() != strategy.getRules().size()) {
             throw new IllegalStateException(
-                String.format("Number of rule results (%d) does not match number of rules in strategy (%d)",
-                    ruleResults.size(), strategy.getRules().size())
-            );
+                    String.format("Number of rule results (%d) does not match number of rules in strategy (%d)",
+                            ruleResults.size(), strategy.getRules().size()));
         }
     }
 
@@ -112,7 +113,7 @@ public class AnalysisResult {
 
         return BigDecimal.valueOf(passedCount)
                 .multiply(BigDecimal.valueOf(100))
-                .divide(BigDecimal.valueOf(ruleResults.size()), 2, BigDecimal.ROUND_HALF_UP);
+                .divide(BigDecimal.valueOf(ruleResults.size()), 2, java.math.RoundingMode.HALF_UP);
     }
 
     /**
