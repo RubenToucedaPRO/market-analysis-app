@@ -3,21 +3,13 @@ package com.market.analysis.unit.domain.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.market.analysis.domain.model.Rule;
-import com.market.analysis.domain.model.RuleResult;
-import com.market.analysis.domain.model.TickerData;
 
 /**
  * Unit tests for Rule domain entity.
@@ -32,173 +24,120 @@ class RuleTest {
         Rule rule = Rule.builder()
                 .id(1L)
                 .name("SMA Crossover")
-                .ruleType("MOVING_AVERAGE")
-                .parameters(Map.of("period", 20))
-                .description("20-day SMA crossover rule")
+                .subjectCode("SMA")
+                .subjectParam(50.0)
+                .operator(">")
+                .targetCode("SMA")
+                .targetParam(200.0)
+                .description("SMA 50 crosses above SMA 200")
                 .build();
 
         // Assert
         assertNotNull(rule);
         assertEquals(1L, rule.getId());
         assertEquals("SMA Crossover", rule.getName());
-        assertEquals("MOVING_AVERAGE", rule.getRuleType());
-        assertNotNull(rule.getParameters());
-        assertEquals("20-day SMA crossover rule", rule.getDescription());
+        assertEquals("SMA", rule.getSubjectCode());
+        assertEquals(50.0, rule.getSubjectParam());
+        assertEquals(">", rule.getOperator());
+        assertEquals("SMA", rule.getTargetCode());
+        assertEquals(200.0, rule.getTargetParam());
+        assertEquals("SMA 50 crosses above SMA 200", rule.getDescription());
     }
 
     @Test
-    @DisplayName("Should evaluate rule with valid ticker data")
-    void testEvaluateRuleWithValidTickerData() {
-        // Arrange
+    @DisplayName("Should create rule with subject parameter but no target parameter")
+    void testCreateRuleWithSubjectParamOnly() {
+        // Arrange & Act
         Rule rule = Rule.builder()
-                .id(1L)
-                .name("Price Check")
-                .ruleType("PRICE")
-                .parameters(Map.of("threshold", 100))
-                .description("Price above threshold")
+                .id(2L)
+                .name("RSI Overbought")
+                .subjectCode("RSI")
+                .subjectParam(14.0)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(70.0)
+                .description("RSI 14 above 70")
                 .build();
-
-        TickerData tickerData = TickerData.builder()
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.0))
-                .volume(1000000L)
-                .timestamp(LocalDateTime.now())
-                .indicators(new HashMap<>())
-                .historicalData(List.of())
-                .build();
-
-        // Act
-        RuleResult result = rule.evaluate(tickerData);
 
         // Assert
-        assertNotNull(result);
-        assertNotNull(result.getJustification());
-        assertNotNull(result.getRule());
-        assertEquals(rule, result.getRule());
+        assertNotNull(rule);
+        assertEquals(14.0, rule.getSubjectParam());
+        assertEquals(70.0, rule.getTargetParam());
     }
 
     @Test
-    @DisplayName("Should throw exception when evaluating with null ticker data")
-    void testEvaluateThrowsExceptionWithNullTickerData() {
-        // Arrange
+    @DisplayName("Should create rule with null parameters when not required")
+    void testCreateRuleWithNullParams() {
+        // Arrange & Act
         Rule rule = Rule.builder()
-                .id(1L)
-                .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
-                .description("Description")
+                .id(3L)
+                .name("Price vs Fixed Value")
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .description("Current price above 100")
                 .build();
 
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> rule.evaluate(null));
+        // Assert
+        assertNotNull(rule);
+        assertNull(rule.getSubjectParam());
+        assertEquals(100.0, rule.getTargetParam());
     }
 
     @Test
-    @DisplayName("Should throw exception when evaluating rule with null name")
-    void testEvaluateThrowsExceptionWithNullName() {
-        // Arrange
+    @DisplayName("Should create rule with comparison between price and SMA")
+    void testCreatePriceVsSmaRule() {
+        // Arrange & Act
         Rule rule = Rule.builder()
-                .id(1L)
-                .name(null)
-                .ruleType("TYPE")
-                .parameters(Map.of())
-                .description("Description")
+                .id(4L)
+                .name("Price Above SMA")
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("SMA")
+                .targetParam(200.0)
+                .description("Price above 200-day SMA")
                 .build();
 
-        TickerData tickerData = TickerData.builder()
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.0))
-                .volume(1000000L)
-                .timestamp(LocalDateTime.now())
-                .indicators(new HashMap<>())
-                .historicalData(List.of())
-                .build();
-
-        // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> rule.evaluate(tickerData));
-        assertTrue(exception.getMessage().contains("name"));
+        // Assert
+        assertNotNull(rule);
+        assertEquals("PRICE", rule.getSubjectCode());
+        assertNull(rule.getSubjectParam());
+        assertEquals("SMA", rule.getTargetCode());
+        assertEquals(200.0, rule.getTargetParam());
     }
 
     @Test
-    @DisplayName("Should throw exception when evaluating rule with empty name")
-    void testEvaluateThrowsExceptionWithEmptyName() {
-        // Arrange
-        Rule rule = Rule.builder()
-                .id(1L)
-                .name("   ")
-                .ruleType("TYPE")
-                .parameters(Map.of())
-                .description("Description")
+    @DisplayName("Should create rule with different operators")
+    void testCreateRuleWithDifferentOperators() {
+        // Arrange & Act
+        Rule rule1 = Rule.builder()
+                .id(5L)
+                .name("Volume Below Average")
+                .subjectCode("VOLUME")
+                .subjectParam(null)
+                .operator("<")
+                .targetCode("AVG_VOLUME")
+                .targetParam(20.0)
+                .description("Volume below 20-day average")
                 .build();
 
-        TickerData tickerData = TickerData.builder()
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.0))
-                .volume(1000000L)
-                .timestamp(LocalDateTime.now())
-                .indicators(new HashMap<>())
-                .historicalData(List.of())
+        Rule rule2 = Rule.builder()
+                .id(6L)
+                .name("Price Crosses Above")
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator("crosses_above")
+                .targetCode("SMA")
+                .targetParam(50.0)
+                .description("Price crosses above 50-day SMA")
                 .build();
 
-        // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> rule.evaluate(tickerData));
-        assertTrue(exception.getMessage().contains("name"));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when evaluating rule with null rule type")
-    void testEvaluateThrowsExceptionWithNullRuleType() {
-        // Arrange
-        Rule rule = Rule.builder()
-                .id(1L)
-                .name("Test Rule")
-                .ruleType(null)
-                .parameters(Map.of())
-                .description("Description")
-                .build();
-
-        TickerData tickerData = TickerData.builder()
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.0))
-                .volume(1000000L)
-                .timestamp(LocalDateTime.now())
-                .indicators(new HashMap<>())
-                .historicalData(List.of())
-                .build();
-
-        // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> rule.evaluate(tickerData));
-        assertTrue(exception.getMessage().contains("type"));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when evaluating rule with null parameters")
-    void testEvaluateThrowsExceptionWithNullParameters() {
-        // Arrange
-        Rule rule = Rule.builder()
-                .id(1L)
-                .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(null)
-                .description("Description")
-                .build();
-
-        TickerData tickerData = TickerData.builder()
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.0))
-                .volume(1000000L)
-                .timestamp(LocalDateTime.now())
-                .indicators(new HashMap<>())
-                .historicalData(List.of())
-                .build();
-
-        // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> rule.evaluate(tickerData));
-        assertTrue(exception.getMessage().contains("parameters"));
+        // Assert
+        assertEquals("<", rule1.getOperator());
+        assertEquals("crosses_above", rule2.getOperator());
     }
 
     @Test
@@ -208,16 +147,22 @@ class RuleTest {
         Rule rule1 = Rule.builder()
                 .id(1L)
                 .name("Rule A")
-                .ruleType("TYPE_A")
-                .parameters(Map.of())
+                .subjectCode("SMA")
+                .subjectParam(50.0)
+                .operator(">")
+                .targetCode("SMA")
+                .targetParam(200.0)
                 .description("Description A")
                 .build();
 
         Rule rule2 = Rule.builder()
                 .id(1L)
                 .name("Rule B")
-                .ruleType("TYPE_B")
-                .parameters(Map.of())
+                .subjectCode("RSI")
+                .subjectParam(14.0)
+                .operator("<")
+                .targetCode("CONSTANT")
+                .targetParam(30.0)
                 .description("Description B")
                 .build();
 
@@ -233,16 +178,22 @@ class RuleTest {
         Rule rule1 = Rule.builder()
                 .id(1L)
                 .name("Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("SMA")
+                .subjectParam(50.0)
+                .operator(">")
+                .targetCode("SMA")
+                .targetParam(200.0)
                 .description("Description")
                 .build();
 
         Rule rule2 = Rule.builder()
                 .id(2L)
                 .name("Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("SMA")
+                .subjectParam(50.0)
+                .operator(">")
+                .targetCode("SMA")
+                .targetParam(200.0)
                 .description("Description")
                 .build();
 
@@ -251,32 +202,52 @@ class RuleTest {
     }
 
     @Test
-    @DisplayName("Should generate justification in result")
-    void testEvaluateGeneratesJustification() {
-        // Arrange
+    @DisplayName("Should properly store all field values")
+    void testAllFieldsAreStoredCorrectly() {
+        // Arrange & Act
         Rule rule = Rule.builder()
-                .id(1L)
-                .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
-                .description("Description")
+                .id(10L)
+                .name("Complex Rule")
+                .subjectCode("MACD")
+                .subjectParam(12.0)
+                .operator("crosses_below")
+                .targetCode("SIGNAL")
+                .targetParam(9.0)
+                .description("MACD crosses below signal line")
                 .build();
-
-        TickerData tickerData = TickerData.builder()
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.0))
-                .volume(1000000L)
-                .timestamp(LocalDateTime.now())
-                .indicators(new HashMap<>())
-                .historicalData(List.of())
-                .build();
-
-        // Act
-        RuleResult result = rule.evaluate(tickerData);
 
         // Assert
-        assertNotNull(result.getJustification());
-        assertTrue(result.getJustification().contains("Test Rule"));
-        assertTrue(result.getJustification().contains("AAPL"));
+        assertEquals(10L, rule.getId());
+        assertEquals("Complex Rule", rule.getName());
+        assertEquals("MACD", rule.getSubjectCode());
+        assertEquals(12.0, rule.getSubjectParam());
+        assertEquals("crosses_below", rule.getOperator());
+        assertEquals("SIGNAL", rule.getTargetCode());
+        assertEquals(9.0, rule.getTargetParam());
+        assertEquals("MACD crosses below signal line", rule.getDescription());
+    }
+
+    @Test
+    @DisplayName("Should create rule for volume comparison")
+    void testCreateVolumeRule() {
+        // Arrange & Act
+        Rule rule = Rule.builder()
+                .id(11L)
+                .name("High Volume")
+                .subjectCode("VOLUME")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("AVG_VOLUME")
+                .targetParam(50.0)
+                .description("Volume above 50-day average")
+                .build();
+
+        // Assert
+        assertNotNull(rule);
+        assertEquals("VOLUME", rule.getSubjectCode());
+        assertEquals("AVG_VOLUME", rule.getTargetCode());
+        assertNull(rule.getSubjectParam());
+        assertEquals(50.0, rule.getTargetParam());
     }
 }
+

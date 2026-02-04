@@ -34,8 +34,11 @@ class AnalysisResultTest {
         Rule rule = Rule.builder()
                 .id(1L)
                 .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
@@ -83,8 +86,11 @@ class AnalysisResultTest {
         Rule rule = Rule.builder()
                 .id(1L)
                 .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
@@ -151,8 +157,11 @@ class AnalysisResultTest {
         Rule rule = Rule.builder()
                 .id(1L)
                 .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
@@ -186,8 +195,11 @@ class AnalysisResultTest {
         Rule rule = Rule.builder()
                 .id(1L)
                 .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
@@ -221,16 +233,22 @@ class AnalysisResultTest {
         Rule rule1 = Rule.builder()
                 .id(1L)
                 .name("Rule 1")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
         Rule rule2 = Rule.builder()
                 .id(2L)
                 .name("Rule 2")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
@@ -270,8 +288,11 @@ class AnalysisResultTest {
         Rule rule = Rule.builder()
                 .id(1L)
                 .name("Test Rule")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
@@ -309,16 +330,22 @@ class AnalysisResultTest {
         Rule rule1 = Rule.builder()
                 .id(1L)
                 .name("Rule 1")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
         Rule rule2 = Rule.builder()
                 .id(2L)
                 .name("Rule 2")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
@@ -358,16 +385,22 @@ class AnalysisResultTest {
         Rule rule1 = Rule.builder()
                 .id(1L)
                 .name("Rule 1")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 
         Rule rule2 = Rule.builder()
                 .id(2L)
                 .name("Rule 2")
-                .ruleType("TYPE")
-                .parameters(Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
                 .description("Description")
                 .build();
 

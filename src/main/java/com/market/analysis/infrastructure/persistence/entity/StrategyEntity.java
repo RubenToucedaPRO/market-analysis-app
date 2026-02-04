@@ -2,12 +2,11 @@ package com.market.analysis.infrastructure.persistence.entity;
 
 import java.util.List;
 
-import org.springframework.data.annotation.Id;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;

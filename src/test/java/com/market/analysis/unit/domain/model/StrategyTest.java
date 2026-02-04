@@ -29,8 +29,12 @@ class StrategyTest {
             Rule.builder()
                 .id(1L)
                 .name("SMA Crossover")
-                .ruleType("MOVING_AVERAGE")
-                .parameters(java.util.Map.of("period", 20))
+                .subjectCode("SMA")
+                .subjectParam(20.0)
+                .operator(">")
+                .targetCode("SMA")
+                .targetParam(50.0)
+                
                 .description("20-day SMA crossover")
                 .build()
         );
@@ -59,8 +63,12 @@ class StrategyTest {
         rules.add(Rule.builder()
                 .id(1L)
                 .name("Rule 1")
-                .ruleType("TYPE")
-                .parameters(java.util.Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                
                 .description("Description")
                 .build());
 
@@ -79,8 +87,12 @@ class StrategyTest {
             retrievedRules.add(Rule.builder()
                     .id(2L)
                     .name("Rule 2")
-                    .ruleType("TYPE")
-                    .parameters(java.util.Map.of())
+                    .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                    
                     .description("Description")
                     .build());
         });
@@ -182,8 +194,12 @@ class StrategyTest {
             Rule.builder()
                 .id(1L)
                 .name("Rule 1")
-                .ruleType("TYPE")
-                .parameters(java.util.Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                
                 .description("Description")
                 .build()
         );
@@ -207,8 +223,12 @@ class StrategyTest {
             Rule.builder()
                 .id(1L)
                 .name("Rule")
-                .ruleType("TYPE")
-                .parameters(java.util.Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                
                 .description("Description")
                 .build()
         );
@@ -240,8 +260,12 @@ class StrategyTest {
             Rule.builder()
                 .id(1L)
                 .name("Rule")
-                .ruleType("TYPE")
-                .parameters(java.util.Map.of())
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                
                 .description("Description")
                 .build()
         );
