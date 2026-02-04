@@ -9,9 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.market.analysis.application.mappers.HealthCheckMapper;
-import com.market.analysis.domain.entities.HealthStatus;
+import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.presentation.dto.HealthCheckResponse;
+import com.market.analysis.presentation.mapper.HealthCheckMapper;
 
 /**
  * Unit tests for HealthCheckMapper.

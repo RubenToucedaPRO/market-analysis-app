@@ -1,8 +1,8 @@
-package com.market.analysis.application.mappers;
+package com.market.analysis.presentation.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.market.analysis.domain.entities.HealthStatus;
+import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.presentation.dto.HealthCheckResponse;
 
 /**

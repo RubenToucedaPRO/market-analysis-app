@@ -1,0 +1,3 @@
+# domain/port/in - Puertos de entrada (Use Case interfaces)
+
+Este directorio contendrá las interfaces que definen los casos de uso de la aplicación.

@@ -1,0 +1,3 @@
+# domain/exception - Excepciones del dominio
+
+Este directorio contendrá excepciones específicas del dominio de la aplicación.

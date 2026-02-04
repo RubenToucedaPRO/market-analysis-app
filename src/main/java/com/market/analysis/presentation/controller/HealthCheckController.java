@@ -1,4 +1,4 @@
-package com.market.analysis.presentation.controllers;
+package com.market.analysis.presentation.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.market.analysis.application.mappers.HealthCheckMapper;
-import com.market.analysis.application.services.HealthCheckService;
-import com.market.analysis.domain.entities.HealthStatus;
+import com.market.analysis.application.usecase.HealthCheckService;
+import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.presentation.dto.HealthCheckResponse;
+import com.market.analysis.presentation.mapper.HealthCheckMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

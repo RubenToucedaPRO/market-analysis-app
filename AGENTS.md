@@ -10,8 +10,8 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 - Estrategias definidas como composiciones de reglas técnicas independientes y reutilizables.
 - Resultados numéricos (R:R, métricas de cumplimiento) son la base de toda evaluación.
 - Modelos de lenguaje (IA) usados únicamente como **análisis interpretativo complementario**, sin afectar resultados ni decisiones.
-- Arquitectura basada en **Clean Architecture**: dominio puro, casos de uso en Application Layer, detalles en Infrastructure Layer.
-- Persistencia: H2 para desarrollo, MySQL opcional en producción.
+- Arquitectura hexagonal con Clean Architecture estricta: dominio puro, casos de uso en Application, detalles en Infrastructure.
+- Persistencia: H2 para desarrollo, MariaDB opcional en producción.
 - Frontend: Thymeleaf + HTMX + Bootstrap 5, interacción mínima con JavaScript.
 - **README.md** debe ser consultado y respetado en todo momento para asegurar coherencia de descripciones, objetivos, stack y funcionalidades.
 
@@ -31,7 +31,7 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 ## 3. Procedimiento para Tareas de Desarrollo
 
 - Antes de generar código, verificar:
-  - Cumple Clean Architecture.
+  - Cumple Arquitectura Hexagonal y Clean Architecture estricta.
   - Respeta SRP, DIP y patrones de diseño (Strategy, Factory, Repository).
   - No hay lógica de negocio en Thymeleaf ni en Frontend.
 - Para cada tarea completada:
@@ -57,8 +57,6 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 | `FINNHUB_API_TOKEN`     | Datos de mercado actuales                     |
 | `POLYGON_API_TOKEN`     | Datos históricos y OHLCV                      |
 | `OPENAI_API_KEY`        | Análisis interpretativo de estrategias       |
-| `ANTHROPIC_API_KEY`     | Alternativa de IA para análisis interpretativo|
-| `GOOGLE_API_KEY`        | Alternativa de IA para análisis interpretativo|
 | `SPRING_PROFILES_ACTIVE`| Perfil de Spring Boot (dev, prod)            |
 
 ---
@@ -68,14 +66,13 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 - **Strategy**: composición de reglas configurables.
 - **Factory**: construcción dinámica de reglas según parámetros.
 - **Repository**: persistencia desacoplada de domain.
-- **Facade** (opcional): agrupar servicios relacionados para cumplir S107 y SRP.
 
 ---
 
 ## 6. Buenas Prácticas de Desarrollo
 
 - **Inyección por constructor** (`@Autowired` solo en constructor).
-- **Evitar lógica compleja en Thymeleaf** (`th:if`, `th:each` >2 condiciones → mover al DTO).
+- **Mover la lógica compleja a la capa Application / casos de uso y usar DTO solo como transporte de datos**.
 - **Internacionalización**: evitar textos hardcodeados en vistas.
 - **Cerrar recursos manuales** con `try-with-resources`.
 - **Logging**: usar SLF4J (`log.info/debug/error`) y no `System.out.println`.
@@ -115,7 +112,6 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 - Complejidad cognitiva < 15 (`S3776`).
 - Profundidad de anidamiento < 4 (`S134`).
 - Clases < 1000 líneas; evitar God Classes.
-- **No usar `lenient` salvo necesidad justificada**.
 
 ### Métricas Thymeleaf (HTML/XML)
 
@@ -124,29 +120,11 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 
 ---
 
-## 8. Procedimiento de Generación Automática de Documentos
+## 8. Consideraciones Finales para el Asistente
 
-- Para cada tarea completada:
-  - Crear Markdown en `/docs`.
-  - Nombre: `task-<fecha>-<slug>.md`.
-  - Contenido mínimo:
-    - Título descriptivo
-    - Resumen
-    - Código generado (si aplica)
-    - Decisiones técnicas
-    - Cobertura de tests y pruebas añadidas si falta
-    - Advertencias SonarQube / arquitectura
-    - Próximos pasos
-  - Archivos autocontenidos y reconstruibles.
-
----
-
-## 9. Consideraciones Finales para el Asistente
-
-- Respetar siempre **Clean Architecture** y **SRP**.
+- Respetar siempre la **Arquitectura Hexagonal** aplicando **Clean Architecture** y **SRP**.
 - IA **solo como análisis interpretativo**.
 - No ejecutar cambios automáticos en la lógica de evaluación.
 - Documentar cada tarea inmediatamente en `/docs`.
 - Validar todas las recomendaciones con **SonarQube** y patrones de diseño.
 - Comprobar cobertura de tests tras cada tarea y añadir pruebas si es necesario.
-- Evitar `lenient` en Mockito salvo que sea estrictamente necesario.

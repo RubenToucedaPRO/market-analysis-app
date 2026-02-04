@@ -13,9 +13,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.application.services.HealthCheckService;
-import com.market.analysis.domain.entities.HealthStatus;
-import com.market.analysis.domain.interfaces.HealthCheckPort;
+import com.market.analysis.application.usecase.HealthCheckService;
+import com.market.analysis.domain.model.HealthStatus;
+import com.market.analysis.domain.port.out.HealthCheckPort;
 
 /**
  * Unit tests for HealthCheckService.

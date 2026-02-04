@@ -1,4 +1,4 @@
-package com.market.analysis.unit.infrastructure.persistence;
+package com.market.analysis.unit.infrastructure.monitoring;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.infrastructure.persistence.HealthCheckAdapter;
+import com.market.analysis.infrastructure.monitoring.HealthCheckAdapter;
 
 /**
  * Unit tests for HealthCheckAdapter.
