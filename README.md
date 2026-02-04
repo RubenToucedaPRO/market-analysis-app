@@ -12,7 +12,7 @@ El núcleo de la aplicación concentra la lógica de negocio y actúa como orque
 - **Filtrado dinámico de activos**: Mecanismo previo de selección que procesa los tickers a analizar, descartando activos de alto riesgo mediante una lista negra configurable y criterios sectoriales predefinidos.
 - **Motor de estrategias declarativas**: Motor basado en reglas técnicas (medias móviles, volumen, indicadores y patrones de velas) que permite definir y evaluar estrategias de inversión de forma desacoplada de la persistencia y de las fuentes de datos.
 - **Integración de IA generativa**: Uso de modelos de lenguaje (GPT-4o-mini de OpenAI) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
-- **Arquitectura Hexagonal**: Separación clara entre dominio, lógica de aplicación y adaptadores de infraestructura, incluyendo Spring Boot, la capa de persistencia con MySQL y la integración con APIs externas.
+- **Arquitectura Hexagonal**: Separación clara entre dominio, lógica de aplicación y adaptadores de infraestructura, incluyendo Spring Boot, la capa de persistencia con MariaDB y la integración con APIs externas.
 - **Interfaz web ligera**: Frontend desarrollado con Thymeleaf y HTMX, que actúa como adaptador de entrada y proporciona una experiencia de usuario reactiva sin recurrir a un cliente pesado, manteniendo la lógica de presentación separada del núcleo del sistema.
 
 
@@ -68,7 +68,7 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
 ### Base de Datos
 - **H2**  
   Base de datos en memoria utilizada durante el desarrollo y la ejecución de pruebas.
-- **MySQL 8**  
+- **MariaDB 10.11**  
   Sistema gestor de base de datos relacional destinado al entorno productivo.
 
 ### Integración de IA
@@ -141,7 +141,7 @@ Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interp
 ### Requisitos Previos
 - Java 21+
 - Maven 3.9+
-- MySQL 8+ (producción) o H2 (desarrollo)
+- MariaDB (producción) o H2 (desarrollo)
 
 ### Variables de Entorno
 ```bash
@@ -434,7 +434,7 @@ Todas las integraciones externas están desacopladas mediante interfaces, garant
 ### Fase 5: Testing y Despliegue (Semana 2-3)
 - [ ] Suite completa de tests
 - [ ] Configuración CI/CD (GitHub Actions)
-- [ ] Migración a MySQL en producción
+- [ ] Migración a MariaDB en producción
 - [ ] Despliegue en Railway/Render/AWS
 - [ ] Documentación final
 
