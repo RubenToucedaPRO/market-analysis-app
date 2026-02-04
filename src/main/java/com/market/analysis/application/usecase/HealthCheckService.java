@@ -1,11 +1,11 @@
-package com.market.analysis.application.services;
+package com.market.analysis.application.usecase;
 
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.market.analysis.domain.entities.HealthStatus;
-import com.market.analysis.domain.repository.HealthCheckPort;
+import com.market.analysis.domain.model.HealthStatus;
+import com.market.analysis.domain.port.out.HealthCheckPort;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

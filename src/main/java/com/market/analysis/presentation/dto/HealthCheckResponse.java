@@ -1,4 +1,4 @@
-package com.market.analysis.presentation.response;
+package com.market.analysis.presentation.dto;
 
 import java.time.LocalDateTime;
 

@@ -1,0 +1,3 @@
+# infrastructure/config - Configuración y wiring de beans
+
+Este directorio contendrá beans de configuración y wiring de casos de uso.

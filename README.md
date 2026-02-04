@@ -282,8 +282,10 @@ src/main/java/com/market/analysis/
 │   │   └── openai
 │   │       └── OpenAiClient.java
 │   │
-│   └── config                     # Beans y wiring de Use Cases
-│       └── BeanConfig.java
+│   ├── config                     # Beans y wiring de Use Cases
+│   │    └── BeanConfig.java
+│   │
+│   └── monitoring                 # Monitorización y logging
 │
 ├── presentation                    # Adaptadores de entrada (UI)
 │   ├── controller

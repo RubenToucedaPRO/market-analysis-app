@@ -1,4 +1,4 @@
-package com.market.analysis.domain.entities;
+package com.market.analysis.domain.model;
 
 import java.time.LocalDateTime;
 
