@@ -176,6 +176,8 @@ La estructura del proyecto se ha diseñado siguiendo una **Arquitectura Hexagona
 ---
 
 ### Módulos Funcionales
+**Login y Seguridad**
+- **Vista Login**: Sistema de autenticación básico para acceso restringido.
 
 **Análisis y Seguimiento**
 - **Vista Analysis**: Panel principal para la ingesta de nuevos tickers y la ejecución del análisis técnico y de IA.
