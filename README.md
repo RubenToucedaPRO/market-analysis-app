@@ -3,7 +3,7 @@
 # Motor de Análisis Técnico de Acciones - TFM Desarrollo con IA
 
 ## 📊 Descripción General del Proyecto
-Este proyecto implementa un sistema avanzado de análisis técnico y apoyo a la toma de decisiones en la gestión de activos financieros. La aplicación se ha diseñado siguiendo una **Arquitectura Hexagonal inspirada en Clean Architecture**, separando de forma explícita el **dominio**, los **casos de uso** y los **adaptadores de infraestructura**, con el objetivo de obtener un sistema desacoplado, mantenible y fácilmente testeable.
+Este proyecto implementa un sistema avanzado de análisis técnico y apoyo a la toma de decisiones en la gestión de activos financieros. La aplicación se ha diseñado siguiendo una **Arquitectura Hexagonal  con Clean Architecture estricta**, separando de forma explícita el **dominio**, los **casos de uso** y los **adaptadores de infraestructura**, con el objetivo de obtener un sistema desacoplado, mantenible y fácilmente testeable.
 
 El núcleo de la aplicación concentra la lógica de negocio y actúa como orquestador de los casos de uso, integrando datos de mercado históricos y en tiempo real obtenidos de APIs externas (Finnhub y Polygon.io) con un motor de reglas técnicas y una capa de análisis asistida por inteligencia artificial. Las dependencias técnicas quedan relegadas a la periferia del sistema, evitando su propagación al dominio.
 
@@ -11,26 +11,26 @@ El núcleo de la aplicación concentra la lógica de negocio y actúa como orque
 
 - **Filtrado dinámico de activos**: Mecanismo previo de selección que procesa los tickers a analizar, descartando activos de alto riesgo mediante una lista negra configurable y criterios sectoriales predefinidos.
 - **Motor de estrategias declarativas**: Motor basado en reglas técnicas (medias móviles, volumen, indicadores y patrones de velas) que permite definir y evaluar estrategias de inversión de forma desacoplada de la persistencia y de las fuentes de datos.
-- **Integración de IA generativa**: Uso de modelos de lenguaje (GPT-4o-mini) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
+- **Integración de IA generativa**: Uso de modelos de lenguaje (GPT-4o-mini de OpenAI) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
 - **Arquitectura Hexagonal**: Separación clara entre dominio, lógica de aplicación y adaptadores de infraestructura, incluyendo Spring Boot, la capa de persistencia con MySQL y la integración con APIs externas.
-- **Interfaz web ligera**: Frontend desarrollado con Thymeleaf y htmx, que actúa como adaptador de entrada y proporciona una experiencia de usuario reactiva sin recurrir a un cliente pesado, manteniendo la lógica de presentación separada del núcleo del sistema.
+- **Interfaz web ligera**: Frontend desarrollado con Thymeleaf y HTMX, que actúa como adaptador de entrada y proporciona una experiencia de usuario reactiva sin recurrir a un cliente pesado, manteniendo la lógica de presentación separada del núcleo del sistema.
 
 
 ### Arquitectura del Sistema
 La aplicación está construida para ser desplegada en **Railway**, enfocándose en la eficiencia de datos y la seguridad personal.
 
-* **Acceso Restringido:** Sistema de autenticación privado sin registro público.
-* **Gestión de Datos:** Integración híbrida de APIs:
-    * **Finnhub:** Datos de perfil, precios en tiempo real y calendario de ganancias.
-    * **Polygon.io:** Extracción de indicadores técnicos y métricas de volumen.
-    * **OpenAI (GPT-4o-mini):** Análisis cualitativo avanzado.
+- **Acceso Restringido:** Sistema de autenticación privado sin registro público.
+- **Gestión de Datos:** Integración híbrida de APIs:
+    - **Finnhub:** Datos de perfil, precios en tiempo real y calendario de ganancias.
+    - **Polygon.io:** Extracción de indicadores técnicos y métricas de volumen.
+    - **GPT-4o-mini de OpenAI:** Análisis cualitativo avanzado.
 
 
 ### Flujo de Procesamiento y Análisis
 El motor de la aplicación ejecuta un pipeline de validación en cada consulta:
 
 1.  **Filtro de Seguridad:** Verificación contra una lista negra de sectores de alto riesgo (ETFs, Biotecnología, Warrants, activos apalancados, etc.).
-2.  **Enriquecimiento Técnico:** Cálculo automático de medias móviles ($SMA_{20, 50, 200}$) y análisis de volumen comparativo.
+2.  **Enriquecimiento Técnico:** Cálculo automático de medias móviles (SMA 20, 50, 200) y análisis de volumen comparativo.
 3.  **Evaluación de Estrategias:** Motor de reglas declarativas que valida si el activo cumple con criterios técnicos predefinidos.
 4.  **Cálculo R:R:** Determinación automática de la relación Riesgo/Beneficio.
 5.  **Análisis IA:** Generación de un resumen interpretativo basado en los resultados cuantitativos.
@@ -72,8 +72,8 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
   Sistema gestor de base de datos relacional destinado al entorno productivo.
 
 ### Integración de IA
-- **API OpenAI / Anthropic Claude / Gemini**  
-  Servicios externos utilizados para la generación de análisis interpretativo.
+- **GPT-4o-mini de OpenAI**  
+  Servicio externo utilizado para la generación de análisis interpretativo.
 - **Prompt engineering controlado**  
   Construcción de prompts basada exclusivamente en resultados cuantitativos generados por el sistema, sin impacto en la lógica de evaluación determinista.
 
@@ -198,12 +198,11 @@ La estructura del proyecto se ha diseñado siguiendo una **Arquitectura Hexagona
 
 ### Arquitectura General
 
-La aplicación se organiza en capas con dependencias dirigidas siempre hacia el dominio:
-
-- Presentation Layer (Controllers, Thymeleaf, HTMX)
-- Application Layer (Use Cases, Orchestration)
-- Domain Layer (Entities, Rules, Domain Services)
-- Infrastructure Layer (Persistence, APIs externas, IA, Configuración)
+La aplicación está organizada en capas, con las dependencias apuntando siempre hacia el dominio:
+  -   Presentation: controladores web, vistas Thymeleaf y HTMX.
+  -   Application: casos de uso y orquestación de la lógica de negocio.
+  -   Domain: entidades, reglas y servicios de dominio.
+  -   Infrastructure: persistencia, integración con APIs externas, IA y configuración técnica.
 
 ---
 
@@ -231,59 +230,92 @@ market-analysis-app/
 └── README.md                  Documentación principal  
 
 ---
-### Estructura Detallada de Paquetes software
+
+### Estructura Detallada de Paquetes
 
 src/main/java/com/market/analysis/
-├── domain/                           # Capa pura (sin dependencias)
-│   ├── entities/                     # Entidades y Value Objects
-│   ├── repository/                   # Interfaces de repositorio (PUERTOS)
-│   ├── exceptions/                   # Excepciones de dominio
-│   └── rules/                        # Reglas de negocio
-│
-├── application/                      # Casos de uso y orquestación
-│   ├── dto/                          # DTOs input/output de casos de uso
-│   ├── mappers/                      # Mapeo Domain ↔ DTO
-│   ├── services/                     # Application Services (orquestadores)
-│   ├── usecases/                     # Casos de uso específicos
-│   └── ports/                        # Interfaces de puertos (output adapters)
-│
-├── infrastructure/                   # Detalles técnicos
-│   ├── persistence/                  # Implementación de repositorios
-│   │   ├── entities/                 # Entidades JPA (distintas a domain)
-│   │   └── repositories/             # Implementación repositorio
-│   ├── external/                     # Integraciones externas
-│   │   ├── finnhub/                  # API Finnhub
-│   │   └── polygon/                  # API Polygon
-│   ├── ai/                           # Integraciones IA
-│   │   └── openai/
-│   ├── monitoring/                   # Logs, métricas
-│   └── config/                       # Configuración Spring
-│
-├── presentation/                     # Controladores y respuestas HTTP
-│   ├── controllers/                  # Controladores REST
-│   ├── response/                     # DTOs de respuesta (renombrado)
-│   └── handlers/                     # @ControllerAdvice para excepciones
-│
-└── shared/                           # Utilidades y constantes compartidas
-    ├── utils/                        # Helpers, validadores
-    ├── constants/                    # Constantes globales
-    └── exceptions/                   # Excepciones técnicas globales
 
----
+├── domain                         # Núcleo puro, sin dependencias
+│   ├── model                      # Entidades y Value Objects
+│   │   ├── Ticker.java
+│   │   ├── Strategy.java
+│   │   ├── Rule.java
+│   │   └── AnalysisResult.java
+│   │
+│   ├── service                    # Lógica de negocio pura
+│   │   └── StockAnalyzer.java
+│   │
+│   ├── port
+│   │   ├── in                     # Puertos de entrada (Use Case interfaces)
+│   │   │   ├── ObtainTickerDataUseCase.java
+│   │   │   └── EvaluateStrategyUseCase.java
+│   │   └── out                    # Puertos de salida (repositorios y APIs)
+│   │       ├── TickerRepository.java
+│   │       ├── ProhibitedTickerRepository.java
+│   │       ├── FinnhubPort.java
+│   │       ├── PolygonPort.java
+│   │       └── OpenAiPort.java
+│   │
+│   └── exception                  # Excepciones del dominio
+│       └── DomainException.java
+│
+├── application                    # Implementación de Use Cases (Orquestación)
+│   └── usecase
+│       ├── ObtainTickerDataService.java
+│       └── EvaluateStrategyService.java
+│
+├── infrastructure                 # Adaptadores técnicos
+│   ├── persistence
+│   │   ├── entity                 # Entidades JPA
+│   │   │   └── TickerEntity.java
+│   │   ├── repository             # Repositorios JPA
+│   │   │   ├── JpaTickerRepository.java
+│   │   │   └── JpaProhibitedTickerRepository.java
+│   │   └── mapper                 # Mapper Domain ↔ JPA
+│   │       └── TickerMapper.java
+│   │
+│   ├── external                   # Integraciones externas
+│   │   ├── finnhub
+│   │   │   └── FinnhubClient.java
+│   │   ├── polygon
+│   │   │   └── PolygonClient.java
+│   │   └── openai
+│   │       └── OpenAiClient.java
+│   │
+│   └── config                     # Beans y wiring de Use Cases
+│       └── BeanConfig.java
+│
+├── presentation                    # Adaptadores de entrada (UI)
+│   ├── controller
+│   │   ├── AnalysisController.java
+│   │   ├── StrategyController.java
+│   │   ├── TrackingController.java
+│   │   ├── ProhibitedController.java
+│   │   └── ErrorController.java
+│   │
+│   ├── dto                        # DTOs para request/response
+│   │   ├── TickerDto.java
+│   │   └── StrategyDto.java
+│   │
+│   └── mapper                     # Mapper Domain ↔ DTO
+│       └── TickerViewMapper.java
+│
+└── MarketAnalysisApplication.java  # Clase principal Spring Boot
+
 
 ### Descripción de Capas
 
-**Presentation Layer**  
-Gestiona la interacción con el usuario y delega la lógica de negocio en la capa de aplicación.
+**Presentation**  
+Gestiona la interacción con el usuario y envía las solicitudes a la capa de aplicación.
 
-**Application Layer**  
+**Application**  
 Define y orquesta los casos de uso, coordinando la interacción entre el dominio y los adaptadores externos.
 
-**Domain Layer**  
-Contiene el núcleo del sistema: entidades, reglas técnicas y lógica determinista de evaluación. Es independiente de frameworks, bases de datos y APIs externas.
+**Domain**  
+Contiene el núcleo del sistema: entidades, reglas técnicas y lógica de evaluación. Es completamente independiente de frameworks, bases de datos y APIs externas.
 
-**Infrastructure Layer**  
-Implementa los detalles técnicos necesarios para la ejecución del sistema, siempre a través de interfaces definidas en capas internas.
+**Infrastructure**  
+Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a través de interfaces definidas en capas internas.
 
 ---
 
@@ -377,8 +409,8 @@ Todas las integraciones externas están desacopladas mediante interfaces, garant
 - [x] Modelado del dominio
 - [x] Definición de interfaces de reglas
 - [x] Arquitectura base (capas)
-- [ ] Configuración de proyecto Maven
-- [ ] Setup de H2 + Spring Data JPA
+- [x] Configuración de proyecto Maven
+- [x] Setup de H2 + Spring Data JPA
 
 ### Fase 2: Core Funcional (Semana 1-2)
 - [ ] Implementación de reglas técnicas
@@ -420,28 +452,3 @@ Proyecto académico desarrollado con fines educativos.
 **Rubén Touceda**  
 Trabajo Fin de Máster - Desarrollo con IA  
 Fecha: Febrero 2026
-
-## 📋 Información del Repositorio
-
-- **Creado por**: Terraform  
-- **Fecha de creación**: 2026-02-02T11:57:29Z  
-- **Gestionado mediante**: Terraform (Infrastructure as Code)
-
-## 🚀 Sobre este repositorio
-
-Este repositorio fue creado como parte de una demostración de Terraform para mostrar los principios de **Infrastructure as Code (IaC)**. Su objetivo es ilustrar cómo:
-
-- 🏗️ **Crear** repositorios de GitHub de forma programática  
-- ⚙️ **Configurar** ajustes y funcionalidades del repositorio  
-- 📝 **Gestionar** el contenido del repositorio mediante código  
-- 🔄 **Versionar** cambios de infraestructura  
-- 🗑️ **Eliminar** recursos de forma segura cuando ya no son necesarios  
-
-## 🛠️ Tecnologías utilizadas
-
-- **Terraform**: Herramienta de Infrastructure as Code  
-- **GitHub Provider**: Proveedor de Terraform para la API de GitHub  
-- **GitHub Actions**: Plataforma de CI/CD (si está habilitada)  
-- **Git**: Sistema de control de versiones  
-
-**Nota**: Este repositorio ha sido creado automáticamente por Terraform como parte de una demostración de Infrastructure as Code. Su finalidad es mostrar cómo la infraestructura y la gestión de repositorios pueden automatizarse y versionarse de forma controlada.
