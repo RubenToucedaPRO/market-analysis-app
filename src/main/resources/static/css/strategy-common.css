@@ -1,0 +1,70 @@
+/* Configuración de Fuentes e Interfaz */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* Colores base para Tailwind si no se compila directamente */
+:root {
+  --primary: #3b82f6; /* Tailwind blue-500 */
+  --background-light: #f8fafc; /* Tailwind slate-50 */
+  --background-dark: #0f172a; /* Tailwind slate-900 */
+  --surface-light: #ffffff;
+  --surface-dark: #1e293b; /* Tailwind slate-800 */
+  --surface-border-light: #e2e8f0; /* Tailwind slate-200 */
+  --surface-border-dark: #334155; /* Tailwind slate-700 */
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  /* Aplicar colores de fondo y texto desde CSS si no se usan clases directas */
+  background-color: var(--background-light);
+  color: #334155; /* slate-700 */
+}
+.dark body {
+  background-color: var(--background-dark);
+  color: #e2e8f0; /* slate-200 */
+}
+
+/* Personalización de Scrollbars (Modernos y sutiles) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569; /* slate-700 */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b; /* slate-600 */
+}
+
+/* Estilos para los Selectores de Thymeleaf */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem; /* Espacio para el icono */
+}
+
+/* Animación para el botón de 'Save' */
+button[type="submit"]:active {
+  transform: scale(0.98);
+}
+
+/* Estilos para elementos dinámicos o personalizados */
+.bg-primary {
+  background-color: var(--primary);
+}
+.text-primary {
+  color: var(--primary);
+}
+.border-primary\/50 {
+  border-color: rgba(var(--primary-rgb), 0.5);
+}
+/* ... puedes añadir más si Tailwind no los genera o si necesitas customizar */

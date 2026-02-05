@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Create Strategy - AlphaSeeker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+      rel="stylesheet"
+    />
+    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+    <script th:src="@{/js/strategy-manager.js}" defer></script>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 transition-colors duration-200 min-h-screen font-body flex flex-col"
+  >
+    <form th:action="@{/strategies}" th:object="${strategy}" method="post">
+      <nav
+        class="sticky top-0 z-50 bg-surface-light dark:bg-surface-dark border-b border-surface-border-light dark:border-surface-border-dark px-6 py-4 flex items-center justify-between shadow-sm"
+      >
+        <div class="flex items-center gap-2">
+          <div class="bg-primary p-1.5 rounded-lg">
+            <span class="material-icons-round text-white text-xl"
+              >insights</span
+            >
+          </div>
+          <h1
+            class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600"
+          >
+            AlphaSeeker
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <a
+            th:href="@{/strategies}"
+            class="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-primary transition-colors"
+          >
+            <span class="material-icons-round text-[20px]">arrow_back</span>
+            <span class="hidden md:inline text-sm font-semibold"
+              >Back to List</span
+            >
+          </a>
+          <button
+            type="submit"
+            class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-all shadow-lg shadow-primary/25"
+          >
+            <span class="material-icons-round text-[18px]">save</span>
+            Save Strategy
+          </button>
+        </div>
+      </nav>
+
+      <main class="flex-grow p-6 lg:p-10 max-w-7xl mx-auto w-full">
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+          Create New Strategy
+        </h2>
+
+        <div
+          class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-surface-border-light dark:border-surface-border-dark shadow-sm overflow-hidden mb-8"
+        >
+          <div
+            class="p-6 border-b border-surface-border-light dark:border-surface-border-dark flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50"
+          >
+            <h3 class="font-bold text-lg flex items-center gap-2">
+              <span class="material-icons-round text-primary">settings</span>
+              Strategy Details
+            </h3>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label
+                  class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                  >Strategy Name
+                  <input
+                    type="text"
+                    th:field="*{name}"
+                    class="w-full bg-slate-50 dark:bg-slate-900 border-surface-border-light dark:border-surface-border-dark rounded-xl focus:ring-2 focus:ring-primary/20 transition-all"
+                    placeholder="e.g., RSI Oversold Recovery"
+                    required
+                  />
+                </label>
+              </div>
+              <div class="space-y-2">
+                <label
+                  class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                  >Description
+                  <input
+                    type="text"
+                    th:field="*{description}"
+                    class="w-full bg-slate-50 dark:bg-slate-900 border-surface-border-light dark:border-surface-border-dark rounded-xl focus:ring-2 focus:ring-primary/20 transition-all"
+                    placeholder="Describe your strategy logic..."
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-surface-border-light dark:border-surface-border-dark shadow-sm overflow-hidden"
+        >
+          <div
+            class="p-6 border-b border-surface-border-light dark:border-surface-border-dark bg-slate-50/50 dark:bg-slate-800/50"
+          >
+            <h3 class="font-bold text-lg flex items-center gap-2">
+              <span class="material-icons-round text-primary">rule</span>
+              Execution Rules
+            </h3>
+          </div>
+          <div class="p-6 space-y-4" id="rules-container">
+            <div
+              th:each="rule, stat : *{rules}"
+              class="rule-row group gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 border border-surface-border-light dark:border-surface-border-dark rounded-xl transition-all hover:border-primary/50"
+            >
+              <div class="col-span-2 md:col-span-4 space-y-1">
+                <label class="text-[10px] font-bold uppercase text-slate-400"
+                  >Name
+
+                  <input
+                    type="text"
+                    th:field="*{rules[__${stat.index}__].name}"
+                    class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-semibold"
+                    placeholder="Rule Name"
+                  />
+                </label>
+              </div>
+              <div class="col-span-2 md:col-span-4 space-y-1">
+                <label class="text-[10px] font-bold uppercase text-slate-400"
+                  >Subject Indicator
+
+                  <select
+                    th:field="*{rules[__${stat.index}__].subjectCode}"
+                    class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-semibold"
+                  >
+                    <option value="PRICE">Market Price</option>
+                    <option value="SMA">Simple Moving Average</option>
+                    <option value="RSI">Relative Strength Index</option>
+                  </select>
+                </label>
+              </div>
+              <div class="col-span-6 md:col-span-2 space-y-1">
+                <label class="text-[10px] font-bold uppercase text-slate-400"
+                  >Operator
+                  <select
+                    th:field="*{rules[__${stat.index}__].operator}"
+                    class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-bold text-primary text-center"
+                  >
+                    <option value=">">GREATER THAN</option>
+                    <option value="<">LESS THAN</option>
+                    <option value="=">EQUAL TO</option>
+                  </select>
+                </label>
+              </div>
+              <div class="col-span-6 md:col-span-4 space-y-1">
+                <label class="text-[10px] font-bold uppercase text-slate-400"
+                  >Target Value / Indicator
+                  <input
+                    type="number"
+                    step="0.01"
+                    th:field="*{rules[__${stat.index}__].targetParam}"
+                    class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-semibold"
+                    placeholder="0.00"
+                  />
+                </label>
+              </div>
+              <div class="col-span-1 flex items-center justify-end">
+                <button
+                  type="button"
+                  onclick="removeRuleRow(this)"
+                  class="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <span class="material-icons-round text-xl"
+                    >delete_forever</span
+                  >
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            class="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-surface-border-light dark:border-surface-border-dark"
+          >
+            <button
+              type="button"
+              onclick="addRuleRow()"
+              class="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2 text-slate-500 hover:border-primary hover:text-primary transition-all group"
+            >
+              <span
+                class="material-icons-round group-hover:rotate-90 transition-transform"
+                >add_circle</span
+              >
+              <span class="font-semibold text-sm">Add Conditional Rule</span>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <footer
+        class="mt-auto p-4 text-center text-xs text-slate-500 dark:text-slate-400 border-t border-surface-border-light dark:border-surface-border-dark bg-surface-light dark:bg-surface-dark"
+      >
+        &copy; 2023 AlphaSeeker. All rights reserved.
+      </footer>
+    </form>
+  </body>
+</html>

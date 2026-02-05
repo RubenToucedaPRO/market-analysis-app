@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.StrategyRepository;
-import com.market.analysis.domain.service.ManageStrategyUseCase;
 
 import lombok.RequiredArgsConstructor;
 

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Strategies List - AlphaSeeker</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
+      rel="stylesheet"
+    />
+    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200 transition-colors duration-200 min-h-screen font-body flex flex-col"
+  >
+    <nav
+      class="sticky top-0 z-50 bg-surface-light dark:bg-surface-dark border-b border-surface-border-light dark:border-surface-border-dark px-6 py-4 flex items-center justify-between shadow-sm"
+    >
+      <div class="flex items-center gap-2">
+        <div class="bg-primary p-1.5 rounded-lg">
+          <span class="material-icons-round text-white text-xl">insights</span>
+        </div>
+        <h1
+          class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600"
+        >
+          AlphaSeeker
+        </h1>
+      </div>
+      <a
+        th:href="@{/strategies/new}"
+        class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-all shadow-lg shadow-primary/25"
+      >
+        <span class="material-icons-round text-[18px]">add_circle</span>
+        New Strategy
+      </a>
+    </nav>
+
+    <main class="flex-grow p-6 lg:p-10 max-w-7xl mx-auto w-full">
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+        Your Trading Strategies
+      </h2>
+
+      <div
+        th:if="${strategies.isEmpty()}"
+        class="text-center py-10 text-slate-500 dark:text-slate-400"
+      >
+        <span class="material-icons-round text-6xl mb-4">search_off</span>
+        <p class="text-lg">No strategies found. Let's create one!</p>
+        <a
+          th:href="@{/strategies/new}"
+          class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-blue-600 text-white text-sm font-semibold rounded-lg"
+        >
+          <span class="material-icons-round text-base">add</span> Create
+          Strategy
+        </a>
+      </div>
+
+      <div
+        th:unless="${strategies.isEmpty()}"
+        class="bg-surface-light dark:bg-surface-dark rounded-2xl border border-surface-border-light dark:border-surface-border-dark shadow-sm overflow-hidden"
+      >
+        <table
+          class="min-w-full divide-y divide-surface-border-light dark:divide-surface-border-dark"
+        >
+          <thead class="bg-slate-50/50 dark:bg-slate-800/50">
+            <tr>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
+              >
+                Name
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
+              >
+                Description
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
+              >
+                Rules
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="divide-y divide-surface-border-light dark:divide-surface-border-dark"
+          >
+            <tr
+              th:each="strategy : ${strategies}"
+              class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+            >
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+                th:text="${strategy.name}"
+              >
+                Golden Cross
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-slate-500"
+                th:text="${strategy.description}"
+              >
+                Description of the strategy.
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-slate-500"
+                th:text="${strategy.rules.size()}"
+              >
+                3 rules
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+              >
+                <a href="#" class="text-primary hover:text-blue-600 mr-4"
+                  >Edit</a
+                >
+                <a href="#" class="text-red-600 hover:text-red-800">Delete</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <footer
+      class="mt-auto p-4 text-center text-xs text-slate-500 dark:text-slate-400 border-t border-surface-border-light dark:border-surface-border-dark bg-surface-light dark:bg-surface-dark"
+    >
+      &copy; 2023 AlphaSeeker. All rights reserved.
+    </footer>
+  </body>
+</html>

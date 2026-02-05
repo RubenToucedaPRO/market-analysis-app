@@ -26,7 +26,7 @@ public class StrategyEntity {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "strategy_id")
-    private List<RuleEntity> rules;
+    private List<RuleEntity> rules = new java.util.ArrayList<>();
 
     public void addRule(RuleEntity rule) {
         this.rules.add(rule);

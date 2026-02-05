@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
-import com.market.analysis.domain.service.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,8 +28,16 @@ public class StrategyController {
 
     @GetMapping("/new")
     public String showCreateForm(Model model) {
-        // Pasamos una estrategia vacía para que el formulario la rellene
-        model.addAttribute("strategy", Strategy.builder().build());
+        // En lugar de enviarlo vacío, inicializamos la lista de reglas
+        // para que Thymeleaf tenga donde iterar al menos una fila.
+        Strategy strategy = Strategy.builder()
+                .name("")
+                .description("")
+                // IMPORTANTE: Inicializar la lista con una regla vacía
+                .rules(new java.util.ArrayList<>(java.util.List.of(Rule.builder().build())))
+                .build();
+
+        model.addAttribute("strategy", strategy);
         return "strategies/create";
     }
 

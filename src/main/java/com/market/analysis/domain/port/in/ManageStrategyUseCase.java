@@ -1,4 +1,4 @@
-package com.market.analysis.domain.service;
+package com.market.analysis.domain.port.in;
 
 import java.util.List;
 

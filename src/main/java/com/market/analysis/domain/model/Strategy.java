@@ -9,7 +9,8 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Entity representing a trading strategy composed of multiple technical analysis rules.
+ * Entity representing a trading strategy composed of multiple technical
+ * analysis rules.
  * Strategies define the criteria for evaluating trading opportunities.
  */
 @Getter
@@ -85,8 +86,10 @@ public class Strategy {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Strategy strategy = (Strategy) o;
         return Objects.equals(id, strategy.id);
     }
