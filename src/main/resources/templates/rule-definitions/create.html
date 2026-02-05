@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${isEdit} ? 'Edit Rule Definition' : 'Create Rule Definition'">
+      Create Rule Definition - AlphaSeeker
+    </title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    <!-- Navigation Bar -->
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm"
+    >
+      <div class="container-fluid">
+        <!-- Logo and Title -->
+        <a class="navbar-brand d-flex align-items-center" th:href="@{/strategies}">
+          <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+          <span class="fw-bold text-primary">AlphaSeeker</span>
+        </a>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2">
+          <a th:href="@{/rule-definitions}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to List
+          </a>
+          <button type="submit" form="ruleDefinitionForm" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i>
+            Save Rule Definition
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-5 flex-grow-1">
+      <h2 class="mb-4" th:text="${isEdit} ? 'Edit Rule Definition' : 'Create New Rule Definition'">
+        Create New Rule Definition
+      </h2>
+
+      <form
+        id="ruleDefinitionForm"
+        th:action="@{/rule-definitions}"
+        th:object="${ruleDefinition}"
+        method="post"
+      >
+        <!-- Rule Definition Details Card -->
+        <div class="card">
+          <div class="card-header bg-light">
+            <h5 class="mb-0">
+              <i class="bi bi-gear text-primary me-2"></i>
+              Rule Definition Details
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <input type="hidden" th:field="*{id}" />
+              
+              <!-- Code -->
+              <div class="col-md-6">
+                <label for="code" class="form-label fw-semibold">
+                  Code <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="code"
+                  th:field="*{code}"
+                  placeholder="e.g., SMA, RSI, PRICE"
+                  required
+                  th:readonly="${isEdit}"
+                />
+                <small class="form-text text-muted">
+                  Unique identifier used in the code. Cannot be changed after creation.
+                </small>
+              </div>
+
+              <!-- Name -->
+              <div class="col-md-6">
+                <label for="name" class="form-label fw-semibold">
+                  Name <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  th:field="*{name}"
+                  placeholder="e.g., Simple Moving Average"
+                  required
+                />
+                <small class="form-text text-muted">
+                  Human-readable name displayed in the interface.
+                </small>
+              </div>
+
+              <!-- Requires Parameter -->
+              <div class="col-md-12">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="requiresParam"
+                    th:field="*{requiresParam}"
+                  />
+                  <label class="form-check-label fw-semibold" for="requiresParam">
+                    Requires Parameter
+                  </label>
+                  <small class="form-text text-muted d-block">
+                    Check this if the rule requires a numeric parameter (e.g., period for SMA 200).
+                  </small>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="col-md-12">
+                <label for="description" class="form-label fw-semibold">
+                  Description
+                </label>
+                <textarea
+                  class="form-control"
+                  id="description"
+                  th:field="*{description}"
+                  rows="3"
+                  placeholder="Describe the rule definition and its purpose..."
+                ></textarea>
+                <small class="form-text text-muted">
+                  Optional description explaining what this rule represents.
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="alert alert-info mt-4" role="alert">
+          <h6 class="alert-heading">
+            <i class="bi bi-info-circle me-2"></i>
+            About Rule Definitions
+          </h6>
+          <p class="mb-0">
+            Rule definitions represent the available indicators and values that can be used
+            in strategy rules. Examples include technical indicators like SMA (Simple Moving Average),
+            RSI (Relative Strength Index), or basic values like PRICE or VOLUME.
+          </p>
+        </div>
+      </form>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light border-top py-3 mt-auto">
+      <div class="container text-center">
+        <small class="text-muted"
+          >&copy; 2023 AlphaSeeker. All rights reserved.</small
+        >
+      </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
