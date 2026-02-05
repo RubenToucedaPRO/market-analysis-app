@@ -156,7 +156,7 @@
                         <exclude>com/market/analysis/application/dto/**</exclude>
                         <exclude>com/market/analysis/presentation/dto/**</exclude>
 
-                        <exclude>com/market/analysis/domain/entities/**</exclude>
+                        <exclude>com/market/analysis/domain/model/**</exclude>
                         <exclude>com/market/analysis/domain/exceptions/**</exclude>
 
                         <exclude>**/*DTO.class</exclude>
