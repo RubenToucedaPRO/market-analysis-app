@@ -1,6 +1,7 @@
 package com.market.analysis.unit.infrastructure.persistence.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -110,6 +111,6 @@ class RuleDefinitionMapperTest {
 
         // Assert
         assertNotNull(entity);
-        assertEquals(false, entity.isRequiresParam());
+        assertFalse(entity.isRequiresParam());
     }
 }

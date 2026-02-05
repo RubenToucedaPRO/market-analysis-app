@@ -1,6 +1,7 @@
 package com.market.analysis.unit.presentation.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -111,6 +112,6 @@ class RuleDefinitionDTOMapperTest {
 
         // Assert
         assertNotNull(dto);
-        assertEquals(false, dto.isRequiresParam());
+        assertFalse(dto.isRequiresParam());
     }
 }
