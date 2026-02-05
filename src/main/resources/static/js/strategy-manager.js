@@ -1,124 +1,147 @@
 /**
- * Gestiona la adición y eliminación dinámica de filas de reglas en el formulario de estrategias.
+ * Strategy Manager - JavaScript for Dynamic Rule Management
+ * 
+ * This script handles adding and removing rules dynamically in the strategy form.
+ * Written to be simple and easy to understand for junior developers.
  */
 
-// Inicializa el índice de la regla basándose en las filas existentes
-let ruleIndex = document.querySelectorAll(".rule-row").length;
+// Keep track of how many rules we have
+let ruleIndex = 0;
 
 /**
- * Añade una nueva fila de regla al formulario.
+ * Initialize the rule index when page loads
+ * Count existing rules on the page
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    // Count how many rules already exist on the page
+    const existingRules = document.querySelectorAll('.rule-row');
+    ruleIndex = existingRules.length;
+    
+    // If there are no rules, add one automatically
+    if (ruleIndex === 0) {
+        addRuleRow();
+    }
+});
+
+/**
+ * Add a new rule row to the form
+ * Creates a new card with all the necessary input fields
  */
 function addRuleRow() {
-  const container = document.getElementById("rules-container");
-
-  // Si no hay filas existentes, necesitamos una "plantilla"
-  let rowToClone;
-  if (ruleIndex === 0) {
-    // Crear una plantilla básica si es la primera regla
-    rowToClone = document.createElement("div");
-    rowToClone.innerHTML = `
-            <div class="col-span-12 md:col-span-4 space-y-1">
-                <label class="text-[10px] font-bold uppercase text-slate-400">Subject Indicator</label>
-                <select name="rules[0].subjectCode" class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-semibold">
-                    <option value="PRICE">Market Price</option>
-                    <option value="SMA">Simple Moving Average</option>
-                    <option value="RSI">Relative Strength Index</option>
-                </select>
+    // Get the container where rules are displayed
+    const container = document.getElementById('rules-container');
+    
+    // Create a new div element for the rule
+    const newRule = document.createElement('div');
+    newRule.className = 'rule-row card mb-3';
+    
+    // Set the HTML content of the new rule
+    // Uses Bootstrap classes for styling
+    newRule.innerHTML = `
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <!-- Rule Name Input -->
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Rule Name</label>
+                    <input 
+                        type="text" 
+                        class="form-control form-control-sm" 
+                        name="rules[${ruleIndex}].name" 
+                        placeholder="Rule Name">
+                </div>
+                
+                <!-- Subject Indicator Select -->
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Subject Indicator</label>
+                    <select class="form-select form-select-sm" name="rules[${ruleIndex}].subjectCode">
+                        <option value="PRICE">Market Price</option>
+                        <option value="SMA">Simple Moving Average</option>
+                        <option value="RSI">Relative Strength Index</option>
+                    </select>
+                </div>
+                
+                <!-- Operator Select -->
+                <div class="col-md-2">
+                    <label class="form-label small text-muted">Operator</label>
+                    <select class="form-select form-select-sm" name="rules[${ruleIndex}].operator">
+                        <option value=">">Greater Than (&gt;)</option>
+                        <option value="<">Less Than (&lt;)</option>
+                        <option value="=">Equal To (=)</option>
+                    </select>
+                </div>
+                
+                <!-- Target Value Input -->
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Target Value</label>
+                    <input 
+                        type="number" 
+                        step="0.01" 
+                        class="form-control form-control-sm" 
+                        name="rules[${ruleIndex}].targetParam" 
+                        placeholder="0.00">
+                </div>
+                
+                <!-- Remove Button -->
+                <div class="col-md-1 text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRuleRow(this)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
             </div>
-            <div class="col-span-6 md:col-span-2 space-y-1">
-                <label class="text-[10px] font-bold uppercase text-slate-400">Operator</label>
-                <select name="rules[0].operator" class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-bold text-primary text-center">
-                    <option value=">">GREATER THAN</option>
-                    <option value="<">LESS THAN</option>
-                    <option value="=">EQUAL TO</option>
-                </select>
-            </div>
-            <div class="col-span-6 md:col-span-4 space-y-1">
-                <label class="text-[10px] font-bold uppercase text-slate-400">Target Value / Indicator</label>
-                <input type="number" step="0.01" name="rules[0].targetParam" class="w-full bg-transparent border-none p-0 focus:ring-0 text-sm font-semibold" placeholder="0.00" />
-            </div>
-             <div class="col-span-1 flex items-center justify-end">
-                <button type="button" onclick="removeRuleRow(this)" class="text-red-500 hover:text-red-700 opacity-100 transition-opacity">
-                    <span class="material-icons-round text-xl">delete_forever</span>
-                </button>
-            </div>
-        `;
-    // Ajustar la clase principal del div que contiene todo
-    const newRuleDiv = document.createElement("div");
-    newRuleDiv.classList.add(
-      "rule-row",
-      "group",
-      "grid",
-      "grid-cols-12",
-      "gap-4",
-      "p-4",
-      "bg-slate-50",
-      "dark:bg-slate-900/50",
-      "border",
-      "border-surface-border-light",
-      "dark:border-surface-border-dark",
-      "rounded-xl",
-      "transition-all",
-      "hover:border-primary/50",
-    );
-    newRuleDiv.appendChild(rowToClone);
-    rowToClone = newRuleDiv;
-  } else {
-    // Clonar la última fila existente
-    const rows = document.querySelectorAll(".rule-row");
-    rowToClone = rows[rows.length - 1].cloneNode(true);
-  }
-
-  // Limpiamos y actualizamos los atributos 'name' e 'id' de los inputs clonados
-  rowToClone.querySelectorAll("select, input").forEach((input) => {
-    const name = input.getAttribute("name");
-    if (name) {
-      input.setAttribute("name", name.replace(/\[\d+\]/, `[${ruleIndex}]`));
-      input.value = ""; // Limpiar valores para la nueva fila
-    }
-  });
-
-  container.appendChild(rowToClone);
-  ruleIndex++;
+        </div>
+    `;
+    
+    // Add the new rule to the container
+    container.appendChild(newRule);
+    
+    // Increment the index for the next rule
+    ruleIndex++;
 }
 
 /**
- * Elimina una fila de regla del formulario.
- * @param {HTMLElement} button El botón que activó la eliminación.
+ * Remove a rule row from the form
+ * @param {HTMLElement} button - The delete button that was clicked
  */
 function removeRuleRow(button) {
-  const rowToRemove = button.closest(".rule-row");
-  if (rowToRemove) {
-    rowToRemove.remove();
-    // Reindexar todas las filas restantes para mantener la secuencia correcta para Thymeleaf
-    reindexRules();
-  }
+    // Find the rule card that contains this button
+    const ruleCard = button.closest('.rule-row');
+    
+    // Remove the rule from the page
+    if (ruleCard) {
+        ruleCard.remove();
+        
+        // Re-index all remaining rules to keep numbering correct
+        reindexRules();
+    }
 }
 
 /**
- * Reindexa los atributos 'name' de las filas de reglas después de una eliminación.
+ * Re-index all rules after one is removed
+ * This ensures the form field names stay sequential (rules[0], rules[1], etc.)
  */
 function reindexRules() {
-  const rows = document.querySelectorAll(".rule-row");
-  ruleIndex = 0; // Resetear el contador de índice
-  rows.forEach((row) => {
-    row.querySelectorAll("select, input").forEach((input) => {
-      const name = input.getAttribute("name");
-      if (name) {
-        input.setAttribute("name", name.replace(/\[\d+\]/, `[${ruleIndex}]`));
-      }
+    // Get all remaining rule rows
+    const rules = document.querySelectorAll('.rule-row');
+    
+    // Reset the index counter
+    ruleIndex = 0;
+    
+    // Loop through each rule and update its input names
+    rules.forEach(function(rule) {
+        // Find all inputs and selects in this rule
+        const inputs = rule.querySelectorAll('input, select');
+        
+        // Update each input's name attribute
+        inputs.forEach(function(input) {
+            const name = input.getAttribute('name');
+            if (name) {
+                // Replace the old index with the new one
+                // Example: rules[2].name becomes rules[0].name
+                input.setAttribute('name', name.replace(/\[\d+\]/, `[${ruleIndex}]`));
+            }
+        });
+        
+        // Move to next index
+        ruleIndex++;
     });
-    ruleIndex++;
-  });
 }
-
-// Asegúrate de que al cargar la página, si hay 0 reglas, se añada una automáticamente.
-// Esto es para que el formulario no esté vacío inicialmente.
-document.addEventListener("DOMContentLoaded", () => {
-  if (
-    document.querySelectorAll(".rule-row").length === 0 &&
-    document.getElementById("rules-container")
-  ) {
-    addRuleRow();
-  }
-});
