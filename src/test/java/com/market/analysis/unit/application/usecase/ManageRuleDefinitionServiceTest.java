@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
+import com.market.analysis.domain.exception.RuleDefinitionNotFoundException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 
@@ -152,7 +153,7 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        RuleDefinitionNotFoundException exception = assertThrows(RuleDefinitionNotFoundException.class,
                 () -> manageRuleDefinitionService.getRuleDefinitionById(999L));
         
         assertEquals("RuleDefinition not found with id: 999", exception.getMessage());
@@ -211,7 +212,7 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.existsById(1L)).thenReturn(false);
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        RuleDefinitionNotFoundException exception = assertThrows(RuleDefinitionNotFoundException.class,
                 () -> manageRuleDefinitionService.updateRuleDefinition(testRuleDefinition));
         
         assertEquals("RuleDefinition not found with id: 1", exception.getMessage());
@@ -239,7 +240,7 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.existsById(999L)).thenReturn(false);
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        RuleDefinitionNotFoundException exception = assertThrows(RuleDefinitionNotFoundException.class,
                 () -> manageRuleDefinitionService.deleteRuleDefinition(999L));
         
         assertEquals("RuleDefinition not found with id: 999", exception.getMessage());

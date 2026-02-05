@@ -16,6 +16,21 @@ Se ha implementado un sistema completo de gestión de `RuleDefinition` siguiendo
 
 ### 1. Capa de Dominio (Domain Layer)
 
+#### RuleDefinitionNotFoundException.java (domain/exception)
+```java
+public class RuleDefinitionNotFoundException extends RuntimeException {
+    public RuleDefinitionNotFoundException(String message) {
+        super(message);
+    }
+    
+    public RuleDefinitionNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+```
+
+**Propósito:** Excepción personalizada de dominio que representa la violación de una regla de negocio cuando no se encuentra una RuleDefinition. Reemplaza las RuntimeException genéricas.
+
 #### RuleDefinitionRepository.java (domain/port/out)
 ```java
 public interface RuleDefinitionRepository {
@@ -65,6 +80,13 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         }
         return ruleDefinitionRepository.save(ruleDefinition);
     }
+    
+    @Override
+    public RuleDefinition getRuleDefinitionById(Long id) {
+        return ruleDefinitionRepository.findById(id)
+            .orElseThrow(() -> new RuleDefinitionNotFoundException(
+                "RuleDefinition not found with id: " + id));
+    }
     // ... otros métodos
 }
 ```
@@ -72,6 +94,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
 **Decisiones técnicas:**
 - Validación de unicidad del código antes de crear
 - Validación de existencia antes de actualizar o eliminar
+- **Uso de RuleDefinitionNotFoundException** personalizada en lugar de RuntimeException genérica
 - Manejo de excepciones apropiado para cada caso
 
 **Actualización de ManageStrategyService:**
@@ -238,13 +261,13 @@ public class RuleDefinitionController {
    - ✅ Validación de código duplicado
    - ✅ Obtener todas las definiciones
    - ✅ Obtener por ID
-   - ✅ Definición no encontrada por ID
+   - ✅ Definición no encontrada por ID (lanza RuleDefinitionNotFoundException)
    - ✅ Actualización exitosa
    - ✅ Validación de null en actualización
    - ✅ Validación de ID null en actualización
-   - ✅ Actualización de definición no existente
+   - ✅ Actualización de definición no existente (lanza RuleDefinitionNotFoundException)
    - ✅ Eliminación exitosa
-   - ✅ Eliminación de definición no existente
+   - ✅ Eliminación de definición no existente (lanza RuleDefinitionNotFoundException)
 
 2. **SqlRuleDefinitionRepositoryTest.java** (11 tests)
    - ✅ Guardar definición
