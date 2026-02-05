@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
@@ -41,9 +42,22 @@ public class StrategyController {
         return "strategies/create";
     }
 
+    @PostMapping("/edit")
+    public String showEditForm(@RequestParam("id") long strategyId, Model model) {
+        Strategy strategy = manageStrategyUseCase.getStrategyById(strategyId);
+        model.addAttribute("strategy", strategy);
+        return "strategies/create";
+    }
+
     @PostMapping
     public String saveStrategy(@ModelAttribute Strategy strategy) {
         manageStrategyUseCase.createStrategy(strategy);
+        return "redirect:/strategies";
+    }
+
+    @PostMapping("/delete")
+    public String deleteStrategy(@RequestParam("id") long strategyId) {
+        manageStrategyUseCase.deleteStrategy(strategyId);
         return "redirect:/strategies";
     }
 }

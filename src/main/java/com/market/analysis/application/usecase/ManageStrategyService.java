@@ -27,9 +27,20 @@ public class ManageStrategyService implements ManageStrategyUseCase {
     }
 
     @Override
+    public Strategy getStrategyById(Long strategyId) {
+        return strategyRepository.findById(strategyId)
+                .orElseThrow(() -> new RuntimeException("Strategy not found with id: " + strategyId));
+    }
+
+    @Override
     public List<RuleDefinition> getAvailableRuleDefinitions() {
         // Esto debería venir de un RuleDefinitionRepository que creamos antes
         // Por ahora, si no lo tienes, puedes devolver una lista fija para probar
-        return List.of(); 
+        return List.of();
+    }
+
+    @Override
+    public void deleteStrategy(Long strategyId) {
+        strategyRepository.deleteById(strategyId);
     }
 }

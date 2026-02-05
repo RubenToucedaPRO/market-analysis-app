@@ -10,5 +10,9 @@ public interface ManageStrategyUseCase {
 
     List<Strategy> getAllStrategies();
 
+    Strategy getStrategyById(Long strategyId);
+
     List<RuleDefinition> getAvailableRuleDefinitions(); // Para llenar los combos de la vista
+
+    void deleteStrategy(Long strategyId);
 }
