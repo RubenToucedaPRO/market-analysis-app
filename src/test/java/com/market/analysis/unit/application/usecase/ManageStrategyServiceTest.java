@@ -24,6 +24,7 @@ import com.market.analysis.application.usecase.ManageStrategyService;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 
 /**
@@ -35,6 +36,9 @@ class ManageStrategyServiceTest {
 
     @Mock
     private StrategyRepository strategyRepository;
+
+    @Mock
+    private RuleDefinitionRepository ruleDefinitionRepository;
 
     @InjectMocks
     private ManageStrategyService manageStrategyService;
@@ -128,12 +132,24 @@ class ManageStrategyServiceTest {
     @Test
     @DisplayName("Should get available rule definitions")
     void testGetAvailableRuleDefinitions() {
+        // Arrange
+        RuleDefinition ruleDefinition = RuleDefinition.builder()
+                .id(1L)
+                .code("SMA")
+                .name("Simple Moving Average")
+                .requiresParam(true)
+                .description("Moving average")
+                .build();
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of(ruleDefinition));
+
         // Act
         List<RuleDefinition> result = manageStrategyService.getAvailableRuleDefinitions();
 
         // Assert
         assertNotNull(result);
-        assertEquals(0, result.size()); // Currently returns empty list
+        assertEquals(1, result.size());
+        assertEquals("SMA", result.get(0).getCode());
+        verify(ruleDefinitionRepository, times(1)).findAll();
     }
 
     @Test

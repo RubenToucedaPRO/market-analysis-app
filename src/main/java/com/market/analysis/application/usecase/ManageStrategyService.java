@@ -5,6 +5,7 @@ import java.util.List;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public class ManageStrategyService implements ManageStrategyUseCase {
 
     private final StrategyRepository strategyRepository;
+    private final RuleDefinitionRepository ruleDefinitionRepository;
 
     @Override
     public Strategy createStrategy(Strategy strategy) {
@@ -34,9 +36,7 @@ public class ManageStrategyService implements ManageStrategyUseCase {
 
     @Override
     public List<RuleDefinition> getAvailableRuleDefinitions() {
-        // Esto debería venir de un RuleDefinitionRepository que creamos antes
-        // Por ahora, si no lo tienes, puedes devolver una lista fija para probar
-        return List.of();
+        return ruleDefinitionRepository.findAll();
     }
 
     @Override
