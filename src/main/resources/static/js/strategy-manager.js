@@ -17,6 +17,30 @@ document.addEventListener("DOMContentLoaded", function () {
   const existingRules = document.querySelectorAll(".rule-row");
   ruleIndex = existingRules.length;
 
+  // Initialize visibility for existing rules
+  existingRules.forEach((rule, index) => {
+    const select = rule.querySelector('select[name*="subjectCode"]');
+    if (select) {
+      const selectedOption = select.options[select.selectedIndex];
+      const requiresParam = selectedOption.dataset.requiresParam === "true";
+      const paramContainer = rule.querySelector(`[id^="rule-container-"]`);
+
+      if (paramContainer) {
+        paramContainer.style.display = requiresParam ? "" : "none";
+
+        // Set required attribute correctly on initialization
+        const input = paramContainer.querySelector("input");
+        if (input) {
+          if (requiresParam) {
+            input.setAttribute("required", "required");
+          } else {
+            input.removeAttribute("required");
+          }
+        }
+      }
+    }
+  });
+
   // If there are no rules, add one automatically
   if (ruleIndex === 0) {
     addRuleRow();
@@ -86,7 +110,47 @@ function reindexRules() {
       }
     });
 
+    // Update the ID of the parameter container
+    const paramContainer = rule.querySelector('[id^="rule-container-"]');
+    if (paramContainer) {
+      paramContainer.id = `rule-container-${ruleIndex}`;
+    }
+
+    // Update the onchange attribute of the select
+    const select = rule.querySelector('select[name*="subjectCode"]');
+    if (select) {
+      select.setAttribute(
+        "onchange",
+        `toggleSubjectParameter(this, ${ruleIndex})`,
+      );
+    }
+
     // Move to next index
     ruleIndex++;
   });
+}
+
+/**
+ * Toggle visibility of Subject Parameter field based on selected indicator
+ * @param {HTMLSelectElement} selectElement - The select element that was changed
+ * @param {number} index - The index of the rule row
+ */
+function toggleSubjectParameter(selectElement, index) {
+  const selectedOption = selectElement.options[selectElement.selectedIndex];
+  const requiresParam = selectedOption.dataset.requiresParam === "true";
+  const paramContainer = document.getElementById(`rule-container-${index}`);
+
+  if (paramContainer) {
+    paramContainer.style.display = requiresParam ? "" : "none";
+
+    // Toggle required attribute on the input field
+    const input = paramContainer.querySelector("input");
+    if (input) {
+      if (requiresParam) {
+        input.setAttribute("required", "required");
+      } else {
+        input.removeAttribute("required");
+      }
+    }
+  }
 }

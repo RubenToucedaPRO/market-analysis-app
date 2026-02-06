@@ -1,9 +1,9 @@
 <!-- templates/fragments/rule-row.html -->
 <div th:fragment="ruleRow" class="rule-row card mb-3">
   <div class="card-body">
-    <div class="row g-3 align-items-end">
+    <div class="row g-1 align-items-end">
       <!-- Rule Name -->
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label small text-muted">
           Rule Name
           <input
@@ -18,19 +18,23 @@
       </div>
 
       <!-- Subject Indicator -->
-      <div class="col-md-3">
+      <div class="col-md-2">
         <label class="form-label small text-muted">
           Subject Indicator
           <select
             class="form-select form-select-sm"
             th:name="|rules[${index}].subjectCode|"
+            th:onchange="|toggleSubjectParameter(this, ${index})|"
             required
           >
-            <option value="">-- Select Indicator --</option>
+            <option value="" data-requires-param="false">
+              -- Select Indicator --
+            </option>
             <option
               th:each="rd : ${ruleDefinitions}"
               th:value="${rd.code}"
               th:text="${rd.name}"
+              th:attr="data-requires-param=${rd.requiresParam}"
               th:selected="${rule != null && rule.subjectCode == rd.code}"
             ></option>
           </select>
@@ -38,26 +42,27 @@
       </div>
 
       <!-- Subject Parameter -->
-      <div th:id="|rule-container-${index}|" class="col-md-3">
-        <div
-          th:if="${rule != null && rule.subjectCode != null && !rule.subjectCode.isEmpty()}"
-        >
-          <label class="form-label small text-muted">
-            Subject Parameter
-            <input
-              type="number"
-              step="0.01"
-              class="form-control form-control-sm"
-              th:name="|rules[${index}].subjectParam|"
-              th:value="${rule != null ? rule.subjectParam : ''}"
-              placeholder="0.00"
-            />
-          </label>
-        </div>
+      <div
+        th:id="|rule-container-${index}|"
+        class="col-md-2"
+        th:style="${rule == null || rule.subjectCode == null || rule.subjectCode.isEmpty()} ? 'display: none;' : ''"
+      >
+        <label class="form-label small text-muted">
+          Subject Parameter
+          <input
+            type="number"
+            step="0.01"
+            class="form-control form-control-sm"
+            th:name="|rules[${index}].subjectParam|"
+            th:value="${rule != null ? rule.subjectParam : ''}"
+            placeholder="0.00"
+            th:required="${rule != null && rule.subjectCode != null && !rule.subjectCode.isEmpty()}"
+          />
+        </label>
       </div>
 
       <!-- Operator -->
-      <div class="col-md-2">
+      <div class="col-md-1">
         <label class="form-label small text-muted">
           Operator
           <select
@@ -86,8 +91,32 @@
         </label>
       </div>
 
+      <!-- Target Indicator -->
+      <div class="col-md-2">
+        <label class="form-label small text-muted">
+          Target Indicator
+          <select
+            class="form-select form-select-sm"
+            th:name="|rules[${index}].targetCode|"
+            th:onchange="|toggleTargetParameter(this, ${index})|"
+            required
+          >
+            <option value="" data-requires-param="false">
+              -- Select Indicator --
+            </option>
+            <option
+              th:each="rd : ${ruleDefinitions}"
+              th:value="${rd.code}"
+              th:text="${rd.name}"
+              th:attr="data-requires-param=${rd.requiresParam}"
+              th:selected="${rule != null && rule.targetCode == rd.code}"
+            ></option>
+          </select>
+        </label>
+      </div>
+
       <!-- Target Value -->
-      <div class="col-md-3">
+      <div class="col-md-1">
         <label class="form-label small text-muted">
           Target Value
           <input
