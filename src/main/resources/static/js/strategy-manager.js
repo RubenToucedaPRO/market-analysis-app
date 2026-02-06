@@ -92,6 +92,12 @@ function reindexRules() {
   // Get all remaining rule rows
   const rules = document.querySelectorAll(".rule-row");
 
+  if (rules.length === 0) {
+    // If no rules remain, add a new empty rule
+    addRuleRow();
+    return;
+  }
+
   // Reset the index counter
   ruleIndex = 0;
 
