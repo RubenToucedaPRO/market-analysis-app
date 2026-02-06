@@ -109,92 +109,24 @@
           </div>
           <div class="card-body">
             <div id="rules-container">
-              <!-- Existing Rules -->
-              <div th:each="rule, stat : *{rules}" class="rule-row card mb-3">
-                <div class="card-body">
-                  <div class="row g-3 align-items-end">
-                    <!-- Rule Name -->
-                    <div class="col-md-3">
-                      <label class="form-label small text-muted"
-                        >Rule Name</label
-                      >
-                      <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        th:field="*{rules[__${stat.index}__].name}"
-                        placeholder="Rule Name"
-                      />
-                    </div>
-
-                    <!-- Subject Indicator -->
-                    <div class="col-md-3">
-                      <label class="form-label small text-muted"
-                        >Subject Indicator</label
-                      >
-                      <select
-                        class="form-select form-select-sm"
-                        th:field="*{rules[__${stat.index}__].subjectCode}"
-                      >
-                        <option value="PRICE">Market Price</option>
-                        <option value="SMA">Simple Moving Average</option>
-                        <option value="RSI">Relative Strength Index</option>
-                      </select>
-                    </div>
-
-                    <!-- Operator -->
-                    <div class="col-md-2">
-                      <label class="form-label small text-muted"
-                        >Operator</label
-                      >
-                      <select
-                        class="form-select form-select-sm"
-                        th:field="*{rules[__${stat.index}__].operator}"
-                      >
-                        <option value=">">Greater Than (&gt;)</option>
-                        <option value="<">Less Than (&lt;)</option>
-                        <option value="=">Equal To (=)</option>
-                      </select>
-                    </div>
-
-                    <!-- Target Value -->
-                    <div class="col-md-3">
-                      <label class="form-label small text-muted"
-                        >Target Value</label
-                      >
-                      <input
-                        type="number"
-                        step="0.01"
-                        class="form-control form-control-sm"
-                        th:field="*{rules[__${stat.index}__].targetParam}"
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    <!-- Remove Button -->
-                    <div class="col-md-1 text-end">
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-danger"
-                        onclick="removeRuleRow(this)"
-                      >
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <!-- Existing rules will be rendered here -->
+              <th:block th:each="rule, stat : *{rules}">
+                <div
+                  th:replace="~{fragments/rule-row :: ruleRow(index=${stat.index}, rule=${rule})}"
+                ></div>
+              </th:block>
             </div>
-
-            <!-- Add Rule Button -->
-            <button
-              type="button"
-              class="btn btn-outline-primary w-100"
-              onclick="addRuleRow()"
-            >
-              <i class="bi bi-plus-circle me-1"></i>
-              Add Conditional Rule
-            </button>
           </div>
+
+          <!-- Add Rule Button -->
+          <button
+            type="button"
+            class="btn btn-outline-primary w-100"
+            onclick="addRuleRow()"
+          >
+            <i class="bi bi-plus-circle me-1"></i>
+            Add Conditional Rule
+          </button>
         </div>
       </form>
     </main>

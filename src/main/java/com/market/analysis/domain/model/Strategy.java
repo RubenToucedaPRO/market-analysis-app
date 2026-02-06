@@ -37,7 +37,8 @@ public class Strategy {
      * List of rules that compose this strategy.
      * All rules should be evaluated when analyzing a ticker.
      */
-    private final List<Rule> rules;
+    @Builder.Default
+    private final List<Rule> rules = new ArrayList<>();
 
     /**
      * Gets an immutable copy of the rules list to prevent external modification.
@@ -45,7 +46,7 @@ public class Strategy {
      * @return unmodifiable list of rules
      */
     public List<Rule> getRules() {
-        return rules != null ? List.copyOf(rules) : List.of();
+        return rules;
     }
 
     /**
@@ -61,9 +62,6 @@ public class Strategy {
         if (description == null || description.trim().isEmpty()) {
             throw new IllegalStateException("Strategy description cannot be null or empty");
         }
-        if (rules == null || rules.isEmpty()) {
-            throw new IllegalStateException("Strategy must have at least one rule");
-        }
 
         // Validate each rule
         for (Rule rule : rules) {
@@ -71,16 +69,6 @@ public class Strategy {
                 throw new IllegalStateException("Strategy cannot contain null rules");
             }
             // Rules will validate themselves when evaluated
-        }
-    }
-
-    /**
-     * Custom builder to ensure defensive copying of the rules list.
-     */
-    public static class StrategyBuilder {
-        public StrategyBuilder rules(List<Rule> rules) {
-            this.rules = rules != null ? new ArrayList<>(rules) : new ArrayList<>();
-            return this;
         }
     }
 

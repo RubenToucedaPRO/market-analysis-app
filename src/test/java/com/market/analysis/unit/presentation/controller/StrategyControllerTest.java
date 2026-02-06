@@ -19,8 +19,12 @@ import org.springframework.ui.Model;
 
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
+import com.market.analysis.presentation.dto.StrategyDTO;
+import com.market.analysis.presentation.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.presentation.mapper.StrategyDTOMapper;
 
 /**
  * Unit tests for StrategyController.
@@ -31,6 +35,15 @@ class StrategyControllerTest {
 
     @Mock
     private ManageStrategyUseCase manageStrategyUseCase;
+
+    @Mock
+    private ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
+
+    @Mock
+    private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
+
+    @Mock
+    private StrategyDTOMapper strategyDTOMapper;
 
     @Mock
     private Model model;
@@ -85,7 +98,8 @@ class StrategyControllerTest {
 
         // Assert
         assertEquals("strategies/create", viewName);
-        verify(model, times(1)).addAttribute(any(String.class), any(Strategy.class));
+        verify(manageRuleDefinitionUseCase, times(1)).getAllRuleDefinitions();
+        verify(model, times(2)).addAttribute(any(String.class), any());
     }
 
     @Test
@@ -93,6 +107,13 @@ class StrategyControllerTest {
     void testShowEditForm() {
         // Arrange
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategy);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(
+                StrategyDTO.builder()
+                        .id(1L)
+                        .name("Test Strategy")
+                        .description("Test Description")
+                        .rules(List.of())
+                        .build());
 
         // Act
         String viewName = strategyController.showEditForm(1L, model);
@@ -100,21 +121,28 @@ class StrategyControllerTest {
         // Assert
         assertEquals("strategies/create", viewName);
         verify(manageStrategyUseCase, times(1)).getStrategyById(1L);
-        verify(model, times(1)).addAttribute("strategy", testStrategy);
+        verify(manageRuleDefinitionUseCase, times(1)).getAllRuleDefinitions();
     }
 
     @Test
     @DisplayName("Should save strategy and redirect")
     void testSaveStrategy() {
         // Arrange
-        when(manageStrategyUseCase.createStrategy(any(Strategy.class))).thenReturn(testStrategy);
+        StrategyDTO strategyDTO = StrategyDTO.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Test Description")
+                .rules(List.of())
+                .build();
+
+        when(strategyDTOMapper.toDomain(any(StrategyDTO.class))).thenReturn(testStrategy);
 
         // Act
-        String viewName = strategyController.saveStrategy(testStrategy);
+        String viewName = strategyController.saveStrategy(strategyDTO);
 
         // Assert
         assertEquals("redirect:/strategies", viewName);
-        verify(manageStrategyUseCase, times(1)).createStrategy(testStrategy);
+        verify(manageStrategyUseCase, times(1)).createStrategy(any(Strategy.class));
     }
 
     @Test

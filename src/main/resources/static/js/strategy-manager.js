@@ -38,57 +38,7 @@ function addRuleRow() {
     // Set the HTML content of the new rule
     // Uses Bootstrap classes for styling
     newRule.innerHTML = `
-        <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <!-- Rule Name Input -->
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Rule Name</label>
-                    <input 
-                        type="text" 
-                        class="form-control form-control-sm" 
-                        name="rules[${ruleIndex}].name" 
-                        placeholder="Rule Name">
-                </div>
-                
-                <!-- Subject Indicator Select -->
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Subject Indicator</label>
-                    <select class="form-select form-select-sm" name="rules[${ruleIndex}].subjectCode">
-                        <option value="PRICE">Market Price</option>
-                        <option value="SMA">Simple Moving Average</option>
-                        <option value="RSI">Relative Strength Index</option>
-                    </select>
-                </div>
-                
-                <!-- Operator Select -->
-                <div class="col-md-2">
-                    <label class="form-label small text-muted">Operator</label>
-                    <select class="form-select form-select-sm" name="rules[${ruleIndex}].operator">
-                        <option value=">">Greater Than (&gt;)</option>
-                        <option value="<">Less Than (&lt;)</option>
-                        <option value="=">Equal To (=)</option>
-                    </select>
-                </div>
-                
-                <!-- Target Value Input -->
-                <div class="col-md-3">
-                    <label class="form-label small text-muted">Target Value</label>
-                    <input 
-                        type="number" 
-                        step="0.01" 
-                        class="form-control form-control-sm" 
-                        name="rules[${ruleIndex}].targetParam" 
-                        placeholder="0.00">
-                </div>
-                
-                <!-- Remove Button -->
-                <div class="col-md-1 text-end">
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRuleRow(this)">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
+        
     `;
     
     // Add the new rule to the container
