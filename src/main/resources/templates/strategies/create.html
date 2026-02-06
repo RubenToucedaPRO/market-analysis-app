@@ -152,7 +152,7 @@
 
     <!-- Pass rule definitions to JavaScript -->
     <script th:inline="javascript">
-      window.ruleDefinitions = /*[[${ruleDefinitions}]]*/ [];
+      globalThis.ruleDefinitions = /*[[${ruleDefinitions}]]*/ [];
     </script>
 
     <!-- Custom JavaScript -->
