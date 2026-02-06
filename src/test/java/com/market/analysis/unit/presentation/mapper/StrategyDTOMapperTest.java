@@ -168,4 +168,50 @@ class StrategyDTOMapperTest {
         assertEquals("Rule 1", dto.getRules().get(0).getName());
         assertEquals("Rule 2", dto.getRules().get(1).getName());
     }
+
+    @Test
+    @DisplayName("Should convert StrategyDTO with null rules list")
+    void testDTOWithNullRulesToDomain() {
+        // Arrange
+        StrategyDTO dto = StrategyDTO.builder()
+                .id(10L)
+                .name("Null Rules Strategy")
+                .description("Strategy with null rules")
+                .rules(null)
+                .build();
+
+        // Act
+        Strategy strategy = mapper.toDomain(dto);
+
+        // Assert
+        assertNotNull(strategy);
+        assertEquals(10L, strategy.getId());
+        assertEquals("Null Rules Strategy", strategy.getName());
+        assertNotNull(strategy.getRules());
+        assertEquals(0, strategy.getRules().size());
+    }
+
+    @Test
+    @DisplayName("Should convert Strategy with null rules list")
+    void testStrategyWithNullRulesToDTO() {
+        // Arrange - Create a Strategy with null rules using builder
+        // Note: Strategy.builder().rules(null) converts null to empty list internally,
+        // but we test this to ensure the mapper handles whatever the domain returns
+        Strategy strategy = Strategy.builder()
+                .id(10L)
+                .name("Null Rules Strategy")
+                .description("Strategy with null rules")
+                .rules(null)
+                .build();
+
+        // Act
+        StrategyDTO dto = mapper.toDTO(strategy);
+
+        // Assert
+        assertNotNull(dto);
+        assertEquals(10L, dto.getId());
+        assertEquals("Null Rules Strategy", dto.getName());
+        assertNotNull(dto.getRules());
+        assertEquals(0, dto.getRules().size());
+    }
 }
