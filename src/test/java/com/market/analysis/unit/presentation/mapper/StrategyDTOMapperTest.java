@@ -195,7 +195,8 @@ class StrategyDTOMapperTest {
     @DisplayName("Should convert Strategy with null rules list")
     void testStrategyWithNullRulesToDTO() {
         // Arrange - Create a Strategy with null rules using builder
-        // Note: Strategy.builder() should handle null rules appropriately
+        // Note: Strategy.builder().rules(null) converts null to empty list internally,
+        // but we test this to ensure the mapper handles whatever the domain returns
         Strategy strategy = Strategy.builder()
                 .id(10L)
                 .name("Null Rules Strategy")
