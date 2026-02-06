@@ -14,7 +14,6 @@ import lombok.ToString;
  * Strategies define the criteria for evaluating trading opportunities.
  */
 @Getter
-@Builder
 @ToString
 public class Strategy {
 
@@ -39,13 +38,21 @@ public class Strategy {
      */
     private final List<Rule> rules;
 
+    @Builder
+    public Strategy(Long id, String name, String description, List<Rule> rules) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.rules = rules == null ? new ArrayList<>() : new ArrayList<>(rules);
+    }
+
     /**
      * Gets an immutable copy of the rules list to prevent external modification.
      *
      * @return unmodifiable list of rules
      */
     public List<Rule> getRules() {
-        return rules != null ? List.copyOf(rules) : List.of();
+        return List.copyOf(rules);
     }
 
     /**
@@ -62,7 +69,7 @@ public class Strategy {
             throw new IllegalStateException("Strategy description cannot be null or empty");
         }
         if (rules == null || rules.isEmpty()) {
-            throw new IllegalStateException("Strategy must have at least one rule");
+            throw new IllegalStateException("Strategy must contain at least one rule");
         }
 
         // Validate each rule
@@ -71,16 +78,6 @@ public class Strategy {
                 throw new IllegalStateException("Strategy cannot contain null rules");
             }
             // Rules will validate themselves when evaluated
-        }
-    }
-
-    /**
-     * Custom builder to ensure defensive copying of the rules list.
-     */
-    public static class StrategyBuilder {
-        public StrategyBuilder rules(List<Rule> rules) {
-            this.rules = rules != null ? new ArrayList<>(rules) : new ArrayList<>();
-            return this;
         }
     }
 
