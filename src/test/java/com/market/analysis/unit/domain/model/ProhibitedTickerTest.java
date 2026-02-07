@@ -4,7 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import com.market.analysis.domain.model.ProhibitedTicker;
 
@@ -14,45 +15,19 @@ import com.market.analysis.domain.model.ProhibitedTicker;
 @DisplayName("ProhibitedTicker Unit Tests")
 class ProhibitedTickerTest {
 
-    @Test
-    @DisplayName("Should create ProhibitedTicker with ticker symbol")
-    void testCreateProhibitedTicker() {
-        // Arrange
-        String ticker = "AAPL";
-
+    @ParameterizedTest(name = "Caso {index}: Ticker = {0}")
+    @CsvSource({
+            "AAPL",
+            "googl",
+            "BRK.B"
+    })
+    @DisplayName("Should create ProhibitedTicker with various ticker formats")
+    void testCreateProhibitedTicker(String ticker) {
         // Act
         ProhibitedTicker prohibitedTicker = new ProhibitedTicker(ticker);
 
         // Assert
-        assertNotNull(prohibitedTicker);
-        assertEquals("AAPL", prohibitedTicker.getTicker());
-    }
-
-    @Test
-    @DisplayName("Should create ProhibitedTicker with lowercase ticker")
-    void testCreateProhibitedTickerWithLowercase() {
-        // Arrange
-        String ticker = "googl";
-
-        // Act
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker(ticker);
-
-        // Assert
-        assertNotNull(prohibitedTicker);
-        assertEquals("googl", prohibitedTicker.getTicker());
-    }
-
-    @Test
-    @DisplayName("Should create ProhibitedTicker with special characters in ticker")
-    void testCreateProhibitedTickerWithSpecialCharacters() {
-        // Arrange
-        String ticker = "BRK.B";
-
-        // Act
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker(ticker);
-
-        // Assert
-        assertNotNull(prohibitedTicker);
-        assertEquals("BRK.B", prohibitedTicker.getTicker());
+        assertNotNull(prohibitedTicker, "The instance should not be null");
+        assertEquals(ticker, prohibitedTicker.getTicker(), "The ticker should match the input");
     }
 }
