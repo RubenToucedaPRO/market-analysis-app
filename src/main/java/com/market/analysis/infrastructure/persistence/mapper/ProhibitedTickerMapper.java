@@ -1,5 +1,7 @@
 package com.market.analysis.infrastructure.persistence.mapper;
 
+import org.springframework.stereotype.Component;
+
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.infrastructure.persistence.entity.ProhibitedTickerEntity;
 
@@ -9,6 +11,7 @@ import com.market.analysis.infrastructure.persistence.entity.ProhibitedTickerEnt
  * This class is responsible for translating the domain model to a format
  * suitable for persistence and vice versa.
  */
+@Component
 public class ProhibitedTickerMapper {
 
     /**

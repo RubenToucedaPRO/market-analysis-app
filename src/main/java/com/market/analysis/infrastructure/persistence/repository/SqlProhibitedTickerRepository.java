@@ -15,8 +15,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository {
 
-    JpaProhibitedTickerRepository jpaProhibitedTickerRepository;
-    ProhibitedTickerMapper prohibitedTickerMapper;
+    private final JpaProhibitedTickerRepository jpaProhibitedTickerRepository;
+    private final ProhibitedTickerMapper prohibitedTickerMapper;
 
     @Override
     public List<ProhibitedTicker> findAll() {
