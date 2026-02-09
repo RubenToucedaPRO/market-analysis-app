@@ -17,8 +17,13 @@ public class ManageAnalyzeTickerService implements ManageAnalyzeTickerUseCase {
     private final FinnhubAdapter finnhubAdapter;
 
     @Override
-    public void getTickerData(String ticker) {
-        tickerDataRepository.saveTickerData(finnhubAdapter.getQuote(ticker));
+    public void getTickerData(String tickers) {
+        List<String> tickerList = List.of(tickers.split(",")).stream()
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .filter(t -> !t.isEmpty())
+                .toList();
+        tickerList.forEach(ticker -> tickerDataRepository.saveTickerData(finnhubAdapter.getQuote(ticker)));
     }
 
     @Override

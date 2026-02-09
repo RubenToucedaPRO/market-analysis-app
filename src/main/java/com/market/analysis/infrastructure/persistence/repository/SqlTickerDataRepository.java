@@ -9,6 +9,7 @@ import com.market.analysis.domain.model.TickerData;
 import com.market.analysis.domain.port.out.TickerDataRepository;
 import com.market.analysis.infrastructure.persistence.mapper.TickerMapper;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -41,6 +42,7 @@ public class SqlTickerDataRepository implements TickerDataRepository {
     }
 
     @Override
+    @Transactional
     public void deleteByTicker(String ticker) {
         jpaRepository.deleteByTicker(ticker);
     }

@@ -1,5 +1,7 @@
 package com.market.analysis.presentation.controller;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
+import com.market.analysis.presentation.dto.TickerDataDTO;
+import com.market.analysis.presentation.mapper.TickerDataDTOMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,27 +22,29 @@ import lombok.RequiredArgsConstructor;
 public class AnalyzeTickerController {
 
     private final ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
-
-    @GetMapping("/getTickerData")
-    public String getTickerData(@RequestParam String ticker) {
-        manageAnalyzeTickerUseCase.getTickerData(ticker);
-        return "redirect:/analyze";
-    }
+    private final TickerDataDTOMapper mapper;
 
     @GetMapping
     public String getAllTickers(Model model) {
-        model.addAttribute("tickers", manageAnalyzeTickerUseCase.findAllTickers());
-        return "analyze";
+        List<TickerDataDTO> tickers = manageAnalyzeTickerUseCase.findAllTickers().stream().map(mapper::toDTO).toList();
+        model.addAttribute("tickers", tickers);
+        return "analyze/analyze";
     }
 
-    @PostMapping("update")
+    @PostMapping("/getTickerData")
+    public String getTickerData(@RequestParam String tickers) {
+        manageAnalyzeTickerUseCase.getTickerData(tickers);
+        return "redirect:/analyze";
+    }
+
+    @PostMapping("/update")
     public String updateTicker(@RequestBody String entity) {
         return "redirect:/analyze";
     }
 
-    @PostMapping("delete")
-    public String deleteTicker(@RequestBody String entity) {
-
+    @PostMapping("/delete")
+    public String deleteTicker(@RequestParam String ticker) {
+        manageAnalyzeTickerUseCase.deleteTickerDataByTicker(ticker);
         return "redirect:/analyze";
     }
 }
