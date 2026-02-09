@@ -8,41 +8,48 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Entity representing a single OHLCV (Open, High, Low, Close, Volume) market data point.
+ * Entity representing a single OHLCV (Open, High, Low, Close, Volume) market
+ * data point.
  * Used for historical data and technical analysis calculations.
  */
 @Getter
 @Builder
 @ToString
-public class MarketDataPoint {
+public class Candle {
+
+    /**
+     * Ticker symbol (e.g., "AAPL", "GOOGL").
+     */
+    private final String ticker;
 
     /**
      * Date and time of this data point.
      */
-    private final LocalDateTime date;
+    private final LocalDateTime dateTime;
 
     /**
      * Opening price for the period.
      */
-    private final BigDecimal open;
+    private final BigDecimal openPrice;
 
     /**
      * Highest price during the period.
      */
-    private final BigDecimal high;
+    private final BigDecimal highPrice;
 
     /**
      * Lowest price during the period.
      */
-    private final BigDecimal low;
+    private final BigDecimal lowPrice;
 
     /**
      * Closing price for the period.
      */
-    private final BigDecimal close;
+    private final BigDecimal closePrice;
 
     /**
      * Trading volume during the period.
      */
     private final Long volume;
+
 }

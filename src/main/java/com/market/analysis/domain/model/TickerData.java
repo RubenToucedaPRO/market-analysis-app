@@ -2,9 +2,6 @@ package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -29,44 +26,34 @@ public class TickerData {
      */
     private final BigDecimal currentPrice;
 
-    /**
-     * Volume information.
-     */
-    private final Long volume;
+    /** Open price of the day from /quote API (o field) */
+    private BigDecimal openPrice;
 
-    /**
-     * Timestamp of the data.
-     */
-    private final LocalDateTime timestamp;
+    /** High price of the day from /quote API (h field) */
+    private BigDecimal highOfDay;
 
-    /**
-     * Additional technical indicators and data points.
-     * Can include moving averages, RSI, MACD, etc.
-     */
-    private final Map<String, Object> indicators;
+    /** Low price of the day from /quote API (l field) */
+    private BigDecimal lowOfDay;
 
-    /**
-     * Historical OHLCV data for pattern analysis and technical calculations.
-     * Each MarketDataPoint represents a single time period (e.g., daily candle).
-     */
-    private final List<MarketDataPoint> historicalData;
+    /** Previous close price from /quote API (pc field) */
+    private BigDecimal previousClose;
 
-    /**
-     * Gets an immutable copy of the historical data list.
-     *
-     * @return unmodifiable list of market data points
-     */
-    public List<MarketDataPoint> getHistoricalData() {
-        return historicalData != null ? List.copyOf(historicalData) : List.of();
-    }
+    /** SMA20 - Manually entered by user */
+    private BigDecimal sma20;
 
-    /**
-     * Custom builder to ensure defensive copying of the historical data list.
-     */
-    public static class TickerDataBuilder {
-        public TickerDataBuilder historicalData(List<MarketDataPoint> historicalData) {
-            this.historicalData = historicalData != null ? new ArrayList<>(historicalData) : new ArrayList<>();
-            return this;
-        }
-    }
+    /** SMA50 - Manually entered by user */
+    private BigDecimal sma50;
+
+    /** SMA200 - Manually entered by user */
+    private BigDecimal sma200;
+
+    /** Current volume from candle data */
+    private Long volume;
+
+    /** Average volume (60-day period) calculated from candle data */
+    private Long averageVolume;
+
+    /** Last updated timestamp */
+    private LocalDateTime lastUpdated;
+
 }
