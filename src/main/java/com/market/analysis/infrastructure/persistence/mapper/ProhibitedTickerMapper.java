@@ -1,5 +1,7 @@
 package com.market.analysis.infrastructure.persistence.mapper;
 
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Component;
 
 import com.market.analysis.domain.model.ProhibitedTicker;
@@ -27,6 +29,9 @@ public class ProhibitedTickerMapper {
 
         ProhibitedTickerEntity entity = new ProhibitedTickerEntity();
         entity.setTicker(prohibitedTicker.getTicker());
+        entity.setReason(prohibitedTicker.getReason());
+        entity.setCreatedAt(
+                prohibitedTicker.getCreatedAt() != null ? prohibitedTicker.getCreatedAt() : LocalDateTime.now());
         return entity;
     }
 
@@ -41,6 +46,10 @@ public class ProhibitedTickerMapper {
             return null;
         }
 
-        return new ProhibitedTicker(entity.getTicker());
+        return ProhibitedTicker.builder()
+                .ticker(entity.getTicker())
+                .reason(entity.getReason())
+                .createdAt(entity.getCreatedAt())
+                .build();
     }
 }

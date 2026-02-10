@@ -46,7 +46,8 @@ class SqlProhibitedTickerRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        testProhibitedTicker = new ProhibitedTicker("AAPL");
+        testProhibitedTicker = new ProhibitedTicker("AAPL", "Test reason",
+                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
 
         testEntity = new ProhibitedTickerEntity();
         testEntity.setId(1L);
@@ -61,11 +62,12 @@ class SqlProhibitedTickerRepositoryTest {
         ProhibitedTickerEntity entity2 = new ProhibitedTickerEntity();
         entity2.setId(2L);
         entity2.setTicker("GOOGL");
-        
+        entity2.setReason("Test reason 2");
+
         List<ProhibitedTickerEntity> entities = Arrays.asList(testEntity, entity2);
         when(jpaRepository.findAll()).thenReturn(entities);
         when(mapper.toDomain(testEntity)).thenReturn(testProhibitedTicker);
-        when(mapper.toDomain(entity2)).thenReturn(new ProhibitedTicker("GOOGL"));
+        when(mapper.toDomain(entity2)).thenReturn(new ProhibitedTicker("GOOGL", "Test reason 2", null));
 
         // Act
         List<ProhibitedTicker> result = sqlRepository.findAll();
@@ -126,19 +128,16 @@ class SqlProhibitedTickerRepositoryTest {
     @DisplayName("Should save prohibited ticker")
     void testSave() {
         // Arrange
+        when(jpaRepository.existsByTicker("AAPL")).thenReturn(false);
         when(mapper.toEntity(testProhibitedTicker)).thenReturn(testEntity);
         when(jpaRepository.save(testEntity)).thenReturn(testEntity);
-        when(mapper.toDomain(testEntity)).thenReturn(testProhibitedTicker);
 
         // Act
-        ProhibitedTicker result = sqlRepository.save(testProhibitedTicker);
+        sqlRepository.save(testProhibitedTicker);
 
         // Assert
-        assertNotNull(result);
-        assertEquals("AAPL", result.getTicker());
         verify(mapper, times(1)).toEntity(testProhibitedTicker);
         verify(jpaRepository, times(1)).save(testEntity);
-        verify(mapper, times(1)).toDomain(testEntity);
     }
 
     @Test

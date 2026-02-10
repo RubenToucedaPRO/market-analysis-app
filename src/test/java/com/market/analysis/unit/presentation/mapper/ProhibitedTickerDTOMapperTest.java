@@ -31,7 +31,7 @@ class ProhibitedTickerDTOMapperTest {
     @DisplayName("Should map ProhibitedTicker domain to ProhibitedTickerDTO")
     void testToDTO() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL");
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL", "Test reason", LocalDateTime.now());
 
         // Act
         ProhibitedTickerDTO dto = prohibitedTickerDTOMapper.toDTO(prohibitedTicker);
@@ -84,7 +84,7 @@ class ProhibitedTickerDTOMapperTest {
     @DisplayName("Should correctly map ticker with special characters")
     void testToDTOWithSpecialCharacters() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B");
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B", "Test reason", LocalDateTime.now());
 
         // Act
         ProhibitedTickerDTO dto = prohibitedTickerDTOMapper.toDTO(prohibitedTicker);

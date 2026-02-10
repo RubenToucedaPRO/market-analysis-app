@@ -21,6 +21,8 @@ public class ProhibitedTickerDTOMapper {
 
         return ProhibitedTickerDTO.builder()
                 .ticker(prohibitedTicker.getTicker())
+                .reason(prohibitedTicker.getReason())
+                .createdAt(prohibitedTicker.getCreatedAt())
                 .build();
     }
 
@@ -28,7 +30,10 @@ public class ProhibitedTickerDTOMapper {
         if (prohibitedTickerDTO == null) {
             return null;
         }
-
-        return new ProhibitedTicker(prohibitedTickerDTO.getTicker());
+        return ProhibitedTicker.builder()
+                .ticker(prohibitedTickerDTO.getTicker())
+                .reason(prohibitedTickerDTO.getReason())
+                .createdAt(prohibitedTickerDTO.getCreatedAt())
+                .build();
     }
 }

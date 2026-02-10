@@ -29,7 +29,7 @@ class ProhibitedTickerMapperTest {
     @DisplayName("Should map ProhibitedTicker domain to ProhibitedTickerEntity")
     void testToEntity() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL");
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL", "Test reason", java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
 
         // Act
         ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(prohibitedTicker);
@@ -80,7 +80,7 @@ class ProhibitedTickerMapperTest {
     @DisplayName("Should correctly map ticker with special characters")
     void testToEntityWithSpecialCharacters() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B");
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B", "Test reason", java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
 
         // Act
         ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(prohibitedTicker);
