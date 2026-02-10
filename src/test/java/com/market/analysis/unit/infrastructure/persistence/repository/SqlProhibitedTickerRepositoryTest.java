@@ -142,12 +142,12 @@ class SqlProhibitedTickerRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should delete prohibited ticker by id")
-    void testDeleteById() {
+    @DisplayName("Should delete prohibited ticker by ticker")
+    void deleteByTicker() {
         // Act
-        sqlRepository.deleteById(1L);
+        sqlRepository.deleteByTicker("AAPL");
 
         // Assert
-        verify(jpaRepository, times(1)).deleteById(1L);
+        verify(jpaRepository, times(1)).deleteByTicker("AAPL");
     }
 }

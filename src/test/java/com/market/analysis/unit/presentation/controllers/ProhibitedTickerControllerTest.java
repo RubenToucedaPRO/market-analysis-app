@@ -113,11 +113,11 @@ class ProhibitedTickerControllerTest {
     void testDeleteProhibitedTicker() throws Exception {
         // Act & Assert
         mockMvc.perform(post("/prohibited-tickers/delete")
-                .param("id", "1"))
+                .param("ticker", "AAPL"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/prohibited-tickers"));
 
-        verify(manageProhibitedTickerUseCase, times(1)).removeProhibitedTicker(1L);
+        verify(manageProhibitedTickerUseCase, times(1)).removeProhibitedTicker("AAPL");
     }
 
     @Test
@@ -125,10 +125,10 @@ class ProhibitedTickerControllerTest {
     void testDeleteProhibitedTickerWithDifferentId() throws Exception {
         // Act & Assert
         mockMvc.perform(post("/prohibited-tickers/delete")
-                .param("id", "999"))
+                .param("ticker", "999"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/prohibited-tickers"));
 
-        verify(manageProhibitedTickerUseCase, times(1)).removeProhibitedTicker(999L);
+        verify(manageProhibitedTickerUseCase, times(1)).removeProhibitedTicker("999");
     }
 }
