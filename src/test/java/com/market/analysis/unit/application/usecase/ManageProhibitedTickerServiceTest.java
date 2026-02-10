@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,15 +40,18 @@ class ManageProhibitedTickerServiceTest {
 
     @BeforeEach
     void setUp() {
-        testProhibitedTicker = new ProhibitedTicker("AAPL");
+        testProhibitedTicker = new ProhibitedTicker("AAPL", "Inappropriate content",
+                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
     }
 
     @Test
     @DisplayName("Should get all prohibited tickers")
     void testGetAllProhibitedTickers() {
         // Arrange
-        ProhibitedTicker ticker1 = new ProhibitedTicker("AAPL");
-        ProhibitedTicker ticker2 = new ProhibitedTicker("GOOGL");
+        ProhibitedTicker ticker1 = new ProhibitedTicker("AAPL", "Inappropriate content",
+                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+        ProhibitedTicker ticker2 = new ProhibitedTicker("GOOGL", "Inappropriate content",
+                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
         List<ProhibitedTicker> tickers = Arrays.asList(ticker1, ticker2);
         when(prohibitedTickerRepository.findAll()).thenReturn(tickers);
 
@@ -110,9 +112,6 @@ class ManageProhibitedTickerServiceTest {
     @Test
     @DisplayName("Should add prohibited ticker successfully")
     void testAddProhibitedTicker() {
-        // Arrange
-        when(prohibitedTickerRepository.save(any(ProhibitedTicker.class))).thenReturn(testProhibitedTicker);
-
         // Act
         manageProhibitedTickerService.addProhibitedTicker(testProhibitedTicker);
 
