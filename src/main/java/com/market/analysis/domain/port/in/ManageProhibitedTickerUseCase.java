@@ -12,6 +12,6 @@ public interface ManageProhibitedTickerUseCase {
 
     void addProhibitedTicker(ProhibitedTicker ticker);
 
-    void removeProhibitedTicker(Long id);
+    void removeProhibitedTicker(String ticker);
 
 }

@@ -124,12 +124,12 @@ class ManageProhibitedTickerServiceTest {
     @DisplayName("Should remove prohibited ticker successfully")
     void testRemoveProhibitedTicker() {
         // Arrange
-        Long tickerId = 1L;
+        String ticker = "AAPL";
 
         // Act
-        manageProhibitedTickerService.removeProhibitedTicker(tickerId);
+        manageProhibitedTickerService.removeProhibitedTicker(ticker);
 
         // Assert
-        verify(prohibitedTickerRepository, times(1)).deleteById(tickerId);
+        verify(prohibitedTickerRepository, times(1)).deleteByTicker(ticker);
     }
 }

@@ -49,5 +49,5 @@ public interface ProhibitedTickerRepository {
      * 
      * @param ticker
      */
-    public void deleteById(Long id);
+    public void deleteByTicker(String ticker);
 }

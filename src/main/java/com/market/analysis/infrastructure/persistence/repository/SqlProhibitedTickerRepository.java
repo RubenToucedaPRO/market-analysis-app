@@ -37,8 +37,8 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
     }
 
     @Override
-    public void deleteById(Long id) {
-        jpaProhibitedTickerRepository.deleteById(id);
+    public void deleteByTicker(String ticker) {
+        jpaProhibitedTickerRepository.deleteByTicker(ticker);
     }
 
 }
