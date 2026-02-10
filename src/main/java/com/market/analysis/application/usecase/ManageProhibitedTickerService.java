@@ -6,6 +6,7 @@ import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -33,8 +34,9 @@ public class ManageProhibitedTickerService implements ManageProhibitedTickerUseC
     }
 
     @Override
-    public void removeProhibitedTicker(Long id) {
-        prohibitedTickerRepository.deleteById(id);
+    @Transactional
+    public void removeProhibitedTicker(String ticker) {
+        prohibitedTickerRepository.deleteByTicker(ticker);
     }
 
 }

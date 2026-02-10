@@ -14,4 +14,6 @@ public interface JpaProhibitedTickerRepository extends JpaRepository<ProhibitedT
 
     boolean existsByTicker(String ticker);
 
+    void deleteByTicker(String ticker);
+
 }

@@ -40,8 +40,8 @@ public class ProhibitedTickerController {
     }
 
     @PostMapping("/delete")
-    public String deleteProhibitedTicker(@RequestParam("id") Long id) {
-        manageProhibitedTickerUseCase.removeProhibitedTicker(id);
+    public String deleteProhibitedTicker(@RequestParam("ticker") String ticker) {
+        manageProhibitedTickerUseCase.removeProhibitedTicker(ticker);
         return "redirect:/prohibited-tickers";
     }
     
