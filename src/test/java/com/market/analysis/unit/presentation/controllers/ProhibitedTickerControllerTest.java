@@ -54,8 +54,8 @@ class ProhibitedTickerControllerTest {
 
     @BeforeEach
     void setUp() {
-        testProhibitedTicker1 = new ProhibitedTicker("AAPL");
-        testProhibitedTicker2 = new ProhibitedTicker("GOOGL");
+        testProhibitedTicker1 = new ProhibitedTicker("AAPL", "Test reason 1", LocalDateTime.now());
+        testProhibitedTicker2 = new ProhibitedTicker("GOOGL", "Test reason 2", LocalDateTime.now());
 
         testDTO1 = ProhibitedTickerDTO.builder()
                 .id(1L)
