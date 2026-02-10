@@ -17,11 +17,11 @@ import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
+import com.market.analysis.domain.port.out.FinnhubPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
-import com.market.analysis.infrastructure.external.finnhub.FinnhubAdapter;
 
 @Configuration
 public class BeanConfig {
@@ -53,8 +53,10 @@ public class BeanConfig {
 
     @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository tickerDataRepository,
-            CompanyProfileRepository companyProfileRepository, FinnhubAdapter finnhubAdapter) {
-        return new ManageAnalyzeStockService(tickerDataRepository, companyProfileRepository, finnhubAdapter);
+            CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
+            FinnhubPort finnhubPort) {
+        return new ManageAnalyzeStockService(tickerDataRepository, companyProfileRepository,
+                prohibitedTickerRepository, finnhubPort);
     }
 
     @Bean

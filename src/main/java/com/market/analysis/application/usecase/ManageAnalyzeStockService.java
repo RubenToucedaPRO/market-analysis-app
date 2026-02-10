@@ -1,6 +1,8 @@
 package com.market.analysis.application.usecase;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.CompanyProfile;
@@ -8,10 +10,11 @@ import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
+import com.market.analysis.domain.port.out.FinnhubPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
-import com.market.analysis.infrastructure.external.finnhub.FinnhubAdapter;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,15 +35,16 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockDataRepository tickerDataRepository;
     private final CompanyProfileRepository companyProfileRepository;
     private final ProhibitedTickerRepository prohibitedTickerRepository;
-    private final FinnhubAdapter finnhubAdapter;
+    private final FinnhubPort finnhubPort;
 
     @Override
+    @Transactional
     public void getTickerData(String tickers) {
         List<String> tickerList = parseTickers(tickers);
-        checkCompanyProfile(tickerList);
+        List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList);
 
-        for (String ticker : tickerList) {
-            Stock stock = finnhubAdapter.getQuote(ticker);
+        for (String ticker : validTickers) {
+            Stock stock = finnhubPort.getQuote(ticker);
             if (stock != null) {
                 tickerDataRepository.saveTickerData(stock);
             }
@@ -80,7 +84,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 .map(String::trim)
                 .map(String::toUpperCase)
                 .filter(t -> !t.isEmpty())
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
@@ -89,53 +93,76 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
      * 
      * @param tickerList
      */
-    private void checkCompanyProfile(List<String> tickerList) {
-        List<String> companiesToUpdate = new java.util.ArrayList<>();
+    private List<String> validateAndUpdateCompanyProfiles(List<String> tickerList) {
+        List<String> validTickers = new ArrayList<>();
 
         for (String ticker : tickerList) {
-            CompanyProfile companyProfile = companyProfileRepository.findByTicker(ticker);
-            if (companyProfile == null) {
-                companiesToUpdate.add(ticker);
-            } else if (companyProfile.getLastUpdated() == null || companyProfile.isOutdated()) {
-                companyProfileRepository.deleteByTicker(ticker);
-                companiesToUpdate.add(ticker);
+            if (isCompanyUpdateRequired(ticker)) {
+                updateCompanyProfile(validTickers, ticker);
+            } else {
+                validTickers.add(ticker);
             }
         }
+        return validTickers;
+    }
 
-        companiesToUpdate.stream()
-                .forEach(ticker -> {
-                    CompanyProfile companyProfile = finnhubAdapter.getCompanyProfile(ticker);
-                    if (companyProfile != null) {
-                        if (checkProfile(ticker, companyProfile.getName())) {
-                            prohibitedTickerRepository.save(new ProhibitedTicker(ticker));
-                            log.info("Ticker {} marked as prohibited based on company name '{}'", ticker,
-                                    companyProfile.getName());
-                            tickerList.remove(ticker);
-                        } else {
-                            companyProfileRepository.save(companyProfile);
-                        }
-                    }
-                });
+    private void updateCompanyProfile(List<String> validTickers, String ticker) {
+        if (prohibitedTickerRepository.existsByTicker(ticker)) {
+            log.info("Ticker {} is already marked as prohibited, skipping profile check", ticker);
+        } else {
+            CompanyProfile companyProfile = finnhubPort.getCompanyProfile(ticker);
+            if (companyProfile != null && !isTickerProhibitedByCompanyName(ticker, companyProfile.getName())) {
+                validTickers.add(ticker);
+                companyProfileRepository.save(companyProfile);
+                log.info("Company profile for ticker {} saved/updated successfully", ticker);
+            }
+        }
     }
 
     /**
-     * Checks both prohibited status and missing profile in a single API call.
-     * This is more efficient than calling isProhibitedTicker and isMissingProfile
-     * separately.
+     * Determines if a company profile update is required based on existence and
+     * staleness.
+     * If the profile is missing or outdated, it will be deleted to ensure fresh
+     * data is fetched.
      * 
      * @param ticker the stock ticker symbol
-     * @return ProfileCheckResult containing both prohibited and missing profile
-     *         status
+     * @return true if an update is required, false otherwise
      */
-    public boolean checkProfile(String ticker, String companyName) {
+    private boolean isCompanyUpdateRequired(String ticker) {
+        CompanyProfile companyProfile = companyProfileRepository.findByTicker(ticker);
+        return companyProfile == null || (companyProfile.getLastUpdated() == null || companyProfile.isOutdated());
+    }
+
+    /**
+     * Checks if a ticker should be marked as prohibited based on the presence of
+     * certain keywords in the company name. If a prohibited keyword is found, the
+     * ticker is saved in the prohibited ticker repository with the reason for
+     * prohibition.
+     * 
+     * @param ticker      the stock ticker symbol
+     * @param companyName the name of the company associated with the ticker
+     * @return true if the ticker is prohibited, false otherwise
+     */
+    public boolean isTickerProhibitedByCompanyName(String ticker, String companyName) {
         log.debug("Checking profile for ticker {}", ticker);
 
         String companyNameUpper = companyName.toUpperCase();
-        boolean isProhibited = PROHIBITED_KEYWORDS.stream()
-                .anyMatch(companyNameUpper::contains);
+        String reason = PROHIBITED_KEYWORDS.stream()
+                .filter(companyNameUpper::contains)
+                .findFirst()
+                .orElse(null);
 
-        log.debug("Profile check for {}: name='{}', isProhibited={}",
-                ticker, companyName, isProhibited);
+        boolean isProhibited = reason != null;
+        if (isProhibited) {
+            ProhibitedTicker newProhibitedTicker = ProhibitedTicker.builder()
+                    .ticker(ticker)
+                    .reason(reason)
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build();
+            prohibitedTickerRepository.save(newProhibitedTicker);
+            log.info("Ticker {} marked as prohibited based on company name '{}' by '{}'", ticker,
+                    companyName, reason);
+        }
         return isProhibited;
     }
 
