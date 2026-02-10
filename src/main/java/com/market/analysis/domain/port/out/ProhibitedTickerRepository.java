@@ -42,7 +42,7 @@ public interface ProhibitedTickerRepository {
      * 
      * @param ticker
      */
-    public ProhibitedTicker save(ProhibitedTicker ticker);
+    public void save(ProhibitedTicker ticker);
 
     /**
      * Deletes a prohibited ticker from the database.

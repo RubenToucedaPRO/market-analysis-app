@@ -31,9 +31,11 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
     }
 
     @Override
-    public ProhibitedTicker save(ProhibitedTicker ticker) {
-        ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(ticker);
-        return prohibitedTickerMapper.toDomain(jpaProhibitedTickerRepository.save(entity));
+    public void save(ProhibitedTicker ticker) {
+        if (!jpaProhibitedTickerRepository.existsByTicker(ticker.getTicker())) {
+            ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(ticker);
+            jpaProhibitedTickerRepository.save(entity);
+        }
     }
 
     @Override
