@@ -5,12 +5,13 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.market.analysis.infrastructure.persistence.entity.TickerEntity;
+import com.market.analysis.infrastructure.persistence.entity.CompanyProfileEntity;
 
 @Repository
-public interface JpaTickerDataRepository extends JpaRepository<TickerEntity, Long> {
+public interface JpaCompanyProfileRepository extends JpaRepository<CompanyProfileEntity, Long> {
 
-    Optional<TickerEntity> findByTicker(String ticker);
+    Optional<CompanyProfileEntity> findByTicker(String ticker);
 
     void deleteByTicker(String ticker);
+
 }

@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CompanyProfileData {
+public class CompanyProfile {
 
     /** Company name */
     private String name;
@@ -32,7 +32,7 @@ public class CompanyProfileData {
     private String exchange;
 
     /** Industry classification */
-    private String finnhubIndustry;
+    private String industry;
 
     /** IPO date */
     private String ipo;
@@ -47,7 +47,7 @@ public class CompanyProfileData {
     private Double shareOutstanding;
 
     /** Company website URL */
-    private String weburl;
+    private String website;
 
     private LocalDateTime lastUpdated;
 

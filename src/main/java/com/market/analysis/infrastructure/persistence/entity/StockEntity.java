@@ -16,7 +16,7 @@ import lombok.Setter;
 @Table(name = "tickers")
 @Getter
 @Setter
-public class TickerEntity {
+public class StockEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -2,17 +2,17 @@ package com.market.analysis.domain.port.in;
 
 import java.util.List;
 
-import com.market.analysis.domain.model.TickerData;
+import com.market.analysis.domain.model.Stock;
 
 public interface ManageAnalyzeTickerUseCase {
 
         public void getTickerData(String ticker);
 
-        public List<TickerData> findAllTickers();
+        public List<Stock> findAllTickers();
 
-        public TickerData findTickerDataByTicker(String ticker);
+        public Stock findTickerDataByTicker(String ticker);
 
-        public void updateTickerData(TickerData tickerData);
+        public void updateTickerData(Stock tickerData);
 
         public void deleteTickerDataByTicker(String ticker);
 

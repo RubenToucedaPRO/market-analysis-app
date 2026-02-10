@@ -2,17 +2,17 @@ package com.market.analysis.infrastructure.persistence.mapper;
 
 import org.springframework.stereotype.Component;
 
-import com.market.analysis.domain.model.TickerData;
-import com.market.analysis.infrastructure.persistence.entity.TickerEntity;
+import com.market.analysis.domain.model.Stock;
+import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 
 @Component
-public class TickerMapper {
+public class StockMapper {
 
-    public TickerEntity toEntity(TickerData domain) {
+    public StockEntity toEntity(Stock domain) {
         if (domain == null)
             return null;
 
-        TickerEntity entity = new TickerEntity();
+        StockEntity entity = new StockEntity();
         entity.setTicker(domain.getTicker());
         entity.setCurrentPrice(domain.getCurrentPrice());
         entity.setOpenPrice(domain.getOpenPrice());
@@ -27,11 +27,11 @@ public class TickerMapper {
         return entity;
     }
 
-    public TickerData toDomain(TickerEntity entity) {
+    public Stock toDomain(StockEntity entity) {
         if (entity == null)
             return null;
 
-        return TickerData.builder()
+        return Stock.builder()
                 .ticker(entity.getTicker())
                 .currentPrice(entity.getCurrentPrice())
                 .openPrice(entity.getOpenPrice())

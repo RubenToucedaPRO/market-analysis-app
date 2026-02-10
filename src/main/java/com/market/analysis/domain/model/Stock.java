@@ -14,7 +14,7 @@ import lombok.ToString;
 @Getter
 @Builder
 @ToString
-public class TickerData {
+public class Stock {
 
     /**
      * Ticker symbol (e.g., "AAPL", "GOOGL").

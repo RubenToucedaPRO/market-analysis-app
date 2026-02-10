@@ -2,14 +2,16 @@ package com.market.analysis.infrastructure.external.finnhub;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
-import com.market.analysis.domain.model.CompanyProfileData;
-import com.market.analysis.domain.model.TickerData;
+import com.market.analysis.domain.model.CompanyProfile;
+import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.out.FinnhubPort;
 import com.market.analysis.infrastructure.exception.FinnhubException;
+import com.market.analysis.infrastructure.external.finnhub.dto.CompanyData;
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
 
 import lombok.RequiredArgsConstructor;
@@ -31,7 +33,7 @@ public class FinnhubAdapter implements FinnhubPort {
     private String apiToken;
 
     @Override
-    public TickerData getQuote(String ticker) {
+    public Stock getQuote(String ticker) {
         log.debug("Fetching quote for ticker: {}", ticker);
 
         try {
@@ -39,7 +41,7 @@ public class FinnhubAdapter implements FinnhubPort {
             QuoteData quote = restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/quote")
-                            .queryParam(SYMBOL, ticker.toUpperCase())
+                            .queryParam(SYMBOL, ticker)
                             .queryParam(TOKEN, apiToken)
                             .build())
                     .retrieve()
@@ -51,12 +53,12 @@ public class FinnhubAdapter implements FinnhubPort {
             if (quote == null || !quote.isValid()) {
                 throw new FinnhubException("No valid data found for: " + ticker);
             }
-            quote.setSymbol(ticker.toUpperCase());
+            quote.setSymbol(ticker);
             log.debug("Quote fetched for {}: price={}", ticker, quote.getC());
             return finnhubMapper.toDomain(quote);
 
         } catch (FinnhubException e) {
-            throw e;
+            throw new FinnhubException("Error fetching quote for " + ticker + ": " + e.getMessage(), e);
 
         } catch (HttpClientErrorException e) {
             log.error("API error fetching quote for {}: Status {}", ticker, e.getStatusCode());
@@ -69,8 +71,39 @@ public class FinnhubAdapter implements FinnhubPort {
     }
 
     @Override
-    public CompanyProfileData getCompanyProfile(String ticker) {
-        return null;
+    public CompanyProfile getCompanyProfile(String ticker) {
+
+        try {
+            CompanyData profile = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/stock/profile2")
+                            .queryParam(SYMBOL, ticker)
+                            .queryParam(TOKEN, apiToken)
+                            .build())
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        if (response.getStatusCode().value() == 429) {
+                            throw new FinnhubException("Limit exceeded when fetching quote for " + ticker);
+                        }
+                    })
+                    .body(CompanyData.class);
+
+            if (profile != null && profile.isValid()) {
+                log.debug("Profile fetched for {}: name={}", ticker, profile.getName());
+                profile.setTicker(ticker);
+                profile.setLastUpdated(java.time.LocalDateTime.now());
+                return finnhubMapper.toDomain(profile);
+            }
+            log.debug("No valid profile found for {}", ticker);
+            return null;
+
+        } catch (FinnhubException e) {
+            log.warn("Rate limit hit or specific error for {}: {}", ticker, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.warn("Error fetching profile for ticker {}: {}", ticker, e.getClass().getSimpleName());
+            return null;
+        }
     }
 
     @Override

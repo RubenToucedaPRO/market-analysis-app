@@ -1,8 +1,8 @@
 package com.market.analysis.domain.port.in;
 
 import com.market.analysis.domain.model.AnalysisResult;
+import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
-import com.market.analysis.domain.model.TickerData;
 
 /**
  * Input port (use case interface) for evaluating trading strategies.
@@ -24,5 +24,5 @@ public interface EvaluateStrategyUseCase {
      * @return AnalysisResult containing evaluation results, rule outcomes, and metrics
      * @throws IllegalArgumentException if strategy or tickerData is null
      */
-    AnalysisResult evaluateStrategy(Strategy strategy, TickerData tickerData);
+    AnalysisResult evaluateStrategy(Strategy strategy, Stock tickerData);
 }

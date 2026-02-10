@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
-import com.market.analysis.presentation.dto.TickerDataDTO;
-import com.market.analysis.presentation.mapper.TickerDataDTOMapper;
+import com.market.analysis.presentation.dto.StockDataDTO;
+import com.market.analysis.presentation.mapper.StockDataDTOMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,11 +22,11 @@ import lombok.RequiredArgsConstructor;
 public class AnalyzeTickerController {
 
     private final ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
-    private final TickerDataDTOMapper mapper;
+    private final StockDataDTOMapper mapper;
 
     @GetMapping
     public String getAllTickers(Model model) {
-        List<TickerDataDTO> tickers = manageAnalyzeTickerUseCase.findAllTickers().stream().map(mapper::toDTO).toList();
+        List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllTickers().stream().map(mapper::toDTO).toList();
         model.addAttribute("tickers", tickers);
         return "analyze/analyze";
     }

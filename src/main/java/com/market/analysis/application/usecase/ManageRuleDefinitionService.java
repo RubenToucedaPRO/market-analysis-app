@@ -2,7 +2,7 @@ package com.market.analysis.application.usecase;
 
 import java.util.List;
 
-import com.market.analysis.domain.exception.TickerDataNotFoundException;
+import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
@@ -44,7 +44,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public RuleDefinition getRuleDefinitionById(Long id) {
         return ruleDefinitionRepository.findById(id)
-                .orElseThrow(() -> new TickerDataNotFoundException("RuleDefinition not found with id: " + id));
+                .orElseThrow(() -> new StockDataNotFoundException("RuleDefinition not found with id: " + id));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         }
 
         if (!ruleDefinitionRepository.existsById(ruleDefinition.getId())) {
-            throw new TickerDataNotFoundException("RuleDefinition not found with id: " + ruleDefinition.getId());
+            throw new StockDataNotFoundException("RuleDefinition not found with id: " + ruleDefinition.getId());
         }
 
         return ruleDefinitionRepository.save(ruleDefinition);
@@ -67,7 +67,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public void deleteRuleDefinition(Long id) {
         if (!ruleDefinitionRepository.existsById(id)) {
-            throw new TickerDataNotFoundException("RuleDefinition not found with id: " + id);
+            throw new StockDataNotFoundException("RuleDefinition not found with id: " + id);
         }
         ruleDefinitionRepository.deleteById(id);
     }

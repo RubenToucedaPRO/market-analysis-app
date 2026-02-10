@@ -25,7 +25,7 @@ public class CandleEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ticker_id")
-    private TickerEntity ticker;
+    private StockEntity ticker;
 
     private LocalDateTime dateTime;
     private BigDecimal openPrice;
