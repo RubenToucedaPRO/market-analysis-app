@@ -52,10 +52,11 @@ public class CompanyData {
     /**
      * Checks if the profile has valid data.
      * 
-     * @return true if name is not null and not empty
+     * @return true if name is not null and not empty, and ticker is not null and
+     *         not empty; false otherwise.
      */
     public boolean isValid() {
-        return name != null && !name.isEmpty();
+        return name != null && !name.isEmpty() && ticker != null && !ticker.isEmpty();
     }
 
     public boolean isOutdated() {

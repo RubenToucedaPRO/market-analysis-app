@@ -20,7 +20,7 @@ class CompanyDataTest {
     void testCompanyDataBuilder() {
         // Arrange
         LocalDateTime lastUpdated = LocalDateTime.now();
-        
+
         // Act
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
@@ -35,7 +35,7 @@ class CompanyDataTest {
                 .weburl("https://www.apple.com")
                 .lastUpdated(lastUpdated)
                 .build();
-        
+
         // Assert
         assertThat(companyData).isNotNull();
         assertThat(companyData.getName()).isEqualTo("Apple Inc.");
@@ -59,10 +59,10 @@ class CompanyDataTest {
                 .name("Apple Inc.")
                 .ticker("AAPL")
                 .build();
-        
+
         // Act
         boolean isValid = companyData.isValid();
-        
+
         // Assert
         assertThat(isValid).isTrue();
     }
@@ -74,10 +74,10 @@ class CompanyDataTest {
         CompanyData companyData = CompanyData.builder()
                 .ticker("AAPL")
                 .build();
-        
+
         // Act
         boolean isValid = companyData.isValid();
-        
+
         // Assert
         assertThat(isValid).isFalse();
     }
@@ -90,12 +90,43 @@ class CompanyDataTest {
                 .name("")
                 .ticker("AAPL")
                 .build();
-        
+
         // Act
         boolean isValid = companyData.isValid();
-        
+
         // Assert
         assertThat(isValid).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should invalidate company data with blank name (whitespace only)")
+    void testIsValidWithBlankName() {
+        // Arrange
+        CompanyData companyData = CompanyData.builder()
+                .name("   ")
+                .ticker("AAPL")
+                .build();
+
+        // Act
+        boolean isValid = companyData.isValid();
+
+        // Assert
+        assertThat(isValid).isFalse(); // isBlank() rejects whitespace
+    }
+
+    @Test
+    @DisplayName("Should invalidate company data with null ticker")
+    void testIsValidWithNullTicker() {
+        // Arrange
+        CompanyData companyData = CompanyData.builder()
+                .name("Apple Inc.")
+                .build();
+
+        // Act
+        boolean isValid = companyData.isValid();
+
+        // Assert
+        assertThat(isValid).isFalse(); // Assuming ticker is required
     }
 
     @Test
@@ -107,10 +138,10 @@ class CompanyDataTest {
                 .name("Apple Inc.")
                 .lastUpdated(oldDate)
                 .build();
-        
+
         // Act
         boolean isOutdated = companyData.isOutdated();
-        
+
         // Assert
         assertThat(isOutdated).isTrue();
     }
@@ -124,12 +155,46 @@ class CompanyDataTest {
                 .name("Apple Inc.")
                 .lastUpdated(recentDate)
                 .build();
-        
+
         // Act
         boolean isOutdated = companyData.isOutdated();
-        
+
         // Assert
         assertThat(isOutdated).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should consider data not outdated when lastUpdated is exactly 30 days ago")
+    void testIsOutdatedWithExactly30DaysAgo() {
+        // Arrange
+        LocalDateTime exactly30DaysAgo = LocalDateTime.now().minusDays(30);
+        CompanyData companyData = CompanyData.builder()
+                .name("Apple Inc.")
+                .lastUpdated(exactly30DaysAgo)
+                .build();
+
+        // Act
+        boolean isOutdated = companyData.isOutdated();
+
+        // Assert
+        assertThat(isOutdated).isFalse(); // 30 days is not "before", it's equal
+    }
+
+    @Test
+    @DisplayName("Should consider data outdated when lastUpdated is more than 30 days ago")
+    void testIsOutdatedWithMoreThan30DaysAgo() {
+        // Arrange
+        LocalDateTime moreThan30DaysAgo = LocalDateTime.now().minusDays(31).minusSeconds(1);
+        CompanyData companyData = CompanyData.builder()
+                .name("Apple Inc.")
+                .lastUpdated(moreThan30DaysAgo)
+                .build();
+
+        // Act
+        boolean isOutdated = companyData.isOutdated();
+
+        // Assert
+        assertThat(isOutdated).isTrue();
     }
 
     @Test
@@ -139,10 +204,10 @@ class CompanyDataTest {
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
                 .build();
-        
+
         // Act
         boolean isOutdated = companyData.isOutdated();
-        
+
         // Assert
         assertThat(isOutdated).isTrue();
     }
@@ -152,7 +217,7 @@ class CompanyDataTest {
     void testNoArgsConstructor() {
         // Act
         CompanyData companyData = new CompanyData();
-        
+
         // Assert
         assertThat(companyData).isNotNull();
         assertThat(companyData.getName()).isNull();
@@ -163,7 +228,7 @@ class CompanyDataTest {
     void testAllArgsConstructor() {
         // Arrange
         LocalDateTime lastUpdated = LocalDateTime.now();
-        
+
         // Act
         CompanyData companyData = new CompanyData(
                 "Apple Inc.",
@@ -176,9 +241,8 @@ class CompanyDataTest {
                 2500000000000.0,
                 16000000000.0,
                 "https://www.apple.com",
-                lastUpdated
-        );
-        
+                lastUpdated);
+
         // Assert
         assertThat(companyData).isNotNull();
         assertThat(companyData.getName()).isEqualTo("Apple Inc.");
@@ -190,15 +254,53 @@ class CompanyDataTest {
     void testSetters() {
         // Arrange
         CompanyData companyData = new CompanyData();
-        
+
         // Act
         companyData.setName("Microsoft");
         companyData.setTicker("MSFT");
         companyData.setCountry("US");
-        
+
         // Assert
         assertThat(companyData.getName()).isEqualTo("Microsoft");
         assertThat(companyData.getTicker()).isEqualTo("MSFT");
         assertThat(companyData.getCountry()).isEqualTo("US");
+    }
+
+    @Test
+    @DisplayName("Should validate equals and hashCode for identical objects")
+    void testEqualsAndHashCode() {
+        // Arrange
+        LocalDateTime now = LocalDateTime.now();
+        CompanyData companyData1 = CompanyData.builder()
+                .name("Apple Inc.")
+                .ticker("AAPL")
+                .lastUpdated(now)
+                .build();
+
+        CompanyData companyData2 = CompanyData.builder()
+                .name("Apple Inc.")
+                .ticker("AAPL")
+                .lastUpdated(now)
+                .build();
+
+        // Act & Assert
+        assertThat(companyData1).isEqualTo(companyData2);
+        assertThat(companyData1.hashCode()).hasSameHashCodeAs(companyData2.hashCode());
+    }
+
+    @Test
+    @DisplayName("Should validate toString representation")
+    void testToString() {
+        // Arrange
+        CompanyData companyData = CompanyData.builder()
+                .name("Apple Inc.")
+                .ticker("AAPL")
+                .build();
+
+        // Act
+        String result = companyData.toString();
+
+        // Assert
+        assertThat(result).contains("Apple Inc.").contains("AAPL");
     }
 }

@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
 
@@ -30,7 +32,7 @@ class QuoteDataTest {
                 .pc(new BigDecimal("148.00"))
                 .t(1234567890L)
                 .build();
-        
+
         // Assert
         assertThat(quoteData).isNotNull();
         assertThat(quoteData.getSymbol()).isEqualTo("AAPL");
@@ -51,11 +53,18 @@ class QuoteDataTest {
         QuoteData quoteData = QuoteData.builder()
                 .symbol("AAPL")
                 .c(new BigDecimal("150.50"))
+                .d(2.50)
+                .dp(new BigDecimal("1.69"))
+                .h(new BigDecimal("151.00"))
+                .l(new BigDecimal("148.50"))
+                .o(new BigDecimal("149.00"))
+                .pc(new BigDecimal("148.00"))
+                .t(1234567890L)
                 .build();
-        
+
         // Act
         boolean isValid = quoteData.isValid();
-        
+
         // Assert
         assertThat(isValid).isTrue();
     }
@@ -67,10 +76,10 @@ class QuoteDataTest {
         QuoteData quoteData = QuoteData.builder()
                 .symbol("AAPL")
                 .build();
-        
+
         // Act
         boolean isValid = quoteData.isValid();
-        
+
         // Assert
         assertThat(isValid).isFalse();
     }
@@ -83,10 +92,10 @@ class QuoteDataTest {
                 .symbol("AAPL")
                 .c(BigDecimal.ZERO)
                 .build();
-        
+
         // Act
         boolean isValid = quoteData.isValid();
-        
+
         // Assert
         assertThat(isValid).isFalse();
     }
@@ -99,10 +108,10 @@ class QuoteDataTest {
                 .symbol("AAPL")
                 .c(new BigDecimal("-10.00"))
                 .build();
-        
+
         // Act
         boolean isValid = quoteData.isValid();
-        
+
         // Assert
         assertThat(isValid).isFalse();
     }
@@ -112,7 +121,7 @@ class QuoteDataTest {
     void testNoArgsConstructor() {
         // Act
         QuoteData quoteData = new QuoteData();
-        
+
         // Assert
         assertThat(quoteData).isNotNull();
         assertThat(quoteData.getSymbol()).isNull();
@@ -132,9 +141,8 @@ class QuoteDataTest {
                 new BigDecimal("148.50"),
                 new BigDecimal("149.00"),
                 new BigDecimal("148.00"),
-                1234567890L
-        );
-        
+                1234567890L);
+
         // Assert
         assertThat(quoteData).isNotNull();
         assertThat(quoteData.getSymbol()).isEqualTo("AAPL");
@@ -146,29 +154,107 @@ class QuoteDataTest {
     void testSetters() {
         // Arrange
         QuoteData quoteData = new QuoteData();
-        
+
         // Act
         quoteData.setSymbol("GOOGL");
         quoteData.setC(new BigDecimal("100.00"));
         quoteData.setH(new BigDecimal("102.00"));
-        
+
         // Assert
         assertThat(quoteData.getSymbol()).isEqualTo("GOOGL");
         assertThat(quoteData.getC()).isEqualByComparingTo(new BigDecimal("100.00"));
         assertThat(quoteData.getH()).isEqualByComparingTo(new BigDecimal("102.00"));
     }
 
-    @Test
-    @DisplayName("Should handle minimal valid quote data")
-    void testMinimalValidQuoteData() {
+    @ParameterizedTest
+    @DisplayName("Should validate quote data with various valid prices")
+    @CsvSource({
+        "0.01, true, Minimal valid price",
+        "150.999999999, true, High precision price",
+        "0.001, true, Very small positive price"
+    })
+    void testIsValidWithVariousPrices(String price, boolean expectedValid, String description) {
         // Arrange
         QuoteData quoteData = QuoteData.builder()
-                .c(new BigDecimal("0.01"))
+                .symbol("AAPL")
+                .c(new BigDecimal(price))
+                .t(1234567890L)
                 .build();
-        
+
         // Act
         boolean isValid = quoteData.isValid();
-        
+
+        // Assert
+        assertThat(isValid).isEqualTo(expectedValid);
+    }
+
+    @Test
+    @DisplayName("Should invalidate quote data with null timestamp")
+    void testIsValidWithNullTimestamp() {
+        // Arrange
+        QuoteData quoteData = QuoteData.builder()
+                .symbol("AAPL")
+                .c(new BigDecimal("150.50"))
+                .build();
+
+        // Act
+        boolean isValid = quoteData.isValid();
+
+        // Assert
+        assertThat(isValid).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should invalidate quote data with zero timestamp")
+    void testIsValidWithZeroTimestamp() {
+        // Arrange
+        QuoteData quoteData = QuoteData.builder()
+                .symbol("AAPL")
+                .c(new BigDecimal("150.50"))
+                .t(0L)
+                .build();
+
+        // Act
+        boolean isValid = quoteData.isValid();
+
+        // Assert
+        assertThat(isValid).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should invalidate quote data when high price is less than low price")
+    void testIsValidWithIncoherentPrices() {
+        // Arrange
+        QuoteData quoteData = QuoteData.builder()
+                .symbol("AAPL")
+                .c(new BigDecimal("150.50"))
+                .h(new BigDecimal("145.00"))
+                .l(new BigDecimal("155.00"))
+                .t(1234567890L)
+                .build();
+
+        // Act
+        boolean isValid = quoteData.isValid();
+
+        // Assert
+        assertThat(isValid).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should accept quote data when high price equals low price")
+    void testIsValidWithEqualHighAndLowPrices() {
+        // Arrange
+        QuoteData quoteData = QuoteData.builder()
+                .symbol("AAPL")
+                .c(new BigDecimal("150.50"))
+                .h(new BigDecimal("150.50"))
+                .l(new BigDecimal("150.50"))
+                .t(1234567890L)
+                .build();
+
+        // Act
+        boolean isValid = quoteData.isValid();
+
         // Assert
         assertThat(isValid).isTrue();
     }

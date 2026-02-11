@@ -43,11 +43,22 @@ public class QuoteData {
     private Long t;
 
     /**
-     * Checks if the quote data is valid.
+     * Checks if the quote data is valid by ensuring it has a non-null symbol, a
+     * positive current price, a valid timestamp, and coherent high/low prices.
      * 
-     * @return true if current price is available
+     * @return true if the quote data has a non-null symbol, a positive current
+     *         price, a valid timestamp, and coherent high/low prices; false
+     *         otherwise.
      */
     public boolean isValid() {
-        return c != null && c.compareTo(BigDecimal.ZERO) > 0;
+        boolean hasSymbol = symbol != null && !symbol.isBlank();
+        boolean hasValidPrice = c != null && c.compareTo(BigDecimal.ZERO) > 0;
+        boolean hasValidTime = t != null && t > 0;
+        boolean isCoherent = true;
+        if (h != null && l != null) {
+            isCoherent = h.compareTo(l) >= 0;
+        }
+
+        return hasSymbol && hasValidPrice && hasValidTime && isCoherent;
     }
 }
