@@ -44,12 +44,20 @@ class ManageAnalyzeStockServiceTest {
     @Mock
     private StockProviderPort stockProviderPort;
 
+    @Mock
+    private com.market.analysis.domain.port.out.StrategyRepository strategyRepository;
+
+    @Mock
+    private com.market.analysis.domain.port.in.EvaluateStrategyUseCase evaluateStrategyUseCase;
+
     @InjectMocks
     private ManageAnalyzeStockService service;
 
     private Stock stock;
     private CompanyProfile validCompanyProfile;
     private CompanyProfile prohibitedCompanyProfile;
+    private com.market.analysis.domain.model.Strategy testStrategy;
+    private com.market.analysis.domain.model.AnalysisResult analysisResult;
 
     @BeforeEach
     void setUp() {
@@ -73,6 +81,32 @@ class ManageAnalyzeStockServiceTest {
                 .exchange("NYSE")
                 .lastUpdated(LocalDateTime.now())
                 .build();
+
+        testStrategy = com.market.analysis.domain.model.Strategy.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("A test strategy")
+                .rules(Arrays.asList(
+                        com.market.analysis.domain.model.Rule.builder()
+                                .id(1L)
+                                .name("Price > SMA20")
+                                .subjectCode("PRICE")
+                                .operator(">")
+                                .targetCode("SMA")
+                                .targetParam(20.0)
+                                .description("Price above SMA20")
+                                .build()))
+                .build();
+
+        analysisResult = com.market.analysis.domain.model.AnalysisResult.builder()
+                .strategy(testStrategy)
+                .ticker("AAPL")
+                .analysisTimestamp(LocalDateTime.now())
+                .ruleResults(Arrays.asList())
+                .calculatedMetrics(new java.util.HashMap<>())
+                .overallPassed(true)
+                .summary("Test passed")
+                .build();
     }
 
     @Test
@@ -81,13 +115,17 @@ class ManageAnalyzeStockServiceTest {
         // Arrange
         when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, times(1)).saveStockData(stock);
+        verify(strategyRepository, times(1)).findById(1L);
+        verify(evaluateStrategyUseCase, times(1)).evaluateStrategy(any(), any());
+        verify(stockDataRepository, times(1)).saveStockData(any());
     }
 
     @Test
@@ -105,15 +143,16 @@ class ManageAnalyzeStockServiceTest {
         when(companyProfileRepository.findByTicker("GOOGL")).thenReturn(Optional.of(profile2));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
         when(stockProviderPort.getQuote("GOOGL")).thenReturn(stock2);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
 
         // Act
-        service.getStockData("AAPL,GOOGL");
+        service.getStockData("AAPL,GOOGL", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
         verify(stockProviderPort, times(1)).getQuote("GOOGL");
-        verify(stockDataRepository, times(1)).saveStockData(stock);
-        verify(stockDataRepository, times(1)).saveStockData(stock2);
+        verify(stockDataRepository, times(2)).saveStockData(any());
     }
 
     @Test
@@ -124,9 +163,11 @@ class ManageAnalyzeStockServiceTest {
         when(companyProfileRepository.findByTicker("GOOGL")).thenReturn(Optional.of(validCompanyProfile));
         when(companyProfileRepository.findByTicker("TSLA")).thenReturn(Optional.of(validCompanyProfile));
         when(stockProviderPort.getQuote(anyString())).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
 
         // Act
-        service.getStockData("  aapl  ,  googl  ,  TSLA  ");
+        service.getStockData("  aapl  ,  googl  ,  TSLA  ", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
@@ -140,13 +181,15 @@ class ManageAnalyzeStockServiceTest {
         // Arrange
         when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
 
         // Act
-        service.getStockData("AAPL,,  ,");
+        service.getStockData("AAPL,,  ,", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, times(1)).saveStockData(stock);
+        verify(stockDataRepository, times(1)).saveStockData(any());
     }
 
     @Test
@@ -157,9 +200,11 @@ class ManageAnalyzeStockServiceTest {
         when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(false);
         when(stockProviderPort.getCompanyProfile("AAPL")).thenReturn(validCompanyProfile);
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
@@ -181,9 +226,11 @@ class ManageAnalyzeStockServiceTest {
         when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(false);
         when(stockProviderPort.getCompanyProfile("AAPL")).thenReturn(validCompanyProfile);
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
@@ -197,9 +244,10 @@ class ManageAnalyzeStockServiceTest {
         when(companyProfileRepository.findByTicker("SPY")).thenReturn(Optional.empty());
         when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(false);
         when(stockProviderPort.getCompanyProfile("SPY")).thenReturn(prohibitedCompanyProfile);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
 
         // Act
-        service.getStockData("SPY");
+        service.getStockData("SPY", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("SPY");
@@ -214,9 +262,10 @@ class ManageAnalyzeStockServiceTest {
         // Arrange
         when(companyProfileRepository.findByTicker("SPY")).thenReturn(Optional.empty());
         when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(true);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
 
         // Act
-        service.getStockData("SPY");
+        service.getStockData("SPY", 1L);
 
         // Assert
         verify(prohibitedTickerRepository, times(1)).existsByTicker("SPY");
@@ -231,9 +280,10 @@ class ManageAnalyzeStockServiceTest {
         when(companyProfileRepository.findByTicker("INVALID")).thenReturn(Optional.empty());
         when(prohibitedTickerRepository.existsByTicker("INVALID")).thenReturn(false);
         when(stockProviderPort.getCompanyProfile("INVALID")).thenReturn(null);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
 
         // Act
-        service.getStockData("INVALID");
+        service.getStockData("INVALID", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("INVALID");
@@ -247,9 +297,10 @@ class ManageAnalyzeStockServiceTest {
         // Arrange
         when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(null);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
@@ -355,7 +406,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", 1L);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");

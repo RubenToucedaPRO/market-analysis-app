@@ -38,7 +38,13 @@ class AnalyzeTickerControllerTest {
     private ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
 
     @Mock
-    private StockDataDTOMapper mapper;
+    private com.market.analysis.domain.port.in.ManageStrategyUseCase manageStrategyUseCase;
+
+    @Mock
+    private StockDataDTOMapper stockMapper;
+
+    @Mock
+    private com.market.analysis.presentation.mapper.StrategyDTOMapper strategyMapper;
 
     @Mock
     private Model model;
@@ -48,6 +54,8 @@ class AnalyzeTickerControllerTest {
 
     private Stock testStock;
     private StockDataDTO testStockDTO;
+    private com.market.analysis.domain.model.Strategy testStrategy;
+    private com.market.analysis.presentation.dto.StrategyDTO testStrategyDTO;
 
     @BeforeEach
     void setUp() {
@@ -70,6 +78,20 @@ class AnalyzeTickerControllerTest {
                 .volume(50000000L)
                 .lastUpdated(lastUpdated)
                 .build();
+
+        testStrategy = com.market.analysis.domain.model.Strategy.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("A test strategy")
+                .rules(Arrays.asList())
+                .build();
+
+        testStrategyDTO = com.market.analysis.presentation.dto.StrategyDTO.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("A test strategy")
+                .rules(Arrays.asList())
+                .build();
     }
 
     @Test
@@ -87,9 +109,13 @@ class AnalyzeTickerControllerTest {
                 .build();
         
         List<Stock> stocks = Arrays.asList(testStock, stock2);
+        List<com.market.analysis.domain.model.Strategy> strategies = Arrays.asList(testStrategy);
+        
         when(manageAnalyzeTickerUseCase.findAllStocks()).thenReturn(stocks);
-        when(mapper.toDTO(testStock)).thenReturn(testStockDTO);
-        when(mapper.toDTO(stock2)).thenReturn(stockDTO2);
+        when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategies);
+        when(stockMapper.toDTO(testStock)).thenReturn(testStockDTO);
+        when(stockMapper.toDTO(stock2)).thenReturn(stockDTO2);
+        when(strategyMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
 
         // Act
         String viewName = controller.getAllTickers(model);
@@ -97,8 +123,10 @@ class AnalyzeTickerControllerTest {
         // Assert
         assertThat(viewName).isEqualTo("analysis/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
-        verify(mapper, times(2)).toDTO(any(Stock.class));
-        verify(model, times(1)).addAttribute(anyString(), any(List.class));
+        verify(manageStrategyUseCase, times(1)).getAllStrategies();
+        verify(stockMapper, times(2)).toDTO(any(Stock.class));
+        verify(model, times(1)).addAttribute("tickers", any(List.class));
+        verify(model, times(1)).addAttribute("strategies", any(List.class));
     }
 
     @Test
@@ -106,6 +134,7 @@ class AnalyzeTickerControllerTest {
     void testGetAllTickersEmpty() {
         // Arrange
         when(manageAnalyzeTickerUseCase.findAllStocks()).thenReturn(Arrays.asList());
+        when(manageStrategyUseCase.getAllStrategies()).thenReturn(Arrays.asList());
 
         // Act
         String viewName = controller.getAllTickers(model);
@@ -113,7 +142,9 @@ class AnalyzeTickerControllerTest {
         // Assert
         assertThat(viewName).isEqualTo("analysis/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
-        verify(model, times(1)).addAttribute(anyString(), any(List.class));
+        verify(manageStrategyUseCase, times(1)).getAllStrategies();
+        verify(model, times(1)).addAttribute("tickers", any(List.class));
+        verify(model, times(1)).addAttribute("strategies", any(List.class));
     }
 
     @Test
@@ -121,13 +152,14 @@ class AnalyzeTickerControllerTest {
     void testGetTickerData() {
         // Arrange
         String tickers = "AAPL,GOOGL,MSFT";
+        Long strategyId = 1L;
 
         // Act
-        String viewName = controller.getTickerData(tickers);
+        String viewName = controller.getTickerData(tickers, strategyId);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
-        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(tickers);
+        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(tickers, strategyId);
     }
 
     @Test
@@ -135,13 +167,14 @@ class AnalyzeTickerControllerTest {
     void testGetSingleTickerData() {
         // Arrange
         String ticker = "AAPL";
+        Long strategyId = 1L;
 
         // Act
-        String viewName = controller.getTickerData(ticker);
+        String viewName = controller.getTickerData(ticker, strategyId);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
-        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(ticker);
+        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(ticker, strategyId);
     }
 
     @Test
@@ -176,11 +209,11 @@ class AnalyzeTickerControllerTest {
     @DisplayName("Should handle multiple operations correctly")
     void testMultipleOperations() {
         // Test create, update, and delete in sequence
-        controller.getTickerData("AAPL");
+        controller.getTickerData("AAPL", 1L);
         controller.updateTicker("AAPL");
         controller.deleteTicker("AAPL");
 
-        verify(manageAnalyzeTickerUseCase, times(1)).getStockData("AAPL");
+        verify(manageAnalyzeTickerUseCase, times(1)).getStockData("AAPL", 1L);
         verify(manageAnalyzeTickerUseCase, times(1)).updateStockData("AAPL");
         verify(manageAnalyzeTickerUseCase, times(1)).deleteStockDataByTicker("AAPL");
     }
