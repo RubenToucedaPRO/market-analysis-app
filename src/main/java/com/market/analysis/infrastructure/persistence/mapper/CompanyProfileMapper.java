@@ -27,7 +27,7 @@ public class CompanyProfileMapper {
                 .build();
     }
 
-    public CompanyProfile toModel(CompanyProfileEntity entity) {
+    public CompanyProfile toDomain(CompanyProfileEntity entity) {
         if (entity == null) {
             return null;
         }

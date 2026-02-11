@@ -7,13 +7,13 @@ import com.market.analysis.domain.model.Stock;
 
 public interface StockDataRepository {
 
-    public void saveTickerData(Stock tickerData);
+    public void saveStockData(Stock tickerData);
 
-    public List<Stock> findAllTickers();
+    public List<Stock> findAllStocks();
 
     public Optional<Stock> findByTicker(String ticker);
 
-    public void updateTickerData(Stock tickerData);
+    public void updateStockData(Stock tickerData);
 
     public void deleteByTicker(String ticker);
 

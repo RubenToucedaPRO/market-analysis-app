@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClient;
 
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.Stock;
-import com.market.analysis.domain.port.out.FinnhubPort;
+import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.external.finnhub.dto.CompanyData;
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @Component
-public class FinnhubAdapter implements FinnhubPort {
+public class FinnhubAdapter implements StockProviderPort {
 
     @Qualifier("finnhubRestClient")
     private final RestClient restClient;

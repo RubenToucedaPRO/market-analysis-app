@@ -3,13 +3,13 @@ package com.market.analysis.infrastructure.persistence.repository;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.infrastructure.persistence.entity.CompanyProfileEntity;
 import com.market.analysis.infrastructure.persistence.mapper.CompanyProfileMapper;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -32,12 +32,12 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
     }
 
     @Override
-    public CompanyProfile findByTicker(String ticker) {
+    public Optional<CompanyProfile> findByTicker(String ticker) {
         CompanyProfileEntity entity = jpaRepository.findAll().stream()
                 .filter(p -> p.getTicker().equalsIgnoreCase(ticker))
                 .findFirst()
                 .orElse(null);
-        return entity != null ? mapper.toModel(entity) : null;
+        return entity != null ? Optional.of(mapper.toDomain(entity)) : Optional.empty();
     }
 
     @Override

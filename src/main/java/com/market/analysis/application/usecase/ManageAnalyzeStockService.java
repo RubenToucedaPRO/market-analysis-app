@@ -10,9 +10,9 @@ import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
-import com.market.analysis.domain.port.out.FinnhubPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
+import com.market.analysis.domain.port.out.StockProviderPort;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,43 +21,48 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
-    private final StockDataRepository tickerDataRepository;
+    private final StockDataRepository stockDataRepository;
     private final CompanyProfileRepository companyProfileRepository;
     private final ProhibitedTickerRepository prohibitedTickerRepository;
-    private final FinnhubPort finnhubPort;
+    private final StockProviderPort stockProviderPort;
 
     @Override
-    public void getTickerData(String tickers) {
+    public void getStockData(String tickers) {
         List<String> tickerList = parseTickers(tickers);
         List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
-            Stock stock = finnhubPort.getQuote(ticker);
+            Stock stock = stockProviderPort.getQuote(ticker);
             if (stock != null) {
-                tickerDataRepository.saveTickerData(stock);
+                stockDataRepository.saveStockData(stock);
             }
         }
     }
 
     @Override
-    public List<Stock> findAllTickers() {
-        return tickerDataRepository.findAllTickers();
+    public List<Stock> findAllStocks() {
+        return stockDataRepository.findAllStocks();
     }
 
     @Override
-    public Stock findTickerDataByTicker(String ticker) {
-        return tickerDataRepository.findByTicker(ticker)
+    public Stock findStockDataByTicker(String ticker) {
+        return stockDataRepository.findByTicker(ticker)
                 .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + ticker));
     }
 
     @Override
-    public void updateTickerData(Stock tickerData) {
-        tickerDataRepository.updateTickerData(tickerData);
+    public void updateStockData(String ticker) {
+        Stock stock = stockProviderPort.getQuote(ticker);
+        if (stock != null) {
+            stockDataRepository.updateStockData(stock);
+        } else {
+            log.warn("No stock data found for ticker {}, skipping update", ticker);
+        }
     }
 
     @Override
-    public void deleteTickerDataByTicker(String ticker) {
-        tickerDataRepository.deleteByTicker(ticker);
+    public void deleteStockDataByTicker(String ticker) {
+        stockDataRepository.deleteByTicker(ticker);
     }
 
     /**
@@ -104,7 +109,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
      * @return true if an update is required, false otherwise
      */
     private boolean isCompanyUpdateRequired(String ticker) {
-        CompanyProfile companyProfile = companyProfileRepository.findByTicker(ticker);
+        CompanyProfile companyProfile = companyProfileRepository.findByTicker(ticker).orElse(null);
         return companyProfile == null || (companyProfile.getLastUpdated() == null || companyProfile.isOutdated());
     }
 
@@ -113,13 +118,14 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             log.info("Ticker {} is already marked as prohibited, skipping profile check", ticker);
             return;
         }
-        CompanyProfile companyProfile = finnhubPort.getCompanyProfile(ticker);
+        CompanyProfile companyProfile = stockProviderPort.getCompanyProfile(ticker);
         if (companyProfile == null) {
             log.warn("No company profile found for ticker {}, skipping", ticker);
             return;
         }
         if (companyProfile.isProhibited()) {
-            ProhibitedTicker newProhibitedTicker = ProhibitedTicker.createProhibited(ticker, companyProfile.getProhibitionReason());
+            ProhibitedTicker newProhibitedTicker = ProhibitedTicker.createProhibited(ticker,
+                    companyProfile.getProhibitionReason());
             prohibitedTickerRepository.save(newProhibitedTicker);
             log.info("Ticker {} marked as prohibited based on company profile by '{}'", ticker,
                     companyProfile.getProhibitionReason());

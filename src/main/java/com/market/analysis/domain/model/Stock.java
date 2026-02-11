@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -12,6 +13,7 @@ import lombok.ToString;
  * Contains market information and technical indicators for a specific ticker.
  */
 @Getter
+@Setter
 @Builder
 @ToString
 public class Stock {
@@ -20,6 +22,12 @@ public class Stock {
      * Ticker symbol (e.g., "AAPL", "GOOGL").
      */
     private final String ticker;
+
+    /**
+     * URL of the company logo, obtained from the company profile API. This field is
+     * optional and may be null if the logo is not available.
+     */
+    private String logoUrl;
 
     /**
      * Current price of the ticker.

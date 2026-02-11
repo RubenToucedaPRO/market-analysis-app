@@ -3,7 +3,7 @@ package com.market.analysis.domain.port.out;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.Stock;
 
-public interface FinnhubPort {
+public interface StockProviderPort {
 
     Stock getQuote(String ticker);
 

@@ -2,7 +2,6 @@ package com.market.analysis.infrastructure.persistence.repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -47,7 +46,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     public List<RuleDefinition> findAll() {
         return jpaRepository.findAll().stream()
                 .map(mapper::toDomain)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

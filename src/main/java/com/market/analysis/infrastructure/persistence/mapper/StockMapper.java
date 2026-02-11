@@ -33,6 +33,7 @@ public class StockMapper {
 
         return Stock.builder()
                 .ticker(entity.getTicker())
+                .logoUrl(entity.getCompanyProfile().getLogo())
                 .currentPrice(entity.getCurrentPrice())
                 .openPrice(entity.getOpenPrice())
                 .highOfDay(entity.getHighOfDay())

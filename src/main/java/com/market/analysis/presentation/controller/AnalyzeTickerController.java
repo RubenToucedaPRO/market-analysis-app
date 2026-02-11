@@ -6,7 +6,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -17,34 +16,37 @@ import com.market.analysis.presentation.mapper.StockDataDTOMapper;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/analyze")
+@RequestMapping("/analysis")
 @RequiredArgsConstructor
 public class AnalyzeTickerController {
+
+    private static final String REDIRECT_ANALYZE = "redirect:/analysis";
 
     private final ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
     private final StockDataDTOMapper mapper;
 
     @GetMapping
     public String getAllTickers(Model model) {
-        List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllTickers().stream().map(mapper::toDTO).toList();
+        List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks().stream().map(mapper::toDTO).toList();
         model.addAttribute("tickers", tickers);
-        return "analyze/analyze";
+        return "analysis/analysis";
     }
 
     @PostMapping("/getTickerData")
     public String getTickerData(@RequestParam String tickers) {
-        manageAnalyzeTickerUseCase.getTickerData(tickers);
-        return "redirect:/analyze";
+        manageAnalyzeTickerUseCase.getStockData(tickers);
+        return REDIRECT_ANALYZE;
     }
 
     @PostMapping("/update")
-    public String updateTicker(@RequestBody String entity) {
-        return "redirect:/analyze";
+    public String updateTicker(@RequestParam String ticker) {
+        manageAnalyzeTickerUseCase.updateStockData(ticker);
+        return REDIRECT_ANALYZE;
     }
 
     @PostMapping("/delete")
     public String deleteTicker(@RequestParam String ticker) {
-        manageAnalyzeTickerUseCase.deleteTickerDataByTicker(ticker);
-        return "redirect:/analyze";
+        manageAnalyzeTickerUseCase.deleteStockDataByTicker(ticker);
+        return REDIRECT_ANALYZE;
     }
 }

@@ -6,14 +6,14 @@ import com.market.analysis.domain.model.Stock;
 
 public interface ManageAnalyzeTickerUseCase {
 
-        public void getTickerData(String ticker);
+        public void getStockData(String ticker);
 
-        public List<Stock> findAllTickers();
+        public List<Stock> findAllStocks();
 
-        public Stock findTickerDataByTicker(String ticker);
+        public Stock findStockDataByTicker(String ticker);
 
-        public void updateTickerData(Stock tickerData);
+        public void updateStockData(String ticker);
 
-        public void deleteTickerDataByTicker(String ticker);
+        public void deleteStockDataByTicker(String ticker);
 
 }

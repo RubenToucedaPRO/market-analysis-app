@@ -18,6 +18,8 @@ public class StockDataDTO {
      * Ticker symbol (e.g., "AAPL", "GOOGL").
      */
     private String ticker;
+
+    private String logoUrl;
     /**
      * Current price of the ticker.
      */
