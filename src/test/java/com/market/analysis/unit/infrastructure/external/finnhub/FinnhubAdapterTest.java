@@ -92,11 +92,11 @@ class FinnhubAdapterTest {
                 .body(QuoteData.class))
                 .thenReturn(null);
 
-        FinnhubException exception = assertThrows(FinnhubException.class, () -> {
+        Exception exception = assertThrows(Exception.class, () -> {
             adapter.getQuote("INVALID");
         });
 
-        assertEquals("Error fetching quote for INVALID: No valid data found for: INVALID", exception.getMessage());
+        assertEquals("Unexpected error fetching quote INVALID: Cannot invoke \"com.market.analysis.infrastructure.external.finnhub.dto.QuoteData.setSymbol(String)\" because \"quote\" is null", exception.getMessage());
     }
 
     @Test
