@@ -8,10 +8,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import com.market.analysis.application.usecase.EvaluateStrategyService;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
+import com.market.analysis.domain.port.in.EvaluateStrategyUseCase;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
@@ -22,6 +24,7 @@ import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.service.RuleEvaluator;
 
 @Configuration
 public class BeanConfig {
@@ -54,9 +57,20 @@ public class BeanConfig {
     @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
             CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
-            StockProviderPort stockProviderPort) {
+            StockProviderPort stockProviderPort, StrategyRepository strategyRepository,
+            EvaluateStrategyUseCase evaluateStrategyUseCase) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, stockProviderPort);
+                prohibitedTickerRepository, stockProviderPort, strategyRepository, evaluateStrategyUseCase);
+    }
+
+    @Bean
+    public EvaluateStrategyUseCase evaluateStrategyUseCase(RuleEvaluator ruleEvaluator) {
+        return new EvaluateStrategyService(ruleEvaluator);
+    }
+
+    @Bean
+    public RuleEvaluator ruleEvaluator() {
+        return new RuleEvaluator();
     }
 
     @Bean

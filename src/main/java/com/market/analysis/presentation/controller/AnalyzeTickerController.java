@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
+import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.dto.StockDataDTO;
+import com.market.analysis.presentation.dto.StrategyDTO;
 import com.market.analysis.presentation.mapper.StockDataDTOMapper;
+import com.market.analysis.presentation.mapper.StrategyDTOMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,18 +26,30 @@ public class AnalyzeTickerController {
     private static final String REDIRECT_ANALYZE = "redirect:/analysis";
 
     private final ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
-    private final StockDataDTOMapper mapper;
+    private final ManageStrategyUseCase manageStrategyUseCase;
+    private final StockDataDTOMapper stockMapper;
+    private final StrategyDTOMapper strategyMapper;
 
     @GetMapping
     public String getAllTickers(Model model) {
-        List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks().stream().map(mapper::toDTO).toList();
+        List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks().stream()
+                .map(stockMapper::toDTO)
+                .toList();
+        List<StrategyDTO> strategies = manageStrategyUseCase.getAllStrategies().stream()
+                .map(strategyMapper::toDTO)
+                .toList();
+        
         model.addAttribute("tickers", tickers);
+        model.addAttribute("strategies", strategies);
         return "analysis/analysis";
     }
 
     @PostMapping("/getTickerData")
-    public String getTickerData(@RequestParam String tickers) {
-        manageAnalyzeTickerUseCase.getStockData(tickers);
+    public String getTickerData(@RequestParam String tickers, @RequestParam Long strategyId) {
+        if (strategyId == null) {
+            throw new IllegalArgumentException("Strategy selection is required");
+        }
+        manageAnalyzeTickerUseCase.getStockData(tickers, strategyId);
         return REDIRECT_ANALYZE;
     }
 

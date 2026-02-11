@@ -23,6 +23,7 @@ public class StockMapper {
         entity.setSma50(domain.getSma50());
         entity.setSma200(domain.getSma200());
         entity.setVolume(domain.getVolume());
+        entity.setStrategyId(domain.getStrategyId());
 
         return entity;
     }
@@ -46,6 +47,7 @@ public class StockMapper {
                 .volume(entity.getVolume())
                 .averageVolume(entity.getAverageVolume())
                 .lastUpdated(entity.getLastUpdated())
+                .strategyId(entity.getStrategyId())
                 .build();
     }
 }

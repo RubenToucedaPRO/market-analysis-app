@@ -16,7 +16,7 @@ public class StockDataDTOMapper {
             return null;
         }
 
-        return StockDataDTO.builder()
+        StockDataDTO dto = StockDataDTO.builder()
                 .ticker(stock.getTicker())
                 .logoUrl(stock.getLogoUrl())
                 .currentPrice(stock.getCurrentPrice())
@@ -30,7 +30,18 @@ public class StockDataDTOMapper {
                 .volume(stock.getVolume())
                 .averageVolume(stock.getAverageVolume())
                 .lastUpdated(stock.getLastUpdated())
+                .strategyId(stock.getStrategyId())
                 .build();
+
+        // Map evaluation result if present
+        if (stock.getEvaluationResult() != null) {
+            dto.setEvaluationPassed(stock.getEvaluationResult().isOverallPassed());
+            dto.setComplianceRate(stock.getEvaluationResult().calculateComplianceRate());
+            dto.setEvaluationSummary(stock.getEvaluationResult().getSummary());
+            dto.setStrategyName(stock.getEvaluationResult().getStrategy().getName());
+        }
+
+        return dto;
     }
 
 }

@@ -54,4 +54,19 @@ public class StockDataDTO {
 
     /** Last updated timestamp */
     private LocalDateTime lastUpdated;
+
+    /** ID of the associated strategy */
+    private Long strategyId;
+
+    /** Name of the associated strategy */
+    private String strategyName;
+
+    /** Whether the strategy evaluation passed */
+    private Boolean evaluationPassed;
+
+    /** Compliance rate (percentage of rules passed) */
+    private BigDecimal complianceRate;
+
+    /** Summary of the evaluation result */
+    private String evaluationSummary;
 }

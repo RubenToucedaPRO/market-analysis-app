@@ -64,4 +64,16 @@ public class Stock {
     /** Last updated timestamp */
     private LocalDateTime lastUpdated;
 
+    /**
+     * ID of the strategy associated with this ticker.
+     * This enables strategy evaluation when ticker is added/updated.
+     */
+    private Long strategyId;
+
+    /**
+     * Result of the most recent strategy evaluation.
+     * Contains pass/fail status, compliance rate, and analysis summary.
+     */
+    private AnalysisResult evaluationResult;
+
 }

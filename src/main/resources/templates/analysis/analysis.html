@@ -71,16 +71,36 @@
             method="post"
             class="row g-3"
           >
-            <div class="col-md-8">
+            <div class="col-md-5">
+              <label for="tickers" class="form-label">Ticker Symbol</label>
               <input
                 type="text"
                 class="form-control text-uppercase"
+                id="tickers"
                 th:name="tickers"
                 placeholder="Enter ticker symbol (e.g., AAPL, GOOGL)"
                 required
               />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
+              <label for="strategyId" class="form-label">Strategy</label>
+              <select
+                class="form-select"
+                id="strategyId"
+                th:name="strategyId"
+                required
+              >
+                <option value="" selected disabled>Select a strategy</option>
+                <option
+                  th:each="strategy : ${strategies}"
+                  th:value="${strategy.id}"
+                  th:text="${strategy.name}"
+                >
+                  Strategy Name
+                </option>
+              </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
               <button type="submit" class="btn btn-primary w-100">
                 <i class="bi bi-plus-circle me-1"></i>
                 Add Ticker
@@ -98,12 +118,14 @@
               <thead class="table-light">
                 <tr>
                   <th scope="col">Ticker</th>
+                  <th scope="col">Strategy</th>
+                  <th scope="col">Status</th>
                   <th scope="col">Current Price</th>
                   <th scope="col">Open Price</th>
                   <th scope="col">High of Day</th>
                   <th scope="col">Low of Day</th>
                   <th scope="col">Previous Close</th>
-                  <th scope="col">Volumen</th>
+                  <th scope="col">Volume</th>
                   <th scope="col" class="text-end">Actions</th>
                 </tr>
               </thead>
@@ -122,6 +144,34 @@
                         >AAPL</span
                       >
                     </div>
+                  </td>
+                  <td>
+                    <span
+                      th:text="${ticker.strategyName}"
+                      class="badge bg-secondary"
+                      >Strategy</span
+                    >
+                  </td>
+                  <td>
+                    <span
+                      th:if="${ticker.evaluationPassed != null}"
+                      th:class="${ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
+                      th:title="${ticker.evaluationSummary}"
+                    >
+                      <i
+                        th:class="${ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
+                      ></i>
+                      <span
+                        th:text="${ticker.evaluationPassed ? 'PASSED' : 'FAILED'}"
+                      ></span>
+                      (<span th:text="${ticker.complianceRate}">0</span>%)
+                    </span>
+                    <span
+                      th:unless="${ticker.evaluationPassed != null}"
+                      class="badge bg-secondary"
+                    >
+                      N/A
+                    </span>
                   </td>
                   <td th:text="${ticker.currentPrice}">150.00</td>
                   <td th:text="${ticker.openPrice}">148.00</td>
@@ -143,6 +193,7 @@
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-primary"
+                        title="Refresh ticker data"
                       >
                         <i class="bi bi-arrow-repeat"></i>
                       </button>
@@ -160,6 +211,7 @@
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-danger"
+                        title="Delete ticker"
                       >
                         <i class="bi bi-trash"></i>
                       </button>
