@@ -13,14 +13,14 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.market.analysis.application.usecase.HealthCheckService;
 import com.market.analysis.domain.model.HealthStatus;
+import com.market.analysis.presentation.controller.HealthCheckController;
 import com.market.analysis.presentation.dto.HealthCheckResponse;
 import com.market.analysis.presentation.mapper.HealthCheckMapper;
 
@@ -28,8 +28,7 @@ import com.market.analysis.presentation.mapper.HealthCheckMapper;
  * Integration tests for HealthCheckController using MockMvc.
  * Tests the HTTP endpoint and response handling for health checks.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(HealthCheckController.class)
 @DisplayName("HealthCheckController Integration Tests")
 class HealthCheckControllerTest {
 

@@ -21,7 +21,7 @@ class HealthStatusTest {
     void testHealthStatusBuilder() {
         // Arrange
         LocalDateTime now = LocalDateTime.now();
-        
+
         // Act
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("UP")
@@ -30,7 +30,7 @@ class HealthStatusTest {
                 .description("Application is fully operational")
                 .details("Database: Healthy (50ms)")
                 .build();
-        
+
         // Assert
         assertThat(healthStatus).isNotNull();
         assertThat(healthStatus.getStatus()).isEqualTo("UP");
@@ -45,7 +45,7 @@ class HealthStatusTest {
     void testHealthStatusWithDownStatus() {
         // Arrange
         LocalDateTime now = LocalDateTime.now();
-        
+
         // Act
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("DOWN")
@@ -54,7 +54,7 @@ class HealthStatusTest {
                 .description("Application is not operational")
                 .details("Database: Unhealthy")
                 .build();
-        
+
         // Assert
         assertThat(healthStatus).isNotNull();
         assertThat(healthStatus.getStatus()).isEqualTo("DOWN");
@@ -73,13 +73,11 @@ class HealthStatusTest {
                 .description("Test description")
                 .details("Test details")
                 .build();
-        
+
         // Act
         String toString = healthStatus.toString();
-        
+
         // Assert
-        assertThat(toString).contains("UP");
-        assertThat(toString).contains("true");
-        assertThat(toString).contains("Test description");
+        assertThat(toString).contains("UP", "true", "Test description", "Test details");
     }
 }

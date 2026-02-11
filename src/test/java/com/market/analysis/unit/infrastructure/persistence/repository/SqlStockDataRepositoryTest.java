@@ -89,7 +89,7 @@ class SqlStockDataRepositoryTest {
         StockEntity entity2 = new StockEntity();
         entity2.setTicker("GOOGL");
         entity2.setCompanyProfile(testCompanyProfile);
-        
+
         Stock stock2 = Stock.builder()
                 .ticker("GOOGL")
                 .logoUrl("https://example.com/logo.png")
@@ -105,10 +105,8 @@ class SqlStockDataRepositoryTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getTicker()).isEqualTo("AAPL");
+        assertThat(result).hasSize(2).extracting(Stock::getTicker).containsExactlyInAnyOrder("AAPL", "GOOGL");
         assertThat(result.get(0).getLogoUrl()).isEqualTo("https://example.com/logo.png");
-        assertThat(result.get(1).getTicker()).isEqualTo("GOOGL");
         verify(jpaRepository, times(1)).findAllWithProfile();
     }
 
@@ -122,8 +120,7 @@ class SqlStockDataRepositoryTest {
         List<Stock> result = sqlRepository.findAllStocks();
 
         // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result).isNotNull().isEmpty();
         verify(jpaRepository, times(1)).findAllWithProfile();
     }
 
@@ -154,7 +151,7 @@ class SqlStockDataRepositoryTest {
         existingEntity.setId(2L);
         existingEntity.setTicker("AAPL");
         existingEntity.setCompanyProfile(testCompanyProfile);
-        
+
         when(jpaRepository.findByTicker("AAPL")).thenReturn(Optional.of(existingEntity));
         when(mapper.toEntity(testStock)).thenReturn(testEntity);
         when(jpaRepository.save(any(StockEntity.class))).thenReturn(testEntity);
@@ -223,7 +220,7 @@ class SqlStockDataRepositoryTest {
                 .ticker("NOTFOUND")
                 .currentPrice(new BigDecimal("100.00"))
                 .build();
-        
+
         when(jpaRepository.findByTicker("NOTFOUND")).thenReturn(Optional.empty());
 
         // Act
