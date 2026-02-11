@@ -66,7 +66,7 @@ public class FinnhubAdapter implements StockProviderPort {
 
         } catch (Exception e) {
             log.error("Error fetching quote for ticker {}: {}", ticker, e.getClass().getSimpleName());
-            throw new FinnhubException("Unexpected error fetching quote", e);
+            throw new FinnhubException("Unexpected error fetching quote " + ticker + ": " + e.getMessage());
         }
     }
 
