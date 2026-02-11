@@ -79,8 +79,8 @@ class EarningsDataMapperTest {
     }
 
     @Test
-    @DisplayName("Should correctly map earnings data with special ticker")
-    void testToEntityWithSpecialTicker() {
+    @DisplayName("Should correctly map earnings data with dot in ticker symbol")
+    void testToEntityWithDotInTicker() {
         // Arrange
         EarningsData earningsData = EarningsData.builder()
                 .ticker("BRK.B")
