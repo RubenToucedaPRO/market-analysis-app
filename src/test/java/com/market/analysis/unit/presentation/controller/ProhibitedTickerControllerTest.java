@@ -1,4 +1,4 @@
-package com.market.analysis.unit.presentation.controllers;
+package com.market.analysis.unit.presentation.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;

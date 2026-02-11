@@ -1,4 +1,4 @@
-package com.market.analysis.unit.presentation.controllers;
+package com.market.analysis.unit.presentation.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
