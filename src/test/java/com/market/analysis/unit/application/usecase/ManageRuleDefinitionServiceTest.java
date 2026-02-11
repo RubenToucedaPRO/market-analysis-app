@@ -21,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
-import com.market.analysis.domain.exception.RuleDefinitionNotFoundException;
+import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 
@@ -76,7 +76,7 @@ class ManageRuleDefinitionServiceTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> manageRuleDefinitionService.createRuleDefinition(null));
-        
+
         assertEquals("RuleDefinition cannot be null", exception.getMessage());
     }
 
@@ -94,7 +94,7 @@ class ManageRuleDefinitionServiceTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> manageRuleDefinitionService.createRuleDefinition(invalidRuleDefinition));
-        
+
         assertEquals("RuleDefinition code cannot be null or empty", exception.getMessage());
     }
 
@@ -107,7 +107,7 @@ class ManageRuleDefinitionServiceTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> manageRuleDefinitionService.createRuleDefinition(testRuleDefinition));
-        
+
         assertEquals("RuleDefinition with code 'SMA' already exists", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsByCode("SMA");
     }
@@ -153,9 +153,9 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuleDefinitionNotFoundException exception = assertThrows(RuleDefinitionNotFoundException.class,
+        StockDataNotFoundException exception = assertThrows(StockDataNotFoundException.class,
                 () -> manageRuleDefinitionService.getRuleDefinitionById(999L));
-        
+
         assertEquals("RuleDefinition not found with id: 999", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).findById(999L);
     }
@@ -183,7 +183,7 @@ class ManageRuleDefinitionServiceTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> manageRuleDefinitionService.updateRuleDefinition(null));
-        
+
         assertEquals("RuleDefinition cannot be null", exception.getMessage());
     }
 
@@ -201,7 +201,7 @@ class ManageRuleDefinitionServiceTest {
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> manageRuleDefinitionService.updateRuleDefinition(invalidRuleDefinition));
-        
+
         assertEquals("RuleDefinition ID cannot be null for update", exception.getMessage());
     }
 
@@ -212,9 +212,9 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.existsById(1L)).thenReturn(false);
 
         // Act & Assert
-        RuleDefinitionNotFoundException exception = assertThrows(RuleDefinitionNotFoundException.class,
+        StockDataNotFoundException exception = assertThrows(StockDataNotFoundException.class,
                 () -> manageRuleDefinitionService.updateRuleDefinition(testRuleDefinition));
-        
+
         assertEquals("RuleDefinition not found with id: 1", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsById(1L);
     }
@@ -240,9 +240,9 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.existsById(999L)).thenReturn(false);
 
         // Act & Assert
-        RuleDefinitionNotFoundException exception = assertThrows(RuleDefinitionNotFoundException.class,
+        StockDataNotFoundException exception = assertThrows(StockDataNotFoundException.class,
                 () -> manageRuleDefinitionService.deleteRuleDefinition(999L));
-        
+
         assertEquals("RuleDefinition not found with id: 999", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsById(999L);
     }

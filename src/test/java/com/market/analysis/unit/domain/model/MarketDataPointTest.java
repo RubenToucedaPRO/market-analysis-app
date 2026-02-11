@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.market.analysis.domain.model.MarketDataPoint;
+import com.market.analysis.domain.model.Candle;
 
 /**
  * Unit tests for MarketDataPoint domain entity.
@@ -29,22 +29,22 @@ class MarketDataPointTest {
         Long volume = 1000000L;
 
         // Act
-        MarketDataPoint dataPoint = MarketDataPoint.builder()
-                .date(date)
-                .open(open)
-                .high(high)
-                .low(low)
-                .close(close)
+        Candle dataPoint = Candle.builder()
+                .dateTime(date)
+                .openPrice(open)
+                .highPrice(high)
+                .lowPrice(low)
+                .closePrice(close)
                 .volume(volume)
                 .build();
 
         // Assert
         assertNotNull(dataPoint);
-        assertEquals(date, dataPoint.getDate());
-        assertEquals(open, dataPoint.getOpen());
-        assertEquals(high, dataPoint.getHigh());
-        assertEquals(low, dataPoint.getLow());
-        assertEquals(close, dataPoint.getClose());
+        assertEquals(date, dataPoint.getDateTime());
+        assertEquals(open, dataPoint.getOpenPrice());
+        assertEquals(high, dataPoint.getHighPrice());
+        assertEquals(low, dataPoint.getLowPrice());
+        assertEquals(close, dataPoint.getClosePrice());
         assertEquals(volume, dataPoint.getVolume());
     }
 
@@ -52,33 +52,33 @@ class MarketDataPointTest {
     @DisplayName("Should create OHLCV data point representing a daily candle")
     void testCreateDailyCandleDataPoint() {
         // Arrange & Act
-        MarketDataPoint dailyCandle = MarketDataPoint.builder()
-                .date(LocalDateTime.of(2026, 2, 4, 0, 0))
-                .open(BigDecimal.valueOf(100.50))
-                .high(BigDecimal.valueOf(102.75))
-                .low(BigDecimal.valueOf(99.25))
-                .close(BigDecimal.valueOf(101.80))
+        Candle dailyCandle = Candle.builder()
+                .dateTime(LocalDateTime.of(2026, 2, 4, 0, 0))
+                .openPrice(BigDecimal.valueOf(100.50))
+                .highPrice(BigDecimal.valueOf(102.75))
+                .lowPrice(BigDecimal.valueOf(99.25))
+                .closePrice(BigDecimal.valueOf(101.80))
                 .volume(5000000L)
                 .build();
 
         // Assert
         assertNotNull(dailyCandle);
-        assertEquals(BigDecimal.valueOf(100.50), dailyCandle.getOpen());
-        assertEquals(BigDecimal.valueOf(102.75), dailyCandle.getHigh());
-        assertEquals(BigDecimal.valueOf(99.25), dailyCandle.getLow());
-        assertEquals(BigDecimal.valueOf(101.80), dailyCandle.getClose());
+        assertEquals(BigDecimal.valueOf(100.50), dailyCandle.getOpenPrice());
+        assertEquals(BigDecimal.valueOf(102.75), dailyCandle.getHighPrice());
+        assertEquals(BigDecimal.valueOf(99.25), dailyCandle.getLowPrice());
+        assertEquals(BigDecimal.valueOf(101.80), dailyCandle.getClosePrice());
     }
 
     @Test
     @DisplayName("Should create market data point with null values")
     void testCreateMarketDataPointWithNullValues() {
         // Act
-        MarketDataPoint dataPoint = MarketDataPoint.builder()
-                .date(null)
-                .open(null)
-                .high(null)
-                .low(null)
-                .close(null)
+        Candle dataPoint = Candle.builder()
+                .dateTime(null)
+                .openPrice(null)
+                .highPrice(null)
+                .lowPrice(null)
+                .closePrice(null)
                 .volume(null)
                 .build();
 
@@ -90,17 +90,17 @@ class MarketDataPointTest {
     @DisplayName("Should create market data point for intraday period")
     void testCreateIntradayDataPoint() {
         // Arrange & Act - 5-minute candle
-        MarketDataPoint intradayCandle = MarketDataPoint.builder()
-                .date(LocalDateTime.of(2026, 2, 4, 9, 35))
-                .open(BigDecimal.valueOf(150.25))
-                .high(BigDecimal.valueOf(150.60))
-                .low(BigDecimal.valueOf(150.10))
-                .close(BigDecimal.valueOf(150.45))
+        Candle intradayCandle = Candle.builder()
+                .dateTime(LocalDateTime.of(2026, 2, 4, 9, 35))
+                .openPrice(BigDecimal.valueOf(150.25))
+                .highPrice(BigDecimal.valueOf(150.60))
+                .lowPrice(BigDecimal.valueOf(150.10))
+                .closePrice(BigDecimal.valueOf(150.45))
                 .volume(25000L)
                 .build();
 
         // Assert
         assertNotNull(intradayCandle);
-        assertEquals(LocalDateTime.of(2026, 2, 4, 9, 35), intradayCandle.getDate());
+        assertEquals(LocalDateTime.of(2026, 2, 4, 9, 35), intradayCandle.getDateTime());
     }
 }

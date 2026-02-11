@@ -1,4 +1,4 @@
-package com.market.analysis.unit.presentation.controllers;
+package com.market.analysis.unit.presentation.controller;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,21 +20,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
+import com.market.analysis.presentation.controller.ProhibitedTickerController;
 import com.market.analysis.presentation.dto.ProhibitedTickerDTO;
 import com.market.analysis.presentation.mapper.ProhibitedTickerDTOMapper;
 
 /**
  * Integration tests for ProhibitedTickerController using MockMvc.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(ProhibitedTickerController.class)
 @DisplayName("ProhibitedTickerController Integration Tests")
 class ProhibitedTickerControllerTest {
 
