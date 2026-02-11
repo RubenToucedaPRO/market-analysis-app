@@ -83,7 +83,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
@@ -107,7 +107,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("GOOGL")).thenReturn(stock2);
 
         // Act
-        service.getStockData("AAPL,GOOGL");
+        service.getStockData("AAPL,GOOGL", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
@@ -126,7 +126,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote(anyString())).thenReturn(stock);
 
         // Act
-        service.getStockData("  aapl  ,  googl  ,  TSLA  ");
+        service.getStockData("  aapl  ,  googl  ,  TSLA  ", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
@@ -142,7 +142,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
 
         // Act
-        service.getStockData("AAPL,,  ,");
+        service.getStockData("AAPL,,  ,", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
@@ -159,7 +159,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
@@ -183,7 +183,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
@@ -199,7 +199,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getCompanyProfile("SPY")).thenReturn(prohibitedCompanyProfile);
 
         // Act
-        service.getStockData("SPY");
+        service.getStockData("SPY", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("SPY");
@@ -216,7 +216,7 @@ class ManageAnalyzeStockServiceTest {
         when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(true);
 
         // Act
-        service.getStockData("SPY");
+        service.getStockData("SPY", null);
 
         // Assert
         verify(prohibitedTickerRepository, times(1)).existsByTicker("SPY");
@@ -233,7 +233,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getCompanyProfile("INVALID")).thenReturn(null);
 
         // Act
-        service.getStockData("INVALID");
+        service.getStockData("INVALID", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("INVALID");
@@ -249,7 +249,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("AAPL")).thenReturn(null);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
@@ -355,10 +355,130 @@ class ManageAnalyzeStockServiceTest {
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
 
         // Act
-        service.getStockData("AAPL");
+        service.getStockData("AAPL", null);
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
         verify(companyProfileRepository, times(1)).save(validCompanyProfile);
+    }
+
+    @Test
+    @DisplayName("Should apply validation rule when rule ID is provided")
+    void shouldApplyValidationRuleWhenRuleIdIsProvided() {
+        // Arrange
+        Stock stockWithLogo = Stock.builder()
+                .ticker("AAPL")
+                .logoUrl("https://example.com/logo.png")
+                .currentPrice(BigDecimal.valueOf(150.00))
+                .build();
+
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stockWithLogo);
+
+        // Act
+        service.getStockData("AAPL", "LOGO_PRESENT");
+
+        // Assert
+        verify(stockDataRepository, times(1)).saveStockData(argThat(stock -> 
+            stock.getAppliedRuleId() != null &&
+            stock.getAppliedRuleId().equals("LOGO_PRESENT") &&
+            stock.getRuleValidationResult() != null &&
+            stock.getRuleValidationResult() == true
+        ));
+    }
+
+    @Test
+    @DisplayName("Should not apply rule when rule ID is null")
+    void shouldNotApplyRuleWhenRuleIdIsNull() {
+        // Arrange
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+
+        // Act
+        service.getStockData("AAPL", null);
+
+        // Assert
+        verify(stockDataRepository, times(1)).saveStockData(argThat(s -> 
+            s.getAppliedRuleId() == null &&
+            s.getRuleValidationResult() == null
+        ));
+    }
+
+    @Test
+    @DisplayName("Should not apply rule when rule ID is empty")
+    void shouldNotApplyRuleWhenRuleIdIsEmpty() {
+        // Arrange
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+
+        // Act
+        service.getStockData("AAPL", "");
+
+        // Assert
+        verify(stockDataRepository, times(1)).saveStockData(argThat(s -> 
+            s.getAppliedRuleId() == null &&
+            s.getRuleValidationResult() == null
+        ));
+    }
+
+    @Test
+    @DisplayName("Should handle invalid rule ID gracefully")
+    void shouldHandleInvalidRuleIdGracefully() {
+        // Arrange
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+
+        // Act
+        service.getStockData("AAPL", "INVALID_RULE");
+
+        // Assert - Should still save the stock, just without rule validation
+        verify(stockDataRepository, times(1)).saveStockData(stock);
+    }
+
+    @Test
+    @DisplayName("Should evaluate PriceAboveSma200 rule correctly")
+    void shouldEvaluatePriceAboveSma200RuleCorrectly() {
+        // Arrange
+        Stock stockWithSma = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(BigDecimal.valueOf(200.00))
+                .sma200(BigDecimal.valueOf(150.00))
+                .build();
+
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stockWithSma);
+
+        // Act
+        service.getStockData("AAPL", "PRICE_ABOVE_SMA200");
+
+        // Assert
+        verify(stockDataRepository, times(1)).saveStockData(argThat(stock -> 
+            stock.getAppliedRuleId().equals("PRICE_ABOVE_SMA200") &&
+            stock.getRuleValidationResult() == true
+        ));
+    }
+
+    @Test
+    @DisplayName("Should evaluate VolumeAboveAverage rule correctly")
+    void shouldEvaluateVolumeAboveAverageRuleCorrectly() {
+        // Arrange
+        Stock stockWithVolume = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(BigDecimal.valueOf(150.00))
+                .volume(2000000L)
+                .averageVolume(1000000L)
+                .build();
+
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stockWithVolume);
+
+        // Act
+        service.getStockData("AAPL", "VOLUME_ABOVE_AVERAGE");
+
+        // Assert
+        verify(stockDataRepository, times(1)).saveStockData(argThat(stock -> 
+            stock.getAppliedRuleId().equals("VOLUME_ABOVE_AVERAGE") &&
+            stock.getRuleValidationResult() == true
+        ));
     }
 }

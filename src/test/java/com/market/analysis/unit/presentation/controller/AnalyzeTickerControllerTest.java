@@ -98,7 +98,7 @@ class AnalyzeTickerControllerTest {
         assertThat(viewName).isEqualTo("analysis/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
         verify(mapper, times(2)).toDTO(any(Stock.class));
-        verify(model, times(1)).addAttribute(anyString(), any(List.class));
+        verify(model, times(2)).addAttribute(anyString(), any(List.class));
     }
 
     @Test
@@ -113,7 +113,7 @@ class AnalyzeTickerControllerTest {
         // Assert
         assertThat(viewName).isEqualTo("analysis/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
-        verify(model, times(1)).addAttribute(anyString(), any(List.class));
+        verify(model, times(2)).addAttribute(anyString(), any(List.class));
     }
 
     @Test
@@ -123,11 +123,11 @@ class AnalyzeTickerControllerTest {
         String tickers = "AAPL,GOOGL,MSFT";
 
         // Act
-        String viewName = controller.getTickerData(tickers);
+        String viewName = controller.getTickerData(tickers, null);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
-        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(tickers);
+        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(tickers, null);
     }
 
     @Test
@@ -137,11 +137,11 @@ class AnalyzeTickerControllerTest {
         String ticker = "AAPL";
 
         // Act
-        String viewName = controller.getTickerData(ticker);
+        String viewName = controller.getTickerData(ticker, null);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
-        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(ticker);
+        verify(manageAnalyzeTickerUseCase, times(1)).getStockData(ticker, null);
     }
 
     @Test
@@ -176,11 +176,11 @@ class AnalyzeTickerControllerTest {
     @DisplayName("Should handle multiple operations correctly")
     void testMultipleOperations() {
         // Test create, update, and delete in sequence
-        controller.getTickerData("AAPL");
+        controller.getTickerData("AAPL", null);
         controller.updateTicker("AAPL");
         controller.deleteTicker("AAPL");
 
-        verify(manageAnalyzeTickerUseCase, times(1)).getStockData("AAPL");
+        verify(manageAnalyzeTickerUseCase, times(1)).getStockData("AAPL", null);
         verify(manageAnalyzeTickerUseCase, times(1)).updateStockData("AAPL");
         verify(manageAnalyzeTickerUseCase, times(1)).deleteStockDataByTicker("AAPL");
     }
