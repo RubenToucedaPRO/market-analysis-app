@@ -56,7 +56,8 @@ public class CompanyData {
      *         not empty; false otherwise.
      */
     public boolean isValid() {
-        return name != null && !name.isEmpty() && ticker != null && !ticker.isEmpty();
+        return name != null && !name.isEmpty() && !name.isBlank() && ticker != null && !ticker.isEmpty()
+                && !ticker.isBlank();
     }
 
     public boolean isOutdated() {

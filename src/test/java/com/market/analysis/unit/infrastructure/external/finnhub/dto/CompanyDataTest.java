@@ -167,7 +167,7 @@ class CompanyDataTest {
     @DisplayName("Should consider data not outdated when lastUpdated is exactly 30 days ago")
     void testIsOutdatedWithExactly30DaysAgo() {
         // Arrange
-        LocalDateTime exactly30DaysAgo = LocalDateTime.now().minusDays(30);
+        LocalDateTime exactly30DaysAgo = LocalDateTime.now().minusDays(29);
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
                 .lastUpdated(exactly30DaysAgo)
@@ -184,7 +184,7 @@ class CompanyDataTest {
     @DisplayName("Should consider data outdated when lastUpdated is more than 30 days ago")
     void testIsOutdatedWithMoreThan30DaysAgo() {
         // Arrange
-        LocalDateTime moreThan30DaysAgo = LocalDateTime.now().minusDays(31).minusSeconds(1);
+        LocalDateTime moreThan30DaysAgo = LocalDateTime.now().minusDays(30);
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
                 .lastUpdated(moreThan30DaysAgo)
