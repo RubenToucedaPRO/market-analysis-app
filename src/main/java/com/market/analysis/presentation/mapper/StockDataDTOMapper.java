@@ -16,6 +16,14 @@ public class StockDataDTOMapper {
             return null;
         }
 
+        String appliedRuleName = null;
+        if (stock.getAppliedRuleId() != null) {
+            appliedRuleName = com.market.analysis.domain.model.ValidationRuleFactory
+                    .getRuleById(stock.getAppliedRuleId())
+                    .map(com.market.analysis.domain.model.ValidationRule::getRuleName)
+                    .orElse(null);
+        }
+
         return StockDataDTO.builder()
                 .ticker(stock.getTicker())
                 .logoUrl(stock.getLogoUrl())
@@ -30,6 +38,9 @@ public class StockDataDTOMapper {
                 .volume(stock.getVolume())
                 .averageVolume(stock.getAverageVolume())
                 .lastUpdated(stock.getLastUpdated())
+                .appliedRuleId(stock.getAppliedRuleId())
+                .appliedRuleName(appliedRuleName)
+                .ruleValidationResult(stock.getRuleValidationResult())
                 .build();
     }
 

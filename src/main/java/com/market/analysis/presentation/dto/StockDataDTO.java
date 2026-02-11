@@ -54,4 +54,13 @@ public class StockDataDTO {
 
     /** Last updated timestamp */
     private LocalDateTime lastUpdated;
+
+    /** ID of the validation rule applied to this stock */
+    private String appliedRuleId;
+
+    /** Name of the validation rule applied to this stock */
+    private String appliedRuleName;
+
+    /** Result of the validation rule evaluation */
+    private Boolean ruleValidationResult;
 }

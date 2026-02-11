@@ -64,4 +64,10 @@ public class Stock {
     /** Last updated timestamp */
     private LocalDateTime lastUpdated;
 
+    /** ID of the validation rule applied to this stock */
+    private String appliedRuleId;
+
+    /** Result of the validation rule evaluation (true if rule is satisfied, false otherwise) */
+    private Boolean ruleValidationResult;
+
 }

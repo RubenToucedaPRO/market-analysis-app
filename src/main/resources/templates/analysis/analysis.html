@@ -71,7 +71,7 @@
             method="post"
             class="row g-3"
           >
-            <div class="col-md-8">
+            <div class="col-md-6">
               <input
                 type="text"
                 class="form-control text-uppercase"
@@ -80,7 +80,17 @@
                 required
               />
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+              <select class="form-select" th:name="ruleId">
+                <option value="">No rule (optional)</option>
+                <option
+                  th:each="rule : ${availableRules}"
+                  th:value="${rule.ruleId}"
+                  th:text="${rule.ruleName}"
+                ></option>
+              </select>
+            </div>
+            <div class="col-md-3">
               <button type="submit" class="btn btn-primary w-100">
                 <i class="bi bi-plus-circle me-1"></i>
                 Add Ticker
@@ -104,6 +114,8 @@
                   <th scope="col">Low of Day</th>
                   <th scope="col">Previous Close</th>
                   <th scope="col">Volumen</th>
+                  <th scope="col">Applied Rule</th>
+                  <th scope="col">Result</th>
                   <th scope="col" class="text-end">Actions</th>
                 </tr>
               </thead>
@@ -129,6 +141,31 @@
                   <td th:text="${ticker.lowOfDay}">147.50</td>
                   <td th:text="${ticker.previousClose}">149.00</td>
                   <td th:text="${ticker.volume}">1000000</td>
+                  <td>
+                    <span th:if="${ticker.appliedRuleName}" 
+                          th:text="${ticker.appliedRuleName}"
+                          class="badge bg-secondary">
+                      Rule Name
+                    </span>
+                    <span th:unless="${ticker.appliedRuleName}" 
+                          class="text-muted">
+                      -
+                    </span>
+                  </td>
+                  <td>
+                    <span th:if="${ticker.ruleValidationResult != null}">
+                      <i th:if="${ticker.ruleValidationResult}" 
+                         class="bi bi-check-circle-fill text-success" 
+                         title="Rule satisfied"></i>
+                      <i th:unless="${ticker.ruleValidationResult}" 
+                         class="bi bi-x-circle-fill text-danger" 
+                         title="Rule not satisfied"></i>
+                    </span>
+                    <span th:unless="${ticker.ruleValidationResult != null}" 
+                          class="text-muted">
+                      -
+                    </span>
+                  </td>
                   <td class="text-end">
                     <form
                       th:action="@{/analysis/update}"

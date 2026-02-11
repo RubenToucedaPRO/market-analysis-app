@@ -49,6 +49,12 @@ public class StockEntity {
 
     private LocalDateTime lastUpdated;
 
+    @Column(name = "applied_rule_id")
+    private String appliedRuleId;
+
+    @Column(name = "rule_validation_result")
+    private Boolean ruleValidationResult;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_profile_id")
     private CompanyProfileEntity companyProfile;

@@ -29,12 +29,19 @@ public class AnalyzeTickerController {
     public String getAllTickers(Model model) {
         List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks().stream().map(mapper::toDTO).toList();
         model.addAttribute("tickers", tickers);
+        
+        // Add available validation rules for the dropdown
+        List<com.market.analysis.domain.model.ValidationRule> availableRules = 
+                com.market.analysis.domain.model.ValidationRuleFactory.getAllRules();
+        model.addAttribute("availableRules", availableRules);
+        
         return "analysis/analysis";
     }
 
     @PostMapping("/getTickerData")
-    public String getTickerData(@RequestParam String tickers) {
-        manageAnalyzeTickerUseCase.getStockData(tickers);
+    public String getTickerData(@RequestParam String tickers, 
+                                @RequestParam(required = false) String ruleId) {
+        manageAnalyzeTickerUseCase.getStockData(tickers, ruleId);
         return REDIRECT_ANALYZE;
     }
 

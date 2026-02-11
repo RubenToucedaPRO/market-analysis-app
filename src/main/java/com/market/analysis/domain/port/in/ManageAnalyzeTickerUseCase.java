@@ -6,7 +6,7 @@ import com.market.analysis.domain.model.Stock;
 
 public interface ManageAnalyzeTickerUseCase {
 
-        public void getStockData(String ticker);
+        public void getStockData(String ticker, String ruleId);
 
         public List<Stock> findAllStocks();
 

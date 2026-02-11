@@ -2,12 +2,15 @@ package com.market.analysis.application.usecase;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.ValidationRule;
+import com.market.analysis.domain.model.ValidationRuleFactory;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -27,13 +30,17 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockProviderPort stockProviderPort;
 
     @Override
-    public void getStockData(String tickers) {
+    public void getStockData(String tickers, String ruleId) {
         List<String> tickerList = parseTickers(tickers);
         List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
             Stock stock = stockProviderPort.getQuote(ticker);
             if (stock != null) {
+                // Apply validation rule if provided
+                if (ruleId != null && !ruleId.isEmpty()) {
+                    applyValidationRule(stock, ruleId);
+                }
                 stockDataRepository.saveStockData(stock);
             }
         }
@@ -134,6 +141,30 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         validTickers.add(ticker);
         companyProfileRepository.save(companyProfile);
         log.info("Company profile for ticker {} saved/updated successfully", ticker);
+    }
+
+    /**
+     * Applies a validation rule to a stock and stores the result.
+     * 
+     * @param stock  the stock to validate
+     * @param ruleId the ID of the rule to apply
+     */
+    private void applyValidationRule(Stock stock, String ruleId) {
+        Optional<ValidationRule> ruleOpt = ValidationRuleFactory.getRuleById(ruleId);
+        
+        if (ruleOpt.isEmpty()) {
+            log.warn("Validation rule with ID {} not found, skipping validation", ruleId);
+            return;
+        }
+
+        ValidationRule rule = ruleOpt.get();
+        boolean result = rule.evaluate(stock);
+        
+        stock.setAppliedRuleId(ruleId);
+        stock.setRuleValidationResult(result);
+        
+        log.info("Applied rule '{}' to ticker {}: result = {}", 
+                 rule.getRuleName(), stock.getTicker(), result);
     }
 
 }
