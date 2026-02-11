@@ -496,7 +496,7 @@ docs/
    - Ejemplos de uso de AnalyzeTickerController
 
 10. **Mejora de CompanyProfileMapper**
-    - Bug detectado: falta mapear `country` en toDomain()
+    - Bug detected: falta mapear `country` en toDomain()
     - Agregar test que lo detecte
     - Fix en mapper
 
