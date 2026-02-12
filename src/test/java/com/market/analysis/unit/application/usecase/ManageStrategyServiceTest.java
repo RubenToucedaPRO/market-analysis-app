@@ -158,7 +158,7 @@ class ManageStrategyServiceTest {
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> manageStrategyService.getStrategyById(999L));
-        
+
         assertEquals("Strategy not found with id: 999", exception.getMessage());
         verify(strategyRepository, times(1)).findById(999L);
     }
@@ -214,14 +214,14 @@ class ManageStrategyServiceTest {
                 .description("No rules")
                 .rules(List.of()) // Empty rules list - invalid
                 .build();
-        
+
         Strategy invalidStrategyDomain = Strategy.builder()
                 .id(2L)
                 .name("Invalid Strategy")
                 .description("No rules")
                 .rules(List.of())
                 .build();
-        
+
         when(strategyDTOMapper.toDomain(invalidStrategy)).thenReturn(invalidStrategyDomain);
 
         // Act & Assert

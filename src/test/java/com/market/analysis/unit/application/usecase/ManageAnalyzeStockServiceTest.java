@@ -326,7 +326,7 @@ class ManageAnalyzeStockServiceTest {
         Stock stock2 = Stock.builder().ticker("GOOGL").currentPrice(BigDecimal.valueOf(2800.00)).build();
         List<Stock> stocks = Arrays.asList(stock, stock2);
         when(stockDataRepository.findAllStocks()).thenReturn(stocks);
-        
+
         StockDataDTO dto1 = StockDataDTO.builder().ticker("AAPL").currentPrice(BigDecimal.valueOf(150.00)).build();
         StockDataDTO dto2 = StockDataDTO.builder().ticker("GOOGL").currentPrice(BigDecimal.valueOf(2800.00)).build();
         when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto1);
@@ -346,7 +346,7 @@ class ManageAnalyzeStockServiceTest {
     void shouldFindStockDataByTicker() {
         // Arrange
         when(stockDataRepository.findByTicker("AAPL")).thenReturn(Optional.of(stock));
-        
+
         StockDataDTO dto = StockDataDTO.builder().ticker("AAPL").currentPrice(BigDecimal.valueOf(150.00)).build();
         when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto);
 

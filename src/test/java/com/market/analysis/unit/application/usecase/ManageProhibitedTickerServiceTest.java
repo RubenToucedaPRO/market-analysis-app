@@ -65,10 +65,10 @@ class ManageProhibitedTickerServiceTest {
                 java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
         ProhibitedTicker ticker2 = new ProhibitedTicker("GOOGL", "Inappropriate content",
                 java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
-        
+
         ProhibitedTickerDTO dto1 = ProhibitedTickerDTO.builder().ticker("AAPL").build();
         ProhibitedTickerDTO dto2 = ProhibitedTickerDTO.builder().ticker("GOOGL").build();
-        
+
         List<ProhibitedTicker> tickers = Arrays.asList(ticker1, ticker2);
         when(prohibitedTickerRepository.findAll()).thenReturn(tickers);
         when(prohibitedTickerDTOMapper.toDTO(ticker1)).thenReturn(dto1);
