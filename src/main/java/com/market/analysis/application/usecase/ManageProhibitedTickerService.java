@@ -4,9 +4,7 @@ import java.util.List;
 
 import com.market.analysis.application.dto.ProhibitedTickerDTO;
 import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
-import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.model.ProhibitedTicker;
-import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 

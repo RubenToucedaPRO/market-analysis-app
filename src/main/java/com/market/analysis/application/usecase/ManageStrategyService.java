@@ -6,7 +6,6 @@ import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
-import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
