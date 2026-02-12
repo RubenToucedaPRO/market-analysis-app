@@ -88,7 +88,6 @@ public class SqlStrategyEvaluationRepository implements StrategyEvaluationReposi
     }
 
     @Override
-    @Transactional
     public void markAsLatestForTickerAndStrategy(Long evaluationId, String ticker, Long strategyId) {
         log.debug("Marking evaluation {} as latest for ticker: {}, strategyId: {}",
                 evaluationId, ticker, strategyId);

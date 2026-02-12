@@ -32,6 +32,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EvaluateStrategyService implements EvaluateStrategyUseCase {
 
+    private static final String PASSED = "PASSED";
+    private static final String FAILED = "FAILED";
+
     private final RuleEvaluator ruleEvaluator;
     private final StrategyEvaluationRepository strategyEvaluationRepository;
 
@@ -54,7 +57,7 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
         for (Rule rule : strategy.getRules()) {
             RuleResult result = ruleEvaluator.evaluate(rule, stock);
             ruleResults.add(result);
-            log.debug("Rule '{}' evaluation: {}", rule.getName(), result.isPassed() ? "PASSED" : "FAILED");
+            log.debug("Rule '{}' evaluation: {}", rule.getName(), result.isPassed() ? PASSED : FAILED);
         }
 
         // Calculate metrics
@@ -78,7 +81,7 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
 
         log.info("Strategy evaluation completed for '{}': {} (Compliance: {}%)",
                 stock.getTicker(),
-                overallPassed ? "PASSED" : "FAILED",
+                overallPassed ? PASSED : FAILED,
                 result.calculateComplianceRate());
 
         // Persist evaluation result
@@ -123,7 +126,7 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
         summary.append(String.format("Strategy '%s' evaluation for %s: %s. ",
                 strategy.getName(),
                 ticker,
-                overallPassed ? "PASSED" : "FAILED"));
+                overallPassed ? PASSED : FAILED));
         summary.append(String.format("%d/%d rules passed.", passedCount, totalCount));
 
         if (!overallPassed) {

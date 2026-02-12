@@ -2,6 +2,7 @@ package com.market.analysis.unit.application.usecase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
@@ -357,6 +358,7 @@ class EvaluateStrategyServiceTest {
                                                                         .compareTo(BigDecimal.valueOf(50.00)) == 0
                                                         &&
                                                         evaluation.isLatest()));
+                        assertNotNull(result);
                 }
 
                 @Test

@@ -16,7 +16,7 @@ public class StockDataDTOMapper {
             return null;
         }
 
-        StockDataDTO dto = StockDataDTO.builder()
+        return StockDataDTO.builder()
                 .ticker(stock.getTicker())
                 .logoUrl(stock.getLogoUrl())
                 .currentPrice(stock.getCurrentPrice())
@@ -32,11 +32,6 @@ public class StockDataDTOMapper {
                 .lastUpdated(stock.getLastUpdated())
                 .strategyId(stock.getStrategyId())
                 .build();
-
-        // Evaluation results are now stored separately in StrategyEvaluation
-        // They are retrieved on demand when needed for display
-
-        return dto;
     }
 
 }
