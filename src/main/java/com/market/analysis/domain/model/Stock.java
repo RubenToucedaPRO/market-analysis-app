@@ -70,12 +70,4 @@ public class Stock {
      */
     private Long strategyId;
 
-    /**
-     * Result of the most recent strategy evaluation.
-     * Contains pass/fail status, compliance rate, and analysis summary.
-     */
-    private AnalysisResult evaluationResult;
-
-    private boolean evaluationPassed;
-
 }

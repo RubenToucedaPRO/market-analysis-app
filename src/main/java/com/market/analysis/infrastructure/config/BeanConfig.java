@@ -23,6 +23,7 @@ import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
+import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.RuleEvaluator;
 
@@ -64,8 +65,10 @@ public class BeanConfig {
     }
 
     @Bean
-    public EvaluateStrategyUseCase evaluateStrategyUseCase(RuleEvaluator ruleEvaluator) {
-        return new EvaluateStrategyService(ruleEvaluator);
+    public EvaluateStrategyUseCase evaluateStrategyUseCase(
+            RuleEvaluator ruleEvaluator,
+            StrategyEvaluationRepository strategyEvaluationRepository) {
+        return new EvaluateStrategyService(ruleEvaluator, strategyEvaluationRepository);
     }
 
     @Bean

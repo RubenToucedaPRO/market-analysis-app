@@ -2,7 +2,7 @@ package com.market.analysis.unit.presentation.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,7 +60,7 @@ class AnalyzeTickerControllerTest {
     @BeforeEach
     void setUp() {
         LocalDateTime lastUpdated = LocalDateTime.now();
-        
+
         testStock = Stock.builder()
                 .ticker("AAPL")
                 .logoUrl("https://example.com/logo.png")
@@ -102,15 +102,15 @@ class AnalyzeTickerControllerTest {
                 .ticker("GOOGL")
                 .currentPrice(new BigDecimal("100.00"))
                 .build();
-        
+
         StockDataDTO stockDTO2 = StockDataDTO.builder()
                 .ticker("GOOGL")
                 .currentPrice(new BigDecimal("100.00"))
                 .build();
-        
+
         List<Stock> stocks = Arrays.asList(testStock, stock2);
         List<com.market.analysis.domain.model.Strategy> strategies = Arrays.asList(testStrategy);
-        
+
         when(manageAnalyzeTickerUseCase.findAllStocks()).thenReturn(stocks);
         when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategies);
         when(stockMapper.toDTO(testStock)).thenReturn(testStockDTO);
@@ -125,8 +125,8 @@ class AnalyzeTickerControllerTest {
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
         verify(manageStrategyUseCase, times(1)).getAllStrategies();
         verify(stockMapper, times(2)).toDTO(any(Stock.class));
-        verify(model, times(1)).addAttribute("tickers", any(List.class));
-        verify(model, times(1)).addAttribute("strategies", any(List.class));
+        verify(model, times(1)).addAttribute(eq("tickers"), any(List.class));
+        verify(model, times(1)).addAttribute(eq("strategies"), any(List.class));
     }
 
     @Test
@@ -143,8 +143,8 @@ class AnalyzeTickerControllerTest {
         assertThat(viewName).isEqualTo("analysis/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
         verify(manageStrategyUseCase, times(1)).getAllStrategies();
-        verify(model, times(1)).addAttribute("tickers", any(List.class));
-        verify(model, times(1)).addAttribute("strategies", any(List.class));
+        verify(model, times(1)).addAttribute(eq("tickers"), any(List.class));
+        verify(model, times(1)).addAttribute(eq("strategies"), any(List.class));
     }
 
     @Test

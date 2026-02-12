@@ -31,16 +31,10 @@ public class StockDataDTOMapper {
                 .averageVolume(stock.getAverageVolume())
                 .lastUpdated(stock.getLastUpdated())
                 .strategyId(stock.getStrategyId())
-                .evaluationPassed(stock.isEvaluationPassed())
                 .build();
 
-        // Map evaluation result if present
-        if (stock.getEvaluationResult() != null) {
-            dto.setEvaluationPassed(stock.getEvaluationResult().isOverallPassed());
-            dto.setComplianceRate(stock.getEvaluationResult().calculateComplianceRate());
-            dto.setEvaluationSummary(stock.getEvaluationResult().getSummary());
-            dto.setStrategyName(stock.getEvaluationResult().getStrategy().getName());
-        }
+        // Evaluation results are now stored separately in StrategyEvaluation
+        // They are retrieved on demand when needed for display
 
         return dto;
     }

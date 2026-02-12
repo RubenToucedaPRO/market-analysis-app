@@ -69,12 +69,11 @@ public class RuleEvaluator {
             case "SMA" -> getSmaValue(param, stock);
             case "VOLUME" -> stock.getVolume() != null ? BigDecimal.valueOf(stock.getVolume()) : null;
             case "AVG_VOLUME" -> stock.getAverageVolume() != null ? BigDecimal.valueOf(stock.getAverageVolume()) : null;
-            case "CONSTANT" -> param != null ? BigDecimal.valueOf(param) : null;
             case "OPEN" -> stock.getOpenPrice();
             case "HIGH" -> stock.getHighOfDay();
             case "LOW" -> stock.getLowOfDay();
             case "PREV_CLOSE" -> stock.getPreviousClose();
-            case "VALUE" -> param != null ? BigDecimal.valueOf(param) : null;
+            case "CONSTANT", "VALUE" -> param != null ? BigDecimal.valueOf(param) : null;
             default -> null;
         };
     }

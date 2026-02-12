@@ -56,7 +56,4 @@ public class StockEntity {
     @Column(name = "strategy_id")
     private Long strategyId;
 
-    @Column(name = "evaluation_passed")
-    private boolean evaluationPassed;
-
 }

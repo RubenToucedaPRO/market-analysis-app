@@ -1,8 +1,14 @@
 package com.market.analysis.unit.application.usecase;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -404,6 +410,8 @@ class ManageAnalyzeStockServiceTest {
         when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(false);
         when(stockProviderPort.getCompanyProfile("AAPL")).thenReturn(validCompanyProfile);
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
 
         // Act
         service.getStockData("AAPL", 1L);

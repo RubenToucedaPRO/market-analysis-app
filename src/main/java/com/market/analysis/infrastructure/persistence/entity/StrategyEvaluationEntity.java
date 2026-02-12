@@ -1,0 +1,57 @@
+package com.market.analysis.infrastructure.persistence.entity;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * JPA entity for persisting strategy evaluation results.
+ * 
+ * Represents a historical record of a strategy evaluation at a specific point
+ * in time.
+ * Includes snapshot data and evaluation metrics for audit trail and historical
+ * analysis.
+ */
+@Entity
+@Table(name = "strategy_evaluations")
+@Getter
+@Setter
+public class StrategyEvaluationEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String ticker;
+
+    @Column(name = "strategy_id", nullable = false)
+    private Long strategyId;
+
+    @Column(nullable = false)
+    private boolean compliant;
+
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal complianceRate;
+
+    @Column(length = 2000)
+    private String summary;
+
+    @Column(name = "evaluated_at", nullable = false)
+    private LocalDateTime evaluatedAt;
+
+    @Column(name = "price_at_evaluation", precision = 19, scale = 2)
+    private BigDecimal priceAtEvaluation;
+
+    @Column(name = "latest", nullable = false)
+    private boolean latest;
+
+}
