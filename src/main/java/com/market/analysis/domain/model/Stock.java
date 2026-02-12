@@ -76,4 +76,6 @@ public class Stock {
      */
     private AnalysisResult evaluationResult;
 
+    private boolean evaluationPassed;
+
 }

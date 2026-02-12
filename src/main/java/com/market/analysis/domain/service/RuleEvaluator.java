@@ -19,7 +19,7 @@ public class RuleEvaluator {
     /**
      * Evaluates a single rule against the provided ticker data.
      * 
-     * @param rule the rule to evaluate
+     * @param rule  the rule to evaluate
      * @param stock the stock data to evaluate against
      * @return RuleResult containing pass/fail status and justification
      * @throws IllegalArgumentException if rule or stock is null
@@ -52,9 +52,11 @@ public class RuleEvaluator {
     /**
      * Gets the value of a technical indicator from stock data.
      * 
-     * @param indicatorCode the code of the indicator (e.g., "PRICE", "SMA", "VOLUME")
-     * @param param optional parameter for the indicator (e.g., 50 for SMA50)
-     * @param stock the stock data
+     * @param indicatorCode the code of the indicator (e.g., "PRICE", "SMA",
+     *                      "VOLUME")
+     * @param param         optional parameter for the indicator (e.g., 50 for
+     *                      SMA50)
+     * @param stock         the stock data
      * @return the indicator value, or null if not available
      */
     private BigDecimal getIndicatorValue(String indicatorCode, Double param, Stock stock) {
@@ -72,6 +74,7 @@ public class RuleEvaluator {
             case "HIGH" -> stock.getHighOfDay();
             case "LOW" -> stock.getLowOfDay();
             case "PREV_CLOSE" -> stock.getPreviousClose();
+            case "VALUE" -> param != null ? BigDecimal.valueOf(param) : null;
             default -> null;
         };
     }

@@ -167,7 +167,7 @@
                       (<span th:text="${ticker.complianceRate}">0</span>%)
                     </span>
                     <span
-                      th:unless="${ticker.evaluationPassed != null}"
+                      th:unless="${ticker.evaluationPassed == null}"
                       class="badge bg-secondary"
                     >
                       N/A

@@ -54,6 +54,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 // Evaluate the strategy against the stock data
                 AnalysisResult evaluationResult = evaluateStrategyUseCase.evaluateStrategy(strategy, stock);
                 stock.setEvaluationResult(evaluationResult);
+                stock.setEvaluationPassed(evaluationResult.isOverallPassed());
 
                 // Save the stock data with evaluation result
                 stockDataRepository.saveStockData(stock);

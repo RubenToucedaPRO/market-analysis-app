@@ -31,6 +31,7 @@ public class StockDataDTOMapper {
                 .averageVolume(stock.getAverageVolume())
                 .lastUpdated(stock.getLastUpdated())
                 .strategyId(stock.getStrategyId())
+                .evaluationPassed(stock.isEvaluationPassed())
                 .build();
 
         // Map evaluation result if present
