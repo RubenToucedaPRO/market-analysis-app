@@ -68,9 +68,8 @@ class RuleDefinitionControllerTest {
     @DisplayName("Should list all rule definitions")
     void testListRuleDefinitions() {
         // Arrange
-        List<RuleDefinition> ruleDefinitions = List.of(testRuleDefinition);
+        List<RuleDefinitionDTO> ruleDefinitions = List.of(testRuleDefinitionDTO);
         when(manageRuleDefinitionUseCase.getAllRuleDefinitions()).thenReturn(ruleDefinitions);
-        when(mapper.toDTO(testRuleDefinition)).thenReturn(testRuleDefinitionDTO);
 
         // Act
         String viewName = ruleDefinitionController.listRuleDefinitions(model);
@@ -78,7 +77,6 @@ class RuleDefinitionControllerTest {
         // Assert
         assertEquals("rule-definitions/list", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).getAllRuleDefinitions();
-        verify(mapper, times(1)).toDTO(testRuleDefinition);
         verify(model, times(1)).addAttribute(any(String.class), any());
     }
 
@@ -98,8 +96,7 @@ class RuleDefinitionControllerTest {
     @DisplayName("Should show edit form with existing rule definition")
     void testShowEditForm() {
         // Arrange
-        when(manageRuleDefinitionUseCase.getRuleDefinitionById(1L)).thenReturn(testRuleDefinition);
-        when(mapper.toDTO(testRuleDefinition)).thenReturn(testRuleDefinitionDTO);
+        when(manageRuleDefinitionUseCase.getRuleDefinitionById(1L)).thenReturn(testRuleDefinitionDTO);
 
         // Act
         String viewName = ruleDefinitionController.showEditForm(1L, model);
@@ -107,7 +104,6 @@ class RuleDefinitionControllerTest {
         // Assert
         assertEquals("rule-definitions/create", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).getRuleDefinitionById(1L);
-        verify(mapper, times(1)).toDTO(testRuleDefinition);
         verify(model, times(1)).addAttribute("ruleDefinition", testRuleDefinitionDTO);
         verify(model, times(1)).addAttribute("isEdit", true);
     }
@@ -123,21 +119,12 @@ class RuleDefinitionControllerTest {
                 .description("RSI indicator")
                 .build();
 
-        RuleDefinition domainWithoutId = RuleDefinition.builder()
-                .code("RSI")
-                .name("Relative Strength Index")
-                .requiresParam(true)
-                .description("RSI indicator")
-                .build();
-
-        when(mapper.toDomain(dtoWithoutId)).thenReturn(domainWithoutId);
-
         // Act
         String viewName = ruleDefinitionController.saveRuleDefinition(dtoWithoutId);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
-        verify(manageRuleDefinitionUseCase, times(1)).createRuleDefinition(domainWithoutId);
+        verify(manageRuleDefinitionUseCase, times(1)).createRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).updateRuleDefinition(any());
     }
 
@@ -145,14 +132,14 @@ class RuleDefinitionControllerTest {
     @DisplayName("Should update existing rule definition when id is not null")
     void testSaveRuleDefinitionUpdate() {
         // Arrange
-        when(mapper.toDomain(testRuleDefinitionDTO)).thenReturn(testRuleDefinition);
+        // testRuleDefinitionDTO has id = 1L
 
         // Act
         String viewName = ruleDefinitionController.saveRuleDefinition(testRuleDefinitionDTO);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
-        verify(manageRuleDefinitionUseCase, times(1)).updateRuleDefinition(testRuleDefinition);
+        verify(manageRuleDefinitionUseCase, times(1)).updateRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).createRuleDefinition(any());
     }
 
@@ -185,14 +172,6 @@ class RuleDefinitionControllerTest {
     @DisplayName("Should handle multiple rule definitions in list")
     void testListMultipleRuleDefinitions() {
         // Arrange
-        RuleDefinition ruleDefinition2 = RuleDefinition.builder()
-                .id(2L)
-                .code("RSI")
-                .name("Relative Strength Index")
-                .requiresParam(true)
-                .description("RSI indicator")
-                .build();
-
         RuleDefinitionDTO dto2 = RuleDefinitionDTO.builder()
                 .id(2L)
                 .code("RSI")
@@ -201,10 +180,8 @@ class RuleDefinitionControllerTest {
                 .description("RSI indicator")
                 .build();
 
-        List<RuleDefinition> ruleDefinitions = List.of(testRuleDefinition, ruleDefinition2);
+        List<RuleDefinitionDTO> ruleDefinitions = List.of(testRuleDefinitionDTO, dto2);
         when(manageRuleDefinitionUseCase.getAllRuleDefinitions()).thenReturn(ruleDefinitions);
-        when(mapper.toDTO(testRuleDefinition)).thenReturn(testRuleDefinitionDTO);
-        when(mapper.toDTO(ruleDefinition2)).thenReturn(dto2);
 
         // Act
         String viewName = ruleDefinitionController.listRuleDefinitions(model);
@@ -212,6 +189,5 @@ class RuleDefinitionControllerTest {
         // Assert
         assertEquals("rule-definitions/list", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).getAllRuleDefinitions();
-        verify(mapper, times(2)).toDTO(any(RuleDefinition.class));
     }
 }

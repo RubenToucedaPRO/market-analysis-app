@@ -24,6 +24,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.CompanyProfile;
@@ -55,6 +58,9 @@ class ManageAnalyzeStockServiceTest {
 
     @Mock
     private com.market.analysis.domain.port.in.EvaluateStrategyUseCase evaluateStrategyUseCase;
+
+    @Mock
+    private StockDataDTOMapper stockDataDTOMapper;
 
     @InjectMocks
     private ManageAnalyzeStockService service;
@@ -320,9 +326,14 @@ class ManageAnalyzeStockServiceTest {
         Stock stock2 = Stock.builder().ticker("GOOGL").currentPrice(BigDecimal.valueOf(2800.00)).build();
         List<Stock> stocks = Arrays.asList(stock, stock2);
         when(stockDataRepository.findAllStocks()).thenReturn(stocks);
+        
+        StockDataDTO dto1 = StockDataDTO.builder().ticker("AAPL").currentPrice(BigDecimal.valueOf(150.00)).build();
+        StockDataDTO dto2 = StockDataDTO.builder().ticker("GOOGL").currentPrice(BigDecimal.valueOf(2800.00)).build();
+        when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto1);
+        when(stockDataDTOMapper.toDTO(stock2)).thenReturn(dto2);
 
         // Act
-        List<Stock> result = service.findAllStocks();
+        List<StockDataDTO> result = service.findAllStocks();
 
         // Assert
         assertNotNull(result);
@@ -335,9 +346,12 @@ class ManageAnalyzeStockServiceTest {
     void shouldFindStockDataByTicker() {
         // Arrange
         when(stockDataRepository.findByTicker("AAPL")).thenReturn(Optional.of(stock));
+        
+        StockDataDTO dto = StockDataDTO.builder().ticker("AAPL").currentPrice(BigDecimal.valueOf(150.00)).build();
+        when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto);
 
         // Act
-        Stock result = service.findStockDataByTicker("AAPL");
+        StockDataDTO result = service.findStockDataByTicker("AAPL");
 
         // Assert
         assertNotNull(result);

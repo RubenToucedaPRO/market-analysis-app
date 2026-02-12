@@ -75,7 +75,7 @@ class ProhibitedTickerControllerTest {
     @DisplayName("Should list all prohibited tickers")
     void testListProhibitedTickers() throws Exception {
         // Arrange
-        List<ProhibitedTicker> prohibitedTickers = Arrays.asList(testProhibitedTicker1, testProhibitedTicker2);
+        List<ProhibitedTickerDTO> prohibitedTickers = Arrays.asList(testDTO1, testDTO2);
         when(manageProhibitedTickerUseCase.getAllProhibitedTickers()).thenReturn(prohibitedTickers);
         when(mapper.toDTO(testProhibitedTicker1)).thenReturn(testDTO1);
         when(mapper.toDTO(testProhibitedTicker2)).thenReturn(testDTO2);
@@ -88,7 +88,6 @@ class ProhibitedTickerControllerTest {
                 .andExpect(model().attribute("prohibitedTickers", hasSize(2)));
 
         verify(manageProhibitedTickerUseCase, times(1)).getAllProhibitedTickers();
-        verify(mapper, times(2)).toDTO(any(ProhibitedTicker.class));
     }
 
     @Test

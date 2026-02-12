@@ -2,6 +2,7 @@ package com.market.analysis.unit.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -20,6 +21,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.RuleDefinition;
@@ -35,14 +38,26 @@ class ManageRuleDefinitionServiceTest {
     @Mock
     private RuleDefinitionRepository ruleDefinitionRepository;
 
+    @Mock
+    private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
+
     @InjectMocks
     private ManageRuleDefinitionService manageRuleDefinitionService;
 
     private RuleDefinition testRuleDefinition;
+    private RuleDefinitionDTO testRuleDefinitionDTO;
 
     @BeforeEach
     void setUp() {
         testRuleDefinition = RuleDefinition.builder()
+                .id(1L)
+                .code("SMA")
+                .name("Simple Moving Average")
+                .requiresParam(true)
+                .description("Moving average over a period")
+                .build();
+
+        testRuleDefinitionDTO = RuleDefinitionDTO.builder()
                 .id(1L)
                 .code("SMA")
                 .name("Simple Moving Average")
@@ -56,18 +71,20 @@ class ManageRuleDefinitionServiceTest {
     void testCreateRuleDefinition() {
         // Arrange
         when(ruleDefinitionRepository.existsByCode("SMA")).thenReturn(false);
+        when(ruleDefinitionDTOMapper.toDomain(testRuleDefinitionDTO)).thenReturn(testRuleDefinition);
         when(ruleDefinitionRepository.save(any(RuleDefinition.class))).thenReturn(testRuleDefinition);
+        when(ruleDefinitionDTOMapper.toDTO(testRuleDefinition)).thenReturn(testRuleDefinitionDTO);
 
         // Act
-        RuleDefinition result = manageRuleDefinitionService.createRuleDefinition(testRuleDefinition);
+        RuleDefinitionDTO result = manageRuleDefinitionService.createRuleDefinition(testRuleDefinitionDTO);
 
         // Assert
         assertNotNull(result);
-        assertEquals(testRuleDefinition.getId(), result.getId());
-        assertEquals(testRuleDefinition.getCode(), result.getCode());
-        assertEquals(testRuleDefinition.getName(), result.getName());
+        assertEquals(testRuleDefinitionDTO.getId(), result.getId());
+        assertEquals(testRuleDefinitionDTO.getCode(), result.getCode());
+        assertEquals(testRuleDefinitionDTO.getName(), result.getName());
         verify(ruleDefinitionRepository, times(1)).existsByCode("SMA");
-        verify(ruleDefinitionRepository, times(1)).save(testRuleDefinition);
+        verify(ruleDefinitionRepository, times(1)).save(any(RuleDefinition.class));
     }
 
     @Test
@@ -84,7 +101,7 @@ class ManageRuleDefinitionServiceTest {
     @DisplayName("Should throw exception when creating rule definition with null code")
     void testCreateRuleDefinitionWithNullCode() {
         // Arrange
-        RuleDefinition invalidRuleDefinition = RuleDefinition.builder()
+        RuleDefinitionDTO invalidRuleDefinition = RuleDefinitionDTO.builder()
                 .id(1L)
                 .code(null)
                 .name("Test")
@@ -106,7 +123,7 @@ class ManageRuleDefinitionServiceTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> manageRuleDefinitionService.createRuleDefinition(testRuleDefinition));
+                () -> manageRuleDefinitionService.createRuleDefinition(testRuleDefinitionDTO));
 
         assertEquals("RuleDefinition with code 'SMA' already exists", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsByCode("SMA");
@@ -118,9 +135,10 @@ class ManageRuleDefinitionServiceTest {
         // Arrange
         List<RuleDefinition> ruleDefinitions = List.of(testRuleDefinition);
         when(ruleDefinitionRepository.findAll()).thenReturn(ruleDefinitions);
+        when(ruleDefinitionDTOMapper.toDTO(testRuleDefinition)).thenReturn(testRuleDefinitionDTO);
 
         // Act
-        List<RuleDefinition> result = manageRuleDefinitionService.getAllRuleDefinitions();
+        List<RuleDefinitionDTO> result = manageRuleDefinitionService.getAllRuleDefinitions();
 
         // Assert
         assertNotNull(result);
@@ -134,9 +152,10 @@ class ManageRuleDefinitionServiceTest {
     void testGetRuleDefinitionById() {
         // Arrange
         when(ruleDefinitionRepository.findById(1L)).thenReturn(Optional.of(testRuleDefinition));
+        when(ruleDefinitionDTOMapper.toDTO(testRuleDefinition)).thenReturn(testRuleDefinitionDTO);
 
         // Act
-        RuleDefinition result = manageRuleDefinitionService.getRuleDefinitionById(1L);
+        RuleDefinitionDTO result = manageRuleDefinitionService.getRuleDefinitionById(1L);
 
         // Assert
         assertNotNull(result);
@@ -147,16 +166,16 @@ class ManageRuleDefinitionServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when rule definition not found")
+    @DisplayName("Should return null when rule definition not found")
     void testGetRuleDefinitionByIdNotFound() {
         // Arrange
         when(ruleDefinitionRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        // Act & Assert
-        StockDataNotFoundException exception = assertThrows(StockDataNotFoundException.class,
-                () -> manageRuleDefinitionService.getRuleDefinitionById(999L));
+        // Act
+        RuleDefinitionDTO result = manageRuleDefinitionService.getRuleDefinitionById(999L);
 
-        assertEquals("RuleDefinition not found with id: 999", exception.getMessage());
+        // Assert
+        assertNull(result);
         verify(ruleDefinitionRepository, times(1)).findById(999L);
     }
 
@@ -165,14 +184,16 @@ class ManageRuleDefinitionServiceTest {
     void testUpdateRuleDefinition() {
         // Arrange
         when(ruleDefinitionRepository.existsById(1L)).thenReturn(true);
-        when(ruleDefinitionRepository.save(any(RuleDefinition.class))).thenReturn(testRuleDefinition);
+        when(ruleDefinitionDTOMapper.toDomain(testRuleDefinitionDTO)).thenReturn(testRuleDefinition);
+        when(ruleDefinitionRepository.save(testRuleDefinition)).thenReturn(testRuleDefinition);
+        when(ruleDefinitionDTOMapper.toDTO(testRuleDefinition)).thenReturn(testRuleDefinitionDTO);
 
         // Act
-        RuleDefinition result = manageRuleDefinitionService.updateRuleDefinition(testRuleDefinition);
+        RuleDefinitionDTO result = manageRuleDefinitionService.updateRuleDefinition(testRuleDefinitionDTO);
 
         // Assert
         assertNotNull(result);
-        assertEquals(testRuleDefinition.getId(), result.getId());
+        assertEquals(testRuleDefinitionDTO.getId(), result.getId());
         verify(ruleDefinitionRepository, times(1)).existsById(1L);
         verify(ruleDefinitionRepository, times(1)).save(testRuleDefinition);
     }
@@ -191,7 +212,7 @@ class ManageRuleDefinitionServiceTest {
     @DisplayName("Should throw exception when updating rule definition with null id")
     void testUpdateRuleDefinitionWithNullId() {
         // Arrange
-        RuleDefinition invalidRuleDefinition = RuleDefinition.builder()
+        RuleDefinitionDTO invalidRuleDefinition = RuleDefinitionDTO.builder()
                 .id(null)
                 .code("SMA")
                 .name("Test")
@@ -213,7 +234,7 @@ class ManageRuleDefinitionServiceTest {
 
         // Act & Assert
         StockDataNotFoundException exception = assertThrows(StockDataNotFoundException.class,
-                () -> manageRuleDefinitionService.updateRuleDefinition(testRuleDefinition));
+                () -> manageRuleDefinitionService.updateRuleDefinition(testRuleDefinitionDTO));
 
         assertEquals("RuleDefinition not found with id: 1", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsById(1L);

@@ -103,11 +103,6 @@ class AnalyzeTickerControllerTest {
                 .currentPrice(new BigDecimal("100.00"))
                 .build();
 
-        StockDataDTO stockDTO2 = StockDataDTO.builder()
-                .ticker("GOOGL")
-                .currentPrice(new BigDecimal("100.00"))
-                .build();
-
         List<StockDataDTO> stocks = Arrays.asList(testStockDataDTO, stock2);
         List<com.market.analysis.application.dto.StrategyDTO> strategiesDTOList = Arrays.asList(testStrategyDTO);
 
@@ -121,7 +116,6 @@ class AnalyzeTickerControllerTest {
         assertThat(viewName).isEqualTo("analysis/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
         verify(manageStrategyUseCase, times(1)).getAllStrategies();
-        verify(stockMapper, times(2)).toDTO(any(Stock.class));
         verify(model, times(1)).addAttribute(eq("tickers"), any(List.class));
         verify(model, times(1)).addAttribute(eq("strategies"), any(List.class));
     }

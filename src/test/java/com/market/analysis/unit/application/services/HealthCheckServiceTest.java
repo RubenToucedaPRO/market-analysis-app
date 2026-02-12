@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.application.dto.HealthCheckResponse;
+import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.application.usecase.HealthCheckService;
 import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.domain.port.out.HealthCheckPort;
@@ -29,11 +32,14 @@ class HealthCheckServiceTest {
     @Mock
     private HealthCheckPort healthCheckPort;
 
+    @Mock
+    private HealthCheckMapper healthCheckMapper;
+
     private HealthCheckService healthCheckService;
 
     @BeforeEach
     void setUp() {
-        healthCheckService = new HealthCheckService(healthCheckPort);
+        healthCheckService = new HealthCheckService(healthCheckPort, healthCheckMapper);
     }
 
     @Test
@@ -43,19 +49,37 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(true);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(50L);
 
+        HealthStatus healthStatus = HealthStatus.builder()
+                .status("UP")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(true)
+                .description("Application is fully operational. All dependencies are healthy.")
+                .details("Database: Healthy (50ms)")
+                .build();
+
+        HealthCheckResponse response = HealthCheckResponse.builder()
+                .status("UP")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(true)
+                .description("Application is fully operational. All dependencies are healthy.")
+                .details("Database: Healthy (50ms)")
+                .httpStatusCode(200)
+                .build();
+
+        when(healthCheckMapper.toResponse(any(HealthStatus.class))).thenReturn(response);
+
         // Act
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
+        HealthCheckResponse result = healthCheckService.performHealthCheck();
 
         // Assert
-        assertNotNull(healthStatus);
-        assertEquals("UP", healthStatus.getStatus());
-        assertTrue(healthStatus.isDatabaseHealthy());
-        assertNotNull(healthStatus.getTimestamp());
-        assertNotNull(healthStatus.getDescription());
-        assertTrue(healthStatus.getDescription().contains("fully operational"));
-        assertNotNull(healthStatus.getDetails());
-        assertTrue(healthStatus.getDetails().contains("Healthy"));
-        assertTrue(healthStatus.getDetails().contains("50ms"));
+        assertNotNull(result);
+        assertEquals("UP", result.getStatus());
+        assertTrue(result.isDatabaseHealthy());
+        assertNotNull(result.getTimestamp());
+        assertNotNull(result.getDescription());
+        assertTrue(result.getDescription().contains("fully operational"));
+        assertNotNull(result.getDetails());
+        assertTrue(result.getDetails().contains("Healthy"));
     }
 
     @Test
@@ -65,18 +89,29 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(false);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(-1L);
 
+        HealthCheckResponse response = HealthCheckResponse.builder()
+                .status("DOWN")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(false)
+                .description("Application is not operational. Critical dependencies are unavailable.")
+                .details("Database: Unhealthy (-1ms)")
+                .httpStatusCode(503)
+                .build();
+
+        when(healthCheckMapper.toResponse(any(HealthStatus.class))).thenReturn(response);
+
         // Act
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
+        HealthCheckResponse result = healthCheckService.performHealthCheck();
 
         // Assert
-        assertNotNull(healthStatus);
-        assertEquals("DOWN", healthStatus.getStatus());
-        assertFalse(healthStatus.isDatabaseHealthy());
-        assertNotNull(healthStatus.getTimestamp());
-        assertNotNull(healthStatus.getDescription());
-        assertTrue(healthStatus.getDescription().contains("not operational"));
-        assertNotNull(healthStatus.getDetails());
-        assertTrue(healthStatus.getDetails().contains("Unhealthy"));
+        assertNotNull(result);
+        assertEquals("DOWN", result.getStatus());
+        assertFalse(result.isDatabaseHealthy());
+        assertNotNull(result.getTimestamp());
+        assertNotNull(result.getDescription());
+        assertTrue(result.getDescription().contains("not operational"));
+        assertNotNull(result.getDetails());
+        assertTrue(result.getDetails().contains("Unhealthy"));
     }
 
     @Test
@@ -86,12 +121,23 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(true);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(25L);
 
+        HealthCheckResponse response = HealthCheckResponse.builder()
+                .status("UP")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(true)
+                .description("Application is fully operational. All dependencies are healthy.")
+                .details("Database: Healthy (25ms)")
+                .httpStatusCode(200)
+                .build();
+
+        when(healthCheckMapper.toResponse(any(HealthStatus.class))).thenReturn(response);
+
         // Act
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
+        HealthCheckResponse result = healthCheckService.performHealthCheck();
 
         // Assert
-        assertNotNull(healthStatus.getTimestamp());
-        assertNotNull(healthStatus.getTimestamp().toString());
+        assertNotNull(result.getTimestamp());
+        assertNotNull(result.getTimestamp().toString());
     }
 
     @Test
@@ -102,11 +148,22 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(true);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(connectionTime);
 
+        HealthCheckResponse response = HealthCheckResponse.builder()
+                .status("UP")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(true)
+                .description("Application is fully operational. All dependencies are healthy.")
+                .details("Database: Healthy (123ms)")
+                .httpStatusCode(200)
+                .build();
+
+        when(healthCheckMapper.toResponse(any(HealthStatus.class))).thenReturn(response);
+
         // Act
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
+        HealthCheckResponse result = healthCheckService.performHealthCheck();
 
         // Assert
-        assertTrue(healthStatus.getDetails().contains("123ms"));
+        assertTrue(result.getDetails().contains("123ms"));
     }
 
     @Test
@@ -116,11 +173,22 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(false);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(-1L);
 
+        HealthCheckResponse response = HealthCheckResponse.builder()
+                .status("DOWN")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(false)
+                .description("Application is not operational. Critical dependencies are unavailable.")
+                .details("Database: Unhealthy (-1ms)")
+                .httpStatusCode(503)
+                .build();
+
+        when(healthCheckMapper.toResponse(any(HealthStatus.class))).thenReturn(response);
+
         // Act
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
+        HealthCheckResponse result = healthCheckService.performHealthCheck();
 
         // Assert
-        assertTrue(healthStatus.getDetails().contains("-1ms"));
+        assertTrue(result.getDetails().contains("-1ms"));
     }
 
     @Test
@@ -130,12 +198,23 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(true);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(10L);
 
+        HealthCheckResponse response = HealthCheckResponse.builder()
+                .status("UP")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(true)
+                .description("Application is fully operational. All dependencies are healthy.")
+                .details("Database: Healthy (10ms)")
+                .httpStatusCode(200)
+                .build();
+
+        when(healthCheckMapper.toResponse(any(HealthStatus.class))).thenReturn(response);
+
         // Act
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
+        HealthCheckResponse result = healthCheckService.performHealthCheck();
 
         // Assert
         assertEquals("Application is fully operational. All dependencies are healthy.",
-                healthStatus.getDescription());
+                result.getDescription());
     }
 
     @Test
@@ -145,11 +224,22 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(false);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(-1L);
 
+        HealthCheckResponse response = HealthCheckResponse.builder()
+                .status("DOWN")
+                .timestamp(java.time.LocalDateTime.now())
+                .databaseHealthy(false)
+                .description("Application is not operational. Critical dependencies are unavailable.")
+                .details("Database: Unhealthy (-1ms)")
+                .httpStatusCode(503)
+                .build();
+
+        when(healthCheckMapper.toResponse(any(HealthStatus.class))).thenReturn(response);
+
         // Act
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
+        HealthCheckResponse result = healthCheckService.performHealthCheck();
 
         // Assert
         assertEquals("Application is not operational. Critical dependencies are unavailable.",
-                healthStatus.getDescription());
+                result.getDescription());
     }
 }
