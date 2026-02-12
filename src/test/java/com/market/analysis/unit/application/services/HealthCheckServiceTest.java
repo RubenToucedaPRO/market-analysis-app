@@ -49,14 +49,6 @@ class HealthCheckServiceTest {
         when(healthCheckPort.isDatabaseHealthy()).thenReturn(true);
         when(healthCheckPort.getDatabaseConnectionTime()).thenReturn(50L);
 
-        HealthStatus healthStatus = HealthStatus.builder()
-                .status("UP")
-                .timestamp(java.time.LocalDateTime.now())
-                .databaseHealthy(true)
-                .description("Application is fully operational. All dependencies are healthy.")
-                .details("Database: Healthy (50ms)")
-                .build();
-
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("UP")
                 .timestamp(java.time.LocalDateTime.now())

@@ -25,7 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.application.dto.StockDataDTO;
-import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;

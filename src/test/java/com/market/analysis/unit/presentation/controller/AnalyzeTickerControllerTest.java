@@ -23,7 +23,6 @@ import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
-import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.presentation.controller.AnalyzeTickerController;
 
@@ -53,8 +52,6 @@ class AnalyzeTickerControllerTest {
     private AnalyzeTickerController controller;
 
     private StockDataDTO testStockDataDTO;
-    private StockDataDTO testStockDTO;
-    private com.market.analysis.domain.model.Strategy testStrategy;
     private com.market.analysis.application.dto.StrategyDTO testStrategyDTO;
 
     @BeforeEach
@@ -68,22 +65,6 @@ class AnalyzeTickerControllerTest {
                 .openPrice(new BigDecimal("149.00"))
                 .volume(50000000L)
                 .lastUpdated(lastUpdated)
-                .build();
-
-        testStockDTO = StockDataDTO.builder()
-                .ticker("AAPL")
-                .logoUrl("https://example.com/logo.png")
-                .currentPrice(new BigDecimal("150.50"))
-                .openPrice(new BigDecimal("149.00"))
-                .volume(50000000L)
-                .lastUpdated(lastUpdated)
-                .build();
-
-        testStrategy = com.market.analysis.domain.model.Strategy.builder()
-                .id(1L)
-                .name("Test Strategy")
-                .description("A test strategy")
-                .rules(Arrays.asList())
                 .build();
 
         testStrategyDTO = com.market.analysis.application.dto.StrategyDTO.builder()

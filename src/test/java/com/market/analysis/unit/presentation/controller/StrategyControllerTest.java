@@ -18,12 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.RuleDTO;
-import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
-import com.market.analysis.domain.model.Rule;
-import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
@@ -53,30 +50,11 @@ class StrategyControllerTest {
     @InjectMocks
     private StrategyController strategyController;
 
-    private Strategy testStrategy;
-    private Rule testRule;
     private StrategyDTO testStrategyDTO;
     private RuleDTO testRuleDTO;
 
     @BeforeEach
     void setUp() {
-        testRule = Rule.builder()
-                .id(1L)
-                .name("Test Rule")
-                .subjectCode("PRICE")
-                .operator(">")
-                .targetCode("CONSTANT")
-                .targetParam(100.0)
-                .description("Test")
-                .build();
-
-        testStrategy = Strategy.builder()
-                .id(1L)
-                .name("Test Strategy")
-                .description("Test Description")
-                .rules(List.of(testRule))
-                .build();
-
         testRuleDTO = RuleDTO.builder()
                 .id(1L)
                 .name("Test Rule")

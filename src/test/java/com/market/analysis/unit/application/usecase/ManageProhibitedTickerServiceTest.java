@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,13 +41,10 @@ class ManageProhibitedTickerServiceTest {
     @InjectMocks
     private ManageProhibitedTickerService manageProhibitedTickerService;
 
-    private ProhibitedTicker testProhibitedTicker;
     private ProhibitedTickerDTO testProhibitedTickerDTO;
 
     @BeforeEach
     void setUp() {
-        testProhibitedTicker = new ProhibitedTicker("AAPL", "Inappropriate content",
-                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
 
         testProhibitedTickerDTO = ProhibitedTickerDTO.builder()
                 .ticker("AAPL")

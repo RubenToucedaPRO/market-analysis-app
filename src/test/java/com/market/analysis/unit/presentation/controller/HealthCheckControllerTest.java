@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.market.analysis.application.dto.HealthCheckResponse;
 import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.application.usecase.HealthCheckService;
-import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.presentation.controller.HealthCheckController;
 
 /**

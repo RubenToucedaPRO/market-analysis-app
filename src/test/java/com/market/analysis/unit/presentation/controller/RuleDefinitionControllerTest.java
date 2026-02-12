@@ -19,7 +19,6 @@ import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
-import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.presentation.controller.RuleDefinitionController;
 
@@ -42,18 +41,10 @@ class RuleDefinitionControllerTest {
     @InjectMocks
     private RuleDefinitionController ruleDefinitionController;
 
-    private RuleDefinition testRuleDefinition;
     private RuleDefinitionDTO testRuleDefinitionDTO;
 
     @BeforeEach
     void setUp() {
-        testRuleDefinition = RuleDefinition.builder()
-                .id(1L)
-                .code("SMA")
-                .name("Simple Moving Average")
-                .requiresParam(true)
-                .description("Moving average indicator")
-                .build();
 
         testRuleDefinitionDTO = RuleDefinitionDTO.builder()
                 .id(1L)
