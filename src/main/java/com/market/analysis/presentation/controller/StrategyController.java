@@ -14,9 +14,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
-import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
-import com.market.analysis.application.mapper.StrategyDTOMapper;
-import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 
@@ -32,8 +29,6 @@ public class StrategyController {
 
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
-    private final RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
-    private final StrategyDTOMapper strategyDTOMapper;
 
     @GetMapping
     public String listStrategies(Model model) {

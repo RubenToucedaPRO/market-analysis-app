@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.market.analysis.application.dto.ProhibitedTickerDTO;
-import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 
 import lombok.RequiredArgsConstructor;

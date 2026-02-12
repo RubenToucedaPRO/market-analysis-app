@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.market.analysis.application.dto.HealthCheckResponse;
-import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.application.usecase.HealthCheckService;
-import com.market.analysis.domain.model.HealthStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
