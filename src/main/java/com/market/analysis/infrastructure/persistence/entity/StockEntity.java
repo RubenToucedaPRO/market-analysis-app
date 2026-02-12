@@ -53,4 +53,7 @@ public class StockEntity {
     @JoinColumn(name = "company_profile_id")
     private CompanyProfileEntity companyProfile;
 
+    @Column(name = "strategy_id")
+    private Long strategyId;
+
 }

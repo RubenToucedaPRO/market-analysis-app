@@ -30,6 +30,7 @@ public class StockDataDTOMapper {
                 .volume(stock.getVolume())
                 .averageVolume(stock.getAverageVolume())
                 .lastUpdated(stock.getLastUpdated())
+                .strategyId(stock.getStrategyId())
                 .build();
     }
 

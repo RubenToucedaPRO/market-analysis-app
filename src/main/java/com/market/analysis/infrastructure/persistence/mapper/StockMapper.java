@@ -23,6 +23,9 @@ public class StockMapper {
         entity.setSma50(domain.getSma50());
         entity.setSma200(domain.getSma200());
         entity.setVolume(domain.getVolume());
+        entity.setStrategyId(domain.getStrategyId());
+        entity.setAverageVolume(domain.getAverageVolume());
+        entity.setLastUpdated(domain.getLastUpdated());
 
         return entity;
     }
@@ -39,13 +42,13 @@ public class StockMapper {
                 .highOfDay(entity.getHighOfDay())
                 .lowOfDay(entity.getLowOfDay())
                 .previousClose(entity.getPreviousClose())
-                .previousClose(entity.getPreviousClose())
                 .sma20(entity.getSma20())
                 .sma50(entity.getSma50())
                 .sma200(entity.getSma200())
                 .volume(entity.getVolume())
                 .averageVolume(entity.getAverageVolume())
                 .lastUpdated(entity.getLastUpdated())
+                .strategyId(entity.getStrategyId())
                 .build();
     }
 }

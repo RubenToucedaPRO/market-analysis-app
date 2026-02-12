@@ -64,4 +64,10 @@ public class Stock {
     /** Last updated timestamp */
     private LocalDateTime lastUpdated;
 
+    /**
+     * ID of the strategy associated with this ticker.
+     * This enables strategy evaluation when ticker is added/updated.
+     */
+    private Long strategyId;
+
 }
