@@ -19,6 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -33,15 +35,22 @@ class ManageProhibitedTickerServiceTest {
     @Mock
     private ProhibitedTickerRepository prohibitedTickerRepository;
 
+    @Mock
+    private ProhibitedTickerDTOMapper prohibitedTickerDTOMapper;
+
     @InjectMocks
     private ManageProhibitedTickerService manageProhibitedTickerService;
 
-    private ProhibitedTicker testProhibitedTicker;
+    private ProhibitedTickerDTO testProhibitedTickerDTO;
 
     @BeforeEach
     void setUp() {
-        testProhibitedTicker = new ProhibitedTicker("AAPL", "Inappropriate content",
-                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+
+        testProhibitedTickerDTO = ProhibitedTickerDTO.builder()
+                .ticker("AAPL")
+                .reason("Inappropriate content")
+                .createdAt(java.time.LocalDateTime.parse("2024-06-01T12:00:00"))
+                .build();
     }
 
     @Test
@@ -52,11 +61,17 @@ class ManageProhibitedTickerServiceTest {
                 java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
         ProhibitedTicker ticker2 = new ProhibitedTicker("GOOGL", "Inappropriate content",
                 java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+
+        ProhibitedTickerDTO dto1 = ProhibitedTickerDTO.builder().ticker("AAPL").build();
+        ProhibitedTickerDTO dto2 = ProhibitedTickerDTO.builder().ticker("GOOGL").build();
+
         List<ProhibitedTicker> tickers = Arrays.asList(ticker1, ticker2);
         when(prohibitedTickerRepository.findAll()).thenReturn(tickers);
+        when(prohibitedTickerDTOMapper.toDTO(ticker1)).thenReturn(dto1);
+        when(prohibitedTickerDTOMapper.toDTO(ticker2)).thenReturn(dto2);
 
         // Act
-        List<ProhibitedTicker> result = manageProhibitedTickerService.getAllProhibitedTickers();
+        List<ProhibitedTickerDTO> result = manageProhibitedTickerService.getAllProhibitedTickers();
 
         // Assert
         assertNotNull(result);
@@ -73,7 +88,7 @@ class ManageProhibitedTickerServiceTest {
         when(prohibitedTickerRepository.findAll()).thenReturn(Arrays.asList());
 
         // Act
-        List<ProhibitedTicker> result = manageProhibitedTickerService.getAllProhibitedTickers();
+        List<ProhibitedTickerDTO> result = manageProhibitedTickerService.getAllProhibitedTickers();
 
         // Assert
         assertNotNull(result);
@@ -112,11 +127,15 @@ class ManageProhibitedTickerServiceTest {
     @Test
     @DisplayName("Should add prohibited ticker successfully")
     void testAddProhibitedTicker() {
+        // Arrange
+        ProhibitedTicker domainTicker = ProhibitedTicker.builder().ticker("AAPL").build();
+        when(prohibitedTickerDTOMapper.toDomain(testProhibitedTickerDTO)).thenReturn(domainTicker);
+
         // Act
-        manageProhibitedTickerService.addProhibitedTicker(testProhibitedTicker);
+        manageProhibitedTickerService.addProhibitedTicker(testProhibitedTickerDTO);
 
         // Assert
-        verify(prohibitedTickerRepository, times(1)).save(testProhibitedTicker);
+        verify(prohibitedTickerRepository, times(1)).save(domainTicker);
     }
 
     @Test

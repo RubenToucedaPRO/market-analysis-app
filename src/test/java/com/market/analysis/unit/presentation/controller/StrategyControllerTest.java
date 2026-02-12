@@ -17,14 +17,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
-import com.market.analysis.domain.model.Rule;
-import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.application.dto.RuleDTO;
+import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
-import com.market.analysis.presentation.dto.StrategyDTO;
-import com.market.analysis.presentation.mapper.RuleDefinitionDTOMapper;
-import com.market.analysis.presentation.mapper.StrategyDTOMapper;
 
 /**
  * Unit tests for StrategyController.
@@ -51,12 +50,12 @@ class StrategyControllerTest {
     @InjectMocks
     private StrategyController strategyController;
 
-    private Strategy testStrategy;
-    private Rule testRule;
+    private StrategyDTO testStrategyDTO;
+    private RuleDTO testRuleDTO;
 
     @BeforeEach
     void setUp() {
-        testRule = Rule.builder()
+        testRuleDTO = RuleDTO.builder()
                 .id(1L)
                 .name("Test Rule")
                 .subjectCode("PRICE")
@@ -66,11 +65,11 @@ class StrategyControllerTest {
                 .description("Test")
                 .build();
 
-        testStrategy = Strategy.builder()
+        testStrategyDTO = StrategyDTO.builder()
                 .id(1L)
                 .name("Test Strategy")
                 .description("Test Description")
-                .rules(List.of(testRule))
+                .rules(List.of(testRuleDTO))
                 .build();
     }
 
@@ -78,7 +77,7 @@ class StrategyControllerTest {
     @DisplayName("Should list all strategies")
     void testListStrategies() {
         // Arrange
-        List<Strategy> strategies = List.of(testStrategy);
+        List<StrategyDTO> strategies = List.of(testStrategyDTO);
         when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategies);
 
         // Act
@@ -106,14 +105,7 @@ class StrategyControllerTest {
     @DisplayName("Should show edit form with existing strategy")
     void testShowEditForm() {
         // Arrange
-        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategy);
-        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(
-                StrategyDTO.builder()
-                        .id(1L)
-                        .name("Test Strategy")
-                        .description("Test Description")
-                        .rules(List.of())
-                        .build());
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
 
         // Act
         String viewName = strategyController.showEditForm(1L, model);
@@ -135,14 +127,12 @@ class StrategyControllerTest {
                 .rules(List.of())
                 .build();
 
-        when(strategyDTOMapper.toDomain(any(StrategyDTO.class))).thenReturn(testStrategy);
-
         // Act
         String viewName = strategyController.saveStrategy(strategyDTO);
 
         // Assert
         assertEquals("redirect:/strategies", viewName);
-        verify(manageStrategyUseCase, times(1)).createStrategy(any(Strategy.class));
+        verify(manageStrategyUseCase, times(1)).createStrategy(any(StrategyDTO.class));
     }
 
     @Test
@@ -174,14 +164,14 @@ class StrategyControllerTest {
     @DisplayName("Should handle multiple strategies in list")
     void testListMultipleStrategies() {
         // Arrange
-        Strategy strategy2 = Strategy.builder()
+        StrategyDTO strategy2 = StrategyDTO.builder()
                 .id(2L)
                 .name("Strategy 2")
                 .description("Description 2")
-                .rules(List.of(testRule))
+                .rules(List.of(testRuleDTO))
                 .build();
 
-        List<Strategy> strategies = List.of(testStrategy, strategy2);
+        List<StrategyDTO> strategies = List.of(testStrategyDTO, strategy2);
         when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategies);
 
         // Act

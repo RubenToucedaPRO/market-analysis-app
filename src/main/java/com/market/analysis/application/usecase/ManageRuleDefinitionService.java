@@ -2,6 +2,8 @@ package com.market.analysis.application.usecase;
 
 import java.util.List;
 
+import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
@@ -17,51 +19,55 @@ import lombok.RequiredArgsConstructor;
 public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase {
 
     private final RuleDefinitionRepository ruleDefinitionRepository;
+    private final RuleDefinitionDTOMapper ruleDefinitionMapper;
 
     @Override
-    public RuleDefinition createRuleDefinition(RuleDefinition ruleDefinition) {
-        if (ruleDefinition == null) {
+    public RuleDefinitionDTO createRuleDefinition(RuleDefinitionDTO ruleDefinitionDto) {
+        if (ruleDefinitionDto == null) {
             throw new IllegalArgumentException("RuleDefinition cannot be null");
         }
 
-        if (ruleDefinition.getCode() == null || ruleDefinition.getCode().isBlank()) {
+        if (ruleDefinitionDto.getCode() == null || ruleDefinitionDto.getCode().isBlank()) {
             throw new IllegalArgumentException("RuleDefinition code cannot be null or empty");
         }
 
-        if (ruleDefinitionRepository.existsByCode(ruleDefinition.getCode())) {
+        if (ruleDefinitionRepository.existsByCode(ruleDefinitionDto.getCode())) {
             throw new IllegalArgumentException(
-                    "RuleDefinition with code '" + ruleDefinition.getCode() + "' already exists");
+                    "RuleDefinition with code '" + ruleDefinitionDto.getCode() + "' already exists");
         }
-
-        return ruleDefinitionRepository.save(ruleDefinition);
+        RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
+        RuleDefinition savedRule = ruleDefinitionRepository.save(ruleDefinition);
+        return ruleDefinitionMapper.toDTO(savedRule);
     }
 
     @Override
-    public List<RuleDefinition> getAllRuleDefinitions() {
-        return ruleDefinitionRepository.findAll();
+    public List<RuleDefinitionDTO> getAllRuleDefinitions() {
+        return ruleDefinitionRepository.findAll().stream().map(ruleDefinitionMapper::toDTO).toList();
     }
 
     @Override
-    public RuleDefinition getRuleDefinitionById(Long id) {
+    public RuleDefinitionDTO getRuleDefinitionById(Long id) {
         return ruleDefinitionRepository.findById(id)
-                .orElseThrow(() -> new StockDataNotFoundException("RuleDefinition not found with id: " + id));
+                .map(ruleDefinitionMapper::toDTO)
+                .orElse(null);
     }
 
     @Override
-    public RuleDefinition updateRuleDefinition(RuleDefinition ruleDefinition) {
-        if (ruleDefinition == null) {
+    public RuleDefinitionDTO updateRuleDefinition(RuleDefinitionDTO ruleDefinitionDto) {
+        if (ruleDefinitionDto == null) {
             throw new IllegalArgumentException("RuleDefinition cannot be null");
         }
 
-        if (ruleDefinition.getId() == null) {
+        if (ruleDefinitionDto.getId() == null) {
             throw new IllegalArgumentException("RuleDefinition ID cannot be null for update");
         }
 
-        if (!ruleDefinitionRepository.existsById(ruleDefinition.getId())) {
-            throw new StockDataNotFoundException("RuleDefinition not found with id: " + ruleDefinition.getId());
+        if (!ruleDefinitionRepository.existsById(ruleDefinitionDto.getId())) {
+            throw new StockDataNotFoundException("RuleDefinition not found with id: " + ruleDefinitionDto.getId());
         }
-
-        return ruleDefinitionRepository.save(ruleDefinition);
+        RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
+        RuleDefinition savedRule = ruleDefinitionRepository.save(ruleDefinition);
+        return ruleDefinitionMapper.toDTO(savedRule);
     }
 
     @Override

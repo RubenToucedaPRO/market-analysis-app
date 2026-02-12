@@ -20,6 +20,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.application.dto.RuleDTO;
+import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.ManageStrategyService;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleDefinition;
@@ -40,11 +45,19 @@ class ManageStrategyServiceTest {
     @Mock
     private RuleDefinitionRepository ruleDefinitionRepository;
 
+    @Mock
+    private StrategyDTOMapper strategyDTOMapper;
+
+    @Mock
+    private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
+
     @InjectMocks
     private ManageStrategyService manageStrategyService;
 
     private Strategy testStrategy;
     private Rule testRule;
+    private StrategyDTO testStrategyDTO;
+    private RuleDTO testRuleDTO;
 
     @BeforeEach
     void setUp() {
@@ -64,22 +77,41 @@ class ManageStrategyServiceTest {
                 .description("Test Description")
                 .rules(List.of(testRule))
                 .build();
+
+        testRuleDTO = RuleDTO.builder()
+                .id(1L)
+                .name("Test Rule")
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .description("Price above 100")
+                .build();
+
+        testStrategyDTO = StrategyDTO.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Test Description")
+                .rules(List.of(testRuleDTO))
+                .build();
     }
 
     @Test
     @DisplayName("Should create strategy successfully")
     void testCreateStrategy() {
         // Arrange
+        when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
         when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
 
         // Act
-        Strategy result = manageStrategyService.createStrategy(testStrategy);
+        StrategyDTO result = manageStrategyService.createStrategy(testStrategyDTO);
 
         // Assert
         assertNotNull(result);
-        assertEquals(testStrategy.getId(), result.getId());
-        assertEquals(testStrategy.getName(), result.getName());
-        verify(strategyRepository, times(1)).save(testStrategy);
+        assertEquals(testStrategyDTO.getId(), result.getId());
+        assertEquals(testStrategyDTO.getName(), result.getName());
+        verify(strategyRepository, times(1)).save(any(Strategy.class));
     }
 
     @Test
@@ -88,9 +120,10 @@ class ManageStrategyServiceTest {
         // Arrange
         List<Strategy> strategies = List.of(testStrategy);
         when(strategyRepository.findAll()).thenReturn(strategies);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
 
         // Act
-        List<Strategy> result = manageStrategyService.getAllStrategies();
+        List<StrategyDTO> result = manageStrategyService.getAllStrategies();
 
         // Assert
         assertNotNull(result);
@@ -104,9 +137,10 @@ class ManageStrategyServiceTest {
     void testGetStrategyById() {
         // Arrange
         when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
 
         // Act
-        Strategy result = manageStrategyService.getStrategyById(1L);
+        StrategyDTO result = manageStrategyService.getStrategyById(1L);
 
         // Assert
         assertNotNull(result);
@@ -124,7 +158,7 @@ class ManageStrategyServiceTest {
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> manageStrategyService.getStrategyById(999L));
-        
+
         assertEquals("Strategy not found with id: 999", exception.getMessage());
         verify(strategyRepository, times(1)).findById(999L);
     }
@@ -140,10 +174,18 @@ class ManageStrategyServiceTest {
                 .requiresParam(true)
                 .description("Moving average")
                 .build();
+        RuleDefinitionDTO ruleDefinitionDTO = RuleDefinitionDTO.builder()
+                .id(1L)
+                .code("SMA")
+                .name("Simple Moving Average")
+                .requiresParam(true)
+                .description("Moving average")
+                .build();
         when(ruleDefinitionRepository.findAll()).thenReturn(List.of(ruleDefinition));
+        when(ruleDefinitionDTOMapper.toDTO(ruleDefinition)).thenReturn(ruleDefinitionDTO);
 
         // Act
-        List<RuleDefinition> result = manageStrategyService.getAvailableRuleDefinitions();
+        List<RuleDefinitionDTO> result = manageStrategyService.getAvailableRuleDefinitions();
 
         // Assert
         assertNotNull(result);
@@ -166,12 +208,21 @@ class ManageStrategyServiceTest {
     @DisplayName("Should validate strategy before creating")
     void testCreateStrategyValidation() {
         // Arrange
-        Strategy invalidStrategy = Strategy.builder()
+        StrategyDTO invalidStrategy = StrategyDTO.builder()
                 .id(2L)
                 .name("Invalid Strategy")
                 .description("No rules")
                 .rules(List.of()) // Empty rules list - invalid
                 .build();
+
+        Strategy invalidStrategyDomain = Strategy.builder()
+                .id(2L)
+                .name("Invalid Strategy")
+                .description("No rules")
+                .rules(List.of())
+                .build();
+
+        when(strategyDTOMapper.toDomain(invalidStrategy)).thenReturn(invalidStrategyDomain);
 
         // Act & Assert
         assertThrows(IllegalStateException.class,

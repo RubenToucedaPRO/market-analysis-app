@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import com.market.analysis.application.dto.HealthCheckResponse;
+import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.domain.port.out.HealthCheckPort;
 
@@ -27,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HealthCheckService {
 
     private final HealthCheckPort healthCheckPort;
+    private final HealthCheckMapper healthCheckMapper;
 
     /**
      * Performs a comprehensive health check of the application.
@@ -34,7 +37,7 @@ public class HealthCheckService {
      *
      * @return HealthStatus containing current system state and component details
      */
-    public HealthStatus performHealthCheck() {
+    public HealthCheckResponse performHealthCheck() {
         log.debug("Starting health check");
 
         long startTime = System.currentTimeMillis();
@@ -49,13 +52,14 @@ public class HealthCheckService {
         log.info("Health check completed. Status: {}, DatabaseHealthy: {}, TotalTime: {}ms",
                 status, databaseHealthy, totalTime);
 
-        return HealthStatus.builder()
+        HealthStatus healthStatus = HealthStatus.builder()
                 .status(status)
                 .timestamp(LocalDateTime.now())
                 .databaseHealthy(databaseHealthy)
                 .description(description)
                 .details(details)
                 .build();
+        return healthCheckMapper.toResponse(healthStatus);
     }
 
     /**

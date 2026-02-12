@@ -1,11 +1,11 @@
-package com.market.analysis.presentation.mapper;
+package com.market.analysis.application.mapper;
 
 import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.domain.model.Rule;
-import com.market.analysis.presentation.dto.RuleDTO;
 
 /**
  * Mapper to convert between Rule domain model and RuleDTO.

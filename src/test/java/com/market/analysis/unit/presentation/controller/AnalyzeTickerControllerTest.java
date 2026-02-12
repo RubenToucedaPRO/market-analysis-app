@@ -21,11 +21,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
-import com.market.analysis.domain.model.Stock;
+import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.presentation.controller.AnalyzeTickerController;
-import com.market.analysis.presentation.dto.StockDataDTO;
-import com.market.analysis.presentation.mapper.StockDataDTOMapper;
 
 /**
  * Unit tests for AnalyzeTickerController.
@@ -44,7 +43,7 @@ class AnalyzeTickerControllerTest {
     private StockDataDTOMapper stockMapper;
 
     @Mock
-    private com.market.analysis.presentation.mapper.StrategyDTOMapper strategyMapper;
+    private com.market.analysis.application.mapper.StrategyDTOMapper strategyMapper;
 
     @Mock
     private Model model;
@@ -52,16 +51,14 @@ class AnalyzeTickerControllerTest {
     @InjectMocks
     private AnalyzeTickerController controller;
 
-    private Stock testStock;
-    private StockDataDTO testStockDTO;
-    private com.market.analysis.domain.model.Strategy testStrategy;
-    private com.market.analysis.presentation.dto.StrategyDTO testStrategyDTO;
+    private StockDataDTO testStockDataDTO;
+    private com.market.analysis.application.dto.StrategyDTO testStrategyDTO;
 
     @BeforeEach
     void setUp() {
         LocalDateTime lastUpdated = LocalDateTime.now();
 
-        testStock = Stock.builder()
+        testStockDataDTO = StockDataDTO.builder()
                 .ticker("AAPL")
                 .logoUrl("https://example.com/logo.png")
                 .currentPrice(new BigDecimal("150.50"))
@@ -70,23 +67,7 @@ class AnalyzeTickerControllerTest {
                 .lastUpdated(lastUpdated)
                 .build();
 
-        testStockDTO = StockDataDTO.builder()
-                .ticker("AAPL")
-                .logoUrl("https://example.com/logo.png")
-                .currentPrice(new BigDecimal("150.50"))
-                .openPrice(new BigDecimal("149.00"))
-                .volume(50000000L)
-                .lastUpdated(lastUpdated)
-                .build();
-
-        testStrategy = com.market.analysis.domain.model.Strategy.builder()
-                .id(1L)
-                .name("Test Strategy")
-                .description("A test strategy")
-                .rules(Arrays.asList())
-                .build();
-
-        testStrategyDTO = com.market.analysis.presentation.dto.StrategyDTO.builder()
+        testStrategyDTO = com.market.analysis.application.dto.StrategyDTO.builder()
                 .id(1L)
                 .name("Test Strategy")
                 .description("A test strategy")
@@ -98,24 +79,16 @@ class AnalyzeTickerControllerTest {
     @DisplayName("Should get all tickers and display analysis page")
     void testGetAllTickers() {
         // Arrange
-        Stock stock2 = Stock.builder()
+        StockDataDTO stock2 = StockDataDTO.builder()
                 .ticker("GOOGL")
                 .currentPrice(new BigDecimal("100.00"))
                 .build();
 
-        StockDataDTO stockDTO2 = StockDataDTO.builder()
-                .ticker("GOOGL")
-                .currentPrice(new BigDecimal("100.00"))
-                .build();
-
-        List<Stock> stocks = Arrays.asList(testStock, stock2);
-        List<com.market.analysis.domain.model.Strategy> strategies = Arrays.asList(testStrategy);
+        List<StockDataDTO> stocks = Arrays.asList(testStockDataDTO, stock2);
+        List<com.market.analysis.application.dto.StrategyDTO> strategiesDTOList = Arrays.asList(testStrategyDTO);
 
         when(manageAnalyzeTickerUseCase.findAllStocks()).thenReturn(stocks);
-        when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategies);
-        when(stockMapper.toDTO(testStock)).thenReturn(testStockDTO);
-        when(stockMapper.toDTO(stock2)).thenReturn(stockDTO2);
-        when(strategyMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
+        when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategiesDTOList);
 
         // Act
         String viewName = controller.getAllTickers(model);
@@ -124,7 +97,6 @@ class AnalyzeTickerControllerTest {
         assertThat(viewName).isEqualTo("analysis/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).findAllStocks();
         verify(manageStrategyUseCase, times(1)).getAllStrategies();
-        verify(stockMapper, times(2)).toDTO(any(Stock.class));
         verify(model, times(1)).addAttribute(eq("tickers"), any(List.class));
         verify(model, times(1)).addAttribute(eq("strategies"), any(List.class));
     }

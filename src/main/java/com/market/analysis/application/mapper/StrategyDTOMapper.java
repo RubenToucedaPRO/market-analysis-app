@@ -1,9 +1,9 @@
-package com.market.analysis.presentation.mapper;
+package com.market.analysis.application.mapper;
 
 import org.springframework.stereotype.Component;
 
+import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.domain.model.Strategy;
-import com.market.analysis.presentation.dto.StrategyDTO;
 
 import lombok.RequiredArgsConstructor;
 

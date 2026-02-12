@@ -2,7 +2,11 @@ package com.market.analysis.application.usecase;
 
 import java.util.List;
 
+import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
+import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.model.ProhibitedTicker;
+import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 
@@ -17,10 +21,11 @@ import lombok.RequiredArgsConstructor;
 public class ManageProhibitedTickerService implements ManageProhibitedTickerUseCase {
 
     private final ProhibitedTickerRepository prohibitedTickerRepository;
+    private final ProhibitedTickerDTOMapper prohibitedTickerMapper;
 
     @Override
-    public List<ProhibitedTicker> getAllProhibitedTickers() {
-        return prohibitedTickerRepository.findAll();
+    public List<ProhibitedTickerDTO> getAllProhibitedTickers() {
+        return prohibitedTickerRepository.findAll().stream() .map(prohibitedTickerMapper::toDTO) .toList();
     }
 
     @Override
@@ -29,8 +34,9 @@ public class ManageProhibitedTickerService implements ManageProhibitedTickerUseC
     }
 
     @Override
-    public void addProhibitedTicker(ProhibitedTicker ticker) {
-        prohibitedTickerRepository.save(ticker);
+    public void addProhibitedTicker(ProhibitedTickerDTO ticker) {
+        ProhibitedTicker stock = prohibitedTickerMapper.toDomain(ticker);
+        prohibitedTickerRepository.save(stock);
     }
 
     @Override

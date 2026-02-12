@@ -8,6 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
+import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.application.mapper.StockDataDTOMapper;
+import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.EvaluateStrategyService;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
@@ -39,29 +43,32 @@ public class BeanConfig {
     @Bean
     public ManageStrategyUseCase manageStrategyUseCase(
             StrategyRepository strategyRepository,
-            RuleDefinitionRepository ruleDefinitionRepository) {
-        return new ManageStrategyService(strategyRepository, ruleDefinitionRepository);
+            RuleDefinitionRepository ruleDefinitionRepository, StrategyDTOMapper strategyMapper,
+            RuleDefinitionDTOMapper ruleDefinitionMapper) {
+        return new ManageStrategyService(strategyRepository, ruleDefinitionRepository, strategyMapper,
+                ruleDefinitionMapper);
     }
 
     @Bean
     public ManageRuleDefinitionUseCase manageRuleDefinitionUseCase(
-            RuleDefinitionRepository ruleDefinitionRepository) {
-        return new ManageRuleDefinitionService(ruleDefinitionRepository);
+            RuleDefinitionRepository ruleDefinitionRepository, RuleDefinitionDTOMapper ruleDefinitionMapper) {
+        return new ManageRuleDefinitionService(ruleDefinitionRepository, ruleDefinitionMapper);
     }
 
     @Bean
     public ManageProhibitedTickerUseCase manageProhibitedTickerUseCase(
-            ProhibitedTickerRepository prohibitedTickerRepository) {
-        return new ManageProhibitedTickerService(prohibitedTickerRepository);
+            ProhibitedTickerRepository prohibitedTickerRepository, ProhibitedTickerDTOMapper prohibitedTickerMapper) {
+        return new ManageProhibitedTickerService(prohibitedTickerRepository, prohibitedTickerMapper);
     }
 
     @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
             CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
             StockProviderPort stockProviderPort, StrategyRepository strategyRepository,
-            EvaluateStrategyUseCase evaluateStrategyUseCase) {
+            EvaluateStrategyUseCase evaluateStrategyUseCase, StockDataDTOMapper stockMapper) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, stockProviderPort, strategyRepository, evaluateStrategyUseCase);
+                prohibitedTickerRepository, stockProviderPort, strategyRepository, evaluateStrategyUseCase,
+                stockMapper);
     }
 
     @Bean

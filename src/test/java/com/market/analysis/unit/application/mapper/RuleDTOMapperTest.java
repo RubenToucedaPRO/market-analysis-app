@@ -1,4 +1,4 @@
-package com.market.analysis.unit.presentation.mapper;
+package com.market.analysis.unit.application.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,9 +10,9 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.application.dto.RuleDTO;
+import com.market.analysis.application.mapper.RuleDTOMapper;
 import com.market.analysis.domain.model.Rule;
-import com.market.analysis.presentation.dto.RuleDTO;
-import com.market.analysis.presentation.mapper.RuleDTOMapper;
 
 /**
  * Unit tests for RuleDTOMapper.

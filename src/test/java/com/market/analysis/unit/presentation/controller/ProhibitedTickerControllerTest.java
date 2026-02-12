@@ -1,7 +1,6 @@
 package com.market.analysis.unit.presentation.controller;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,11 +23,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.presentation.controller.ProhibitedTickerController;
-import com.market.analysis.presentation.dto.ProhibitedTickerDTO;
-import com.market.analysis.presentation.mapper.ProhibitedTickerDTOMapper;
 
 /**
  * Integration tests for ProhibitedTickerController using MockMvc.
@@ -75,7 +74,7 @@ class ProhibitedTickerControllerTest {
     @DisplayName("Should list all prohibited tickers")
     void testListProhibitedTickers() throws Exception {
         // Arrange
-        List<ProhibitedTicker> prohibitedTickers = Arrays.asList(testProhibitedTicker1, testProhibitedTicker2);
+        List<ProhibitedTickerDTO> prohibitedTickers = Arrays.asList(testDTO1, testDTO2);
         when(manageProhibitedTickerUseCase.getAllProhibitedTickers()).thenReturn(prohibitedTickers);
         when(mapper.toDTO(testProhibitedTicker1)).thenReturn(testDTO1);
         when(mapper.toDTO(testProhibitedTicker2)).thenReturn(testDTO2);
@@ -88,7 +87,6 @@ class ProhibitedTickerControllerTest {
                 .andExpect(model().attribute("prohibitedTickers", hasSize(2)));
 
         verify(manageProhibitedTickerUseCase, times(1)).getAllProhibitedTickers();
-        verify(mapper, times(2)).toDTO(any(ProhibitedTicker.class));
     }
 
     @Test

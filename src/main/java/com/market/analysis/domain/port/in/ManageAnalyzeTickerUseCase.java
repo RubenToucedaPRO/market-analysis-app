@@ -2,15 +2,15 @@ package com.market.analysis.domain.port.in;
 
 import java.util.List;
 
-import com.market.analysis.domain.model.Stock;
+import com.market.analysis.application.dto.StockDataDTO;
 
 public interface ManageAnalyzeTickerUseCase {
 
         public void getStockData(String ticker, Long strategyId);
 
-        public List<Stock> findAllStocks();
+        public List<StockDataDTO> findAllStocks();
 
-        public Stock findStockDataByTicker(String ticker);
+        public StockDataDTO findStockDataByTicker(String ticker);
 
         public void updateStockData(String ticker);
 

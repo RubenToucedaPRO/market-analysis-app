@@ -1,9 +1,9 @@
-package com.market.analysis.presentation.mapper;
+package com.market.analysis.application.mapper;
 
 import org.springframework.stereotype.Component;
 
+import com.market.analysis.application.dto.HealthCheckResponse;
 import com.market.analysis.domain.model.HealthStatus;
-import com.market.analysis.presentation.dto.HealthCheckResponse;
 
 /**
  * Mapper for converting domain HealthStatus entities to presentation DTOs.

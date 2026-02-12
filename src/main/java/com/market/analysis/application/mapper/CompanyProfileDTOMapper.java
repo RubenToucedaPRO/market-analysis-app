@@ -1,7 +1,7 @@
-package com.market.analysis.presentation.mapper;
+package com.market.analysis.application.mapper;
 
+import com.market.analysis.application.dto.CompanyProfileDto;
 import com.market.analysis.domain.model.CompanyProfile;
-import com.market.analysis.presentation.dto.CompanyProfileDto;
 
 public class CompanyProfileDTOMapper {
 

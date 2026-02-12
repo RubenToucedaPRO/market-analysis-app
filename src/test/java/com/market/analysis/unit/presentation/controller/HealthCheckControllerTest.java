@@ -18,11 +18,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.market.analysis.application.dto.HealthCheckResponse;
+import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.application.usecase.HealthCheckService;
-import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.presentation.controller.HealthCheckController;
-import com.market.analysis.presentation.dto.HealthCheckResponse;
-import com.market.analysis.presentation.mapper.HealthCheckMapper;
 
 /**
  * Integration tests for HealthCheckController using MockMvc.
@@ -46,13 +45,6 @@ class HealthCheckControllerTest {
         void testGetHealthReturnsOkWhenUp() throws Exception {
                 // Arrange
                 LocalDateTime now = LocalDateTime.now();
-                HealthStatus healthStatus = HealthStatus.builder()
-                                .status("UP")
-                                .timestamp(now)
-                                .databaseHealthy(true)
-                                .description("Application is fully operational. All dependencies are healthy.")
-                                .details("Database: Healthy (50ms)")
-                                .build();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("UP")
@@ -63,8 +55,7 @@ class HealthCheckControllerTest {
                                 .httpStatusCode(200)
                                 .build();
 
-                when(healthCheckService.performHealthCheck()).thenReturn(healthStatus);
-                when(healthCheckMapper.toResponse(healthStatus)).thenReturn(response);
+                when(healthCheckService.performHealthCheck()).thenReturn(response);
 
                 // Act & Assert
                 mockMvc.perform(get("/health")
@@ -82,13 +73,6 @@ class HealthCheckControllerTest {
         void testGetHealthReturnsServiceUnavailableWhenDown() throws Exception {
                 // Arrange
                 LocalDateTime now = LocalDateTime.now();
-                HealthStatus healthStatus = HealthStatus.builder()
-                                .status("DOWN")
-                                .timestamp(now)
-                                .databaseHealthy(false)
-                                .description("Application is not operational. Critical dependencies are unavailable.")
-                                .details("Database: Unhealthy (-1ms)")
-                                .build();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("DOWN")
@@ -99,8 +83,7 @@ class HealthCheckControllerTest {
                                 .httpStatusCode(503)
                                 .build();
 
-                when(healthCheckService.performHealthCheck()).thenReturn(healthStatus);
-                when(healthCheckMapper.toResponse(healthStatus)).thenReturn(response);
+                when(healthCheckService.performHealthCheck()).thenReturn(response);
 
                 // Act & Assert
                 mockMvc.perform(get("/health")
@@ -117,13 +100,6 @@ class HealthCheckControllerTest {
         void testGetHealthIncludesTimestamp() throws Exception {
                 // Arrange
                 LocalDateTime now = LocalDateTime.now();
-                HealthStatus healthStatus = HealthStatus.builder()
-                                .status("UP")
-                                .timestamp(now)
-                                .databaseHealthy(true)
-                                .description("Application is fully operational. All dependencies are healthy.")
-                                .details("Database: Healthy (25ms)")
-                                .build();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("UP")
@@ -134,8 +110,7 @@ class HealthCheckControllerTest {
                                 .httpStatusCode(200)
                                 .build();
 
-                when(healthCheckService.performHealthCheck()).thenReturn(healthStatus);
-                when(healthCheckMapper.toResponse(healthStatus)).thenReturn(response);
+                when(healthCheckService.performHealthCheck()).thenReturn(response);
 
                 // Act & Assert
                 mockMvc.perform(get("/health")
@@ -149,13 +124,6 @@ class HealthCheckControllerTest {
         void testGetHealthIncludesDatabaseDetails() throws Exception {
                 // Arrange
                 LocalDateTime now = LocalDateTime.now();
-                HealthStatus healthStatus = HealthStatus.builder()
-                                .status("UP")
-                                .timestamp(now)
-                                .databaseHealthy(true)
-                                .description("Application is fully operational. All dependencies are healthy.")
-                                .details("Database: Healthy (75ms)")
-                                .build();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("UP")
@@ -166,8 +134,7 @@ class HealthCheckControllerTest {
                                 .httpStatusCode(200)
                                 .build();
 
-                when(healthCheckService.performHealthCheck()).thenReturn(healthStatus);
-                when(healthCheckMapper.toResponse(healthStatus)).thenReturn(response);
+                when(healthCheckService.performHealthCheck()).thenReturn(response);
 
                 // Act & Assert
                 mockMvc.perform(get("/health")

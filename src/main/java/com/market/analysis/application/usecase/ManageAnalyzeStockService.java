@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.CompanyProfile;
@@ -31,6 +33,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockProviderPort stockProviderPort;
     private final StrategyRepository strategyRepository;
     private final EvaluateStrategyUseCase evaluateStrategyUseCase;
+    private final StockDataDTOMapper stockMapper;
 
     @Override
     public void getStockData(String tickers, Long strategyId) {
@@ -67,13 +70,15 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     }
 
     @Override
-    public List<Stock> findAllStocks() {
-        return stockDataRepository.findAllStocks();
+    public List<StockDataDTO> findAllStocks() {
+        return stockDataRepository.findAllStocks().stream()
+                .map(stockMapper::toDTO)
+                .toList();
     }
 
     @Override
-    public Stock findStockDataByTicker(String ticker) {
-        return stockDataRepository.findByTicker(ticker)
+    public StockDataDTO findStockDataByTicker(String ticker) {
+        return stockDataRepository.findByTicker(ticker).map(stockMapper::toDTO)
                 .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + ticker));
     }
 

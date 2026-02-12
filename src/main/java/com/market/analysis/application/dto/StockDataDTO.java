@@ -1,4 +1,4 @@
-package com.market.analysis.presentation.dto;
+package com.market.analysis.application.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

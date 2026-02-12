@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.market.analysis.application.dto.RuleDTO;
+import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.presentation.dto.RuleDTO;
-import com.market.analysis.presentation.dto.RuleDefinitionDTO;
-import com.market.analysis.presentation.dto.StrategyDTO;
-import com.market.analysis.presentation.mapper.RuleDefinitionDTOMapper;
-import com.market.analysis.presentation.mapper.StrategyDTOMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -53,10 +53,7 @@ public class StrategyController {
                 .rules(new ArrayList<>(List.of(emptyRule)))
                 .build();
 
-        List<RuleDefinitionDTO> ruleDefinitions = manageRuleDefinitionUseCase.getAllRuleDefinitions()
-                .stream()
-                .map(ruleDefinitionDTOMapper::toDTO)
-                .toList();
+        List<RuleDefinitionDTO> ruleDefinitions = manageRuleDefinitionUseCase.getAllRuleDefinitions();
 
         model.addAttribute(ATTR_RULE_DEFINITIONS, ruleDefinitions);
         model.addAttribute(ATTR_STRATEGY, strategy);
@@ -66,15 +63,11 @@ public class StrategyController {
 
     @PostMapping("/edit")
     public String showEditForm(@RequestParam("id") long strategyId, Model model) {
-        Strategy strategy = manageStrategyUseCase.getStrategyById(strategyId);
-        StrategyDTO strategyDTO = strategyDTOMapper.toDTO(strategy);
+        StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
 
-        List<RuleDefinitionDTO> ruleDefinitions = manageRuleDefinitionUseCase.getAllRuleDefinitions()
-                .stream()
-                .map(ruleDefinitionDTOMapper::toDTO)
-                .toList();
+        List<RuleDefinitionDTO> ruleDefinitionsDTOs = manageRuleDefinitionUseCase.getAllRuleDefinitions();
 
-        model.addAttribute(ATTR_RULE_DEFINITIONS, ruleDefinitions);
+        model.addAttribute(ATTR_RULE_DEFINITIONS, ruleDefinitionsDTOs);
         model.addAttribute(ATTR_STRATEGY, strategyDTO);
 
         return "strategies/create";
@@ -82,8 +75,7 @@ public class StrategyController {
 
     @PostMapping
     public String saveStrategy(@ModelAttribute StrategyDTO strategyDTO) {
-        Strategy strategy = strategyDTOMapper.toDomain(strategyDTO);
-        manageStrategyUseCase.createStrategy(strategy);
+        manageStrategyUseCase.createStrategy(strategyDTO);
         return "redirect:/strategies";
     }
 
