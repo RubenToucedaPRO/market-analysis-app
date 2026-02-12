@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.market.analysis.application.dto.HealthCheckResponse;
+import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.application.usecase.HealthCheckService;
 import com.market.analysis.domain.model.HealthStatus;
-import com.market.analysis.presentation.dto.HealthCheckResponse;
-import com.market.analysis.presentation.mapper.HealthCheckMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 public class HealthCheckController {
 
     private final HealthCheckService healthCheckService;
-    private final HealthCheckMapper healthCheckMapper;
 
     /**
      * Retrieves the current health status of the application.
@@ -44,8 +43,8 @@ public class HealthCheckController {
     public ResponseEntity<HealthCheckResponse> getHealth() {
         log.debug("Health check endpoint called");
 
-        HealthStatus healthStatus = healthCheckService.performHealthCheck();
-        HealthCheckResponse response = healthCheckMapper.toResponse(healthStatus);
+         HealthCheckResponse response = healthCheckService.performHealthCheck();
+        
 
         HttpStatus httpStatus = "UP".equals(response.getStatus()) ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
 

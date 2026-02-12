@@ -9,12 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.presentation.dto.StockDataDTO;
-import com.market.analysis.presentation.dto.StrategyDTO;
-import com.market.analysis.presentation.mapper.StockDataDTOMapper;
-import com.market.analysis.presentation.mapper.StrategyDTOMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,17 +25,11 @@ public class AnalyzeTickerController {
 
     private final ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
     private final ManageStrategyUseCase manageStrategyUseCase;
-    private final StockDataDTOMapper stockMapper;
-    private final StrategyDTOMapper strategyMapper;
 
     @GetMapping
     public String getAllTickers(Model model) {
-        List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks().stream()
-                .map(stockMapper::toDTO)
-                .toList();
-        List<StrategyDTO> strategies = manageStrategyUseCase.getAllStrategies().stream()
-                .map(strategyMapper::toDTO)
-                .toList();
+        List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks();
+        List<StrategyDTO> strategies = manageStrategyUseCase.getAllStrategies();
         
         model.addAttribute("tickers", tickers);
         model.addAttribute("strategies", strategies);

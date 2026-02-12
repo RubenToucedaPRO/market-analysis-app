@@ -2,17 +2,17 @@ package com.market.analysis.domain.port.in;
 
 import java.util.List;
 
-import com.market.analysis.domain.model.RuleDefinition;
-import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.dto.StrategyDTO;
 
 public interface ManageStrategyUseCase {
-    Strategy createStrategy(Strategy strategy);
+    StrategyDTO createStrategy(StrategyDTO strategy);
 
-    List<Strategy> getAllStrategies();
+    List<StrategyDTO> getAllStrategies();
 
-    Strategy getStrategyById(Long strategyId);
+    StrategyDTO getStrategyById(Long strategyId);
 
-    List<RuleDefinition> getAvailableRuleDefinitions(); // Para llenar los combos de la vista
+    List<RuleDefinitionDTO> getAvailableRuleDefinitions();
 
     void deleteStrategy(Long strategyId);
 }

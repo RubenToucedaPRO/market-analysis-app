@@ -2,6 +2,10 @@ package com.market.analysis.application.usecase;
 
 import java.util.List;
 
+import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
@@ -15,28 +19,32 @@ public class ManageStrategyService implements ManageStrategyUseCase {
 
     private final StrategyRepository strategyRepository;
     private final RuleDefinitionRepository ruleDefinitionRepository;
+    private final StrategyDTOMapper strategyMapper;
+    private final RuleDefinitionDTOMapper ruleDefinitionMapper;
 
     @Override
-    public Strategy createStrategy(Strategy strategy) {
-        // Aquí podrías aplicar el patrón Factory si la creación fuera muy compleja
-        strategy.validateConsistency();
-        return strategyRepository.save(strategy);
+    public StrategyDTO createStrategy(StrategyDTO strategy) {
+        Strategy strategyDomain = strategyMapper.toDomain(strategy);
+        strategyDomain.validateConsistency();
+        Strategy savedStrategy = strategyRepository.save(strategyDomain);
+        return strategyMapper.toDTO(savedStrategy);
     }
 
     @Override
-    public List<Strategy> getAllStrategies() {
-        return strategyRepository.findAll();
+    public List<StrategyDTO> getAllStrategies() {
+        return strategyRepository.findAll().stream().map(strategyMapper::toDTO).toList();
     }
 
     @Override
-    public Strategy getStrategyById(Long strategyId) {
+    public StrategyDTO getStrategyById(Long strategyId) {
         return strategyRepository.findById(strategyId)
+                .map(strategyMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Strategy not found with id: " + strategyId));
     }
 
     @Override
-    public List<RuleDefinition> getAvailableRuleDefinitions() {
-        return ruleDefinitionRepository.findAll();
+    public List<RuleDefinitionDTO> getAvailableRuleDefinitions() {
+        return ruleDefinitionRepository.findAll().stream().map(ruleDefinitionMapper::toDTO).toList();
     }
 
     @Override

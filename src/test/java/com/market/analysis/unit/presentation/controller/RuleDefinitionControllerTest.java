@@ -17,11 +17,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
+import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.presentation.controller.RuleDefinitionController;
-import com.market.analysis.presentation.dto.RuleDefinitionDTO;
-import com.market.analysis.presentation.mapper.RuleDefinitionDTOMapper;
 
 /**
  * Unit tests for RuleDefinitionController.

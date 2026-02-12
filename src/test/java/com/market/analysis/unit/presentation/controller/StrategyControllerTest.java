@@ -17,14 +17,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
+import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
-import com.market.analysis.presentation.dto.StrategyDTO;
-import com.market.analysis.presentation.mapper.RuleDefinitionDTOMapper;
-import com.market.analysis.presentation.mapper.StrategyDTOMapper;
 
 /**
  * Unit tests for StrategyController.

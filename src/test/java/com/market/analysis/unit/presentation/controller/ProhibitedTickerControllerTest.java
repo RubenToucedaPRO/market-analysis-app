@@ -24,11 +24,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.presentation.controller.ProhibitedTickerController;
-import com.market.analysis.presentation.dto.ProhibitedTickerDTO;
-import com.market.analysis.presentation.mapper.ProhibitedTickerDTOMapper;
 
 /**
  * Integration tests for ProhibitedTickerController using MockMvc.

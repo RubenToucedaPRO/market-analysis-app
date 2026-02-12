@@ -2,15 +2,15 @@ package com.market.analysis.domain.port.in;
 
 import java.util.List;
 
-import com.market.analysis.domain.model.ProhibitedTicker;
+import com.market.analysis.application.dto.ProhibitedTickerDTO;
 
 public interface ManageProhibitedTickerUseCase {
 
-    List<ProhibitedTicker> getAllProhibitedTickers();
+    List<ProhibitedTickerDTO> getAllProhibitedTickers();
 
     boolean isTickerProhibited(String ticker);
 
-    void addProhibitedTicker(ProhibitedTicker ticker);
+    void addProhibitedTicker(ProhibitedTickerDTO ticker);
 
     void removeProhibitedTicker(String ticker);
 

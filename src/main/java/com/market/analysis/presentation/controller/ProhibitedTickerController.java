@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
-import com.market.analysis.presentation.dto.ProhibitedTickerDTO;
-import com.market.analysis.presentation.mapper.ProhibitedTickerDTOMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,13 +27,10 @@ import lombok.RequiredArgsConstructor;
 public class ProhibitedTickerController {
 
     private final ManageProhibitedTickerUseCase manageProhibitedTickerUseCase;
-    private final ProhibitedTickerDTOMapper mapper;
 
     @GetMapping
     public String listProhibitedTickers(Model model) {
-        List<ProhibitedTickerDTO> prohibitedTickers = manageProhibitedTickerUseCase.getAllProhibitedTickers()
-                .stream()
-                .map(mapper::toDTO).toList();
+        List<ProhibitedTickerDTO> prohibitedTickers = manageProhibitedTickerUseCase.getAllProhibitedTickers();
 
         model.addAttribute("prohibitedTickers", prohibitedTickers);
         return "prohibited-tickers/list";

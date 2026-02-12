@@ -1,7 +1,6 @@
 package com.market.analysis.presentation.controller;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,10 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.market.analysis.domain.model.RuleDefinition;
+import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
-import com.market.analysis.presentation.dto.RuleDefinitionDTO;
-import com.market.analysis.presentation.mapper.RuleDefinitionDTOMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,15 +25,11 @@ import lombok.RequiredArgsConstructor;
 public class RuleDefinitionController {
 
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
-    private final RuleDefinitionDTOMapper mapper;
 
     @GetMapping
     public String listRuleDefinitions(Model model) {
-        List<RuleDefinitionDTO> ruleDefinitions = manageRuleDefinitionUseCase.getAllRuleDefinitions()
-                .stream()
-                .map(mapper::toDTO)
-                .collect(Collectors.toList());
-        
+        List<RuleDefinitionDTO> ruleDefinitions = manageRuleDefinitionUseCase.getAllRuleDefinitions();
+
         model.addAttribute("ruleDefinitions", ruleDefinitions);
         return "rule-definitions/list";
     }
@@ -50,22 +43,21 @@ public class RuleDefinitionController {
 
     @PostMapping("/edit")
     public String showEditForm(@RequestParam("id") Long id, Model model) {
-        RuleDefinition ruleDefinition = manageRuleDefinitionUseCase.getRuleDefinitionById(id);
-        model.addAttribute("ruleDefinition", mapper.toDTO(ruleDefinition));
+        RuleDefinitionDTO ruleDefinitionDto = manageRuleDefinitionUseCase.getRuleDefinitionById(id);
+        model.addAttribute("ruleDefinition", ruleDefinitionDto);
         model.addAttribute("isEdit", true);
         return "rule-definitions/create";
     }
 
     @PostMapping
     public String saveRuleDefinition(@ModelAttribute RuleDefinitionDTO ruleDefinitionDTO) {
-        RuleDefinition ruleDefinition = mapper.toDomain(ruleDefinitionDTO);
-        
+
         if (ruleDefinitionDTO.getId() == null) {
-            manageRuleDefinitionUseCase.createRuleDefinition(ruleDefinition);
+            manageRuleDefinitionUseCase.createRuleDefinition(ruleDefinitionDTO);
         } else {
-            manageRuleDefinitionUseCase.updateRuleDefinition(ruleDefinition);
+            manageRuleDefinitionUseCase.updateRuleDefinition(ruleDefinitionDTO);
         }
-        
+
         return "redirect:/rule-definitions";
     }
 

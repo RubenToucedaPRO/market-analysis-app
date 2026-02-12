@@ -1,4 +1,4 @@
-package com.market.analysis.unit.presentation.mapper;
+package com.market.analysis.unit.application.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,9 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.model.Stock;
-import com.market.analysis.presentation.dto.StockDataDTO;
-import com.market.analysis.presentation.mapper.StockDataDTOMapper;
 
 /**
  * Unit tests for StockDataDTOMapper.

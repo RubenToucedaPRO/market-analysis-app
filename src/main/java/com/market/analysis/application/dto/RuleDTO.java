@@ -1,4 +1,4 @@
-package com.market.analysis.presentation.dto;
+package com.market.analysis.application.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

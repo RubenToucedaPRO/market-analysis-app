@@ -18,11 +18,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.market.analysis.application.dto.HealthCheckResponse;
+import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.application.usecase.HealthCheckService;
 import com.market.analysis.domain.model.HealthStatus;
 import com.market.analysis.presentation.controller.HealthCheckController;
-import com.market.analysis.presentation.dto.HealthCheckResponse;
-import com.market.analysis.presentation.mapper.HealthCheckMapper;
 
 /**
  * Integration tests for HealthCheckController using MockMvc.

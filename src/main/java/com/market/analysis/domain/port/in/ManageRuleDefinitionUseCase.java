@@ -2,7 +2,7 @@ package com.market.analysis.domain.port.in;
 
 import java.util.List;
 
-import com.market.analysis.domain.model.RuleDefinition;
+import com.market.analysis.application.dto.RuleDefinitionDTO;
 
 /**
  * Use case interface for managing rule definitions.
@@ -17,14 +17,14 @@ public interface ManageRuleDefinitionUseCase {
      * @param ruleDefinition the rule definition to create
      * @return the created rule definition with generated ID
      */
-    RuleDefinition createRuleDefinition(RuleDefinition ruleDefinition);
+    RuleDefinitionDTO createRuleDefinition(RuleDefinitionDTO ruleDefinition);
 
     /**
      * Retrieves all available rule definitions.
      * 
      * @return list of all rule definitions
      */
-    List<RuleDefinition> getAllRuleDefinitions();
+    List<RuleDefinitionDTO> getAllRuleDefinitions();
 
     /**
      * Retrieves a specific rule definition by its ID.
@@ -33,7 +33,7 @@ public interface ManageRuleDefinitionUseCase {
      * @return the rule definition
      * @throws RuntimeException if rule definition not found
      */
-    RuleDefinition getRuleDefinitionById(Long id);
+    RuleDefinitionDTO getRuleDefinitionById(Long id);
 
     /**
      * Updates an existing rule definition.
@@ -41,7 +41,7 @@ public interface ManageRuleDefinitionUseCase {
      * @param ruleDefinition the rule definition to update
      * @return the updated rule definition
      */
-    RuleDefinition updateRuleDefinition(RuleDefinition ruleDefinition);
+    RuleDefinitionDTO updateRuleDefinition(RuleDefinitionDTO ruleDefinition);
 
     /**
      * Deletes a rule definition by its ID.
