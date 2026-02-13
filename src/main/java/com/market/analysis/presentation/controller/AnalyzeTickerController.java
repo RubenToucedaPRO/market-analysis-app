@@ -30,7 +30,7 @@ public class AnalyzeTickerController {
     public String getAllTickers(Model model) {
         List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks();
         List<StrategyDTO> strategies = manageStrategyUseCase.getAllStrategies();
-        
+
         model.addAttribute("tickers", tickers);
         model.addAttribute("strategies", strategies);
         return "analysis/analysis";
@@ -46,14 +46,14 @@ public class AnalyzeTickerController {
     }
 
     @PostMapping("/update")
-    public String updateTicker(@RequestParam String ticker) {
-        manageAnalyzeTickerUseCase.updateStockData(ticker);
+    public String updateTicker(@RequestParam Long id) {
+        manageAnalyzeTickerUseCase.updateStockData(id);
         return REDIRECT_ANALYZE;
     }
 
     @PostMapping("/delete")
-    public String deleteTicker(@RequestParam String ticker) {
-        manageAnalyzeTickerUseCase.deleteStockDataByTicker(ticker);
+    public String deleteTicker(@RequestParam Long id) {
+        manageAnalyzeTickerUseCase.deleteById(id);
         return REDIRECT_ANALYZE;
     }
 }

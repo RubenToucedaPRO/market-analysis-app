@@ -350,7 +350,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto);
 
         // Act
-        StockDataDTO result = service.findStockDataByTicker("AAPL");
+        StockDataDTO result = service.findStockDataById("AAPL");
 
         // Assert
         assertNotNull(result);
@@ -366,7 +366,7 @@ class ManageAnalyzeStockServiceTest {
 
         // Act & Assert
         assertThrows(StockDataNotFoundException.class, () -> {
-            service.findStockDataByTicker("INVALID");
+            service.findStockDataById("INVALID");
         });
         verify(stockDataRepository, times(1)).findByTicker("INVALID");
     }

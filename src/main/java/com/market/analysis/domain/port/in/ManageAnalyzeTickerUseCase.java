@@ -10,10 +10,10 @@ public interface ManageAnalyzeTickerUseCase {
 
         public List<StockDataDTO> findAllStocks();
 
-        public StockDataDTO findStockDataByTicker(String ticker);
+        public StockDataDTO findStockDataById(Long id);
 
-        public void updateStockData(String ticker);
+        public void updateStockData(Long id);
 
-        public void deleteStockDataByTicker(String ticker);
+        public void deleteById(Long id);
 
 }

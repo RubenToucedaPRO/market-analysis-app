@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,11 +32,9 @@ public class StrategyEvaluationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String ticker;
-
-    @Column(name = "strategy_id", nullable = false)
-    private Long strategyId;
+    @OneToOne
+    @JoinColumn(name = "stock_id", referencedColumnName = "id", nullable = false)
+    private StockEntity stock;
 
     @Column(nullable = false)
     private boolean compliant;

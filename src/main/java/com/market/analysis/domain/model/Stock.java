@@ -18,6 +18,8 @@ import lombok.ToString;
 @ToString
 public class Stock {
 
+    private Long id;
+
     /**
      * Ticker symbol (e.g., "AAPL", "GOOGL").
      */

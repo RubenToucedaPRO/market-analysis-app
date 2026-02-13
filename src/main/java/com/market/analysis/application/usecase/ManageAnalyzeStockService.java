@@ -54,12 +54,12 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 // Set the strategy ID
                 stock.setStrategyId(strategyId);
 
-                // Evaluate the strategy against the stock data
-                AnalysisResult evaluationResult = evaluateStrategyUseCase.evaluateStrategy(strategy, stock);
-                // Evaluation result is persisted by EvaluateStrategyService
-
                 // Save the stock data
-                stockDataRepository.saveStockData(stock);
+                Stock savedStock = stockDataRepository.save(stock);
+
+                // Evaluate the strategy against the stock data
+                AnalysisResult evaluationResult = evaluateStrategyUseCase.evaluateStrategy(strategy, savedStock);
+                // Evaluation result is persisted by EvaluateStrategyService
 
                 log.info("Ticker {} added with strategy '{}': {}",
                         ticker,
@@ -77,24 +77,28 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     }
 
     @Override
-    public StockDataDTO findStockDataByTicker(String ticker) {
-        return stockDataRepository.findByTicker(ticker).map(stockMapper::toDTO)
-                .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + ticker));
+    public StockDataDTO findStockDataById(Long id) {
+        return stockDataRepository.findById(id).map(stockMapper::toDTO)
+                .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + id));
     }
 
     @Override
-    public void updateStockData(String ticker) {
+    public void updateStockData(Long id) {
+        Stock existingStockData = stockDataRepository.findById(id)
+                .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + id));
+        String ticker = existingStockData.getTicker();
         Stock stock = stockProviderPort.getQuote(ticker);
         if (stock != null) {
-            stockDataRepository.updateStockData(stock);
+            stock.setId(id);
+            stockDataRepository.save(stock);
         } else {
             log.warn("No stock data found for ticker {}, skipping update", ticker);
         }
     }
 
     @Override
-    public void deleteStockDataByTicker(String ticker) {
-        stockDataRepository.deleteByTicker(ticker);
+    public void deleteById(Long id) {
+        stockDataRepository.deleteById(id);
     }
 
     /**

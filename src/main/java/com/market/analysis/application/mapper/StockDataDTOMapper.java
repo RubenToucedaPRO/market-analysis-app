@@ -17,6 +17,7 @@ public class StockDataDTOMapper {
         }
 
         return StockDataDTO.builder()
+                .id(stock.getId())
                 .ticker(stock.getTicker())
                 .logoUrl(stock.getLogoUrl())
                 .currentPrice(stock.getCurrentPrice())
