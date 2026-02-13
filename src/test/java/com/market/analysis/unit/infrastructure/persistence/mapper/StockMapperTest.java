@@ -8,23 +8,31 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.infrastructure.persistence.entity.CompanyProfileEntity;
 import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 import com.market.analysis.infrastructure.persistence.mapper.StockMapper;
+import com.market.analysis.infrastructure.persistence.mapper.StrategyEvaluationMapper;
 
 /**
  * Unit tests for StockMapper.
  */
 @DisplayName("StockMapper Unit Tests")
+@ExtendWith(MockitoExtension.class)
 class StockMapperTest {
+
+    @Mock
+    private StrategyEvaluationMapper strategyEvaluationMapper;
 
     private StockMapper stockMapper;
 
     @BeforeEach
     void setUp() {
-        stockMapper = new StockMapper();
+        stockMapper = new StockMapper(strategyEvaluationMapper);
     }
 
     @Test
@@ -70,12 +78,12 @@ class StockMapperTest {
     void testToDomainWithCompanyProfile() {
         // Arrange
         LocalDateTime lastUpdated = LocalDateTime.now();
-        
+
         CompanyProfileEntity companyProfile = CompanyProfileEntity.builder()
                 .ticker("AAPL")
                 .logo("https://example.com/logo.png")
                 .build();
-        
+
         StockEntity entity = new StockEntity();
         entity.setId(1L);
         entity.setTicker("AAPL");

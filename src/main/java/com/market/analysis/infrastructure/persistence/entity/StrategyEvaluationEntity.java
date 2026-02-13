@@ -36,6 +36,9 @@ public class StrategyEvaluationEntity {
     @JoinColumn(name = "stock_id", referencedColumnName = "id", nullable = false)
     private StockEntity stock;
 
+    @Column(name = "strategy_name", nullable = false)
+    private String strategyName;
+
     @Column(nullable = false)
     private boolean compliant;
 

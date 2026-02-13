@@ -24,6 +24,7 @@ public class StrategyEvaluationMapper {
         StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
         entity.setId(domain.getId());
         entity.setStock(stockEntity);
+        entity.setStrategyName(domain.getStrategyName());
         entity.setCompliant(domain.isCompliant());
         entity.setComplianceRate(domain.getComplianceRate());
         entity.setSummary(domain.getSummary());
@@ -45,6 +46,7 @@ public class StrategyEvaluationMapper {
         return StrategyEvaluation.builder()
                 .id(entity.getId())
                 .ticker(entity.getStock().getTicker())
+                .strategyName(entity.getStrategyName())
                 .strategyId(entity.getStock().getStrategyId())
                 .compliant(entity.isCompliant())
                 .complianceRate(entity.getComplianceRate())

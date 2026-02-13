@@ -150,6 +150,7 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
             StrategyEvaluation evaluation = StrategyEvaluation.builder()
                     .ticker(stock.getTicker())
                     .strategyId(strategyId)
+                    .strategyName(analysisResult.getStrategy().getName())
                     .compliant(analysisResult.isOverallPassed())
                     .complianceRate(analysisResult.calculateComplianceRate())
                     .summary(analysisResult.getSummary())

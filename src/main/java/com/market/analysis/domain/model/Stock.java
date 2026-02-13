@@ -72,4 +72,6 @@ public class Stock {
      */
     private Long strategyId;
 
+    private StrategyEvaluation strategyEvaluation;
+
 }
