@@ -32,7 +32,7 @@ White card with light gray header:
   - **Parameters displayed in columns**:
     - Subject Indicator (code like "SMA", "RSI")
     - Subject Parameter (numeric value if exists)
-    - Operator (>, <, >=)
+    - Operator (>, <, >=, <=, =, !=)
     - Target Indicator (code like "CONSTANT", "SMA")
     - Target Value (numeric value if exists)
   - **Optional**: Description field (if rule has description)

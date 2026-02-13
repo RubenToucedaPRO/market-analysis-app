@@ -65,7 +65,7 @@ Created a comprehensive read-only view that displays:
   - Rule number and name
   - Subject Indicator (code)
   - Subject Parameter (if exists)
-  - Operator (>, <, >=)
+  - Operator (>, <, >=, <=, =, !=)
   - Target Indicator (code)
   - Target Parameter (if exists)
   - Rule description (if exists)
