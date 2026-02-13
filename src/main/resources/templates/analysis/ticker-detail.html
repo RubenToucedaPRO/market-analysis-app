@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${ticker.ticker} + ' - AlphaSeeker'">Ticker Detail - AlphaSeeker</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    <!-- Navigation Bar -->
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm"
+    >
+      <div class="container-fluid">
+        <!-- Logo and Title -->
+        <a
+          class="navbar-brand d-flex align-items-center"
+          th:href="@{/strategies}"
+        >
+          <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+          <span class="fw-bold text-primary">AlphaSeeker</span>
+        </a>
+
+        <!-- Navigation Links -->
+        <div class="d-flex gap-2">
+          <a th:href="@{/analysis}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Analysis
+          </a>
+          <a th:href="@{/strategies}" class="btn btn-outline-secondary">
+            <i class="bi bi-list me-1"></i>
+            Strategies
+          </a>
+          <a th:href="@{/rule-definitions}" class="btn btn-outline-secondary">
+            <i class="bi bi-collection me-1"></i>
+            Rule Definitions
+          </a>
+          <a th:href="@{/prohibited-tickers}" class="btn btn-outline-secondary">
+            <i class="bi bi-shield-x me-1"></i>
+            Prohibited Tickers
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-5 flex-grow-1">
+      <!-- Header with Logo and Ticker -->
+      <div class="d-flex align-items-center mb-4">
+        <img
+          th:src="${ticker.logoUrl}"
+          loading="lazy"
+          width="50"
+          height="50"
+          th:alt="'logo of ' + ${ticker.ticker}"
+          class="me-3"
+        />
+        <div>
+          <h2 class="mb-0" th:text="${ticker.ticker}">AAPL</h2>
+          <p class="text-muted mb-0">Ticker Detail</p>
+        </div>
+      </div>
+
+      <!-- Strategy Information -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Strategy Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="fw-bold">Strategy Name:</label>
+              <p th:text="${ticker.strategyName}">Strategy Name</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="fw-bold">Evaluation Status:</label>
+              <p>
+                <span
+                  th:class="${ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
+                  th:if="${ticker.evaluationPassed != null}"
+                >
+                  <i
+                    th:class="${ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
+                  ></i>
+                  <span
+                    th:text="${ticker.evaluationPassed ? 'PASSED' : 'FAILED'}"
+                  ></span>
+                </span>
+                <span
+                  th:if="${ticker.evaluationPassed == null}"
+                  class="badge bg-secondary"
+                >
+                  N/A
+                </span>
+              </p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="fw-bold">Compliance Rate:</label>
+              <p>
+                <span th:text="${ticker.complianceRate}">0</span>%
+              </p>
+            </div>
+            <div class="col-md-12 mb-3" th:if="${ticker.evaluationSummary}">
+              <label class="fw-bold">Evaluation Summary:</label>
+              <p th:text="${ticker.evaluationSummary}" class="text-muted">Evaluation summary</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Information -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Price Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">Current Price:</label>
+              <p class="fs-5 text-primary" th:text="${ticker.currentPrice}">150.00</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">Open Price:</label>
+              <p th:text="${ticker.openPrice}">148.00</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">Previous Close:</label>
+              <p th:text="${ticker.previousClose}">149.00</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">High of Day:</label>
+              <p th:text="${ticker.highOfDay}">151.00</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">Low of Day:</label>
+              <p th:text="${ticker.lowOfDay}">147.50</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Technical Indicators -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Technical Indicators</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">SMA 20:</label>
+              <p th:text="${ticker.sma20}">145.00</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">SMA 50:</label>
+              <p th:text="${ticker.sma50}">142.00</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="fw-bold">SMA 200:</label>
+              <p th:text="${ticker.sma200}">138.00</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volume Information -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Volume Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="fw-bold">Current Volume:</label>
+              <p th:text="${ticker.volume}">1000000</p>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="fw-bold">Average Volume (60-day):</label>
+              <p th:text="${ticker.averageVolume}">1200000</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Metadata</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="fw-bold">Last Updated:</label>
+              <p th:text="${#temporals.format(ticker.lastUpdated, 'yyyy-MM-dd HH:mm:ss')}">2026-01-01 12:00:00</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex gap-2">
+        <a th:href="@{/analysis}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left me-1"></i>
+          Back to Analysis
+        </a>
+        <form
+          th:action="@{/analysis/update}"
+          method="post"
+          style="display: inline"
+        >
+          <input type="hidden" name="id" th:value="${ticker.id}" />
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-arrow-repeat me-1"></i>
+            Refresh Data
+          </button>
+        </form>
+        <form
+          th:action="@{/analysis/delete}"
+          method="post"
+          style="display: inline"
+          onsubmit="return confirm('Are you sure you want to delete this ticker?');"
+        >
+          <input type="hidden" name="id" th:value="${ticker.id}" />
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>
+            Delete Ticker
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light border-top text-center py-3 mt-5">
+      <p class="text-muted mb-0">
+        <small>&copy; 2026 AlphaSeeker. All rights reserved.</small>
+      </p>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
