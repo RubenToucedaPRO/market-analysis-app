@@ -158,7 +158,10 @@
                     <p class="mb-0">
                       <span th:if="${rule.operator == '>'}">></span>
                       <span th:if="${rule.operator == '<'}">&lt;</span>
-                      <span th:if="${rule.operator == '='}">>=</span>
+                      <span th:if="${rule.operator == '>='}">&gt;=</span>
+                      <span th:if="${rule.operator == '='}">=</span>
+                      <span th:if="${rule.operator == '<='}">&lt;=</span>
+                      <span th:if="${rule.operator == '!='}">&ne;</span>
                     </p>
                   </div>
 
