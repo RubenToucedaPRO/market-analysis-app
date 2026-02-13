@@ -5,8 +5,13 @@ import org.springframework.stereotype.Component;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 
+import lombok.RequiredArgsConstructor;
+
 @Component
+@RequiredArgsConstructor
 public class StockMapper {
+
+    private final StrategyEvaluationMapper strategyEvaluationMapper;
 
     public StockEntity toEntity(Stock domain) {
         if (domain == null)
@@ -55,6 +60,9 @@ public class StockMapper {
                 .averageVolume(entity.getAverageVolume())
                 .lastUpdated(entity.getLastUpdated())
                 .strategyId(entity.getStrategyId())
+                .strategyEvaluation(entity.getStrategyEvaluation() != null
+                        ? strategyEvaluationMapper.toDomain(entity.getStrategyEvaluation())
+                        : null)
                 .build();
     }
 }

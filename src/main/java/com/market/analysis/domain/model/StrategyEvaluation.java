@@ -32,6 +32,11 @@ public class StrategyEvaluation {
     /**
      * Reference to the strategy that was evaluated.
      */
+    private String strategyName;
+
+    /**
+     * Reference to the strategy that was evaluated.
+     */
     private Long strategyId;
 
     /**

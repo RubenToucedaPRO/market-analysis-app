@@ -32,6 +32,15 @@ public class StockDataDTOMapper {
                 .averageVolume(stock.getAverageVolume())
                 .lastUpdated(stock.getLastUpdated())
                 .strategyId(stock.getStrategyId())
+                .strategyName(
+                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().getStrategyName() : null)
+                .complianceRate(
+                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().getComplianceRate()
+                                : null)
+                .evaluationPassed(
+                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().isCompliant() : null)
+                .evaluationSummary(
+                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().getSummary() : null)
                 .build();
     }
 
