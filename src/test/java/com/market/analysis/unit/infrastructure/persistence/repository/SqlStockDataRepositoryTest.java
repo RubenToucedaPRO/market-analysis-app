@@ -128,19 +128,19 @@ class SqlStockDataRepositoryTest {
     @DisplayName("Should save new stock data")
     void testSaveNewStockData() {
         // Arrange
-        when(jpaRepository.findByTicker("AAPL")).thenReturn(Optional.empty());
         when(mapper.toEntity(testStock)).thenReturn(testEntity);
         when(jpaCompanyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(testCompanyProfile));
         when(jpaRepository.save(any(StockEntity.class))).thenReturn(testEntity);
+        when(mapper.toDomain(testEntity)).thenReturn(testStock);
 
         // Act
-        sqlRepository.saveStockData(testStock);
+        Stock result = sqlRepository.save(testStock);
 
         // Assert
-        verify(jpaRepository, times(1)).findByTicker("AAPL");
+        assertThat(result).isNotNull();
         verify(mapper, times(1)).toEntity(testStock);
-        verify(jpaCompanyProfileRepository, times(1)).findByTicker("AAPL");
         verify(jpaRepository, times(1)).save(any(StockEntity.class));
+        verify(mapper, times(1)).toDomain(testEntity);
     }
 
     @Test
@@ -152,68 +152,69 @@ class SqlStockDataRepositoryTest {
         existingEntity.setTicker("AAPL");
         existingEntity.setCompanyProfile(testCompanyProfile);
 
-        when(jpaRepository.findByTicker("AAPL")).thenReturn(Optional.of(existingEntity));
         when(mapper.toEntity(testStock)).thenReturn(testEntity);
         when(jpaRepository.save(any(StockEntity.class))).thenReturn(testEntity);
-
-        // Act
-        sqlRepository.saveStockData(testStock);
-
-        // Assert
-        verify(jpaRepository, times(1)).findByTicker("AAPL");
-        verify(mapper, times(1)).toEntity(testStock);
-        verify(jpaRepository, times(1)).save(any(StockEntity.class));
-    }
-
-    @Test
-    @DisplayName("Should find stock by ticker")
-    void testFindByTicker() {
-        // Arrange
-        when(jpaRepository.findByTicker("AAPL")).thenReturn(Optional.of(testEntity));
         when(mapper.toDomain(testEntity)).thenReturn(testStock);
 
         // Act
-        Optional<Stock> result = sqlRepository.findByTicker("AAPL");
+        Stock result = sqlRepository.save(testStock);
+
+        // Assert
+        assertThat(result).isNotNull();
+        verify(mapper, times(1)).toEntity(testStock);
+        verify(jpaRepository, times(1)).save(any(StockEntity.class));
+        verify(mapper, times(1)).toDomain(testEntity);
+    }
+
+    @Test
+    @DisplayName("Should find stock by id")
+    void testFindById() {
+        // Arrange
+        when(jpaRepository.findByIdWithProfile(1L)).thenReturn(Optional.of(testEntity));
+        when(mapper.toDomain(testEntity)).thenReturn(testStock);
+
+        // Act
+        Optional<Stock> result = sqlRepository.findById(1L);
 
         // Assert
         assertThat(result).isPresent();
         assertThat(result.get().getTicker()).isEqualTo("AAPL");
         assertThat(result.get().getCurrentPrice()).isEqualByComparingTo(new BigDecimal("150.50"));
-        verify(jpaRepository, times(1)).findByTicker("AAPL");
+        verify(jpaRepository, times(1)).findByIdWithProfile(1L);
         verify(mapper, times(1)).toDomain(testEntity);
     }
 
     @Test
     @DisplayName("Should return empty when stock not found")
-    void testFindByTickerNotFound() {
+    void testFindByIdNotFound() {
         // Arrange
-        when(jpaRepository.findByTicker("NOTFOUND")).thenReturn(Optional.empty());
+        when(jpaRepository.findByIdWithProfile(999L)).thenReturn(Optional.empty());
 
         // Act
-        Optional<Stock> result = sqlRepository.findByTicker("NOTFOUND");
+        Optional<Stock> result = sqlRepository.findById(999L);
 
         // Assert
         assertThat(result).isEmpty();
-        verify(jpaRepository, times(1)).findByTicker("NOTFOUND");
+        verify(jpaRepository, times(1)).findByIdWithProfile(999L);
     }
 
     @Test
     @DisplayName("Should update stock data")
     void testUpdateStockData() {
         // Arrange
-        when(jpaRepository.findByTicker("AAPL")).thenReturn(Optional.of(testEntity));
         when(mapper.toEntity(testStock)).thenReturn(testEntity);
+        when(jpaRepository.save(testEntity)).thenReturn(testEntity);
 
         // Act
         sqlRepository.updateStockData(testStock);
 
         // Assert
-        verify(jpaRepository, times(1)).findByTicker("AAPL");
         verify(mapper, times(1)).toEntity(testStock);
+        verify(jpaRepository, times(1)).save(testEntity);
     }
 
     @Test
-    @DisplayName("Should not update when stock not found")
+    @DisplayName("Should handle update stock data correctly")
     void testUpdateStockDataNotFound() {
         // Arrange
         Stock notFoundStock = Stock.builder()
@@ -221,22 +222,24 @@ class SqlStockDataRepositoryTest {
                 .currentPrice(new BigDecimal("100.00"))
                 .build();
 
-        when(jpaRepository.findByTicker("NOTFOUND")).thenReturn(Optional.empty());
+        when(mapper.toEntity(notFoundStock)).thenReturn(testEntity);
+        when(jpaRepository.save(testEntity)).thenReturn(testEntity);
 
         // Act
         sqlRepository.updateStockData(notFoundStock);
 
         // Assert
-        verify(jpaRepository, times(1)).findByTicker("NOTFOUND");
+        verify(mapper, times(1)).toEntity(notFoundStock);
+        verify(jpaRepository, times(1)).save(testEntity);
     }
 
     @Test
-    @DisplayName("Should delete stock by ticker")
-    void testDeleteByTicker() {
+    @DisplayName("Should delete stock by id")
+    void testDeleteById() {
         // Act
-        sqlRepository.deleteByTicker("AAPL");
+        sqlRepository.deleteById(1L);
 
         // Assert
-        verify(jpaRepository, times(1)).deleteByTicker("AAPL");
+        verify(jpaRepository, times(1)).deleteById(1L);
     }
 }

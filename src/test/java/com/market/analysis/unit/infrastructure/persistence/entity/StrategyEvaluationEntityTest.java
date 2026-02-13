@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEvaluationEntity;
 
 /**
@@ -31,8 +32,7 @@ class StrategyEvaluationEntityTest {
             // Assert
             assertThat(entity).isNotNull();
             assertThat(entity.getId()).isNull();
-            assertThat(entity.getTicker()).isNull();
-            assertThat(entity.getStrategyId()).isNull();
+            assertThat(entity.getStock()).isNull();
         }
 
         @Test
@@ -40,12 +40,15 @@ class StrategyEvaluationEntityTest {
         void shouldCreateEntityAndSetAllFields() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            StockEntity stock = new StockEntity();
+            stock.setId(1L);
+            stock.setTicker("AAPL");
+            stock.setStrategyId(10L);
             LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 10, 30, 0);
 
             // Act
             entity.setId(1L);
-            entity.setTicker("AAPL");
-            entity.setStrategyId(10L);
+            entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(85.50));
             entity.setSummary("Strategy passed with 85.50% compliance");
@@ -55,8 +58,9 @@ class StrategyEvaluationEntityTest {
 
             // Assert
             assertThat(entity.getId()).isEqualTo(1L);
-            assertThat(entity.getTicker()).isEqualTo("AAPL");
-            assertThat(entity.getStrategyId()).isEqualTo(10L);
+            assertThat(entity.getStock()).isNotNull();
+            assertThat(entity.getStock().getTicker()).isEqualTo("AAPL");
+            assertThat(entity.getStock().getStrategyId()).isEqualTo(10L);
             assertThat(entity.isCompliant()).isTrue();
             assertThat(entity.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(85.50));
             assertThat(entity.getSummary()).isEqualTo("Strategy passed with 85.50% compliance");
@@ -84,29 +88,20 @@ class StrategyEvaluationEntityTest {
         }
 
         @Test
-        @DisplayName("Should get and set ticker")
-        void shouldGetAndSetTicker() {
+        @DisplayName("Should get and set stock")
+        void shouldGetAndSetStock() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            StockEntity stock = new StockEntity();
+            stock.setId(1L);
+            stock.setTicker("GOOGL");
 
             // Act
-            entity.setTicker("GOOGL");
+            entity.setStock(stock);
 
             // Assert
-            assertThat(entity.getTicker()).isEqualTo("GOOGL");
-        }
-
-        @Test
-        @DisplayName("Should get and set strategyId")
-        void shouldGetAndSetStrategyId() {
-            // Arrange
-            StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
-
-            // Act
-            entity.setStrategyId(25L);
-
-            // Assert
-            assertThat(entity.getStrategyId()).isEqualTo(25L);
+            assertThat(entity.getStock()).isNotNull();
+            assertThat(entity.getStock().getTicker()).isEqualTo("GOOGL");
         }
 
         @Test
@@ -203,20 +198,18 @@ class StrategyEvaluationEntityTest {
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
 
             // Act
-            entity.setTicker("TSLA");
-            entity.setStrategyId(5L);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(100.00));
             entity.setEvaluatedAt(LocalDateTime.now());
             entity.setLatest(true);
-            // id, summary, priceAtEvaluation are null
+            // id, stock, summary, priceAtEvaluation are null
 
             // Assert
             assertThat(entity.getId()).isNull();
+            assertThat(entity.getStock()).isNull();
             assertThat(entity.getSummary()).isNull();
             assertThat(entity.getPriceAtEvaluation()).isNull();
-            assertThat(entity.getTicker()).isNotNull();
-            assertThat(entity.getStrategyId()).isNotNull();
+            assertThat(entity.isCompliant()).isTrue();
         }
 
         @Test
@@ -282,10 +275,12 @@ class StrategyEvaluationEntityTest {
         void shouldRepresentPassedEvaluationCorrectly() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            StockEntity stock = new StockEntity();
+            stock.setTicker("MSFT");
+            stock.setStrategyId(10L);
 
             // Act
-            entity.setTicker("MSFT");
-            entity.setStrategyId(10L);
+            entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(90.00));
             entity.setSummary("All rules passed successfully");
@@ -304,10 +299,12 @@ class StrategyEvaluationEntityTest {
         void shouldRepresentFailedEvaluationCorrectly() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            StockEntity stock = new StockEntity();
+            stock.setTicker("AMZN");
+            stock.setStrategyId(15L);
 
             // Act
-            entity.setTicker("AMZN");
-            entity.setStrategyId(15L);
+            entity.setStock(stock);
             entity.setCompliant(false);
             entity.setComplianceRate(BigDecimal.valueOf(35.00));
             entity.setSummary("Strategy failed - insufficient rules passed");
@@ -326,11 +323,13 @@ class StrategyEvaluationEntityTest {
         void shouldRepresentHistoricalEvaluation() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            StockEntity stock = new StockEntity();
+            stock.setTicker("NVDA");
+            stock.setStrategyId(20L);
             LocalDateTime pastDate = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
 
             // Act
-            entity.setTicker("NVDA");
-            entity.setStrategyId(20L);
+            entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(88.00));
             entity.setEvaluatedAt(pastDate);
@@ -346,11 +345,13 @@ class StrategyEvaluationEntityTest {
         void shouldRepresentCurrentEvaluation() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            StockEntity stock = new StockEntity();
+            stock.setTicker("META");
+            stock.setStrategyId(30L);
             LocalDateTime now = LocalDateTime.now();
 
             // Act
-            entity.setTicker("META");
-            entity.setStrategyId(30L);
+            entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(95.00));
             entity.setEvaluatedAt(now);
@@ -371,10 +372,12 @@ class StrategyEvaluationEntityTest {
         void shouldMaintainDataConsistencyAfterMultipleUpdates() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            StockEntity stock = new StockEntity();
+            stock.setTicker("NFLX");
+            stock.setStrategyId(40L);
+            entity.setStock(stock);
 
             // Act - First update
-            entity.setTicker("NFLX");
-            entity.setStrategyId(40L);
             entity.setCompliant(false);
 
             // Act - Second update
@@ -383,8 +386,8 @@ class StrategyEvaluationEntityTest {
             entity.setSummary("Updated after re-evaluation");
 
             // Assert
-            assertThat(entity.getTicker()).isEqualTo("NFLX");
-            assertThat(entity.getStrategyId()).isEqualTo(40L);
+            assertThat(entity.getStock().getTicker()).isEqualTo("NFLX");
+            assertThat(entity.getStock().getStrategyId()).isEqualTo(40L);
             assertThat(entity.isCompliant()).isTrue();
             assertThat(entity.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(75.00));
             assertThat(entity.getSummary()).isEqualTo("Updated after re-evaluation");

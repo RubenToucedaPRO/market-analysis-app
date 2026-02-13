@@ -324,7 +324,7 @@ class EvaluateStrategyServiceTest {
 
                         // Assert
                         assertThat(result.isOverallPassed()).isTrue();
-                        verify(strategyEvaluationRepository, times(1)).save(any());
+                        verify(strategyEvaluationRepository, times(1)).save(any(), any());
                 }
 
                 @Test
@@ -357,7 +357,8 @@ class EvaluateStrategyServiceTest {
                                                         evaluation.getComplianceRate()
                                                                         .compareTo(BigDecimal.valueOf(50.00)) == 0
                                                         &&
-                                                        evaluation.isLatest()));
+                                                        evaluation.isLatest()),
+                                                        any(Stock.class));
                         assertNotNull(result);
                 }
 
@@ -381,7 +382,7 @@ class EvaluateStrategyServiceTest {
                                         .thenReturn(result1, result2);
 
                         // Make repository throw exception
-                        when(strategyEvaluationRepository.save(any()))
+                        when(strategyEvaluationRepository.save(any(), any()))
                                         .thenThrow(new RuntimeException("Database error"));
 
                         // Act & Assert - Should not throw, just log error

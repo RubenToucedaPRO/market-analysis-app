@@ -136,7 +136,7 @@ class ManageAnalyzeStockServiceTest {
         verify(stockProviderPort, times(1)).getQuote("AAPL");
         verify(strategyRepository, times(1)).findById(1L);
         verify(evaluateStrategyUseCase, times(1)).evaluateStrategy(any(), any());
-        verify(stockDataRepository, times(1)).saveStockData(any());
+        verify(stockDataRepository, times(1)).save(any());
     }
 
     @Test
@@ -163,7 +163,7 @@ class ManageAnalyzeStockServiceTest {
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
         verify(stockProviderPort, times(1)).getQuote("GOOGL");
-        verify(stockDataRepository, times(2)).saveStockData(any());
+        verify(stockDataRepository, times(2)).save(any());
     }
 
     @Test
@@ -200,7 +200,7 @@ class ManageAnalyzeStockServiceTest {
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, times(1)).saveStockData(any());
+        verify(stockDataRepository, times(1)).save(any());
     }
 
     @Test
@@ -221,6 +221,7 @@ class ManageAnalyzeStockServiceTest {
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
         verify(companyProfileRepository, times(1)).save(validCompanyProfile);
         verify(stockProviderPort, times(1)).getQuote("AAPL");
+        verify(stockDataRepository, times(1)).save(any());
     }
 
     @Test
@@ -264,7 +265,7 @@ class ManageAnalyzeStockServiceTest {
         verify(stockProviderPort, times(1)).getCompanyProfile("SPY");
         verify(prohibitedTickerRepository, times(1)).save(any(ProhibitedTicker.class));
         verify(stockProviderPort, never()).getQuote("SPY");
-        verify(stockDataRepository, never()).saveStockData(any());
+        verify(stockDataRepository, never()).save(any());
     }
 
     @Test
@@ -299,7 +300,7 @@ class ManageAnalyzeStockServiceTest {
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("INVALID");
         verify(stockProviderPort, never()).getQuote("INVALID");
-        verify(stockDataRepository, never()).saveStockData(any());
+        verify(stockDataRepository, never()).save(any());
     }
 
     @Test
@@ -315,7 +316,7 @@ class ManageAnalyzeStockServiceTest {
 
         // Assert
         verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, never()).saveStockData(any());
+        verify(stockDataRepository, never()).save(any());
     }
 
     @Test
@@ -344,69 +345,64 @@ class ManageAnalyzeStockServiceTest {
     @DisplayName("Should find stock data by ticker")
     void shouldFindStockDataByTicker() {
         // Arrange
-        when(stockDataRepository.findByTicker("AAPL")).thenReturn(Optional.of(stock));
+        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stock));
 
         StockDataDTO dto = StockDataDTO.builder().ticker("AAPL").currentPrice(BigDecimal.valueOf(150.00)).build();
         when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto);
 
         // Act
-        StockDataDTO result = service.findStockDataById("AAPL");
+        StockDataDTO result = service.findStockDataById(1L);
 
         // Assert
         assertNotNull(result);
         assertEquals("AAPL", result.getTicker());
-        verify(stockDataRepository, times(1)).findByTicker("AAPL");
+        verify(stockDataRepository, times(1)).findById(1L);
     }
 
     @Test
     @DisplayName("Should throw StockDataNotFoundException when ticker not found")
     void shouldThrowStockDataNotFoundExceptionWhenTickerNotFound() {
         // Arrange
-        when(stockDataRepository.findByTicker("INVALID")).thenReturn(Optional.empty());
+        when(stockDataRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(StockDataNotFoundException.class, () -> {
-            service.findStockDataById("INVALID");
+            service.findStockDataById(999L);
         });
-        verify(stockDataRepository, times(1)).findByTicker("INVALID");
+        verify(stockDataRepository, times(1)).findById(999L);
     }
 
     @Test
     @DisplayName("Should update stock data for existing ticker")
     void shouldUpdateStockDataForExistingTicker() {
         // Arrange
+        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stock));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
 
         // Act
-        service.updateStockData("AAPL");
+        service.updateStockData(1L);
 
         // Assert
+        verify(stockDataRepository, times(1)).findById(1L);
         verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, times(1)).updateStockData(stock);
+        verify(stockDataRepository, times(1)).save(any());
     }
 
     @Test
     @DisplayName("Should not update stock data when quote is null")
     void shouldNotUpdateStockDataWhenQuoteIsNull() {
         // Arrange
+        Stock nullStock = Stock.builder().ticker("AAPL").build();
+        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(nullStock));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(null);
 
         // Act
-        service.updateStockData("AAPL");
+        service.updateStockData(1L);
 
         // Assert
+        verify(stockDataRepository, times(1)).findById(1L);
         verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, never()).updateStockData(any());
-    }
-
-    @Test
-    @DisplayName("Should delete stock data by ticker")
-    void shouldDeleteStockDataByTicker() {
-        // Act
-        service.deleteStockDataByTicker("AAPL");
-
-        // Assert
-        verify(stockDataRepository, times(1)).deleteByTicker("AAPL");
+        verify(stockDataRepository, never()).save(any());
     }
 
     @Test

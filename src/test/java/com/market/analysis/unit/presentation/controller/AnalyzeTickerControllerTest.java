@@ -153,28 +153,28 @@ class AnalyzeTickerControllerTest {
     @DisplayName("Should update ticker and redirect to analysis")
     void testUpdateTicker() {
         // Arrange
-        String ticker = "AAPL";
+        Long id = 1L;
 
         // Act
-        String viewName = controller.updateTicker(ticker);
+        String viewName = controller.updateTicker(id);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
-        verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(ticker);
+        verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(id);
     }
 
     @Test
     @DisplayName("Should delete ticker and redirect to analysis")
     void testDeleteTicker() {
         // Arrange
-        String ticker = "AAPL";
+        Long id = 1L;
 
         // Act
-        String viewName = controller.deleteTicker(ticker);
+        String viewName = controller.deleteTicker(id);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
-        verify(manageAnalyzeTickerUseCase, times(1)).deleteStockDataByTicker(ticker);
+        verify(manageAnalyzeTickerUseCase, times(1)).deleteById(id);
     }
 
     @Test
@@ -182,11 +182,11 @@ class AnalyzeTickerControllerTest {
     void testMultipleOperations() {
         // Test create, update, and delete in sequence
         controller.getTickerData("AAPL", 1L);
-        controller.updateTicker("AAPL");
-        controller.deleteTicker("AAPL");
+        controller.updateTicker(1L);
+        controller.deleteTicker(1L);
 
         verify(manageAnalyzeTickerUseCase, times(1)).getStockData("AAPL", 1L);
-        verify(manageAnalyzeTickerUseCase, times(1)).updateStockData("AAPL");
-        verify(manageAnalyzeTickerUseCase, times(1)).deleteStockDataByTicker("AAPL");
+        verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(1L);
+        verify(manageAnalyzeTickerUseCase, times(1)).deleteById(1L);
     }
 }

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEvaluationEntity;
 import com.market.analysis.infrastructure.persistence.mapper.StrategyEvaluationMapper;
 
@@ -37,6 +38,11 @@ class StrategyEvaluationMapperTest {
         void shouldConvertDomainToEntityWithAllFields() {
             // Arrange
             LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 10, 30, 0);
+            StockEntity stock = new StockEntity();
+            stock.setId(1L);
+            stock.setTicker("AAPL");
+            stock.setStrategyId(10L);
+
             StrategyEvaluation domain = StrategyEvaluation.builder()
                     .id(1L)
                     .ticker("AAPL")
@@ -50,13 +56,12 @@ class StrategyEvaluationMapperTest {
                     .build();
 
             // Act
-            StrategyEvaluationEntity entity = mapper.toEntity(domain);
+            StrategyEvaluationEntity entity = mapper.toEntity(domain, stock);
 
             // Assert
             assertThat(entity).isNotNull();
             assertThat(entity.getId()).isEqualTo(1L);
-            assertThat(entity.getTicker()).isEqualTo("AAPL");
-            assertThat(entity.getStrategyId()).isEqualTo(10L);
+            assertThat(entity.getStock()).isEqualTo(stock);
             assertThat(entity.isCompliant()).isTrue();
             assertThat(entity.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(85.50));
             assertThat(entity.getSummary()).isEqualTo("Strategy passed with 85.50% compliance");
@@ -69,6 +74,11 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should convert failed evaluation to entity")
         void shouldConvertFailedEvaluationToEntity() {
             // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(2L);
+            stock.setTicker("GOOGL");
+            stock.setStrategyId(5L);
+
             StrategyEvaluation domain = StrategyEvaluation.builder()
                     .id(2L)
                     .ticker("GOOGL")
@@ -82,7 +92,7 @@ class StrategyEvaluationMapperTest {
                     .build();
 
             // Act
-            StrategyEvaluationEntity entity = mapper.toEntity(domain);
+            StrategyEvaluationEntity entity = mapper.toEntity(domain, stock);
 
             // Assert
             assertThat(entity).isNotNull();
@@ -94,8 +104,12 @@ class StrategyEvaluationMapperTest {
         @Test
         @DisplayName("Should return null when domain is null")
         void shouldReturnNullWhenDomainIsNull() {
+            // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(1L);
+
             // Act
-            StrategyEvaluationEntity entity = mapper.toEntity(null);
+            StrategyEvaluationEntity entity = mapper.toEntity(null, stock);
 
             // Assert
             assertThat(entity).isNull();
@@ -105,6 +119,11 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should handle domain with null optional fields")
         void shouldHandleDomainWithNullOptionalFields() {
             // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(3L);
+            stock.setTicker("TSLA");
+            stock.setStrategyId(3L);
+
             StrategyEvaluation domain = StrategyEvaluation.builder()
                     .ticker("TSLA")
                     .strategyId(3L)
@@ -116,14 +135,14 @@ class StrategyEvaluationMapperTest {
                     .build();
 
             // Act
-            StrategyEvaluationEntity entity = mapper.toEntity(domain);
+            StrategyEvaluationEntity entity = mapper.toEntity(domain, stock);
 
             // Assert
             assertThat(entity).isNotNull();
             assertThat(entity.getId()).isNull();
             assertThat(entity.getSummary()).isNull();
             assertThat(entity.getPriceAtEvaluation()).isNull();
-            assertThat(entity.getTicker()).isEqualTo("TSLA");
+            assertThat(entity.getStock()).isNotNull();
         }
     }
 
@@ -136,10 +155,14 @@ class StrategyEvaluationMapperTest {
         void shouldConvertEntityToDomainWithAllFields() {
             // Arrange
             LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 14, 45, 30);
+            StockEntity stock = new StockEntity();
+            stock.setId(100L);
+            stock.setTicker("MSFT");
+            stock.setStrategyId(20L);
+
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
             entity.setId(100L);
-            entity.setTicker("MSFT");
-            entity.setStrategyId(20L);
+            entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(92.75));
             entity.setSummary("Excellent strategy performance");
@@ -167,10 +190,14 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should convert failed evaluation entity to domain")
         void shouldConvertFailedEvaluationEntityToDomain() {
             // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(200L);
+            stock.setTicker("AMZN");
+            stock.setStrategyId(15L);
+
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
             entity.setId(200L);
-            entity.setTicker("AMZN");
-            entity.setStrategyId(15L);
+            entity.setStock(stock);
             entity.setCompliant(false);
             entity.setComplianceRate(BigDecimal.valueOf(30.00));
             entity.setSummary("Strategy failed multiple rules");
@@ -202,9 +229,13 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should handle entity with null optional fields")
         void shouldHandleEntityWithNullOptionalFields() {
             // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(7L);
+            stock.setTicker("NVDA");
+            stock.setStrategyId(7L);
+
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
-            entity.setTicker("NVDA");
-            entity.setStrategyId(7L);
+            entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(88.00));
             entity.setEvaluatedAt(LocalDateTime.now());
@@ -232,6 +263,11 @@ class StrategyEvaluationMapperTest {
         void shouldPreserveDataInRoundTripDomainToEntityToDomain() {
             // Arrange
             LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 12, 0, 0);
+            StockEntity stock = new StockEntity();
+            stock.setId(999L);
+            stock.setTicker("META");
+            stock.setStrategyId(50L);
+
             StrategyEvaluation originalDomain = StrategyEvaluation.builder()
                     .id(999L)
                     .ticker("META")
@@ -245,7 +281,7 @@ class StrategyEvaluationMapperTest {
                     .build();
 
             // Act
-            StrategyEvaluationEntity entity = mapper.toEntity(originalDomain);
+            StrategyEvaluationEntity entity = mapper.toEntity(originalDomain, stock);
             StrategyEvaluation resultDomain = mapper.toDomain(entity);
 
             // Assert
@@ -267,10 +303,14 @@ class StrategyEvaluationMapperTest {
         void shouldPreserveDataInRoundTripEntityToDomainToEntity() {
             // Arrange
             LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 16, 30, 0);
+            StockEntity originalStock = new StockEntity();
+            originalStock.setId(888L);
+            originalStock.setTicker("NFLX");
+            originalStock.setStrategyId(25L);
+
             StrategyEvaluationEntity originalEntity = new StrategyEvaluationEntity();
             originalEntity.setId(888L);
-            originalEntity.setTicker("NFLX");
-            originalEntity.setStrategyId(25L);
+            originalEntity.setStock(originalStock);
             originalEntity.setCompliant(false);
             originalEntity.setComplianceRate(BigDecimal.valueOf(55.55));
             originalEntity.setSummary("Partial compliance only");
@@ -280,13 +320,12 @@ class StrategyEvaluationMapperTest {
 
             // Act
             StrategyEvaluation domain = mapper.toDomain(originalEntity);
-            StrategyEvaluationEntity resultEntity = mapper.toEntity(domain);
+            StrategyEvaluationEntity resultEntity = mapper.toEntity(domain, originalStock);
 
             // Assert
             assertThat(resultEntity).isNotNull();
             assertThat(resultEntity.getId()).isEqualTo(originalEntity.getId());
-            assertThat(resultEntity.getTicker()).isEqualTo(originalEntity.getTicker());
-            assertThat(resultEntity.getStrategyId()).isEqualTo(originalEntity.getStrategyId());
+            assertThat(resultEntity.getStock()).isEqualTo(originalStock);
             assertThat(resultEntity.isCompliant()).isEqualTo(originalEntity.isCompliant());
             assertThat(resultEntity.getComplianceRate())
                     .isEqualByComparingTo(originalEntity.getComplianceRate());
