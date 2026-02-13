@@ -154,7 +154,6 @@
                   </td>
                   <td>
                     <span
-                      th:if="${ticker.evaluationPassed != null}"
                       th:class="${ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
                       th:title="${ticker.evaluationSummary}"
                     >
@@ -167,7 +166,7 @@
                       (<span th:text="${ticker.complianceRate}">0</span>%)
                     </span>
                     <span
-                      th:unless="${ticker.evaluationPassed == null}"
+                      th:if="${ticker.evaluationPassed == null}"
                       class="badge bg-secondary"
                     >
                       N/A
@@ -185,11 +184,7 @@
                       method="post"
                       style="display: inline"
                     >
-                      <input
-                        type="hidden"
-                        name="ticker"
-                        th:value="${ticker.ticker}"
-                      />
+                      <input type="hidden" name="id" th:value="${ticker.id}" />
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-primary"
@@ -203,11 +198,7 @@
                       method="post"
                       style="display: inline"
                     >
-                      <input
-                        type="hidden"
-                        name="ticker"
-                        th:value="${ticker.ticker}"
-                      />
+                      <input type="hidden" name="id" th:value="${ticker.id}" />
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-danger"
