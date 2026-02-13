@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Strategy Details - AlphaSeeker</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    <!-- Navigation Bar -->
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm"
+    >
+      <div class="container-fluid">
+        <!-- Logo and Title -->
+        <a
+          class="navbar-brand d-flex align-items-center"
+          th:href="@{/analysis}"
+        >
+          <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+          <span class="fw-bold text-primary">AlphaSeeker</span>
+        </a>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2">
+          <a th:href="@{/strategies}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to List
+          </a>
+          <form
+            th:action="@{/strategies/edit}"
+            method="post"
+            style="display: inline"
+          >
+            <input type="hidden" name="id" th:value="${strategy.id}" />
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-pencil me-1"></i>
+              Edit Strategy
+            </button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-5 flex-grow-1">
+      <div class="d-flex align-items-center mb-4">
+        <h2 class="mb-0" th:text="${strategy.name}">Strategy Name</h2>
+        <span
+          class="badge bg-primary ms-3"
+          th:text="${strategy.rules.size()} + ' rules'"
+          >3 rules</span
+        >
+      </div>
+
+      <!-- Strategy Details Card -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="bi bi-gear text-primary me-2"></i>
+            Strategy Details
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="form-label fw-semibold text-muted small"
+                >Strategy Name</label
+              >
+              <p class="fs-5" th:text="${strategy.name}">Golden Cross</p>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label fw-semibold text-muted small"
+                >Description</label
+              >
+              <p
+                class="fs-6 text-muted"
+                th:text="${strategy.description}"
+              >
+                Strategy description will be displayed here.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Execution Rules Card -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="bi bi-list-check text-primary me-2"></i>
+            Execution Rules
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Empty State -->
+          <div
+            th:if="${strategy.rules.isEmpty()}"
+            class="text-center py-4"
+          >
+            <i
+              class="bi bi-info-circle text-muted"
+              style="font-size: 3rem"
+            ></i>
+            <p class="text-muted mt-3">No rules defined for this strategy.</p>
+          </div>
+
+          <!-- Rules Display -->
+          <div th:unless="${strategy.rules.isEmpty()}">
+            <div
+              th:each="rule, stat : ${strategy.rules}"
+              class="rule-row card mb-3"
+            >
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="mb-0">
+                    <i class="bi bi-check-circle text-success me-1"></i>
+                    Rule <span th:text="${stat.count}">1</span>:
+                    <span th:text="${rule.name}">Rule Name</span>
+                  </h6>
+                </div>
+                <div class="row g-3">
+                  <!-- Subject Indicator -->
+                  <div class="col-md-3">
+                    <label class="form-label small text-muted fw-semibold"
+                      >Subject Indicator</label
+                    >
+                    <p class="mb-0" th:text="${rule.subjectCode}">PRICE</p>
+                  </div>
+
+                  <!-- Subject Parameter -->
+                  <div class="col-md-2" th:if="${rule.subjectParam != null}">
+                    <label class="form-label small text-muted fw-semibold"
+                      >Subject Parameter</label
+                    >
+                    <p class="mb-0" th:text="${rule.subjectParam}">50</p>
+                  </div>
+
+                  <!-- Operator -->
+                  <div class="col-md-1">
+                    <label class="form-label small text-muted fw-semibold"
+                      >Operator</label
+                    >
+                    <p class="mb-0">
+                      <span th:if="${rule.operator == '>'}">></span>
+                      <span th:if="${rule.operator == '<'}">&lt;</span>
+                      <span th:if="${rule.operator == '='}">>=</span>
+                    </p>
+                  </div>
+
+                  <!-- Target Indicator -->
+                  <div class="col-md-3">
+                    <label class="form-label small text-muted fw-semibold"
+                      >Target Indicator</label
+                    >
+                    <p class="mb-0" th:text="${rule.targetCode}">CONSTANT</p>
+                  </div>
+
+                  <!-- Target Parameter -->
+                  <div class="col-md-2" th:if="${rule.targetParam != null}">
+                    <label class="form-label small text-muted fw-semibold"
+                      >Target Value</label
+                    >
+                    <p class="mb-0" th:text="${rule.targetParam}">100.0</p>
+                  </div>
+                </div>
+
+                <!-- Rule Description (if exists) -->
+                <div
+                  th:if="${rule.description != null and !rule.description.isEmpty()}"
+                  class="mt-3"
+                >
+                  <label class="form-label small text-muted fw-semibold"
+                    >Description</label
+                  >
+                  <p
+                    class="mb-0 text-muted small"
+                    th:text="${rule.description}"
+                  >
+                    Rule description
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light border-top py-3 mt-auto">
+      <div class="container text-center">
+        <small class="text-muted"
+          >&copy; 2023 AlphaSeeker. All rights reserved.</small
+        >
+      </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

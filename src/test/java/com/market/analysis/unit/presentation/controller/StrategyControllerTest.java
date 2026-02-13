@@ -182,4 +182,19 @@ class StrategyControllerTest {
         verify(manageStrategyUseCase, times(1)).getAllStrategies();
         verify(model, times(1)).addAttribute("strategies", strategies);
     }
+
+    @Test
+    @DisplayName("Should view strategy detail by id")
+    void testViewStrategyDetail() {
+        // Arrange
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+
+        // Act
+        String viewName = strategyController.viewStrategyDetail(1L, model);
+
+        // Assert
+        assertEquals("strategies/detail", viewName);
+        verify(manageStrategyUseCase, times(1)).getStrategyById(1L);
+        verify(model, times(1)).addAttribute("strategy", testStrategyDTO);
+    }
 }
