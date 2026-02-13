@@ -3,6 +3,7 @@ package com.market.analysis.infrastructure.persistence.mapper;
 import org.springframework.stereotype.Component;
 
 import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEvaluationEntity;
 
 /**
@@ -15,15 +16,14 @@ public class StrategyEvaluationMapper {
     /**
      * Converts domain model to JPA entity.
      */
-    public StrategyEvaluationEntity toEntity(StrategyEvaluation domain) {
+    public StrategyEvaluationEntity toEntity(StrategyEvaluation domain, StockEntity stockEntity) {
         if (domain == null) {
             return null;
         }
 
         StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
         entity.setId(domain.getId());
-        entity.setTicker(domain.getTicker());
-        entity.setStrategyId(domain.getStrategyId());
+        entity.setStock(stockEntity);
         entity.setCompliant(domain.isCompliant());
         entity.setComplianceRate(domain.getComplianceRate());
         entity.setSummary(domain.getSummary());
@@ -44,8 +44,8 @@ public class StrategyEvaluationMapper {
 
         return StrategyEvaluation.builder()
                 .id(entity.getId())
-                .ticker(entity.getTicker())
-                .strategyId(entity.getStrategyId())
+                .ticker(entity.getStock().getTicker())
+                .strategyId(entity.getStock().getStrategyId())
                 .compliant(entity.isCompliant())
                 .complianceRate(entity.getComplianceRate())
                 .summary(entity.getSummary())

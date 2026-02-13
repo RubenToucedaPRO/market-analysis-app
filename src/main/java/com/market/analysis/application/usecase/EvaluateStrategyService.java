@@ -158,7 +158,7 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
                     .isLatest(true)
                     .build();
 
-            strategyEvaluationRepository.save(evaluation);
+            strategyEvaluationRepository.save(evaluation, stock);
             log.debug("Strategy evaluation persisted for ticker: {}, strategyId: {}",
                     stock.getTicker(), strategyId);
         } catch (Exception e) {

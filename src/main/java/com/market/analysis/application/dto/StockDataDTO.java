@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StockDataDTO {
+    private Long id;
 
     /**
      * Ticker symbol (e.g., "AAPL", "GOOGL").

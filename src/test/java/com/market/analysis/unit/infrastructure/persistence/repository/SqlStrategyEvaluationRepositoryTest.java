@@ -8,8 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,9 +19,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEvaluationEntity;
 import com.market.analysis.infrastructure.persistence.mapper.StrategyEvaluationMapper;
+import com.market.analysis.infrastructure.persistence.repository.JpaStockDataRepository;
 import com.market.analysis.infrastructure.persistence.repository.JpaStrategyEvaluationRepository;
 import com.market.analysis.infrastructure.persistence.repository.SqlStrategyEvaluationRepository;
 
@@ -39,6 +40,9 @@ class SqlStrategyEvaluationRepositoryTest {
     private JpaStrategyEvaluationRepository jpaRepository;
 
     @Mock
+    private JpaStockDataRepository jpaStockRepository;
+
+    @Mock
     private StrategyEvaluationMapper mapper;
 
     @InjectMocks
@@ -46,10 +50,24 @@ class SqlStrategyEvaluationRepositoryTest {
 
     private StrategyEvaluation testDomainEvaluation;
     private StrategyEvaluationEntity testEntity;
+    private StockEntity testStock;
+    private Stock testDomainStock;
 
     @BeforeEach
     void setUp() {
         LocalDateTime now = LocalDateTime.now();
+
+        // Setup Stock entities and domain
+        testStock = new StockEntity();
+        testStock.setId(1L);
+        testStock.setTicker("AAPL");
+        testStock.setStrategyId(10L);
+
+        testDomainStock = Stock.builder()
+                .id(1L)
+                .ticker("AAPL")
+                .strategyId(10L)
+                .build();
 
         testDomainEvaluation = StrategyEvaluation.builder()
                 .id(1L)
@@ -65,8 +83,7 @@ class SqlStrategyEvaluationRepositoryTest {
 
         testEntity = new StrategyEvaluationEntity();
         testEntity.setId(1L);
-        testEntity.setTicker("AAPL");
-        testEntity.setStrategyId(10L);
+        testEntity.setStock(testStock);
         testEntity.setCompliant(true);
         testEntity.setComplianceRate(BigDecimal.valueOf(85.50));
         testEntity.setSummary("Strategy passed");
@@ -80,273 +97,177 @@ class SqlStrategyEvaluationRepositoryTest {
     class SaveTests {
 
         @Test
-        @DisplayName("Should save evaluation and return domain model")
-        void shouldSaveEvaluationAndReturnDomainModel() {
+        @DisplayName("Should save evaluation successfully")
+        void shouldSaveEvaluationSuccessfully() {
             // Arrange
-            when(mapper.toEntity(testDomainEvaluation)).thenReturn(testEntity);
+            when(jpaStockRepository.findById(1L)).thenReturn(Optional.of(testStock));
+            when(mapper.toEntity(testDomainEvaluation, testStock)).thenReturn(testEntity);
             when(jpaRepository.save(testEntity)).thenReturn(testEntity);
             when(mapper.toDomain(testEntity)).thenReturn(testDomainEvaluation);
 
             // Act
-            StrategyEvaluation result = repository.save(testDomainEvaluation);
+            StrategyEvaluation result = repository.save(testDomainEvaluation, testDomainStock);
 
             // Assert
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(1L);
             assertThat(result.getTicker()).isEqualTo("AAPL");
-            verify(mapper).toEntity(testDomainEvaluation);
+            assertThat(result.isCompliant()).isTrue();
             verify(jpaRepository).save(testEntity);
-            verify(mapper).toDomain(testEntity);
         }
 
         @Test
-        @DisplayName("Should mark as latest when isLatest is true")
-        void shouldMarkAsLatestWhenIsLatestIsTrue() {
+        @DisplayName("Should throw exception when stock not found")
+        void shouldThrowExceptionWhenStockNotFound() {
             // Arrange
-            when(mapper.toEntity(testDomainEvaluation)).thenReturn(testEntity);
-            when(jpaRepository.save(testEntity)).thenReturn(testEntity);
-            when(mapper.toDomain(testEntity)).thenReturn(testDomainEvaluation);
+            Stock unknownStock = Stock.builder()
+                    .id(999L)
+                    .ticker("UNKNOWN")
+                    .strategyId(99L)
+                    .build();
 
-            // Act
-            repository.save(testDomainEvaluation);
+            when(jpaStockRepository.findById(999L)).thenReturn(Optional.empty());
 
-            // Assert
-            verify(jpaRepository).updateLatestToFalse(
-                    "AAPL",
-                    10L,
-                    1L);
+            // Act & Assert
+            try {
+                repository.save(testDomainEvaluation, unknownStock);
+                org.junit.jupiter.api.Assertions.fail("Should have thrown EntityNotFoundException");
+            } catch (jakarta.persistence.EntityNotFoundException e) {
+                assertThat(e.getMessage()).contains("Stock no encontrado");
+            }
         }
 
         @Test
-        @DisplayName("Should not mark as latest when isLatest is false")
-        void shouldNotMarkAsLatestWhenIsLatestIsFalse() {
+        @DisplayName("Should save evaluation with minimum valid data")
+        void shouldSaveEvaluationWithMinimumValidData() {
             // Arrange
-            testEntity.setLatest(false);
-            StrategyEvaluation notLatestEvaluation = StrategyEvaluation.builder()
-                    .id(2L)
-                    .ticker("GOOGL")
-                    .strategyId(5L)
-                    .compliant(true)
-                    .complianceRate(BigDecimal.valueOf(90.00))
+            StrategyEvaluation minimalEvaluation = StrategyEvaluation.builder()
+                    .compliant(false)
+                    .complianceRate(BigDecimal.ZERO)
                     .evaluatedAt(LocalDateTime.now())
                     .isLatest(false)
                     .build();
 
-            when(mapper.toEntity(notLatestEvaluation)).thenReturn(testEntity);
+            StrategyEvaluationEntity minimalEntity = new StrategyEvaluationEntity();
+            minimalEntity.setStock(testStock);
+            minimalEntity.setCompliant(false);
+            minimalEntity.setComplianceRate(BigDecimal.ZERO);
+            minimalEntity.setEvaluatedAt(LocalDateTime.now());
+            minimalEntity.setLatest(false);
+
+            when(jpaStockRepository.findById(1L)).thenReturn(Optional.of(testStock));
+            when(mapper.toEntity(minimalEvaluation, testStock)).thenReturn(minimalEntity);
+            when(jpaRepository.save(minimalEntity)).thenReturn(minimalEntity);
+            when(mapper.toDomain(minimalEntity)).thenReturn(minimalEvaluation);
+
+            // Act
+            StrategyEvaluation result = repository.save(minimalEvaluation, testDomainStock);
+
+            // Assert
+            assertThat(result).isNotNull();
+            assertThat(result.isCompliant()).isFalse();
+            assertThat(result.getComplianceRate()).isEqualByComparingTo(BigDecimal.ZERO);
+        }
+
+        @Test
+        @DisplayName("Should verify save is called exactly once")
+        void shouldVerifySaveIsCalledExactlyOnce() {
+            // Arrange
+            when(jpaStockRepository.findById(1L)).thenReturn(Optional.of(testStock));
+            when(mapper.toEntity(testDomainEvaluation, testStock)).thenReturn(testEntity);
             when(jpaRepository.save(testEntity)).thenReturn(testEntity);
-            when(mapper.toDomain(testEntity)).thenReturn(notLatestEvaluation);
-
-            // Act
-            repository.save(notLatestEvaluation);
-
-            // Assert
-            verify(jpaRepository, times(0)).updateLatestToFalse(any(), any(), any());
-        }
-    }
-
-    @Nested
-    @DisplayName("Find Operations Tests")
-    class FindTests {
-
-        @Test
-        @DisplayName("Should find latest evaluation by ticker and strategy ID")
-        void shouldFindLatestEvaluationByTickerAndStrategyId() {
-            // Arrange
-            when(jpaRepository.findFirstByTickerAndStrategyIdAndLatestTrueOrderByEvaluatedAtDesc(
-                    "AAPL", 10L))
-                    .thenReturn(Optional.of(testEntity));
             when(mapper.toDomain(testEntity)).thenReturn(testDomainEvaluation);
 
             // Act
-            Optional<StrategyEvaluation> result = repository.findLatestByTickerAndStrategyId("AAPL", 10L);
+            repository.save(testDomainEvaluation, testDomainStock);
 
             // Assert
-            assertThat(result).isPresent();
-            assertThat(result.get().getTicker()).isEqualTo("AAPL");
-            assertThat(result.get().getStrategyId()).isEqualTo(10L);
-            assertThat(result.get().isLatest()).isTrue();
+            verify(jpaRepository, times(1)).save(any(StrategyEvaluationEntity.class));
         }
 
         @Test
-        @DisplayName("Should return empty when no latest evaluation found")
-        void shouldReturnEmptyWhenNoLatestEvaluationFound() {
+        @DisplayName("Should map entity to domain after saving")
+        void shouldMapEntityToDomainAfterSaving() {
             // Arrange
-            when(jpaRepository.findFirstByTickerAndStrategyIdAndLatestTrueOrderByEvaluatedAtDesc(
-                    "UNKNOWN", 999L))
-                    .thenReturn(Optional.empty());
-
-            // Act
-            Optional<StrategyEvaluation> result = repository.findLatestByTickerAndStrategyId("UNKNOWN", 999L);
-
-            // Assert
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Should find all evaluations by ticker")
-        void shouldFindAllEvaluationsByTicker() {
-            // Arrange
-            StrategyEvaluationEntity entity2 = new StrategyEvaluationEntity();
-            entity2.setId(2L);
-            entity2.setTicker("AAPL");
-            entity2.setStrategyId(5L);
-
-            StrategyEvaluation domain2 = StrategyEvaluation.builder()
-                    .id(2L)
-                    .ticker("AAPL")
-                    .strategyId(5L)
-                    .build();
-
-            when(jpaRepository.findByTickerOrderByEvaluatedAtDesc("AAPL"))
-                    .thenReturn(Arrays.asList(testEntity, entity2));
+            when(jpaStockRepository.findById(1L)).thenReturn(Optional.of(testStock));
+            when(mapper.toEntity(testDomainEvaluation, testStock)).thenReturn(testEntity);
+            when(jpaRepository.save(testEntity)).thenReturn(testEntity);
             when(mapper.toDomain(testEntity)).thenReturn(testDomainEvaluation);
-            when(mapper.toDomain(entity2)).thenReturn(domain2);
 
             // Act
-            List<StrategyEvaluation> result = repository.findByTicker("AAPL");
+            repository.save(testDomainEvaluation, testDomainStock);
 
             // Assert
-            assertThat(result).hasSize(2);
-            assertThat(result.get(0).getId()).isEqualTo(1L);
-            assertThat(result.get(1).getId()).isEqualTo(2L);
+            verify(mapper, times(1)).toDomain(testEntity);
         }
 
         @Test
-        @DisplayName("Should return empty list when no evaluations found by ticker")
-        void shouldReturnEmptyListWhenNoEvaluationsFoundByTicker() {
+        @DisplayName("Should map domain to entity before saving")
+        void shouldMapDomainToEntityBeforeSaving() {
             // Arrange
-            when(jpaRepository.findByTickerOrderByEvaluatedAtDesc("UNKNOWN"))
-                    .thenReturn(Arrays.asList());
+            when(jpaStockRepository.findById(1L)).thenReturn(Optional.of(testStock));
+            when(mapper.toEntity(testDomainEvaluation, testStock)).thenReturn(testEntity);
+            when(jpaRepository.save(testEntity)).thenReturn(testEntity);
+            when(mapper.toDomain(testEntity)).thenReturn(testDomainEvaluation);
 
             // Act
-            List<StrategyEvaluation> result = repository.findByTicker("UNKNOWN");
+            repository.save(testDomainEvaluation, testDomainStock);
 
             // Assert
-            assertThat(result).isEmpty();
+            verify(mapper, times(1)).toEntity(testDomainEvaluation, testStock);
         }
 
         @Test
-        @DisplayName("Should find all evaluations by strategy ID")
-        void shouldFindAllEvaluationsByStrategyId() {
+        @DisplayName("Should preserve evaluation data during save")
+        void shouldPreserveEvaluationDataDuringSave() {
             // Arrange
-            StrategyEvaluationEntity entity2 = new StrategyEvaluationEntity();
-            entity2.setId(3L);
-            entity2.setTicker("GOOGL");
-            entity2.setStrategyId(10L);
-
-            StrategyEvaluation domain2 = StrategyEvaluation.builder()
-                    .id(3L)
+            StrategyEvaluation originalEvaluation = StrategyEvaluation.builder()
+                    .id(5L)
                     .ticker("GOOGL")
-                    .strategyId(10L)
+                    .strategyId(15L)
+                    .compliant(true)
+                    .complianceRate(BigDecimal.valueOf(95.99))
+                    .summary("Excellent performance")
+                    .evaluatedAt(LocalDateTime.now())
+                    .priceAtEvaluation(BigDecimal.valueOf(2800.75))
+                    .isLatest(true)
                     .build();
 
-            when(jpaRepository.findByStrategyIdOrderByEvaluatedAtDesc(10L))
-                    .thenReturn(Arrays.asList(testEntity, entity2));
-            when(mapper.toDomain(testEntity)).thenReturn(testDomainEvaluation);
-            when(mapper.toDomain(entity2)).thenReturn(domain2);
+            StockEntity googleStock = new StockEntity();
+            googleStock.setId(2L);
+            googleStock.setTicker("GOOGL");
+            googleStock.setStrategyId(15L);
+
+            StrategyEvaluationEntity savedEntity = new StrategyEvaluationEntity();
+            savedEntity.setId(5L);
+            savedEntity.setStock(googleStock);
+            savedEntity.setCompliant(true);
+            savedEntity.setComplianceRate(BigDecimal.valueOf(95.99));
+            savedEntity.setSummary("Excellent performance");
+            savedEntity.setEvaluatedAt(originalEvaluation.getEvaluatedAt());
+            savedEntity.setPriceAtEvaluation(BigDecimal.valueOf(2800.75));
+            savedEntity.setLatest(true);
+
+            Stock googleDomainStock = Stock.builder()
+                    .id(2L)
+                    .ticker("GOOGL")
+                    .strategyId(15L)
+                    .build();
+
+            when(jpaStockRepository.findById(2L)).thenReturn(Optional.of(googleStock));
+            when(mapper.toEntity(originalEvaluation, googleStock)).thenReturn(savedEntity);
+            when(jpaRepository.save(savedEntity)).thenReturn(savedEntity);
+            when(mapper.toDomain(savedEntity)).thenReturn(originalEvaluation);
 
             // Act
-            List<StrategyEvaluation> result = repository.findByStrategyId(10L);
+            StrategyEvaluation result = repository.save(originalEvaluation, googleDomainStock);
 
             // Assert
-            assertThat(result).hasSize(2);
-            assertThat(result.get(0).getStrategyId()).isEqualTo(10L);
-            assertThat(result.get(1).getStrategyId()).isEqualTo(10L);
-        }
-
-        @Test
-        @DisplayName("Should return empty list when no evaluations found by strategy ID")
-        void shouldReturnEmptyListWhenNoEvaluationsFoundByStrategyId() {
-            // Arrange
-            when(jpaRepository.findByStrategyIdOrderByEvaluatedAtDesc(999L))
-                    .thenReturn(Arrays.asList());
-
-            // Act
-            List<StrategyEvaluation> result = repository.findByStrategyId(999L);
-
-            // Assert
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Should find evaluation by ID")
-        void shouldFindEvaluationById() {
-            // Arrange
-            when(jpaRepository.findById(1L)).thenReturn(Optional.of(testEntity));
-            when(mapper.toDomain(testEntity)).thenReturn(testDomainEvaluation);
-
-            // Act
-            Optional<StrategyEvaluation> result = repository.findById(1L);
-
-            // Assert
-            assertThat(result).isPresent();
-            assertThat(result.get().getId()).isEqualTo(1L);
-        }
-
-        @Test
-        @DisplayName("Should return empty when evaluation not found by ID")
-        void shouldReturnEmptyWhenEvaluationNotFoundById() {
-            // Arrange
-            when(jpaRepository.findById(999L)).thenReturn(Optional.empty());
-
-            // Act
-            Optional<StrategyEvaluation> result = repository.findById(999L);
-
-            // Assert
-            assertThat(result).isEmpty();
-        }
-    }
-
-    @Nested
-    @DisplayName("Delete Operation Tests")
-    class DeleteTests {
-
-        @Test
-        @DisplayName("Should delete evaluation by ID")
-        void shouldDeleteEvaluationById() {
-            // Act
-            repository.deleteById(1L);
-
-            // Assert
-            verify(jpaRepository).deleteById(1L);
-        }
-
-        @Test
-        @DisplayName("Should call deleteById even if evaluation does not exist")
-        void shouldCallDeleteByIdEvenIfEvaluationDoesNotExist() {
-            // Act
-            repository.deleteById(999L);
-
-            // Assert
-            verify(jpaRepository).deleteById(999L);
-        }
-    }
-
-    @Nested
-    @DisplayName("Mark As Latest Tests")
-    class MarkAsLatestTests {
-
-        @Test
-        @DisplayName("Should mark evaluation as latest for ticker and strategy")
-        void shouldMarkEvaluationAsLatestForTickerAndStrategy() {
-            // Act
-            repository.markAsLatestForTickerAndStrategy(1L, "AAPL", 10L);
-
-            // Assert
-            verify(jpaRepository).updateLatestToFalse("AAPL", 10L, 1L);
-        }
-
-        @Test
-        @DisplayName("Should call updateLatestToFalse with correct parameters")
-        void shouldCallUpdateLatestToFalseWithCorrectParameters() {
-            // Act
-            repository.markAsLatestForTickerAndStrategy(100L, "MSFT", 50L);
-
-            // Assert
-            verify(jpaRepository).updateLatestToFalse(
-                    "MSFT",
-                    50L,
-                    100L);
+            assertThat(result.getId()).isEqualTo(originalEvaluation.getId());
+            assertThat(result.getComplianceRate()).isEqualByComparingTo(originalEvaluation.getComplianceRate());
+            assertThat(result.getSummary()).isEqualTo(originalEvaluation.getSummary());
+            assertThat(result.getPriceAtEvaluation())
+                    .isEqualByComparingTo(originalEvaluation.getPriceAtEvaluation());
         }
     }
 }

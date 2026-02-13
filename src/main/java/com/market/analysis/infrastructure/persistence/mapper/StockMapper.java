@@ -13,6 +13,7 @@ public class StockMapper {
             return null;
 
         StockEntity entity = new StockEntity();
+        entity.setId(domain.getId());
         entity.setTicker(domain.getTicker());
         entity.setCurrentPrice(domain.getCurrentPrice());
         entity.setOpenPrice(domain.getOpenPrice());
@@ -27,6 +28,10 @@ public class StockMapper {
         entity.setAverageVolume(domain.getAverageVolume());
         entity.setLastUpdated(domain.getLastUpdated());
 
+        if (entity.getCompanyProfile() != null) {
+            entity.getCompanyProfile().setLogo(domain.getLogoUrl());
+        }
+
         return entity;
     }
 
@@ -35,8 +40,9 @@ public class StockMapper {
             return null;
 
         return Stock.builder()
+                .id(entity.getId())
                 .ticker(entity.getTicker())
-                .logoUrl(entity.getCompanyProfile().getLogo())
+                .logoUrl(entity.getCompanyProfile() != null ? entity.getCompanyProfile().getLogo() : null)
                 .currentPrice(entity.getCurrentPrice())
                 .openPrice(entity.getOpenPrice())
                 .highOfDay(entity.getHighOfDay())

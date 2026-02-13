@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.market.analysis.infrastructure.persistence.entity.StockEntity;
@@ -15,7 +16,6 @@ public interface JpaStockDataRepository extends JpaRepository<StockEntity, Long>
     @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile")
     List<StockEntity> findAllWithProfile();
 
-    Optional<StockEntity> findByTicker(String ticker);
-
-    void deleteByTicker(String ticker);
+    @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.id = :id")
+    Optional<StockEntity> findByIdWithProfile(@Param("id") Long id);
 }

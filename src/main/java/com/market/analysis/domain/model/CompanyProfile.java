@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CompanyProfile {
+    private Long id;
 
     /** Company name */
     private String name;

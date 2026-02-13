@@ -3,6 +3,7 @@ package com.market.analysis.infrastructure.persistence.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,12 +12,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tickers")
+@Table(name = "stocks")
 @Getter
 @Setter
 public class StockEntity {
@@ -24,7 +26,6 @@ public class StockEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
     private String ticker;
 
     private BigDecimal currentPrice;
@@ -55,5 +56,8 @@ public class StockEntity {
 
     @Column(name = "strategy_id")
     private Long strategyId;
+
+    @OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
+    private StrategyEvaluationEntity strategyEvaluation;
 
 }
