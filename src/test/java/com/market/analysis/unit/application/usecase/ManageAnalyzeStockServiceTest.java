@@ -74,6 +74,9 @@ class ManageAnalyzeStockServiceTest {
     @Mock
     private com.market.analysis.domain.service.StockHistoricalService stockHistoricalService;
 
+    @Mock
+    private com.market.analysis.domain.port.out.ApiIAPort apiIAPort;
+
     @InjectMocks
     private ManageAnalyzeStockService service;
 
@@ -465,5 +468,99 @@ class ManageAnalyzeStockServiceTest {
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
         verify(companyProfileRepository, times(1)).save(validCompanyProfile);
+    }
+
+    @Test
+    @DisplayName("Should successfully get AI valoration for existing stock")
+    void shouldGetAIValorationForExistingStock() {
+        // Arrange
+        Long stockId = 1L;
+        String expectedValoration = "Esta acción muestra indicadores técnicos fuertes con un momentum alcista.";
+        
+        com.market.analysis.domain.model.StrategyEvaluation strategyEvaluation = 
+            com.market.analysis.domain.model.StrategyEvaluation.builder()
+                .strategyName("Test Strategy")
+                .complianceRate(BigDecimal.valueOf(85.5))
+                .summary("Strategy evaluation passed")
+                .build();
+        
+        Stock stockWithEvaluation = Stock.builder()
+                .id(stockId)
+                .ticker("AAPL")
+                .currentPrice(BigDecimal.valueOf(150.00))
+                .sma20(BigDecimal.valueOf(148.00))
+                .sma50(BigDecimal.valueOf(145.00))
+                .sma200(BigDecimal.valueOf(140.00))
+                .volume(1000000L)
+                .averageVolume(950000L)
+                .strategyEvaluation(strategyEvaluation)
+                .build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(apiIAPort.getValoration(anyString())).thenReturn(expectedValoration);
+        when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
+
+        // Act
+        service.getValorationIA(stockId);
+
+        // Assert
+        verify(stockDataRepository, times(1)).findById(stockId);
+        verify(apiIAPort, times(1)).getValoration(anyString());
+        verify(stockDataRepository, times(1)).save(any(Stock.class));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when stock not found for AI valoration")
+    void shouldThrowExceptionWhenStockNotFoundForAIValoration() {
+        // Arrange
+        Long stockId = 999L;
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(StockDataNotFoundException.class, () -> {
+            service.getValorationIA(stockId);
+        });
+
+        verify(stockDataRepository, times(1)).findById(stockId);
+        verify(apiIAPort, never()).getValoration(anyString());
+        verify(stockDataRepository, never()).save(any(Stock.class));
+    }
+
+    @Test
+    @DisplayName("Should save stock even when AI valoration returns null")
+    void shouldSaveStockWhenAIValorationReturnsNull() {
+        // Arrange
+        Long stockId = 1L;
+        
+        com.market.analysis.domain.model.StrategyEvaluation strategyEvaluation = 
+            com.market.analysis.domain.model.StrategyEvaluation.builder()
+                .strategyName("Test Strategy")
+                .complianceRate(BigDecimal.valueOf(85.5))
+                .summary("Strategy evaluation passed")
+                .build();
+        
+        Stock stockWithEvaluation = Stock.builder()
+                .id(stockId)
+                .ticker("AAPL")
+                .currentPrice(BigDecimal.valueOf(150.00))
+                .sma20(BigDecimal.valueOf(148.00))
+                .sma50(BigDecimal.valueOf(145.00))
+                .sma200(BigDecimal.valueOf(140.00))
+                .volume(1000000L)
+                .averageVolume(950000L)
+                .strategyEvaluation(strategyEvaluation)
+                .build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(apiIAPort.getValoration(anyString())).thenReturn(null);
+        when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
+
+        // Act
+        service.getValorationIA(stockId);
+
+        // Assert
+        verify(stockDataRepository, times(1)).findById(stockId);
+        verify(apiIAPort, times(1)).getValoration(anyString());
+        verify(stockDataRepository, times(1)).save(any(Stock.class));
     }
 }

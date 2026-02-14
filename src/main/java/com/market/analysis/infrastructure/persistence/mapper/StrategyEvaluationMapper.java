@@ -35,6 +35,24 @@ public class StrategyEvaluationMapper {
         return entity;
     }
 
+    public StrategyEvaluationEntity toEntity(StrategyEvaluation domain) {
+        if (domain == null) {
+            return null;
+        }
+
+        StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+        entity.setId(domain.getId());
+        entity.setStrategyName(domain.getStrategyName());
+        entity.setCompliant(domain.isCompliant());
+        entity.setComplianceRate(domain.getComplianceRate());
+        entity.setSummary(domain.getSummary());
+        entity.setEvaluatedAt(domain.getEvaluatedAt());
+        entity.setPriceAtEvaluation(domain.getPriceAtEvaluation());
+        entity.setLatest(domain.isLatest());
+
+        return entity;
+    }
+
     /**
      * Converts JPA entity to domain model.
      */

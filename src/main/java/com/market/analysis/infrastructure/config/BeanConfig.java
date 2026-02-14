@@ -24,6 +24,7 @@ import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
+import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -67,13 +68,16 @@ public class BeanConfig {
 
     @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
-            CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,ApiCallRateRepository apiCallRateRepository,
+            CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
+            ApiCallRateRepository apiCallRateRepository,
             StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
-            StrategyRepository strategyRepository, 
+            ApiIAPort apiIAPort,
+            StrategyRepository strategyRepository,
             EvaluateStrategyUseCase evaluateStrategyUseCase, StockDataDTOMapper stockMapper,
             StockHistoricalService stockHistoricalService) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, apiCallRateRepository, stockProviderPort, historicalProviderPort, strategyRepository,
+                prohibitedTickerRepository, apiCallRateRepository, stockProviderPort, historicalProviderPort,
+                apiIAPort, strategyRepository,
                 evaluateStrategyUseCase,
                 stockMapper, stockHistoricalService);
     }

@@ -132,11 +132,13 @@
               <tbody id="tickersTableBody">
                 <tr th:each="ticker : ${tickers}">
                   <td>
-                    <a 
+                    <a
                       th:href="@{/analysis/ticker/{id}(id=${ticker.id})}"
                       style="text-decoration: none; color: inherit"
                     >
-                      <div style="display: flex; align-items: center; gap: 10px">
+                      <div
+                        style="display: flex; align-items: center; gap: 10px"
+                      >
                         <img
                           th:src="${ticker.logoUrl}"
                           loading="lazy"
@@ -144,7 +146,9 @@
                           height="25"
                           alt="logo of [[${ticker.ticker}]]"
                         />
-                        <span th:text="${ticker.ticker}" style="font-weight: bold"
+                        <span
+                          th:text="${ticker.ticker}"
+                          style="font-weight: bold"
                           >AAPL</span
                         >
                       </div>
@@ -159,14 +163,14 @@
                   </td>
                   <td>
                     <span
-                      th:class="${ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
+                      th:class="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
                       th:title="${ticker.evaluationSummary}"
                     >
                       <i
-                        th:class="${ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
+                        th:class="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
                       ></i>
                       <span
-                        th:text="${ticker.evaluationPassed ? 'PASSED' : 'FAILED'}"
+                        th:text="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'PASSED' : 'FAILED'}"
                       ></span>
                       (<span th:text="${ticker.complianceRate}">0</span>%)
                     </span>
@@ -196,6 +200,20 @@
                         title="Refresh ticker data"
                       >
                         <i class="bi bi-arrow-repeat"></i>
+                      </button>
+                    </form>
+                    <form
+                      th:action="@{/analysis/getValorationIA}"
+                      method="post"
+                      style="display: inline"
+                    >
+                      <input type="hidden" name="id" th:value="${ticker.id}" />
+                      <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Analyze with AI"
+                      >
+                        <i class="bi bi-stars"></i>
                       </button>
                     </form>
                     <form

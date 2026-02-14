@@ -60,4 +60,7 @@ public class StockEntity {
     @OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private StrategyEvaluationEntity strategyEvaluation;
 
+    @Column(name = "valoration_ia", columnDefinition = "TEXT")
+    private String valorationIA;
+
 }

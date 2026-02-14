@@ -20,6 +20,7 @@ import com.market.analysis.domain.model.TechnicalIndicators;
 import com.market.analysis.domain.port.in.EvaluateStrategyUseCase;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
+import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -41,6 +42,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final ApiCallRateRepository apiCallRateRepository;
     private final StockProviderPort stockProviderPort;
     private final HistoricalProviderPort historicalProviderPort;
+    private final ApiIAPort apiIAPort;
     private final StrategyRepository strategyRepository;
     private final EvaluateStrategyUseCase evaluateStrategyUseCase;
     private final StockDataDTOMapper stockMapper;
@@ -101,8 +103,12 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         String ticker = existingStockData.getTicker();
         Stock stock = stockProviderPort.getQuote(ticker);
         if (stock != null) {
-            stock.setId(id);
-            stockDataRepository.save(stock);
+            existingStockData.setCurrentPrice(stock.getCurrentPrice());
+            existingStockData.setOpenPrice(stock.getOpenPrice());
+            existingStockData.setHighOfDay(stock.getHighOfDay());
+            existingStockData.setLowOfDay(stock.getLowOfDay());
+            existingStockData.setPreviousClose(stock.getPreviousClose());
+            stockDataRepository.save(existingStockData);
         } else {
             log.warn("No stock data found for ticker {}, skipping update", ticker);
         }
@@ -227,5 +233,31 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         }
 
         return stock;
+    }
+
+    @Override
+    public void getValorationIA(Long id) {
+        Stock stock = stockDataRepository.findById(id)
+                .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + id));
+        String ticker = stock.getTicker();
+        String datosAccion = String.format(
+                "Ticker: %s, Price: %.2f, SMA20: %.2f, SMA50: %.2f, SMA200: %.2f, Volume: %d, Average Volume: %d, Strategy: %s, Compliance Rate: %.2f, Summary: %s",
+                ticker, stock.getCurrentPrice(), stock.getSma20(), stock.getSma50(), stock.getSma200(),
+                stock.getVolume(),
+                stock.getAverageVolume(), stock.getStrategyEvaluation().getStrategyName(),
+                stock.getStrategyEvaluation().getComplianceRate(), stock.getStrategyEvaluation().getSummary());
+
+        String prompt = "You are an expert financial analyst."
+                + "This is a placeholder valuation based on the stock data: " + datosAccion
+                + ". I want you to analyze this stock data and provide a valuation of the stock. "
+                + " Please consider the current price, technical indicators (SMA20, SMA50, SMA200), volume, average volume, and the strategy evaluation results (compliance rate and summary)."
+                + " Based on this information, provide a concise valuation of the stock's potential performance in the market."
+                + " You answer in a single sentence and be as specific as possible, providing insights on the stock's strengths, weaknesses, and overall outlook."
+                + " Remember answer in spanish.";
+
+        String valoration = apiIAPort.getValoration(prompt);
+        log.info("Valuation for ticker {}: {}", ticker, valoration);
+        stock.setValorationIA(valoration);
+        stockDataRepository.save(stock);
     }
 }

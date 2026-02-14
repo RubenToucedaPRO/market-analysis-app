@@ -34,7 +34,7 @@ public class Stock {
     /**
      * Current price of the ticker.
      */
-    private final BigDecimal currentPrice;
+    private BigDecimal currentPrice;
 
     /** Open price of the day from /quote API (o field) */
     private BigDecimal openPrice;
@@ -73,5 +73,7 @@ public class Stock {
     private Long strategyId;
 
     private StrategyEvaluation strategyEvaluation;
+
+    private String valorationIA;
 
 }

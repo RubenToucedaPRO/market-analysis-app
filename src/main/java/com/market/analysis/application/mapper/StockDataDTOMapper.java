@@ -11,37 +11,45 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StockDataDTOMapper {
 
-    public StockDataDTO toDTO(Stock stock) {
-        if (stock == null) {
-            return null;
-        }
+        public StockDataDTO toDTO(Stock stock) {
+                if (stock == null) {
+                        return null;
+                }
 
-        return StockDataDTO.builder()
-                .id(stock.getId())
-                .ticker(stock.getTicker())
-                .logoUrl(stock.getLogoUrl())
-                .currentPrice(stock.getCurrentPrice())
-                .openPrice(stock.getOpenPrice())
-                .highOfDay(stock.getHighOfDay())
-                .lowOfDay(stock.getLowOfDay())
-                .previousClose(stock.getPreviousClose())
-                .sma20(stock.getSma20())
-                .sma50(stock.getSma50())
-                .sma200(stock.getSma200())
-                .volume(stock.getVolume())
-                .averageVolume(stock.getAverageVolume())
-                .lastUpdated(stock.getLastUpdated())
-                .strategyId(stock.getStrategyId())
-                .strategyName(
-                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().getStrategyName() : null)
-                .complianceRate(
-                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().getComplianceRate()
-                                : null)
-                .evaluationPassed(
-                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().isCompliant() : null)
-                .evaluationSummary(
-                        stock.getStrategyEvaluation() != null ? stock.getStrategyEvaluation().getSummary() : null)
-                .build();
-    }
+                return StockDataDTO.builder()
+                                .id(stock.getId())
+                                .ticker(stock.getTicker())
+                                .logoUrl(stock.getLogoUrl())
+                                .currentPrice(stock.getCurrentPrice())
+                                .openPrice(stock.getOpenPrice())
+                                .highOfDay(stock.getHighOfDay())
+                                .lowOfDay(stock.getLowOfDay())
+                                .previousClose(stock.getPreviousClose())
+                                .sma20(stock.getSma20())
+                                .sma50(stock.getSma50())
+                                .sma200(stock.getSma200())
+                                .volume(stock.getVolume())
+                                .averageVolume(stock.getAverageVolume())
+                                .lastUpdated(stock.getLastUpdated())
+                                .strategyId(stock.getStrategyId())
+                                .strategyName(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getStrategyName()
+                                                                : null)
+                                .complianceRate(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getComplianceRate()
+                                                                : null)
+                                .evaluationPassed(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().isCompliant()
+                                                                : null)
+                                .evaluationSummary(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getSummary()
+                                                                : null)
+                                .valorationIA(stock.getValorationIA())
+                                .build();
+        }
 
 }

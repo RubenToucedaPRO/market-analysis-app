@@ -16,4 +16,6 @@ public interface ManageAnalyzeTickerUseCase {
 
         public void deleteById(Long id);
 
+        public void getValorationIA(Long id);
+
 }

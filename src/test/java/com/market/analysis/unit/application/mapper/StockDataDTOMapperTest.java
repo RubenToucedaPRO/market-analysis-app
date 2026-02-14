@@ -118,4 +118,50 @@ class StockDataDTOMapperTest {
         assertThat(dto.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("200.00"));
         assertThat(dto.getVolume()).isEqualTo(10000000L);
     }
+
+    @Test
+    @DisplayName("Should correctly map stock with AI valoration")
+    void testToDTOWithAIValoration() {
+        // Arrange
+        String aiValoration = "Esta acción muestra indicadores técnicos fuertes con momentum alcista y buen volumen.";
+        Stock stock = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(new BigDecimal("150.00"))
+                .sma20(new BigDecimal("148.00"))
+                .sma50(new BigDecimal("145.00"))
+                .sma200(new BigDecimal("140.00"))
+                .volume(50000000L)
+                .averageVolume(45000000L)
+                .valorationIA(aiValoration)
+                .build();
+
+        // Act
+        StockDataDTO dto = mapper.toDTO(stock);
+
+        // Assert
+        assertThat(dto).isNotNull();
+        assertThat(dto.getTicker()).isEqualTo("AAPL");
+        assertThat(dto.getValorationIA()).isEqualTo(aiValoration);
+        assertThat(dto.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("150.00"));
+    }
+
+    @Test
+    @DisplayName("Should correctly map stock without AI valoration")
+    void testToDTOWithoutAIValoration() {
+        // Arrange
+        Stock stock = Stock.builder()
+                .ticker("TSLA")
+                .currentPrice(new BigDecimal("250.00"))
+                .volume(20000000L)
+                .build();
+
+        // Act
+        StockDataDTO dto = mapper.toDTO(stock);
+
+        // Assert
+        assertThat(dto).isNotNull();
+        assertThat(dto.getTicker()).isEqualTo("TSLA");
+        assertThat(dto.getValorationIA()).isNull();
+        assertThat(dto.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("250.00"));
+    }
 }
