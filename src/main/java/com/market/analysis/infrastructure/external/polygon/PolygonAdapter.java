@@ -73,12 +73,17 @@ public class PolygonAdapter implements HistoricalProviderPort {
 
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 429) {
-                log.warn("Límite de rate limit alcanzado (429) para {}", ticker);
+                log.error("Rate limit exceeded (429) for ticker {}", ticker, e);
+                throw new PolygonException("Rate limit exceeded for " + ticker, e);
             }
-            throw new PolygonException("Error en comunicación con Polygon: " + e.getMessage());
+            log.error("HTTP client error communicating with Polygon for {}: {}", ticker, e.getStatusCode(), e);
+            throw new PolygonException("HTTP error communicating with Polygon for " + ticker + ": " + e.getStatusCode(), e);
+        } catch (PolygonException e) {
+            // Re-throw domain exceptions without wrapping
+            throw e;
         } catch (Exception e) {
-            log.error("Error inesperado al procesar datos de Polygon para {}: {}", ticker, e.getMessage());
-            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList(), null);
+            log.error("Unexpected error processing Polygon data for {}", ticker, e);
+            throw new PolygonException("Unexpected error processing data for " + ticker, e);
         }
     }
 
@@ -98,8 +103,8 @@ public class PolygonAdapter implements HistoricalProviderPort {
                 }
             }
         } catch (Exception e) {
-            log.error("Error mapeando datos históricos para {}: {}", ticker, e.getMessage());
-            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList(), null);
+            log.error("Error parsing JSON response for ticker {}", ticker, e);
+            throw new PolygonException("Error parsing JSON response for " + ticker, e);
         }
 
         return new HistoricalData(ticker, prices, volumes, Instant.now());
@@ -131,10 +136,12 @@ public class PolygonAdapter implements HistoricalProviderPort {
                         - (Instant.now().minusMillis(RATE_LIMIT_WINDOW).toEpochMilli()) + 100;
                 if (waitTime > 0) {
                     try {
-                        log.info("Rate limit alcanzado. Esperando {}ms", waitTime);
+                        log.info("Rate limit reached. Waiting {}ms", waitTime);
                         Thread.sleep(waitTime);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
+                        log.error("Thread interrupted while waiting for rate limit", e);
+                        throw new PolygonException("Interrupted while waiting for rate limit", e);
                     }
                     removeExpiredTimestamps();
                 }

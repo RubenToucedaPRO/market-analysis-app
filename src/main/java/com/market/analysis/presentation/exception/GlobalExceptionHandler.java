@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.market.analysis.domain.exception.RuleDefinitionNotFoundException;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.market.analysis.infrastructure.exception.FinnhubException;
+import com.market.analysis.infrastructure.exception.PersistenceException;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.exception.StockException;
 
@@ -120,6 +122,44 @@ public class GlobalExceptionHandler {
         
         model.addAttribute(ATTR_ERROR_TYPE, "External Service Error");
         model.addAttribute(ATTR_ERROR_MESSAGE, "Unable to retrieve historical data from the market data service.");
+        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
+        
+        return ERROR_VIEW;
+    }
+
+    /**
+     * Handles AIServiceException - infrastructure exception.
+     * Thrown when there's an error communicating with AI services.
+     * 
+     * @param ex the exception
+     * @param model the model to add attributes
+     * @return the error view name
+     */
+    @ExceptionHandler(AIServiceException.class)
+    public String handleAIServiceException(AIServiceException ex, Model model) {
+        log.error("AI service error: {}", ex.getMessage(), ex);
+        
+        model.addAttribute(ATTR_ERROR_TYPE, "AI Service Error");
+        model.addAttribute(ATTR_ERROR_MESSAGE, "Unable to retrieve AI analysis. Please try again later.");
+        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
+        
+        return ERROR_VIEW;
+    }
+
+    /**
+     * Handles PersistenceException - infrastructure exception.
+     * Thrown when there's an error during database operations.
+     * 
+     * @param ex the exception
+     * @param model the model to add attributes
+     * @return the error view name
+     */
+    @ExceptionHandler(PersistenceException.class)
+    public String handlePersistenceException(PersistenceException ex, Model model) {
+        log.error("Database error: {}", ex.getMessage(), ex);
+        
+        model.addAttribute(ATTR_ERROR_TYPE, "Database Error");
+        model.addAttribute(ATTR_ERROR_MESSAGE, "An error occurred while accessing the database.");
         model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
         
         return ERROR_VIEW;

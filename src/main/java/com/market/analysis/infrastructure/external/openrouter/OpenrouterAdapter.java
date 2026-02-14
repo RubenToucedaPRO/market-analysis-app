@@ -1,6 +1,7 @@
 package com.market.analysis.infrastructure.external.openrouter;
 
 import com.market.analysis.domain.port.out.ApiIAPort;
+import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.chat.completions.ChatCompletion;
@@ -50,8 +51,8 @@ public class OpenrouterAdapter implements ApiIAPort {
             return content;
 
         } catch (Exception e) {
-            log.error("Error calling OpenRouter API: {}", e.getMessage());
-            return null;
+            log.error("Error calling OpenRouter API", e);
+            throw new AIServiceException("Error calling AI service: " + e.getMessage(), e);
         }
     }
 }
