@@ -10,12 +10,14 @@ import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service implementing prohibited ticker management use cases.
  * Coordinates operations on prohibited tickers through the repository port.
  */
 @RequiredArgsConstructor
+@Slf4j
 public class ManageProhibitedTickerService implements ManageProhibitedTickerUseCase {
 
     private final ProhibitedTickerRepository prohibitedTickerRepository;
@@ -33,14 +35,18 @@ public class ManageProhibitedTickerService implements ManageProhibitedTickerUseC
 
     @Override
     public void addProhibitedTicker(ProhibitedTickerDTO ticker) {
+        log.info("Adding prohibited ticker: {}", ticker.getTicker());
         ProhibitedTicker stock = prohibitedTickerMapper.toDomain(ticker);
         prohibitedTickerRepository.save(stock);
+        log.info("Prohibited ticker added successfully: {}", ticker.getTicker());
     }
 
     @Override
     @Transactional
     public void removeProhibitedTicker(String ticker) {
+        log.info("Removing prohibited ticker: {}", ticker);
         prohibitedTickerRepository.deleteByTicker(ticker);
+        log.info("Prohibited ticker removed successfully: {}", ticker);
     }
 
 }

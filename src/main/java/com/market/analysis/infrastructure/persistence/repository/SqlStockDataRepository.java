@@ -15,9 +15,11 @@ import com.market.analysis.infrastructure.persistence.entity.CompanyProfileEntit
 import com.market.analysis.infrastructure.persistence.mapper.StockMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SqlStockDataRepository implements StockDataRepository {
 
     private final JpaStockDataRepository jpaRepository;
@@ -27,18 +29,22 @@ public class SqlStockDataRepository implements StockDataRepository {
     @Override
     @Transactional
     public Stock save(Stock stockData) {
+        log.debug("Saving stock data for ticker: {}", stockData.getTicker());
         Optional<CompanyProfileEntity> profile = companyProfileRepository.findByTicker(stockData.getTicker());
         var entity = mapper.toEntity(stockData);
         if (profile.isPresent()) {
             entity.setCompanyProfile(profile.get());
         }
-        return mapper.toDomain(jpaRepository.save(entity));
+        Stock savedStock = mapper.toDomain(jpaRepository.save(entity));
+        log.debug("Stock data saved successfully for ticker: {}", savedStock.getTicker());
+        return savedStock;
 
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Stock> findAllStocks() {
+        log.debug("Retrieving all stock data");
         return jpaRepository.findAllWithProfile().stream()
                 .map(mapper::toDomain)
                 .toList();
