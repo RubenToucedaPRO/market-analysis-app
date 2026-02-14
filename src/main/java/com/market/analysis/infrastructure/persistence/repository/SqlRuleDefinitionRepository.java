@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
 
     private final JpaRuleDefinitionRepository jpaRepository;
+    private final JpaStrategyRepository strategyRepository; // Para verificar dependencias antes de eliminar
     private final RuleDefinitionMapper mapper;
 
     @Override
@@ -51,6 +52,11 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
 
     @Override
     public void deleteById(Long id) {
+        if (strategyRepository.findAll().stream()
+                .anyMatch(strategy -> strategy.getRules().stream()
+                        .anyMatch(rule -> rule.getId() != null && rule.getId().equals(id)))) {
+            throw new IllegalArgumentException("No se puede eliminar la definición de regla porque está asociada a una estrategia.");
+        }
         jpaRepository.deleteById(id);
     }
 

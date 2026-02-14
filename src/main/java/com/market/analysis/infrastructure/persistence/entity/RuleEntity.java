@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "strategy_rules")
+@Table(name = "rules")
 @Getter
 @Setter
 public class RuleEntity {
