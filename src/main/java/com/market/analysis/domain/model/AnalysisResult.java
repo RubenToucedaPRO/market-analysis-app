@@ -1,7 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +33,7 @@ public class AnalysisResult {
     /**
      * Timestamp when the analysis was performed.
      */
-    private final LocalDateTime analysisTimestamp;
+    private final Instant analysisTimestamp;
 
     /**
      * Results of individual rule evaluations.

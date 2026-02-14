@@ -91,7 +91,7 @@ public class FinnhubAdapter implements StockProviderPort {
             if (profile != null && profile.isValid()) {
                 log.debug("Profile fetched for {}: name={}", ticker, profile.getName());
                 profile.setTicker(ticker);
-                profile.setLastUpdated(java.time.LocalDateTime.now());
+                profile.setLastUpdated(java.time.Instant.now());
                 return finnhubMapper.toDomain(profile);
             }
             log.debug("No valid profile found for {}", ticker);

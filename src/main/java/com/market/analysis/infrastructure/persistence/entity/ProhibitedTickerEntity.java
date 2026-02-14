@@ -1,6 +1,6 @@
 package com.market.analysis.infrastructure.persistence.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,5 +26,5 @@ public class ProhibitedTickerEntity {
 
     private String reason;
 
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

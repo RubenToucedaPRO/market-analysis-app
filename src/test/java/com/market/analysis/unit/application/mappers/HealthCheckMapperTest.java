@@ -3,7 +3,7 @@ package com.market.analysis.unit.application.mappers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should map UP status to 200 HTTP status code")
     void testMapUpStatusToHttp200() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("UP")
                 .timestamp(now)
@@ -52,7 +52,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should map DOWN status to 503 HTTP status code")
     void testMapDownStatusToHttp503() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("DOWN")
                 .timestamp(now)
@@ -73,7 +73,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should preserve all fields from HealthStatus in response")
     void testMapPreservesAllFields() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         String description = "Test description";
         String details = "Test details";
 
@@ -100,7 +100,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should handle null timestamp gracefully")
     void testMapHandlesAllPossibleStatuses() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         // Test DEGRADED status (though currently not used, important for future
         // extension)

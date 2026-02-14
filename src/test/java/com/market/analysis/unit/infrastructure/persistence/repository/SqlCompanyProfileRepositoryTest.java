@@ -6,7 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -44,8 +44,8 @@ class SqlCompanyProfileRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        LocalDateTime lastUpdated = LocalDateTime.now();
-        
+        Instant lastUpdated = Instant.now();
+
         testProfile = CompanyProfile.builder()
                 .name("Apple Inc.")
                 .ticker("AAPL")
@@ -91,7 +91,7 @@ class SqlCompanyProfileRepositoryTest {
                 .id(2L)
                 .ticker("AAPL")
                 .build();
-        
+
         when(jpaRepository.findByTicker("AAPL")).thenReturn(Optional.of(existingEntity));
         when(mapper.toEntity(testProfile)).thenReturn(testEntity);
         when(jpaRepository.save(any(CompanyProfileEntity.class))).thenReturn(testEntity);

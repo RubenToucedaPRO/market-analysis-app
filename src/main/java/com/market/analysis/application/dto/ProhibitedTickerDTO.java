@@ -1,6 +1,6 @@
 package com.market.analysis.application.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,5 +22,5 @@ public class ProhibitedTickerDTO {
     private String reason;
 
     /** Timestamp when the ticker was added to the prohibited list */
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

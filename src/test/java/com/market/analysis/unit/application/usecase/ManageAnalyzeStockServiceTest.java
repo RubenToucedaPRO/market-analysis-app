@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -82,7 +82,7 @@ class ManageAnalyzeStockServiceTest {
                 .name("Apple Inc.")
                 .country("US")
                 .exchange("NASDAQ")
-                .lastUpdated(LocalDateTime.now())
+                .lastUpdated(Instant.now())
                 .build();
 
         prohibitedCompanyProfile = CompanyProfile.builder()
@@ -90,7 +90,7 @@ class ManageAnalyzeStockServiceTest {
                 .name("SPDR S&P 500 ETF Trust")
                 .country("US")
                 .exchange("NYSE")
-                .lastUpdated(LocalDateTime.now())
+                .lastUpdated(Instant.now())
                 .build();
 
         testStrategy = com.market.analysis.domain.model.Strategy.builder()
@@ -112,7 +112,7 @@ class ManageAnalyzeStockServiceTest {
         analysisResult = com.market.analysis.domain.model.AnalysisResult.builder()
                 .strategy(testStrategy)
                 .ticker("AAPL")
-                .analysisTimestamp(LocalDateTime.now())
+                .analysisTimestamp(Instant.now())
                 .ruleResults(Arrays.asList())
                 .calculatedMetrics(new java.util.HashMap<>())
                 .overallPassed(true)
@@ -147,7 +147,7 @@ class ManageAnalyzeStockServiceTest {
         CompanyProfile profile2 = CompanyProfile.builder()
                 .ticker("GOOGL")
                 .name("Alphabet Inc.")
-                .lastUpdated(LocalDateTime.now())
+                .lastUpdated(Instant.now())
                 .build();
 
         when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
@@ -231,7 +231,7 @@ class ManageAnalyzeStockServiceTest {
         CompanyProfile outdatedProfile = CompanyProfile.builder()
                 .ticker("AAPL")
                 .name("Apple Inc.")
-                .lastUpdated(LocalDateTime.now().minusDays(31))
+                .lastUpdated(Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS))
                 .build();
 
         when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(outdatedProfile));

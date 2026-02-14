@@ -258,7 +258,7 @@ interface Rule {
 ```java
 class MarketSnapshot {
     String symbol;
-    LocalDateTime timestamp;
+    Instant timestamp;
     BigDecimal currentPrice;
     BigDecimal open, high, low, close;
     Long volume;

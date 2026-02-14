@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class MarketDataPointTest {
     @DisplayName("Should create market data point with valid data")
     void testCreateMarketDataPointWithValidData() {
         // Arrange
-        LocalDateTime date = LocalDateTime.of(2026, 2, 4, 10, 0);
+        Instant date = Instant.now();
         BigDecimal open = BigDecimal.valueOf(150.0);
         BigDecimal high = BigDecimal.valueOf(155.0);
         BigDecimal low = BigDecimal.valueOf(148.0);
@@ -53,7 +53,7 @@ class MarketDataPointTest {
     void testCreateDailyCandleDataPoint() {
         // Arrange & Act
         Candle dailyCandle = Candle.builder()
-                .dateTime(LocalDateTime.of(2026, 2, 4, 0, 0))
+                .dateTime(Instant.now())
                 .openPrice(BigDecimal.valueOf(100.50))
                 .highPrice(BigDecimal.valueOf(102.75))
                 .lowPrice(BigDecimal.valueOf(99.25))
@@ -82,7 +82,8 @@ class MarketDataPointTest {
                 .volume(null)
                 .build();
 
-        // Assert - Builder allows null values (validation would be done at business logic layer)
+        // Assert - Builder allows null values (validation would be done at business
+        // logic layer)
         assertNotNull(dataPoint);
     }
 
@@ -91,7 +92,7 @@ class MarketDataPointTest {
     void testCreateIntradayDataPoint() {
         // Arrange & Act - 5-minute candle
         Candle intradayCandle = Candle.builder()
-                .dateTime(LocalDateTime.of(2026, 2, 4, 9, 35))
+                .dateTime(Instant.now())
                 .openPrice(BigDecimal.valueOf(150.25))
                 .highPrice(BigDecimal.valueOf(150.60))
                 .lowPrice(BigDecimal.valueOf(150.10))
@@ -101,6 +102,6 @@ class MarketDataPointTest {
 
         // Assert
         assertNotNull(intradayCandle);
-        assertEquals(LocalDateTime.of(2026, 2, 4, 9, 35), intradayCandle.getDateTime());
+        assertEquals(Instant.now().getEpochSecond(), intradayCandle.getDateTime().getEpochSecond());
     }
 }

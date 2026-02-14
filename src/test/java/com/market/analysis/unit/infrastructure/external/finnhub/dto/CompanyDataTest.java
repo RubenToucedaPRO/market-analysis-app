@@ -2,7 +2,7 @@ package com.market.analysis.unit.infrastructure.external.finnhub.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ class CompanyDataTest {
     @DisplayName("Should create CompanyData with all fields using builder")
     void testCompanyDataBuilder() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
 
         // Act
         CompanyData companyData = CompanyData.builder()
@@ -133,7 +133,7 @@ class CompanyDataTest {
     @DisplayName("Should check if data is outdated")
     void testIsOutdatedWithOldData() {
         // Arrange
-        LocalDateTime oldDate = LocalDateTime.now().minusDays(31);
+        Instant oldDate = Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS);
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
                 .lastUpdated(oldDate)
@@ -150,7 +150,7 @@ class CompanyDataTest {
     @DisplayName("Should check if data is not outdated")
     void testIsOutdatedWithRecentData() {
         // Arrange
-        LocalDateTime recentDate = LocalDateTime.now().minusDays(15);
+        Instant recentDate = Instant.now().minus(15, java.time.temporal.ChronoUnit.DAYS);
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
                 .lastUpdated(recentDate)
@@ -167,7 +167,7 @@ class CompanyDataTest {
     @DisplayName("Should consider data not outdated when lastUpdated is exactly 30 days ago")
     void testIsOutdatedWithExactly30DaysAgo() {
         // Arrange
-        LocalDateTime exactly30DaysAgo = LocalDateTime.now().minusDays(29);
+        Instant exactly30DaysAgo = Instant.now().minus(29, java.time.temporal.ChronoUnit.DAYS);
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
                 .lastUpdated(exactly30DaysAgo)
@@ -184,7 +184,7 @@ class CompanyDataTest {
     @DisplayName("Should consider data outdated when lastUpdated is more than 30 days ago")
     void testIsOutdatedWithMoreThan30DaysAgo() {
         // Arrange
-        LocalDateTime moreThan30DaysAgo = LocalDateTime.now().minusDays(30);
+        Instant moreThan30DaysAgo = Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS);
         CompanyData companyData = CompanyData.builder()
                 .name("Apple Inc.")
                 .lastUpdated(moreThan30DaysAgo)
@@ -227,7 +227,7 @@ class CompanyDataTest {
     @DisplayName("Should support all-args constructor")
     void testAllArgsConstructor() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
 
         // Act
         CompanyData companyData = new CompanyData(
@@ -270,7 +270,7 @@ class CompanyDataTest {
     @DisplayName("Should validate equals and hashCode for identical objects")
     void testEqualsAndHashCode() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         CompanyData companyData1 = CompanyData.builder()
                 .name("Apple Inc.")
                 .ticker("AAPL")

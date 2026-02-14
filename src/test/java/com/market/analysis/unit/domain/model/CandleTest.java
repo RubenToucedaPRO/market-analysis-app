@@ -3,7 +3,7 @@ package com.market.analysis.unit.domain.model;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,8 +17,7 @@ class CandleTest {
     @DisplayName("Should create Candle with all OHLCV data")
     void shouldCreateCandleWithAllOHLCVData() {
         // Arrange
-        LocalDateTime dateTime = LocalDateTime.of(2024, 1, 15, 9, 30);
-        
+        Instant dateTime = Instant.now();
         // Act
         Candle candle = Candle.builder()
                 .ticker("AAPL")
@@ -45,8 +44,8 @@ class CandleTest {
     @DisplayName("Should create Candle with ticker containing special characters")
     void shouldCreateCandleWithSpecialCharactersInTicker() {
         // Arrange
-        LocalDateTime dateTime = LocalDateTime.of(2024, 1, 15, 9, 30);
-        
+        Instant dateTime = Instant.now();
+
         // Act
         Candle candle = Candle.builder()
                 .ticker("BRK.B")
@@ -67,8 +66,8 @@ class CandleTest {
     @DisplayName("Should create Candle with large volume")
     void shouldCreateCandleWithLargeVolume() {
         // Arrange
-        LocalDateTime dateTime = LocalDateTime.now();
-        
+        Instant dateTime = Instant.now();
+
         // Act
         Candle candle = Candle.builder()
                 .ticker("TSLA")
@@ -88,8 +87,8 @@ class CandleTest {
     @DisplayName("Should create Candle with decimal prices")
     void shouldCreateCandleWithDecimalPrices() {
         // Arrange
-        LocalDateTime dateTime = LocalDateTime.now();
-        
+        Instant dateTime = Instant.now();
+
         // Act
         Candle candle = Candle.builder()
                 .ticker("GOOGL")

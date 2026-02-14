@@ -1,6 +1,6 @@
 package com.market.analysis.domain.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,13 +15,13 @@ public class ProhibitedTicker {
 
     private String ticker;
     private String reason;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     public static ProhibitedTicker createProhibited(String ticker, String reason) {
         return ProhibitedTicker.builder()
                 .ticker(ticker)
                 .reason(reason)
-                .createdAt(java.time.LocalDateTime.now())
+                .createdAt(java.time.Instant.now())
                 .build();
     }
 }

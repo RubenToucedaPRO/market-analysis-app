@@ -1,7 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -25,7 +25,7 @@ public class Candle {
     /**
      * Date and time of this data point.
      */
-    private final LocalDateTime dateTime;
+    private final Instant dateTime;
 
     /**
      * Opening price for the period.

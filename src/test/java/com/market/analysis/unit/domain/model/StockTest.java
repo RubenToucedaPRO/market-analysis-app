@@ -3,7 +3,7 @@ package com.market.analysis.unit.domain.model;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,8 +32,8 @@ class StockTest {
     @DisplayName("Should create Stock with all fields")
     void shouldCreateStockWithAllFields() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        
+        Instant now = Instant.now();
+
         // Act
         Stock stock = Stock.builder()
                 .ticker("GOOGL")

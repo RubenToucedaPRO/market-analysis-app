@@ -2,7 +2,7 @@ package com.market.analysis.unit.domain.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ class HealthStatusTest {
     @DisplayName("Should create HealthStatus with all fields using builder")
     void testHealthStatusBuilder() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         // Act
         HealthStatus healthStatus = HealthStatus.builder()
@@ -44,7 +44,7 @@ class HealthStatusTest {
     @DisplayName("Should create HealthStatus with DOWN status")
     void testHealthStatusWithDownStatus() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         // Act
         HealthStatus healthStatus = HealthStatus.builder()
@@ -65,7 +65,7 @@ class HealthStatusTest {
     @DisplayName("Should have correct toString representation")
     void testToString() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("UP")
                 .timestamp(now)
