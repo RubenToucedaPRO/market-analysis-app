@@ -1,6 +1,6 @@
 package com.market.analysis.application.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -22,7 +22,7 @@ public class HealthCheckResponse {
     private String status;
 
     @JsonProperty("timestamp")
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 
     @JsonProperty("database_healthy")
     private boolean databaseHealthy;

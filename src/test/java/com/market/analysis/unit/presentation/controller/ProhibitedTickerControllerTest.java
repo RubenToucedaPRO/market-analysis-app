@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,21 +52,21 @@ class ProhibitedTickerControllerTest {
 
     @BeforeEach
     void setUp() {
-        testProhibitedTicker1 = new ProhibitedTicker("AAPL", "Test reason 1", LocalDateTime.now());
-        testProhibitedTicker2 = new ProhibitedTicker("GOOGL", "Test reason 2", LocalDateTime.now());
+        testProhibitedTicker1 = new ProhibitedTicker("AAPL", "Test reason 1", Instant.now());
+        testProhibitedTicker2 = new ProhibitedTicker("GOOGL", "Test reason 2", Instant.now());
 
         testDTO1 = ProhibitedTickerDTO.builder()
                 .id(1L)
                 .ticker("AAPL")
                 .reason("Test reason 1")
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
 
         testDTO2 = ProhibitedTickerDTO.builder()
                 .id(2L)
                 .ticker("GOOGL")
                 .reason("Test reason 2")
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
     }
 

@@ -3,7 +3,7 @@ package com.market.analysis.unit.application.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +30,7 @@ class StockDataDTOMapperTest {
     @DisplayName("Should map Stock domain to StockDataDTO")
     void testToDTO() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
         Stock stock = Stock.builder()
                 .ticker("AAPL")
                 .logoUrl("https://example.com/logo.png")

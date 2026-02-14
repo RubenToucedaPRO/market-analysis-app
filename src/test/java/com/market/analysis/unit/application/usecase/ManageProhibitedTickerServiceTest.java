@@ -8,6 +8,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,7 +51,7 @@ class ManageProhibitedTickerServiceTest {
         testProhibitedTickerDTO = ProhibitedTickerDTO.builder()
                 .ticker("AAPL")
                 .reason("Inappropriate content")
-                .createdAt(java.time.LocalDateTime.parse("2024-06-01T12:00:00"))
+                .createdAt(Instant.now().minus(40, ChronoUnit.DAYS))
                 .build();
     }
 
@@ -58,9 +60,9 @@ class ManageProhibitedTickerServiceTest {
     void testGetAllProhibitedTickers() {
         // Arrange
         ProhibitedTicker ticker1 = new ProhibitedTicker("AAPL", "Inappropriate content",
-                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+                Instant.now().minus(40, ChronoUnit.DAYS));
         ProhibitedTicker ticker2 = new ProhibitedTicker("GOOGL", "Inappropriate content",
-                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+                Instant.now().minus(2, ChronoUnit.DAYS));
 
         ProhibitedTickerDTO dto1 = ProhibitedTickerDTO.builder().ticker("AAPL").build();
         ProhibitedTickerDTO dto2 = ProhibitedTickerDTO.builder().ticker("GOOGL").build();

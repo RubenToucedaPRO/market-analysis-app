@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +18,8 @@ import com.market.analysis.domain.service.RuleEvaluator;
 
 /**
  * Unit tests for RuleEvaluator domain service.
- * Tests cover deterministic rule evaluation logic for various technical indicators.
+ * Tests cover deterministic rule evaluation logic for various technical
+ * indicators.
  */
 @DisplayName("RuleEvaluator Domain Service Tests")
 class RuleEvaluatorTest {
@@ -29,7 +30,7 @@ class RuleEvaluatorTest {
     @BeforeEach
     void setUp() {
         ruleEvaluator = new RuleEvaluator();
-        
+
         testStock = Stock.builder()
                 .ticker("AAPL")
                 .currentPrice(BigDecimal.valueOf(150.00))
@@ -42,7 +43,7 @@ class RuleEvaluatorTest {
                 .sma200(BigDecimal.valueOf(130.00))
                 .volume(10000000L)
                 .averageVolume(8000000L)
-                .lastUpdated(LocalDateTime.now())
+                .lastUpdated(Instant.now())
                 .build();
     }
 

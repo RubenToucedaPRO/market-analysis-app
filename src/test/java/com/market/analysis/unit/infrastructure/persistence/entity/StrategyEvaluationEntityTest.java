@@ -3,7 +3,7 @@ package com.market.analysis.unit.infrastructure.persistence.entity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,7 +44,7 @@ class StrategyEvaluationEntityTest {
             stock.setId(1L);
             stock.setTicker("AAPL");
             stock.setStrategyId(10L);
-            LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 10, 30, 0);
+            Instant evaluatedAt = Instant.now();
 
             // Act
             entity.setId(1L);
@@ -150,7 +150,7 @@ class StrategyEvaluationEntityTest {
         void shouldGetAndSetEvaluatedAtTimestamp() {
             // Arrange
             StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
-            LocalDateTime timestamp = LocalDateTime.of(2026, 2, 12, 14, 45, 30);
+            Instant timestamp = Instant.now();
 
             // Act
             entity.setEvaluatedAt(timestamp);
@@ -200,7 +200,7 @@ class StrategyEvaluationEntityTest {
             // Act
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(100.00));
-            entity.setEvaluatedAt(LocalDateTime.now());
+            entity.setEvaluatedAt(Instant.now());
             entity.setLatest(true);
             // id, stock, summary, priceAtEvaluation are null
 
@@ -284,7 +284,7 @@ class StrategyEvaluationEntityTest {
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(90.00));
             entity.setSummary("All rules passed successfully");
-            entity.setEvaluatedAt(LocalDateTime.now());
+            entity.setEvaluatedAt(Instant.now());
             entity.setPriceAtEvaluation(BigDecimal.valueOf(380.00));
             entity.setLatest(true);
 
@@ -308,7 +308,7 @@ class StrategyEvaluationEntityTest {
             entity.setCompliant(false);
             entity.setComplianceRate(BigDecimal.valueOf(35.00));
             entity.setSummary("Strategy failed - insufficient rules passed");
-            entity.setEvaluatedAt(LocalDateTime.now());
+            entity.setEvaluatedAt(Instant.now());
             entity.setPriceAtEvaluation(BigDecimal.valueOf(3200.00));
             entity.setLatest(false);
 
@@ -326,7 +326,7 @@ class StrategyEvaluationEntityTest {
             StockEntity stock = new StockEntity();
             stock.setTicker("NVDA");
             stock.setStrategyId(20L);
-            LocalDateTime pastDate = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
+            Instant pastDate = Instant.now().minusSeconds(3600); // 1 hour in the past
 
             // Act
             entity.setStock(stock);
@@ -337,7 +337,7 @@ class StrategyEvaluationEntityTest {
 
             // Assert
             assertThat(entity.isLatest()).isFalse();
-            assertThat(entity.getEvaluatedAt()).isBefore(LocalDateTime.now());
+            assertThat(entity.getEvaluatedAt()).isBefore(Instant.now());
         }
 
         @Test
@@ -348,7 +348,7 @@ class StrategyEvaluationEntityTest {
             StockEntity stock = new StockEntity();
             stock.setTicker("META");
             stock.setStrategyId(30L);
-            LocalDateTime now = LocalDateTime.now();
+            Instant now = Instant.now();
 
             // Act
             entity.setStock(stock);

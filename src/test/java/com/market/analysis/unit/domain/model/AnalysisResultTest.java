@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -58,7 +58,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(List.of(ruleResult))
                                 .calculatedMetrics(metrics)
                                 .overallPassed(true)
@@ -107,7 +107,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(List.of(ruleResult))
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(true)
@@ -135,7 +135,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(null)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(List.of())
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(false)
@@ -173,7 +173,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker(null)
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(List.of())
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(false)
@@ -266,7 +266,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(List.of(ruleResult)) // Only 1 result, but strategy has 2 rules
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(false)
@@ -310,7 +310,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(List.of(ruleResult))
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(true)
@@ -361,7 +361,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(ruleResults)
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(true)
@@ -415,7 +415,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(ruleResults)
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(false)
@@ -443,7 +443,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(List.of())
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(false)
@@ -472,7 +472,7 @@ class AnalysisResultTest {
                 AnalysisResult analysisResult = AnalysisResult.builder()
                                 .strategy(strategy)
                                 .ticker("AAPL")
-                                .analysisTimestamp(LocalDateTime.now())
+                                .analysisTimestamp(Instant.now())
                                 .ruleResults(null)
                                 .calculatedMetrics(Map.of())
                                 .overallPassed(false)

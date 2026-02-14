@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +58,7 @@ class EvaluateStrategyServiceTest {
                                 .sma50(BigDecimal.valueOf(140.00))
                                 .volume(10000000L)
                                 .averageVolume(8000000L)
-                                .lastUpdated(LocalDateTime.now())
+                                .lastUpdated(Instant.now())
                                 .build();
 
                 rule1 = Rule.builder()
@@ -180,12 +180,12 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
                                         .thenReturn(result1, result2);
 
-                        LocalDateTime before = LocalDateTime.now();
+                        Instant before = Instant.now();
 
                         // Act
                         AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
 
-                        LocalDateTime after = LocalDateTime.now();
+                        Instant after = Instant.now();
 
                         // Assert
                         assertThat(result.getAnalysisTimestamp()).isNotNull();

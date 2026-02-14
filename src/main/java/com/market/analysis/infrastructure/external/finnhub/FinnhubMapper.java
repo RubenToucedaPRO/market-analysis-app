@@ -1,6 +1,6 @@
 package com.market.analysis.infrastructure.external.finnhub;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.stereotype.Component;
 
@@ -23,7 +23,7 @@ public class FinnhubMapper {
                 .lowOfDay(quote.getL())
                 .openPrice(quote.getO())
                 .previousClose(quote.getPc())
-                .lastUpdated(LocalDateTime.ofEpochSecond(quote.getT(), 0, java.time.ZoneOffset.UTC))
+                .lastUpdated(Instant.ofEpochSecond(quote.getT()))
                 .build();
     }
 

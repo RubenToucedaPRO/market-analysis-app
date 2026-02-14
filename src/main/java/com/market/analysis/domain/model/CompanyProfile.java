@@ -1,6 +1,6 @@
 package com.market.analysis.domain.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -51,7 +51,7 @@ public class CompanyProfile {
     /** Company website URL */
     private String website;
 
-    private LocalDateTime lastUpdated;
+    private Instant lastUpdated;
 
     /**
      * Checks if the profile has valid data.
@@ -64,7 +64,7 @@ public class CompanyProfile {
 
     public boolean isOutdated() {
         return lastUpdated == null ||
-                lastUpdated.isBefore(LocalDateTime.now().minusDays(30));
+                lastUpdated.isBefore(Instant.now().minusSeconds(24 * 60 * 60 * 30));
     }
 
     /**

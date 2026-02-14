@@ -3,7 +3,7 @@ package com.market.analysis.unit.infrastructure.persistence.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +37,7 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should convert domain model to entity with all fields")
         void shouldConvertDomainToEntityWithAllFields() {
             // Arrange
-            LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 10, 30, 0);
+            Instant evaluatedAt = Instant.now();
             StockEntity stock = new StockEntity();
             stock.setId(1L);
             stock.setTicker("AAPL");
@@ -86,7 +86,7 @@ class StrategyEvaluationMapperTest {
                     .compliant(false)
                     .complianceRate(BigDecimal.valueOf(45.00))
                     .summary("Strategy failed - insufficient compliance")
-                    .evaluatedAt(LocalDateTime.now())
+                    .evaluatedAt(Instant.now())
                     .priceAtEvaluation(BigDecimal.valueOf(2800.00))
                     .isLatest(false)
                     .build();
@@ -129,7 +129,7 @@ class StrategyEvaluationMapperTest {
                     .strategyId(3L)
                     .compliant(true)
                     .complianceRate(BigDecimal.valueOf(100.00))
-                    .evaluatedAt(LocalDateTime.now())
+                    .evaluatedAt(Instant.now())
                     .isLatest(true)
                     // id, summary, priceAtEvaluation are null
                     .build();
@@ -154,7 +154,7 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should convert entity to domain model with all fields")
         void shouldConvertEntityToDomainWithAllFields() {
             // Arrange
-            LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 14, 45, 30);
+            Instant evaluatedAt = Instant.now();
             StockEntity stock = new StockEntity();
             stock.setId(100L);
             stock.setTicker("MSFT");
@@ -201,7 +201,7 @@ class StrategyEvaluationMapperTest {
             entity.setCompliant(false);
             entity.setComplianceRate(BigDecimal.valueOf(30.00));
             entity.setSummary("Strategy failed multiple rules");
-            entity.setEvaluatedAt(LocalDateTime.now());
+            entity.setEvaluatedAt(Instant.now());
             entity.setPriceAtEvaluation(BigDecimal.valueOf(3200.00));
             entity.setLatest(false);
 
@@ -238,7 +238,7 @@ class StrategyEvaluationMapperTest {
             entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(88.00));
-            entity.setEvaluatedAt(LocalDateTime.now());
+            entity.setEvaluatedAt(Instant.now());
             entity.setLatest(true);
             // id, summary, priceAtEvaluation are null
 
@@ -262,7 +262,7 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should preserve data in round-trip domain -> entity -> domain")
         void shouldPreserveDataInRoundTripDomainToEntityToDomain() {
             // Arrange
-            LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 12, 0, 0);
+            Instant evaluatedAt = Instant.now();
             StockEntity stock = new StockEntity();
             stock.setId(999L);
             stock.setTicker("META");
@@ -302,7 +302,7 @@ class StrategyEvaluationMapperTest {
         @DisplayName("Should preserve data in round-trip entity -> domain -> entity")
         void shouldPreserveDataInRoundTripEntityToDomainToEntity() {
             // Arrange
-            LocalDateTime evaluatedAt = LocalDateTime.of(2026, 2, 12, 16, 30, 0);
+            Instant evaluatedAt = Instant.now();
             StockEntity originalStock = new StockEntity();
             originalStock.setId(888L);
             originalStock.setTicker("NFLX");

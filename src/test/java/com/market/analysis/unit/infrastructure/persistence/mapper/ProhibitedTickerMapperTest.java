@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.Instant;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +31,8 @@ class ProhibitedTickerMapperTest {
     @DisplayName("Should map ProhibitedTicker domain to ProhibitedTickerEntity")
     void testToEntity() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL", "Test reason", java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL", "Test reason",
+                Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS));
 
         // Act
         ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(prohibitedTicker);
@@ -80,7 +83,8 @@ class ProhibitedTickerMapperTest {
     @DisplayName("Should correctly map ticker with special characters")
     void testToEntityWithSpecialCharacters() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B", "Test reason", java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B", "Test reason",
+                Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS));
 
         // Act
         ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(prohibitedTicker);

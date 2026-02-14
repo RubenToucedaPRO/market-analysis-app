@@ -1,6 +1,7 @@
 package com.market.analysis.infrastructure.external.finnhub.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,7 +48,7 @@ public class CompanyData {
     /** Company website URL */
     private String weburl;
 
-    private LocalDateTime lastUpdated;
+    private Instant lastUpdated;
 
     /**
      * Checks if the profile has valid data.
@@ -62,6 +63,6 @@ public class CompanyData {
 
     public boolean isOutdated() {
         return lastUpdated == null ||
-                lastUpdated.isBefore(LocalDateTime.now().minusDays(30));
+                lastUpdated.isBefore(Instant.now().minus(30, ChronoUnit.DAYS));
     }
 }

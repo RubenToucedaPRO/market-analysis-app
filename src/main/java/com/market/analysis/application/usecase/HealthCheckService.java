@@ -1,6 +1,6 @@
 package com.market.analysis.application.usecase;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 
@@ -54,7 +54,7 @@ public class HealthCheckService {
 
         HealthStatus healthStatus = HealthStatus.builder()
                 .status(status)
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .databaseHealthy(databaseHealthy)
                 .description(description)
                 .details(details)

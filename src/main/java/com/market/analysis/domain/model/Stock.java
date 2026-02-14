@@ -1,7 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -64,7 +64,7 @@ public class Stock {
     private Long averageVolume;
 
     /** Last updated timestamp */
-    private LocalDateTime lastUpdated;
+    private Instant lastUpdated;
 
     /**
      * ID of the strategy associated with this ticker.

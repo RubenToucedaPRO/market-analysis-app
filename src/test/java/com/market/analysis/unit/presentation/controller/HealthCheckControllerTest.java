@@ -8,7 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class HealthCheckControllerTest {
         @DisplayName("Should return 200 OK with UP status when application is healthy")
         void testGetHealthReturnsOkWhenUp() throws Exception {
                 // Arrange
-                LocalDateTime now = LocalDateTime.now();
+                Instant now = Instant.now();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("UP")
@@ -72,7 +72,7 @@ class HealthCheckControllerTest {
         @DisplayName("Should return 503 SERVICE_UNAVAILABLE when application is DOWN")
         void testGetHealthReturnsServiceUnavailableWhenDown() throws Exception {
                 // Arrange
-                LocalDateTime now = LocalDateTime.now();
+                Instant now = Instant.now();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("DOWN")
@@ -99,7 +99,7 @@ class HealthCheckControllerTest {
         @DisplayName("Should include timestamp in response")
         void testGetHealthIncludesTimestamp() throws Exception {
                 // Arrange
-                LocalDateTime now = LocalDateTime.now();
+                Instant now = Instant.now();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("UP")
@@ -123,7 +123,7 @@ class HealthCheckControllerTest {
         @DisplayName("Should include database connection details in response")
         void testGetHealthIncludesDatabaseDetails() throws Exception {
                 // Arrange
-                LocalDateTime now = LocalDateTime.now();
+                Instant now = Instant.now();
 
                 HealthCheckResponse response = HealthCheckResponse.builder()
                                 .status("UP")

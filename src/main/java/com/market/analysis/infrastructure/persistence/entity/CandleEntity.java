@@ -1,7 +1,7 @@
 package com.market.analysis.infrastructure.persistence.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,7 +27,7 @@ public class CandleEntity {
     @JoinColumn(name = "stocks_id")
     private StockEntity stock;
 
-    private LocalDateTime dateTime;
+    private Instant dateTime;
     private BigDecimal openPrice;
     private BigDecimal highPrice;
     private BigDecimal lowPrice;

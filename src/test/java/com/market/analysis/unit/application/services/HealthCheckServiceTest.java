@@ -51,7 +51,7 @@ class HealthCheckServiceTest {
 
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("UP")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(java.time.Instant.now())
                 .databaseHealthy(true)
                 .description("Application is fully operational. All dependencies are healthy.")
                 .details("Database: Healthy (50ms)")
@@ -83,7 +83,7 @@ class HealthCheckServiceTest {
 
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("DOWN")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(java.time.Instant.now())
                 .databaseHealthy(false)
                 .description("Application is not operational. Critical dependencies are unavailable.")
                 .details("Database: Unhealthy (-1ms)")
@@ -115,7 +115,7 @@ class HealthCheckServiceTest {
 
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("UP")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(java.time.Instant.now())
                 .databaseHealthy(true)
                 .description("Application is fully operational. All dependencies are healthy.")
                 .details("Database: Healthy (25ms)")
@@ -142,7 +142,7 @@ class HealthCheckServiceTest {
 
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("UP")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(java.time.Instant.now())
                 .databaseHealthy(true)
                 .description("Application is fully operational. All dependencies are healthy.")
                 .details("Database: Healthy (123ms)")
@@ -167,7 +167,7 @@ class HealthCheckServiceTest {
 
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("DOWN")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(java.time.Instant.now())
                 .databaseHealthy(false)
                 .description("Application is not operational. Critical dependencies are unavailable.")
                 .details("Database: Unhealthy (-1ms)")
@@ -192,7 +192,7 @@ class HealthCheckServiceTest {
 
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("UP")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(java.time.Instant.now())
                 .databaseHealthy(true)
                 .description("Application is fully operational. All dependencies are healthy.")
                 .details("Database: Healthy (10ms)")
@@ -218,7 +218,7 @@ class HealthCheckServiceTest {
 
         HealthCheckResponse response = HealthCheckResponse.builder()
                 .status("DOWN")
-                .timestamp(java.time.LocalDateTime.now())
+                .timestamp(java.time.Instant.now())
                 .databaseHealthy(false)
                 .description("Application is not operational. Critical dependencies are unavailable.")
                 .details("Database: Unhealthy (-1ms)")

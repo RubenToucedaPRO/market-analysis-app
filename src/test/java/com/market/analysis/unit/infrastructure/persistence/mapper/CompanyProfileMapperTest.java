@@ -2,7 +2,7 @@ package com.market.analysis.unit.infrastructure.persistence.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ class CompanyProfileMapperTest {
     @DisplayName("Should map CompanyProfile domain to CompanyProfileEntity")
     void testToEntity() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
         CompanyProfile profile = CompanyProfile.builder()
                 .name("Apple Inc.")
                 .country("US")
@@ -66,7 +66,7 @@ class CompanyProfileMapperTest {
     @DisplayName("Should map CompanyProfileEntity to CompanyProfile domain")
     void testToDomain() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
         CompanyProfileEntity entity = CompanyProfileEntity.builder()
                 .id(1L)
                 .name("Apple Inc.")
