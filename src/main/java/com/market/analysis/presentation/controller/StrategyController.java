@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,6 +35,13 @@ public class StrategyController {
     public String listStrategies(Model model) {
         model.addAttribute("strategies", manageStrategyUseCase.getAllStrategies());
         return "strategies/list";
+    }
+
+    @GetMapping("/{id}")
+    public String viewStrategyDetail(@PathVariable("id") long strategyId, Model model) {
+        StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
+        model.addAttribute(ATTR_STRATEGY, strategyDTO);
+        return "strategies/detail";
     }
 
     @GetMapping("/new")

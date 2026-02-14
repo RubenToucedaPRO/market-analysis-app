@@ -132,18 +132,23 @@
               <tbody id="tickersTableBody">
                 <tr th:each="ticker : ${tickers}">
                   <td>
-                    <div style="display: flex; align-items: center; gap: 10px">
-                      <img
-                        th:src="${ticker.logoUrl}"
-                        loading="lazy"
-                        width="25"
-                        height="25"
-                        alt="logo of [[${ticker.ticker}]]"
-                      />
-                      <span th:text="${ticker.ticker}" style="font-weight: bold"
-                        >AAPL</span
-                      >
-                    </div>
+                    <a 
+                      th:href="@{/analysis/ticker/{id}(id=${ticker.id})}"
+                      style="text-decoration: none; color: inherit"
+                    >
+                      <div style="display: flex; align-items: center; gap: 10px">
+                        <img
+                          th:src="${ticker.logoUrl}"
+                          loading="lazy"
+                          width="25"
+                          height="25"
+                          alt="logo of [[${ticker.ticker}]]"
+                        />
+                        <span th:text="${ticker.ticker}" style="font-weight: bold"
+                          >AAPL</span
+                        >
+                      </div>
+                    </a>
                   </td>
                   <td>
                     <span
