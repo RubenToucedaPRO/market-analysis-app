@@ -32,6 +32,10 @@ public class StockMapper {
         entity.setStrategyId(domain.getStrategyId());
         entity.setAverageVolume(domain.getAverageVolume());
         entity.setLastUpdate(domain.getLastUpdated());
+        entity.setStrategyEvaluation(domain.getStrategyEvaluation() != null
+                ? strategyEvaluationMapper.toEntity(domain.getStrategyEvaluation())
+                : null);
+        entity.setValorationIA(domain.getValorationIA());
 
         if (entity.getCompanyProfile() != null) {
             entity.getCompanyProfile().setLogo(domain.getLogoUrl());
@@ -43,6 +47,9 @@ public class StockMapper {
     public Stock toDomain(StockEntity entity) {
         if (entity == null)
             return null;
+        if(entity.getStrategyEvaluation() != null) {
+            entity.getStrategyEvaluation().setStock(entity);
+        }
 
         return Stock.builder()
                 .id(entity.getId())
@@ -63,6 +70,7 @@ public class StockMapper {
                 .strategyEvaluation(entity.getStrategyEvaluation() != null
                         ? strategyEvaluationMapper.toDomain(entity.getStrategyEvaluation())
                         : null)
+                .valorationIA(entity.getValorationIA())
                 .build();
     }
 }

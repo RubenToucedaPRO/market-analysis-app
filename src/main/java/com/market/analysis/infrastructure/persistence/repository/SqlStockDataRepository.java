@@ -25,7 +25,7 @@ public class SqlStockDataRepository implements StockDataRepository {
     private final StockMapper mapper;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Stock save(Stock stockData) {
         Optional<CompanyProfileEntity> profile = companyProfileRepository.findByTicker(stockData.getTicker());
         var entity = mapper.toEntity(stockData);

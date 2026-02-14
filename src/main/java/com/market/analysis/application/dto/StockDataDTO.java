@@ -70,4 +70,7 @@ public class StockDataDTO {
 
     /** Summary of the evaluation result */
     private String evaluationSummary;
+
+    /** AI valoration of the stock */
+    private String valorationIA;
 }

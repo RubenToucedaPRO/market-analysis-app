@@ -16,6 +16,7 @@ import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Controller
 @RequestMapping("/analysis")
@@ -64,4 +65,12 @@ public class AnalyzeTickerController {
         model.addAttribute("ticker", ticker);
         return "analysis/ticker-detail";
     }
+
+    @PostMapping("/getValorationIA")
+    public String getValorationIA(@RequestParam Long id) {
+        manageAnalyzeTickerUseCase.getValorationIA(id);
+
+        return REDIRECT_ANALYZE;
+    }
+
 }
