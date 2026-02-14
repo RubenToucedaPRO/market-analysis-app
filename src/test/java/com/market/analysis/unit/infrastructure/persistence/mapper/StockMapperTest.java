@@ -159,4 +159,74 @@ class StockMapperTest {
         assertThat(entity.getOpenPrice()).isNull();
         assertThat(entity.getSma20()).isNull();
     }
+
+    @Test
+    @DisplayName("Should correctly map stock with AI valoration to entity")
+    void testToEntityWithAIValoration() {
+        // Arrange
+        String aiValoration = "Esta acción muestra indicadores técnicos fuertes con momentum alcista.";
+        Stock stock = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(new BigDecimal("150.00"))
+                .sma20(new BigDecimal("148.00"))
+                .valorationIA(aiValoration)
+                .build();
+
+        // Act
+        StockEntity entity = stockMapper.toEntity(stock);
+
+        // Assert
+        assertThat(entity).isNotNull();
+        assertThat(entity.getTicker()).isEqualTo("AAPL");
+        assertThat(entity.getValorationIA()).isEqualTo(aiValoration);
+        assertThat(entity.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("150.00"));
+    }
+
+    @Test
+    @DisplayName("Should correctly map entity with AI valoration to domain")
+    void testToDomainWithAIValoration() {
+        // Arrange
+        String aiValoration = "Esta acción presenta un análisis técnico favorable con tendencia positiva.";
+        Instant lastUpdate = Instant.now();
+
+        StockEntity entity = new StockEntity();
+        entity.setId(1L);
+        entity.setTicker("MSFT");
+        entity.setCurrentPrice(new BigDecimal("200.00"));
+        entity.setSma20(new BigDecimal("198.00"));
+        entity.setLastUpdate(lastUpdate);
+        entity.setValorationIA(aiValoration);
+
+        // Act
+        Stock stock = stockMapper.toDomain(entity);
+
+        // Assert
+        assertThat(stock).isNotNull();
+        assertThat(stock.getTicker()).isEqualTo("MSFT");
+        assertThat(stock.getValorationIA()).isEqualTo(aiValoration);
+        assertThat(stock.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("200.00"));
+    }
+
+    @Test
+    @DisplayName("Should correctly map entity without AI valoration to domain")
+    void testToDomainWithoutAIValoration() {
+        // Arrange
+        Instant lastUpdate = Instant.now();
+
+        StockEntity entity = new StockEntity();
+        entity.setId(1L);
+        entity.setTicker("TSLA");
+        entity.setCurrentPrice(new BigDecimal("250.00"));
+        entity.setLastUpdate(lastUpdate);
+        entity.setValorationIA(null);
+
+        // Act
+        Stock stock = stockMapper.toDomain(entity);
+
+        // Assert
+        assertThat(stock).isNotNull();
+        assertThat(stock.getTicker()).isEqualTo("TSLA");
+        assertThat(stock.getValorationIA()).isNull();
+        assertThat(stock.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("250.00"));
+    }
 }

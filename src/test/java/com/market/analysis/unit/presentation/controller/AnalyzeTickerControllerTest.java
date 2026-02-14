@@ -205,4 +205,36 @@ class AnalyzeTickerControllerTest {
         verify(manageAnalyzeTickerUseCase, times(1)).findStockDataById(id);
         verify(model, times(1)).addAttribute("ticker", testStockDataDTO);
     }
+
+    @Test
+    @DisplayName("Should get AI valoration and redirect to analysis page")
+    void testGetValorationIA() {
+        // Arrange
+        Long id = 1L;
+
+        // Act
+        String viewName = controller.getValorationIA(id);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/analysis");
+        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id);
+    }
+
+    @Test
+    @DisplayName("Should handle AI valoration request for different stock IDs")
+    void testGetValorationIAWithDifferentIds() {
+        // Arrange
+        Long id1 = 5L;
+        Long id2 = 10L;
+
+        // Act
+        String viewName1 = controller.getValorationIA(id1);
+        String viewName2 = controller.getValorationIA(id2);
+
+        // Assert
+        assertThat(viewName1).isEqualTo("redirect:/analysis");
+        assertThat(viewName2).isEqualTo("redirect:/analysis");
+        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id1);
+        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id2);
+    }
 }
