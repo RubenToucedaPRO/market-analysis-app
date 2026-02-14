@@ -1,0 +1,30 @@
+<!-- templates/fragments/navbar.html -->
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+  <div class="container-fluid">
+    <!-- Logo and Title -->
+    <a class="navbar-brand d-flex align-items-center" th:href="@{/strategies}">
+      <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+      <span class="fw-bold text-primary">AlphaSeeker</span>
+    </a>
+
+    <!-- Navigation Links -->
+    <div class="d-flex gap-2">
+      <a th:href="@{/analysis}" class="btn btn-outline-secondary">
+        <i class="bi bi-graph-up me-1"></i>
+        Analysis
+      </a>
+      <a th:href="@{/strategies}" class="btn btn-outline-secondary">
+        <i class="bi bi-list me-1"></i>
+        Strategies
+      </a>
+      <a th:href="@{/rule-definitions}" class="btn btn-outline-secondary">
+        <i class="bi bi-collection me-1"></i>
+        Rule Definitions
+      </a>
+      <a th:href="@{/prohibited-tickers}" class="btn btn-outline-secondary">
+        <i class="bi bi-shield-x me-1"></i>
+        Prohibited Tickers
+      </a>
+    </div>
+  </div>
+</nav>
