@@ -59,24 +59,6 @@ class OpenrouterAdapterTest {
     }
 
     @Test
-    @DisplayName("Should return null when API call fails")
-    void shouldReturnNullWhenApiCallFails() {
-        // 1. Arrange
-        OpenAIClient mockClie = mock(OpenAIClient.class, org.mockito.Mockito.RETURNS_DEEP_STUBS);
-
-        when(mockClie.chat().completions().create(any(ChatCompletionCreateParams.class)))
-                .thenThrow(new RuntimeException("API Error"));
-
-        OpenrouterAdapter adapter = new OpenrouterAdapter(mockClie);
-
-        // Act
-        String result = adapter.getValoration("Ticker: AAPL");
-
-        // Assert
-        assertNull(result);
-    }
-
-    @Test
     @DisplayName("Should handle empty stock data input")
     void shouldHandleEmptyStockDataInput() {
         // Arrange

@@ -32,11 +32,6 @@ public class OpenrouterAdapter implements ApiIAPort {
                 .build();
     }
 
-    public OpenrouterAdapter(OpenAIClient client) {
-        this.apiKey = null;
-        this.client = client;
-    }
-
     @Override
     public String getValoration(String datosAccion) {
         log.debug("Requesting AI valoration for: {}", datosAccion);
