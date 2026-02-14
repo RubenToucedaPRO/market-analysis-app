@@ -81,9 +81,11 @@
               <tbody>
                 <tr th:each="strategy : ${strategies}">
                   <td class="fw-semibold">
-                    <a th:href="@{/strategies/{id}(id=${strategy.id})}" 
-                       th:text="${strategy.name}" 
-                       class="text-decoration-none">
+                    <a
+                      th:href="@{/strategies/{id}(id=${strategy.id})}"
+                      th:text="${strategy.name}"
+                      class="d-block w-100 h-100 text-decoration-none"
+                    >
                       Golden Cross
                     </a>
                   </td>

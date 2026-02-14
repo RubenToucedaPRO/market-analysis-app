@@ -78,19 +78,16 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-12 mb-3">
-              <label class="form-label fw-semibold text-muted small"
-                >Strategy Name</label
-              >
+              <p class="form-label fw-semibold text-muted small"></p>
+                Strategy Name
+              </p>
               <p class="fs-5" th:text="${strategy.name}">Golden Cross</p>
             </div>
             <div class="col-md-12">
-              <label class="form-label fw-semibold text-muted small"
-                >Description</label
+              <p class="form-label fw-semibold text-muted small"
+                >Description</p
               >
-              <p
-                class="fs-6 text-muted"
-                th:text="${strategy.description}"
-              >
+              <p class="fs-6 text-muted" th:text="${strategy.description}">
                 Strategy description will be displayed here.
               </p>
             </div>
@@ -108,14 +105,8 @@
         </div>
         <div class="card-body">
           <!-- Empty State -->
-          <div
-            th:if="${strategy.rules.isEmpty()}"
-            class="text-center py-4"
-          >
-            <i
-              class="bi bi-info-circle text-muted"
-              style="font-size: 3rem"
-            ></i>
+          <div th:if="${strategy.rules.isEmpty()}" class="text-center py-4">
+            <i class="bi bi-info-circle text-muted" style="font-size: 3rem"></i>
             <p class="text-muted mt-3">No rules defined for this strategy.</p>
           </div>
 
@@ -126,7 +117,9 @@
               class="rule-row card mb-3"
             >
               <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
+                <div
+                  class="d-flex justify-content-between align-items-start mb-2"
+                >
                   <h6 class="mb-0">
                     <i class="bi bi-check-circle text-success me-1"></i>
                     Rule <span th:text="${stat.count}">1</span>:
@@ -136,25 +129,24 @@
                 <div class="row g-3">
                   <!-- Subject Indicator -->
                   <div class="col-md-3">
-                    <label class="form-label small text-muted fw-semibold"
-                      >Subject Indicator</label
+                    <p class="form-label small text-muted fw-semibold"
+                      >Subject Indicator</p
                     >
                     <p class="mb-0" th:text="${rule.subjectCode}">PRICE</p>
                   </div>
 
                   <!-- Subject Parameter -->
                   <div class="col-md-2" th:if="${rule.subjectParam != null}">
-                    <label class="form-label small text-muted fw-semibold"
-                      >Subject Parameter</label
+                    <p class="form-label small text-muted fw-semibold"
+                      >Subject Parameter</p
                     >
                     <p class="mb-0" th:text="${rule.subjectParam}">50</p>
                   </div>
 
                   <!-- Operator -->
                   <div class="col-md-1">
-                    <label class="form-label small text-muted fw-semibold"
-                      >Operator</label
-                    >
+                    <p class="form-label small text-muted fw-semibold"
+                      >Operator</p>
                     <p class="mb-0">
                       <span th:if="${rule.operator == '>'}">></span>
                       <span th:if="${rule.operator == '<'}">&lt;</span>
