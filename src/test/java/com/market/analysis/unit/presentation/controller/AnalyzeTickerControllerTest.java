@@ -189,4 +189,20 @@ class AnalyzeTickerControllerTest {
         verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(1L);
         verify(manageAnalyzeTickerUseCase, times(1)).deleteById(1L);
     }
+
+    @Test
+    @DisplayName("Should get ticker detail and display detail page")
+    void testGetTickerDetail() {
+        // Arrange
+        Long id = 1L;
+        when(manageAnalyzeTickerUseCase.findStockDataById(id)).thenReturn(testStockDataDTO);
+
+        // Act
+        String viewName = controller.getTickerDetail(id, model);
+
+        // Assert
+        assertThat(viewName).isEqualTo("analysis/ticker-detail");
+        verify(manageAnalyzeTickerUseCase, times(1)).findStockDataById(id);
+        verify(model, times(1)).addAttribute("ticker", testStockDataDTO);
+    }
 }
