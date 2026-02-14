@@ -3,11 +3,20 @@ package com.market.analysis.unit.infrastructure.external.openrouter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.infrastructure.external.openrouter.OpenrouterAdapter;
+import com.openai.client.OpenAIClient;
+import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
 /**
  * Unit tests for OpenrouterAdapter.
@@ -17,9 +26,13 @@ import com.market.analysis.infrastructure.external.openrouter.OpenrouterAdapter;
  * internal structure of the OpenAI SDK.
  */
 @DisplayName("OpenrouterAdapter Tests")
+@ExtendWith(MockitoExtension.class)
 class OpenrouterAdapterTest {
 
     private static final String TEST_API_KEY = "test-api-key";
+
+    @Mock
+    private OpenAIClient mockClient;
 
     @Test
     @DisplayName("Should create adapter instance with API key")
@@ -46,17 +59,20 @@ class OpenrouterAdapterTest {
     }
 
     @Test
-    @DisplayName("Should return null when API call fails due to invalid key")
-    void shouldReturnNullWhenApiCallFailsWithInvalidKey() {
-        // Arrange
-        OpenrouterAdapter adapter = new OpenrouterAdapter("invalid-key");
-        String stockData = "Ticker: AAPL, Price: 150.00";
+    @DisplayName("Should return null when API call fails")
+    void shouldReturnNullWhenApiCallFails() {
+        // 1. Arrange
+        OpenAIClient mockClie = mock(OpenAIClient.class, org.mockito.Mockito.RETURNS_DEEP_STUBS);
+
+        when(mockClie.chat().completions().create(any(ChatCompletionCreateParams.class)))
+                .thenThrow(new RuntimeException("API Error"));
+
+        OpenrouterAdapter adapter = new OpenrouterAdapter(mockClie);
 
         // Act
-        String result = adapter.getValoration(stockData);
+        String result = adapter.getValoration("Ticker: AAPL");
 
         // Assert
-        // The method should catch the exception and return null
         assertNull(result);
     }
 
