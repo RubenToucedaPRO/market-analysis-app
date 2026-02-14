@@ -203,6 +203,6 @@ class AnalyzeTickerControllerTest {
         // Assert
         assertThat(viewName).isEqualTo("analysis/ticker-detail");
         verify(manageAnalyzeTickerUseCase, times(1)).findStockDataById(id);
-        verify(model, times(1)).addAttribute(eq("ticker"), eq(testStockDataDTO));
+        verify(model, times(1)).addAttribute("ticker", testStockDataDTO);
     }
 }
