@@ -186,6 +186,10 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private Stock getdataFromProvider(String ticker) {
         Stock stock = stockProviderPort.getQuote(ticker);
+        if (stock == null) {
+            log.warn("No stock quote found for ticker: {}", ticker);
+            return null;
+        }
         ZoneId zone = ZoneId.of("America/New_York");
         Instant startOfToday = LocalDate.now(zone)
                 .atStartOfDay(zone)

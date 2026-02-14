@@ -18,11 +18,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.infrastructure.persistence.entity.RuleDefinitionEntity;
 import com.market.analysis.infrastructure.persistence.mapper.RuleDefinitionMapper;
 import com.market.analysis.infrastructure.persistence.repository.JpaRuleDefinitionRepository;
+import com.market.analysis.infrastructure.persistence.repository.JpaStrategyRepository;
 import com.market.analysis.infrastructure.persistence.repository.SqlRuleDefinitionRepository;
 
 /**
@@ -30,6 +33,7 @@ import com.market.analysis.infrastructure.persistence.repository.SqlRuleDefiniti
  */
 @DisplayName("SqlRuleDefinitionRepository Unit Tests")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class SqlRuleDefinitionRepositoryTest {
 
     @Mock
@@ -37,6 +41,9 @@ class SqlRuleDefinitionRepositoryTest {
 
     @Mock
     private RuleDefinitionMapper mapper;
+
+    @Mock
+    private JpaStrategyRepository strategyRepository;
 
     @InjectMocks
     private SqlRuleDefinitionRepository sqlRepository;
@@ -60,6 +67,9 @@ class SqlRuleDefinitionRepositoryTest {
         testEntity.setName("Simple Moving Average");
         testEntity.setRequiresParam(true);
         testEntity.setDescription("Moving average over a period");
+
+        // Mock strategyRepository to return empty list by default
+        when(strategyRepository.findAll()).thenReturn(java.util.Collections.emptyList());
     }
 
     @Test

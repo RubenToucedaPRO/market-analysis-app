@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -23,14 +24,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.CompanyProfile;
+import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.TechnicalIndicators;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
@@ -38,6 +43,7 @@ import com.market.analysis.domain.port.out.StockProviderPort;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ManageAnalyzeStockService Tests")
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ManageAnalyzeStockServiceTest {
 
     @Mock
@@ -60,6 +66,15 @@ class ManageAnalyzeStockServiceTest {
 
     @Mock
     private StockDataDTOMapper stockDataDTOMapper;
+
+    @Mock
+    private com.market.analysis.domain.port.out.ApiCallRateRepository apiCallRateRepository;
+
+    @Mock
+    private com.market.analysis.domain.port.out.HistoricalProviderPort historicalProviderPort;
+
+    @Mock
+    private com.market.analysis.domain.service.StockHistoricalService stockHistoricalService;
 
     @InjectMocks
     private ManageAnalyzeStockService service;
@@ -118,6 +133,30 @@ class ManageAnalyzeStockServiceTest {
                 .overallPassed(true)
                 .summary("Test passed")
                 .build();
+
+        // Setup default mocks for historical data flow
+        when(stockDataRepository.findByTickerAndLastUpdateBetween(anyString(), any(Instant.class), any(Instant.class)))
+                .thenReturn(null);
+        
+        // Mock historical data
+        com.market.analysis.domain.model.HistoricalData historicalData = 
+            com.market.analysis.domain.model.HistoricalData.builder()
+                .ticker("AAPL")
+                .lastUpdate(Instant.now())
+                .build();
+        when(historicalProviderPort.fetchHistoricalData(anyString())).thenReturn(historicalData);
+        
+        // Mock technical indicators
+        com.market.analysis.domain.model.TechnicalIndicators technicalIndicators = 
+            com.market.analysis.domain.model.TechnicalIndicators.builder()
+                .sma20(BigDecimal.valueOf(150.00))
+                .sma50(BigDecimal.valueOf(150.00))
+                .sma200(BigDecimal.valueOf(150.00))
+                .currentVolume(50000000L)
+                .averageVolume(50000000L)
+                .lastUpdated(Instant.now())
+                .build();
+        when(stockHistoricalService.calculateIndicators(any(), anyInt())).thenReturn(technicalIndicators);
     }
 
     @Test
