@@ -2,7 +2,7 @@ package com.market.analysis.unit.application.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should map UP status to HTTP 200")
     void testToResponseWithUpStatus() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("UP")
                 .timestamp(now)
@@ -55,7 +55,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should map DOWN status to HTTP 503")
     void testToResponseWithDownStatus() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("DOWN")
                 .timestamp(now)
@@ -81,7 +81,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should map DEGRADED status to HTTP 503")
     void testToResponseWithDegradedStatus() {
         // Arrange
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("DEGRADED")
                 .timestamp(now)
@@ -103,7 +103,7 @@ class HealthCheckMapperTest {
     @DisplayName("Should correctly map all fields from domain to response")
     void testToResponseWithAllFields() {
         // Arrange
-        LocalDateTime timestamp = LocalDateTime.of(2024, 6, 15, 10, 30);
+        Instant timestamp = Instant.now();
         HealthStatus healthStatus = HealthStatus.builder()
                 .status("UP")
                 .timestamp(timestamp)

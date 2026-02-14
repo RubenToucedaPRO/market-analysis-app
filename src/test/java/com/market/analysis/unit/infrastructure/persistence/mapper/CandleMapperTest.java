@@ -3,7 +3,7 @@ package com.market.analysis.unit.infrastructure.persistence.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +30,7 @@ class CandleMapperTest {
     @DisplayName("Should map Candle domain to CandleEntity")
     void testToEntity() {
         // Arrange
-        LocalDateTime dateTime = LocalDateTime.of(2024, 1, 15, 9, 30);
+        Instant dateTime = Instant.now();
         Candle candle = Candle.builder()
                 .dateTime(dateTime)
                 .openPrice(new BigDecimal("100.50"))
@@ -57,7 +57,7 @@ class CandleMapperTest {
     @DisplayName("Should map CandleEntity to Candle domain")
     void testToDomain() {
         // Arrange
-        LocalDateTime dateTime = LocalDateTime.of(2024, 1, 15, 9, 30);
+        Instant dateTime = Instant.now();
         CandleEntity entity = new CandleEntity();
         entity.setId(1L);
         entity.setDateTime(dateTime);
@@ -104,7 +104,7 @@ class CandleMapperTest {
     @DisplayName("Should correctly map candle with zero values")
     void testToEntityWithZeroValues() {
         // Arrange
-        LocalDateTime dateTime = LocalDateTime.of(2024, 1, 15, 9, 30);
+        Instant dateTime = Instant.now();
         Candle candle = Candle.builder()
                 .dateTime(dateTime)
                 .openPrice(BigDecimal.ZERO)
@@ -120,6 +120,6 @@ class CandleMapperTest {
         // Assert
         assertThat(entity).isNotNull();
         assertThat(entity.getOpenPrice()).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(entity.getVolume()).isEqualTo(0L);
+        assertThat(entity.getVolume()).isZero();
     }
 }

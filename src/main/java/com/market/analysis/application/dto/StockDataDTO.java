@@ -1,7 +1,7 @@
 package com.market.analysis.application.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,7 +54,7 @@ public class StockDataDTO {
     private Long averageVolume;
 
     /** Last updated timestamp */
-    private LocalDateTime lastUpdated;
+    private Instant lastUpdated;
 
     /** ID of the associated strategy */
     private Long strategyId;

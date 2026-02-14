@@ -3,7 +3,7 @@ package com.market.analysis.unit.infrastructure.persistence.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +39,7 @@ class StockMapperTest {
     @DisplayName("Should map Stock domain to StockEntity")
     void testToEntity() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
         Stock stock = Stock.builder()
                 .ticker("AAPL")
                 .logoUrl("https://example.com/logo.png")
@@ -77,7 +77,7 @@ class StockMapperTest {
     @DisplayName("Should map StockEntity to Stock domain with company profile")
     void testToDomainWithCompanyProfile() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
 
         CompanyProfileEntity companyProfile = CompanyProfileEntity.builder()
                 .ticker("AAPL")

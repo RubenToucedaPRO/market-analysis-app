@@ -1,7 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -60,7 +60,7 @@ public class StrategyEvaluation {
      * Timestamp when the evaluation was performed.
      * Allows tracking staleness of evaluations.
      */
-    private LocalDateTime evaluatedAt;
+    private Instant evaluatedAt;
 
     /**
      * Snapshot of the stock price at evaluation time.

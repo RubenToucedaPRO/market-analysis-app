@@ -1,9 +1,11 @@
 package com.market.analysis.unit.infrastructure.external.finnhub;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,7 +85,7 @@ class FinnhubMapperTest {
     @DisplayName("Should map CompanyData to CompanyProfile domain model")
     void shouldMapCompanyDataToCompanyProfileDomainModel() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
         CompanyData companyData = CompanyData.builder()
                 .ticker("AAPL")
                 .name("Apple Inc.")
@@ -169,7 +171,7 @@ class FinnhubMapperTest {
     @DisplayName("Should handle CompanyData with minimal fields")
     void shouldHandleCompanyDataWithMinimalFields() {
         // Arrange
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
         CompanyData companyData = CompanyData.builder()
                 .ticker("GOOGL")
                 .name("Alphabet Inc.")

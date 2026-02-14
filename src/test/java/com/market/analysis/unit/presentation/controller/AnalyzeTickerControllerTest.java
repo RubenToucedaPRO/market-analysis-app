@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,7 +56,7 @@ class AnalyzeTickerControllerTest {
 
     @BeforeEach
     void setUp() {
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
 
         testStockDataDTO = StockDataDTO.builder()
                 .ticker("AAPL")

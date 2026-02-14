@@ -1,7 +1,7 @@
 package com.market.analysis.infrastructure.persistence.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -48,7 +48,7 @@ public class StockEntity {
 
     private Long averageVolume;
 
-    private LocalDateTime lastUpdated;
+    private Instant lastUpdated;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_profile_id")

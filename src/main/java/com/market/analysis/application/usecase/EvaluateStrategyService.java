@@ -1,6 +1,6 @@
 package com.market.analysis.application.usecase;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,7 +72,7 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
         AnalysisResult result = AnalysisResult.builder()
                 .strategy(strategy)
                 .ticker(stock.getTicker())
-                .analysisTimestamp(LocalDateTime.now())
+                .analysisTimestamp(Instant.now())
                 .ruleResults(ruleResults)
                 .calculatedMetrics(metrics)
                 .overallPassed(overallPassed)

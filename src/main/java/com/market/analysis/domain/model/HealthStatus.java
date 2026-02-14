@@ -1,6 +1,6 @@
 package com.market.analysis.domain.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +23,7 @@ public class HealthStatus {
     /**
      * Timestamp when the health check was performed.
      */
-    private final LocalDateTime timestamp;
+    private final Instant timestamp;
 
     /**
      * Indicates if the database connection is healthy.

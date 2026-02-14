@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,7 +48,7 @@ class SqlProhibitedTickerRepositoryTest {
     @BeforeEach
     void setUp() {
         testProhibitedTicker = new ProhibitedTicker("AAPL", "Test reason",
-                java.time.LocalDateTime.parse("2024-06-01T12:00:00"));
+                Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS));
 
         testEntity = new ProhibitedTickerEntity();
         testEntity.setId(1L);

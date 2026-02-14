@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +53,7 @@ class SqlStockDataRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        LocalDateTime lastUpdated = LocalDateTime.now();
+        Instant lastUpdated = Instant.now();
 
         testCompanyProfile = CompanyProfileEntity.builder()
                 .id(1L)

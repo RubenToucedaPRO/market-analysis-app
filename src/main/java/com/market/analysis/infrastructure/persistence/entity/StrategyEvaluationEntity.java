@@ -1,7 +1,7 @@
 package com.market.analysis.infrastructure.persistence.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -49,7 +49,7 @@ public class StrategyEvaluationEntity {
     private String summary;
 
     @Column(name = "evaluated_at", nullable = false)
-    private LocalDateTime evaluatedAt;
+    private Instant evaluatedAt;
 
     @Column(name = "price_at_evaluation", precision = 19, scale = 2)
     private BigDecimal priceAtEvaluation;

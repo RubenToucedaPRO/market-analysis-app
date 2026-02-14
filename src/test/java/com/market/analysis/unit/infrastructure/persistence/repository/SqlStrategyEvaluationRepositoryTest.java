@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +55,7 @@ class SqlStrategyEvaluationRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         // Setup Stock entities and domain
         testStock = new StockEntity();
@@ -144,7 +144,7 @@ class SqlStrategyEvaluationRepositoryTest {
             StrategyEvaluation minimalEvaluation = StrategyEvaluation.builder()
                     .compliant(false)
                     .complianceRate(BigDecimal.ZERO)
-                    .evaluatedAt(LocalDateTime.now())
+                    .evaluatedAt(Instant.now())
                     .isLatest(false)
                     .build();
 
@@ -152,7 +152,7 @@ class SqlStrategyEvaluationRepositoryTest {
             minimalEntity.setStock(testStock);
             minimalEntity.setCompliant(false);
             minimalEntity.setComplianceRate(BigDecimal.ZERO);
-            minimalEntity.setEvaluatedAt(LocalDateTime.now());
+            minimalEntity.setEvaluatedAt(Instant.now());
             minimalEntity.setLatest(false);
 
             when(jpaStockRepository.findById(1L)).thenReturn(Optional.of(testStock));
@@ -228,7 +228,7 @@ class SqlStrategyEvaluationRepositoryTest {
                     .compliant(true)
                     .complianceRate(BigDecimal.valueOf(95.99))
                     .summary("Excellent performance")
-                    .evaluatedAt(LocalDateTime.now())
+                    .evaluatedAt(Instant.now())
                     .priceAtEvaluation(BigDecimal.valueOf(2800.75))
                     .isLatest(true)
                     .build();

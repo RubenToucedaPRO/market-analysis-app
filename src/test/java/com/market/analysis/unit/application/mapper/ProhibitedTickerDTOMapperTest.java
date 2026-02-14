@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ class ProhibitedTickerDTOMapperTest {
     @DisplayName("Should map ProhibitedTicker domain to ProhibitedTickerDTO")
     void testToDTO() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL", "Test reason", LocalDateTime.now());
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("AAPL", "Test reason", Instant.now());
 
         // Act
         ProhibitedTickerDTO dto = prohibitedTickerDTOMapper.toDTO(prohibitedTicker);
@@ -49,7 +49,7 @@ class ProhibitedTickerDTOMapperTest {
                 .id(1L)
                 .ticker("GOOGL")
                 .reason("Test reason")
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
 
         // Act
@@ -84,7 +84,7 @@ class ProhibitedTickerDTOMapperTest {
     @DisplayName("Should correctly map ticker with special characters")
     void testToDTOWithSpecialCharacters() {
         // Arrange
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B", "Test reason", LocalDateTime.now());
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker("BRK.B", "Test reason", Instant.now());
 
         // Act
         ProhibitedTickerDTO dto = prohibitedTickerDTOMapper.toDTO(prohibitedTicker);

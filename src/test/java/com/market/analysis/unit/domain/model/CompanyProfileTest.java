@@ -2,7 +2,7 @@ package com.market.analysis.unit.domain.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -78,7 +78,7 @@ class CompanyProfileTest {
         CompanyProfile profile = CompanyProfile.builder()
                 .ticker("AAPL")
                 .name("Apple Inc.")
-                .lastUpdated(LocalDateTime.now().minusDays(31))
+                .lastUpdated(Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS))
                 .build();
 
         // Assert
@@ -92,7 +92,7 @@ class CompanyProfileTest {
         CompanyProfile profile = CompanyProfile.builder()
                 .ticker("AAPL")
                 .name("Apple Inc.")
-                .lastUpdated(LocalDateTime.now().minusDays(15))
+                .lastUpdated(Instant.now().minus(15, java.time.temporal.ChronoUnit.DAYS))
                 .build();
 
         // Assert

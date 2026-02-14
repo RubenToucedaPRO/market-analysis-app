@@ -1,6 +1,6 @@
 package com.market.analysis.infrastructure.persistence.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,5 +58,5 @@ public class CompanyProfileEntity {
     /** Company website URL */
     private String website;
 
-    private LocalDateTime lastUpdated;
+    private Instant lastUpdated;
 }

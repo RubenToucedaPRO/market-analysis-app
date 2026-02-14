@@ -24,7 +24,7 @@ class ProhibitedTickerTest {
     @DisplayName("Should create ProhibitedTicker with various ticker formats")
     void testCreateProhibitedTicker(String ticker) {
         // Act
-        ProhibitedTicker prohibitedTicker = new ProhibitedTicker(ticker, "Test reason", java.time.LocalDateTime.now());
+        ProhibitedTicker prohibitedTicker = new ProhibitedTicker(ticker, "Test reason", java.time.Instant.now());
 
         // Assert
         assertNotNull(prohibitedTicker, "The instance should not be null");
