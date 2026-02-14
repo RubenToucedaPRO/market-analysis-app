@@ -32,7 +32,9 @@ public class StrategyDTOMapper {
                 .id(strategy.getId())
                 .name(strategy.getName())
                 .description(strategy.getDescription())
-                .rules(ruleDTOMapper.toDTOList(strategy.getRules()))
+                .rules(strategy.getRules() != null 
+                    ? ruleDTOMapper.toDTOList(strategy.getRules())
+                    : java.util.Collections.emptyList())
                 .build();
     }
 
@@ -51,7 +53,9 @@ public class StrategyDTOMapper {
                 .id(dto.getId())
                 .name(dto.getName())
                 .description(dto.getDescription())
-                .rules(ruleDTOMapper.toDomainList(dto.getRules()))
+                .rules(dto.getRules() != null
+                    ? ruleDTOMapper.toDomainList(dto.getRules())
+                    : java.util.Collections.emptyList())
                 .build();
     }
 }

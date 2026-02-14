@@ -14,8 +14,9 @@ public class StockMapper {
     private final StrategyEvaluationMapper strategyEvaluationMapper;
 
     public StockEntity toEntity(Stock domain) {
-        if (domain == null)
+        if (domain == null) {
             return null;
+        }
 
         StockEntity entity = new StockEntity();
         entity.setId(domain.getId());
@@ -37,7 +38,7 @@ public class StockMapper {
                 : null);
         entity.setValorationIA(domain.getValorationIA());
 
-        if (entity.getCompanyProfile() != null) {
+        if (entity.getCompanyProfile() != null && domain.getLogoUrl() != null) {
             entity.getCompanyProfile().setLogo(domain.getLogoUrl());
         }
 
@@ -45,9 +46,11 @@ public class StockMapper {
     }
 
     public Stock toDomain(StockEntity entity) {
-        if (entity == null)
+        if (entity == null) {
             return null;
-        if(entity.getStrategyEvaluation() != null) {
+        }
+        
+        if (entity.getStrategyEvaluation() != null) {
             entity.getStrategyEvaluation().setStock(entity);
         }
 
