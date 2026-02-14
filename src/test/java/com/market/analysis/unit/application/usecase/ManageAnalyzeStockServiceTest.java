@@ -32,10 +32,8 @@ import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.CompanyProfile;
-import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
-import com.market.analysis.domain.model.TechnicalIndicators;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
@@ -137,18 +135,18 @@ class ManageAnalyzeStockServiceTest {
         // Setup default mocks for historical data flow
         when(stockDataRepository.findByTickerAndLastUpdateBetween(anyString(), any(Instant.class), any(Instant.class)))
                 .thenReturn(null);
-        
+
         // Mock historical data
-        com.market.analysis.domain.model.HistoricalData historicalData = 
-            com.market.analysis.domain.model.HistoricalData.builder()
+        com.market.analysis.domain.model.HistoricalData historicalData = com.market.analysis.domain.model.HistoricalData
+                .builder()
                 .ticker("AAPL")
                 .lastUpdate(Instant.now())
                 .build();
         when(historicalProviderPort.fetchHistoricalData(anyString())).thenReturn(historicalData);
-        
+
         // Mock technical indicators
-        com.market.analysis.domain.model.TechnicalIndicators technicalIndicators = 
-            com.market.analysis.domain.model.TechnicalIndicators.builder()
+        com.market.analysis.domain.model.TechnicalIndicators technicalIndicators = com.market.analysis.domain.model.TechnicalIndicators
+                .builder()
                 .sma20(BigDecimal.valueOf(150.00))
                 .sma50(BigDecimal.valueOf(150.00))
                 .sma200(BigDecimal.valueOf(150.00))
