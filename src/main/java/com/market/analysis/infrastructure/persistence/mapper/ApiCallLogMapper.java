@@ -1,6 +1,6 @@
 package com.market.analysis.infrastructure.persistence.mapper;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import org.springframework.stereotype.Component;
 
@@ -16,7 +16,7 @@ public class ApiCallLogMapper {
         }
         return ApiCallLogEntity.builder()
                 .ticker(ticker)
-                .ocurredAt(LocalDate.parse(timestamp))
+                .ocurredAt(Instant.parse(timestamp))
                 .build();
     }
 

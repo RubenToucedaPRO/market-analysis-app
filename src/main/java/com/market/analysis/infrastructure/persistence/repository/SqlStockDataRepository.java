@@ -1,5 +1,6 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -52,8 +53,8 @@ public class SqlStockDataRepository implements StockDataRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Stock findByTickerAndDate(String ticker, LocalDate date) {
-        return mapper.toDomain(jpaRepository.findByTickerAndDate(ticker, date));
+    public Stock findByTickerAndLastUpdateBetween(String ticker, Instant date, Instant endDate) {
+        return mapper.toDomain(jpaRepository.findFirstByTickerAndLastUpdateBetween(ticker, date, endDate));
     }
 
     @Override

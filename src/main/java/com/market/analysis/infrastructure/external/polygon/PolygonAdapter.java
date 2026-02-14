@@ -78,14 +78,13 @@ public class PolygonAdapter implements HistoricalProviderPort {
             throw new PolygonException("Error en comunicación con Polygon: " + e.getMessage());
         } catch (Exception e) {
             log.error("Error inesperado al procesar datos de Polygon para {}: {}", ticker, e.getMessage());
-            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList());
+            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList(), null);
         }
     }
 
     private HistoricalData mapToHistoricalData(String ticker, String jsonBody) {
         List<Double> prices = new ArrayList<>();
         List<Long> volumes = new ArrayList<>();
-
         try {
             JsonNode root = objectMapper.readTree(jsonBody);
             JsonNode resultsNode = root.path("results");
@@ -95,14 +94,15 @@ public class PolygonAdapter implements HistoricalProviderPort {
                     // 'c' = close price, 'v' = volume en la API de Polygon
                     prices.add(node.path("c").asDouble());
                     volumes.add(node.path("v").asLong());
+
                 }
             }
         } catch (Exception e) {
             log.error("Error mapeando datos históricos para {}: {}", ticker, e.getMessage());
-            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList());
+            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList(), null);
         }
 
-        return new HistoricalData(ticker, prices, volumes);
+        return new HistoricalData(ticker, prices, volumes, Instant.now());
     }
 
     private URI buildUri(String ticker, int size) {

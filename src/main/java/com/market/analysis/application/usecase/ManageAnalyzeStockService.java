@@ -1,6 +1,8 @@
 package com.market.analysis.application.usecase;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -184,7 +186,17 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private Stock getdataFromProvider(String ticker) {
         Stock stock = stockProviderPort.getQuote(ticker);
-        Stock existingStock = stockDataRepository.findByTickerAndDate(ticker, LocalDate.now());
+        ZoneId zone = ZoneId.of("America/New_York");
+        Instant startOfToday = LocalDate.now(zone)
+                .atStartOfDay(zone)
+                .toInstant();
+
+        Instant startOfTomorrow = LocalDate.now(zone)
+                .plusDays(1)
+                .atStartOfDay(zone)
+                .toInstant();
+        Stock existingStock = stockDataRepository.findByTickerAndLastUpdateBetween(ticker, startOfToday,
+                startOfTomorrow);
         if (existingStock != null) {
             log.info("Using historical existing stock data for ticker: {}", ticker);
             stock.setSma20(existingStock.getSma20());
@@ -192,11 +204,12 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             stock.setSma200(existingStock.getSma200());
             stock.setVolume(existingStock.getVolume());
             stock.setAverageVolume(existingStock.getAverageVolume());
+            stock.setLastUpdated(existingStock.getLastUpdated());
         } else {
             log.info("Fetching new stock data for ticker: {}", ticker);
             HistoricalData historicalData = historicalProviderPort.fetchHistoricalData(ticker);
             if (historicalData != null) {
-                apiCallRateRepository.save(ticker, LocalDate.now());
+                apiCallRateRepository.save(ticker, historicalData.getLastUpdate());
                 log.info("Historical data for ticker {} fetched and saved successfully", ticker);
             }
             TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
@@ -206,6 +219,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             stock.setSma200(technicalIndicators.getSma200());
             stock.setVolume(technicalIndicators.getCurrentVolume());
             stock.setAverageVolume(technicalIndicators.getAverageVolume());
+            stock.setLastUpdated(technicalIndicators.getLastUpdated());
         }
 
         return stock;

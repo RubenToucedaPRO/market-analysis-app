@@ -1,6 +1,6 @@
 package com.market.analysis.domain.model;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +17,6 @@ public class ApiCallLog {
 
     private String ticker;
 
-    private LocalDate ocurredAt;
+    private Instant ocurredAt;
 
 }

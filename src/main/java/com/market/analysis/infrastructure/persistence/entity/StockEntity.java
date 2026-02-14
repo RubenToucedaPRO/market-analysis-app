@@ -48,7 +48,7 @@ public class StockEntity {
 
     private Long averageVolume;
 
-    private Instant lastUpdated;
+    private Instant lastUpdate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_profile_id")

@@ -1,6 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -20,4 +21,6 @@ public class TechnicalIndicators {
     Long currentVolume;
 
     Long averageVolume;
+
+    Instant lastUpdated;
 }

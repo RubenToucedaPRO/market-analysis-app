@@ -26,6 +26,7 @@ public class StockHistoricalService {
                 .sma200(sma200)
                 .currentVolume(currentVolume)
                 .averageVolume(avgVolume)
+                .lastUpdated(data.getLastUpdate())
                 .build();
     }
 

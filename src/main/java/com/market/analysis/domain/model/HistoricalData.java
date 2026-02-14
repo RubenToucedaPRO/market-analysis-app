@@ -1,5 +1,6 @@
 package com.market.analysis.domain.model;
 
+import java.time.Instant;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -18,4 +19,6 @@ public class HistoricalData {
     List<Double> closingPrices;
 
     List<Long> volumes;
+
+    Instant lastUpdate;
 }

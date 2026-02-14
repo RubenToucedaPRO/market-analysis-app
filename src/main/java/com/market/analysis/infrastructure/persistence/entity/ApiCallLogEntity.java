@@ -1,6 +1,6 @@
 package com.market.analysis.infrastructure.persistence.entity;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +28,6 @@ public class ApiCallLogEntity {
 
     private String ticker;
 
-    private LocalDate ocurredAt;
+    private Instant ocurredAt;
 
 }

@@ -1,6 +1,6 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class SqlApiCallRateRepository implements ApiCallRateRepository {
     }
 
     @Override
-    public void save(String ticker, LocalDate timestamp) {
+    public void save(String ticker, Instant timestamp) {
         ApiCallLogEntity entity = mapper.toEntity(ticker, timestamp.toString());
         jpaRepository.save(entity);
     }
