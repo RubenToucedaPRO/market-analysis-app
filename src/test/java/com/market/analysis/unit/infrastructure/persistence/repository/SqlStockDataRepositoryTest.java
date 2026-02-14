@@ -53,7 +53,7 @@ class SqlStockDataRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        Instant lastUpdated = Instant.now();
+        Instant lastUpdate = Instant.now();
 
         testCompanyProfile = CompanyProfileEntity.builder()
                 .id(1L)
@@ -68,7 +68,7 @@ class SqlStockDataRepositoryTest {
                 .openPrice(new BigDecimal("149.00"))
                 .volume(50000000L)
                 .averageVolume(45000000L)
-                .lastUpdated(lastUpdated)
+                .lastUpdated(lastUpdate)
                 .build();
 
         testEntity = new StockEntity();
@@ -78,7 +78,7 @@ class SqlStockDataRepositoryTest {
         testEntity.setOpenPrice(new BigDecimal("149.00"));
         testEntity.setVolume(50000000L);
         testEntity.setAverageVolume(45000000L);
-        testEntity.setLastUpdated(lastUpdated);
+        testEntity.setLastUpdate(lastUpdate);
         testEntity.setCompanyProfile(testCompanyProfile);
     }
 

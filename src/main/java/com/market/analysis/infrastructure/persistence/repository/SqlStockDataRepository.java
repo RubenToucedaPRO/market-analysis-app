@@ -1,5 +1,6 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +48,12 @@ public class SqlStockDataRepository implements StockDataRepository {
     public Optional<Stock> findById(@Param("id") Long id) {
         return jpaRepository.findByIdWithProfile(id).map(mapper::toDomain);
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Stock findByTickerAndLastUpdateBetween(String ticker, Instant date, Instant endDate) {
+        return mapper.toDomain(jpaRepository.findFirstByTickerAndLastUpdateBetween(ticker, date, endDate));
     }
 
     @Override

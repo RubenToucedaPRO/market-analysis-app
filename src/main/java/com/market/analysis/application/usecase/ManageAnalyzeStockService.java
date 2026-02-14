@@ -1,5 +1,8 @@
 package com.market.analysis.application.usecase;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,16 +12,21 @@ import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.CompanyProfile;
+import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.TechnicalIndicators;
 import com.market.analysis.domain.port.in.EvaluateStrategyUseCase;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
+import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
+import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.service.StockHistoricalService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +38,13 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockDataRepository stockDataRepository;
     private final CompanyProfileRepository companyProfileRepository;
     private final ProhibitedTickerRepository prohibitedTickerRepository;
+    private final ApiCallRateRepository apiCallRateRepository;
     private final StockProviderPort stockProviderPort;
+    private final HistoricalProviderPort historicalProviderPort;
     private final StrategyRepository strategyRepository;
     private final EvaluateStrategyUseCase evaluateStrategyUseCase;
     private final StockDataDTOMapper stockMapper;
+    private final StockHistoricalService stockHistoricalService;
 
     @Override
     public void getStockData(String tickers, Long strategyId) {
@@ -49,7 +60,8 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
-            Stock stock = stockProviderPort.getQuote(ticker);
+            Stock stock = getdataFromProvider(ticker);
+
             if (stock != null) {
                 // Set the strategy ID
                 stock.setStrategyId(strategyId);
@@ -172,4 +184,48 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         log.info("Company profile for ticker {} saved/updated successfully", ticker);
     }
 
+    private Stock getdataFromProvider(String ticker) {
+        Stock stock = stockProviderPort.getQuote(ticker);
+        if (stock == null) {
+            log.warn("No stock quote found for ticker: {}", ticker);
+            return null;
+        }
+        ZoneId zone = ZoneId.of("America/New_York");
+        Instant startOfToday = LocalDate.now(zone)
+                .atStartOfDay(zone)
+                .toInstant();
+
+        Instant startOfTomorrow = LocalDate.now(zone)
+                .plusDays(1)
+                .atStartOfDay(zone)
+                .toInstant();
+        Stock existingStock = stockDataRepository.findByTickerAndLastUpdateBetween(ticker, startOfToday,
+                startOfTomorrow);
+        if (existingStock != null) {
+            log.info("Using historical existing stock data for ticker: {}", ticker);
+            stock.setSma20(existingStock.getSma20());
+            stock.setSma50(existingStock.getSma50());
+            stock.setSma200(existingStock.getSma200());
+            stock.setVolume(existingStock.getVolume());
+            stock.setAverageVolume(existingStock.getAverageVolume());
+            stock.setLastUpdated(existingStock.getLastUpdated());
+        } else {
+            log.info("Fetching new stock data for ticker: {}", ticker);
+            HistoricalData historicalData = historicalProviderPort.fetchHistoricalData(ticker);
+            if (historicalData != null) {
+                apiCallRateRepository.save(ticker, historicalData.getLastUpdate());
+                log.info("Historical data for ticker {} fetched and saved successfully", ticker);
+            }
+            TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
+                    20);
+            stock.setSma20(technicalIndicators.getSma20());
+            stock.setSma50(technicalIndicators.getSma50());
+            stock.setSma200(technicalIndicators.getSma200());
+            stock.setVolume(technicalIndicators.getCurrentVolume());
+            stock.setAverageVolume(technicalIndicators.getAverageVolume());
+            stock.setLastUpdated(technicalIndicators.getLastUpdated());
+        }
+
+        return stock;
+    }
 }

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class SqlStrategyRepository implements StrategyRepository { // Tu interfaz de dominio
 
     private final JpaStrategyRepository jpaRepository;
+    private final JpaStockDataRepository stockDataRepository;
     private final StrategyMapper mapper;
 
     @Override
@@ -54,6 +55,10 @@ public class SqlStrategyRepository implements StrategyRepository { // Tu interfa
     @Override
     @Transactional
     public void deleteById(Long id) {
+        if (stockDataRepository.findAll().stream()
+                .anyMatch(stock -> stock.getStrategyId() != null && stock.getStrategyId().equals(id))) {
+            throw new IllegalArgumentException("No se puede eliminar la estrategia porque tiene stocks asociados.");
+        }
         jpaRepository.deleteById(id);
     }
 

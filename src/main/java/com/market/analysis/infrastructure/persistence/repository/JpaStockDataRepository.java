@@ -1,5 +1,6 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +21,6 @@ public interface JpaStockDataRepository extends JpaRepository<StockEntity, Long>
 
     @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.id = :id")
     Optional<StockEntity> findByIdWithProfile(@Param("id") Long id);
+
+    StockEntity findFirstByTickerAndLastUpdateBetween(String ticker, Instant start, Instant end);
 }

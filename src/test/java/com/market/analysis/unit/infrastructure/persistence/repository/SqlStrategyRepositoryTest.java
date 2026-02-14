@@ -21,6 +21,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
@@ -28,6 +30,7 @@ import com.market.analysis.infrastructure.persistence.entity.RuleEntity;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEntity;
 import com.market.analysis.infrastructure.persistence.mapper.StrategyMapper;
 import com.market.analysis.infrastructure.persistence.repository.JpaStrategyRepository;
+import com.market.analysis.infrastructure.persistence.repository.JpaStockDataRepository;
 import com.market.analysis.infrastructure.persistence.repository.SqlStrategyRepository;
 
 /**
@@ -35,6 +38,7 @@ import com.market.analysis.infrastructure.persistence.repository.SqlStrategyRepo
  */
 @DisplayName("SqlStrategyRepository Unit Tests")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class SqlStrategyRepositoryTest {
 
     @Mock
@@ -42,6 +46,9 @@ class SqlStrategyRepositoryTest {
 
     @Mock
     private StrategyMapper mapper;
+
+    @Mock
+    private JpaStockDataRepository stockDataRepository;
 
     @InjectMocks
     private SqlStrategyRepository sqlStrategyRepository;
@@ -83,6 +90,9 @@ class SqlStrategyRepositoryTest {
         testEntity.setName("Test Strategy");
         testEntity.setDescription("Test Description");
         testEntity.setRules(new ArrayList<>(List.of(testRuleEntity)));
+
+        // Mock stockDataRepository to return empty list by default
+        when(stockDataRepository.findAll()).thenReturn(java.util.Collections.emptyList());
     }
 
     @Test

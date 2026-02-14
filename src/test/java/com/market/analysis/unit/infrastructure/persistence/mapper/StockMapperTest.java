@@ -39,7 +39,7 @@ class StockMapperTest {
     @DisplayName("Should map Stock domain to StockEntity")
     void testToEntity() {
         // Arrange
-        Instant lastUpdated = Instant.now();
+        Instant lastUpdate = Instant.now();
         Stock stock = Stock.builder()
                 .ticker("AAPL")
                 .logoUrl("https://example.com/logo.png")
@@ -53,7 +53,7 @@ class StockMapperTest {
                 .sma200(new BigDecimal("140.00"))
                 .volume(50000000L)
                 .averageVolume(45000000L)
-                .lastUpdated(lastUpdated)
+                .lastUpdated(lastUpdate)
                 .build();
 
         // Act
@@ -77,7 +77,7 @@ class StockMapperTest {
     @DisplayName("Should map StockEntity to Stock domain with company profile")
     void testToDomainWithCompanyProfile() {
         // Arrange
-        Instant lastUpdated = Instant.now();
+        Instant lastUpdate = Instant.now();
 
         CompanyProfileEntity companyProfile = CompanyProfileEntity.builder()
                 .ticker("AAPL")
@@ -97,7 +97,7 @@ class StockMapperTest {
         entity.setSma200(new BigDecimal("140.00"));
         entity.setVolume(50000000L);
         entity.setAverageVolume(45000000L);
-        entity.setLastUpdated(lastUpdated);
+        entity.setLastUpdate(lastUpdate);
         entity.setCompanyProfile(companyProfile);
 
         // Act
@@ -117,7 +117,7 @@ class StockMapperTest {
         assertThat(stock.getSma200()).isEqualByComparingTo(new BigDecimal("140.00"));
         assertThat(stock.getVolume()).isEqualTo(50000000L);
         assertThat(stock.getAverageVolume()).isEqualTo(45000000L);
-        assertThat(stock.getLastUpdated()).isEqualTo(lastUpdated);
+        assertThat(stock.getLastUpdated()).isEqualTo(lastUpdate);
     }
 
     @Test
