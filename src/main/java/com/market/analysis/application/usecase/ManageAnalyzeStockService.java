@@ -58,7 +58,6 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
-
             Stock stock = getdataFromProvider(ticker);
 
             if (stock != null) {
@@ -185,18 +184,29 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private Stock getdataFromProvider(String ticker) {
         Stock stock = stockProviderPort.getQuote(ticker);
-        HistoricalData historicalData = historicalProviderPort.fetchHistoricalData(ticker);
-        if (historicalData != null) {
-            apiCallRateRepository.save(ticker, LocalDate.now());
-            log.info("Historical data for ticker {} fetched and saved successfully", ticker);
+        Stock existingStock = stockDataRepository.findByTickerAndDate(ticker, LocalDate.now());
+        if (existingStock != null) {
+            log.info("Using historical existing stock data for ticker: {}", ticker);
+            stock.setSma20(existingStock.getSma20());
+            stock.setSma50(existingStock.getSma50());
+            stock.setSma200(existingStock.getSma200());
+            stock.setVolume(existingStock.getVolume());
+            stock.setAverageVolume(existingStock.getAverageVolume());
+        } else {
+            log.info("Fetching new stock data for ticker: {}", ticker);
+            HistoricalData historicalData = historicalProviderPort.fetchHistoricalData(ticker);
+            if (historicalData != null) {
+                apiCallRateRepository.save(ticker, LocalDate.now());
+                log.info("Historical data for ticker {} fetched and saved successfully", ticker);
+            }
+            TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
+                    20);
+            stock.setSma20(technicalIndicators.getSma20());
+            stock.setSma50(technicalIndicators.getSma50());
+            stock.setSma200(technicalIndicators.getSma200());
+            stock.setVolume(technicalIndicators.getCurrentVolume());
+            stock.setAverageVolume(technicalIndicators.getAverageVolume());
         }
-        TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
-                20);
-        stock.setSma20(technicalIndicators.getSma20());
-        stock.setSma50(technicalIndicators.getSma50());
-        stock.setSma200(technicalIndicators.getSma200());
-        stock.setVolume(technicalIndicators.getCurrentVolume());
-        stock.setAverageVolume(technicalIndicators.getAverageVolume());
 
         return stock;
     }
