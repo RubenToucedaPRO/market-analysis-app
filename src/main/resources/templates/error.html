@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error - AlphaSeeker</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    <!-- Navigation Bar -->
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm"
+    >
+      <div class="container-fluid">
+        <!-- Logo and Title -->
+        <a
+          class="navbar-brand d-flex align-items-center"
+          th:href="@{/strategies}"
+        >
+          <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+          <span class="fw-bold text-primary">AlphaSeeker</span>
+        </a>
+
+        <!-- Navigation Links -->
+        <div class="d-flex gap-2">
+          <a th:href="@{/strategies}" class="btn btn-outline-secondary">
+            <i class="bi bi-list me-1"></i>
+            Strategies
+          </a>
+          <a th:href="@{/rule-definitions}" class="btn btn-outline-secondary">
+            <i class="bi bi-collection me-1"></i>
+            Rule Definitions
+          </a>
+          <a th:href="@{/prohibited-tickers}" class="btn btn-outline-secondary">
+            <i class="bi bi-shield-x me-1"></i>
+            Prohibited Tickers
+          </a>
+          <a th:href="@{/analysis}" class="btn btn-outline-secondary">
+            <i class="bi bi-graph-up me-1"></i>
+            Analysis
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-5 flex-grow-1">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <!-- Error Card -->
+          <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+                <div>
+                  <h4 class="mb-0">
+                    <span th:text="${errorType} ?: 'Error'">Error</span>
+                  </h4>
+                  <small>An error occurred while processing your request</small>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- User-friendly error message -->
+              <div class="alert alert-danger mb-4" role="alert">
+                <p class="mb-0 fs-5" th:text="${errorMessage} ?: 'An unexpected error occurred.'">
+                  An unexpected error occurred.
+                </p>
+              </div>
+
+              <!-- Error details (only shown if available) -->
+              <div th:if="${errorDetails}" class="mb-4">
+                <h6 class="text-muted">Technical Details:</h6>
+                <div class="bg-light p-3 rounded border">
+                  <code class="text-dark" th:text="${errorDetails}">
+                    Error details will appear here
+                  </code>
+                </div>
+              </div>
+
+              <!-- Navigation Actions -->
+              <div class="d-flex gap-2 flex-wrap">
+                <button
+                  onclick="window.history.back()"
+                  class="btn btn-primary"
+                >
+                  <i class="bi bi-arrow-left me-1"></i>
+                  Go Back
+                </button>
+                <a th:href="@{/strategies}" class="btn btn-outline-primary">
+                  <i class="bi bi-house me-1"></i>
+                  Home
+                </a>
+                <a th:href="@{/analysis}" class="btn btn-outline-secondary">
+                  <i class="bi bi-graph-up me-1"></i>
+                  Analysis
+                </a>
+              </div>
+
+              <!-- Helpful suggestions -->
+              <div class="mt-4 p-3 bg-light rounded">
+                <h6 class="text-muted mb-2">
+                  <i class="bi bi-lightbulb me-1"></i>
+                  Suggestions:
+                </h6>
+                <ul class="mb-0 text-muted small">
+                  <li>Check if the requested resource exists</li>
+                  <li>Verify that external services are available</li>
+                  <li>Try refreshing the page</li>
+                  <li>If the problem persists, contact support</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center py-3 mt-auto border-top">
+      <div class="container">
+        <span class="text-muted">
+          © 2024 AlphaSeeker - Market Analysis Application
+        </span>
+      </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
