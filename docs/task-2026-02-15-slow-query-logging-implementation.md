@@ -151,7 +151,7 @@ Se implementó sanitización de datos sensibles para cumplir con el requisito: "
 - ✅ Soporta comillas simples y dobles
 - ✅ Soporta variantes: `api_key`, `api-key`, `apikey`
 - ✅ Normaliza whitespace para logs limpios
-- ✅ Trunca SQL &gt; 500 caracteres para evitar log flooding
+- ✅ Trunca SQL > 500 caracteres para evitar log flooding
 
 ### 4. Modernización con Java 21
 
@@ -189,7 +189,7 @@ Se registró el interceptor mediante dos mecanismos complementarios:
 | `testSanitizeSqlWithApiKeyHyphenated` | Sanitiza `api-key = 'KEY'` | ✅ PASS |
 | `testSanitizeSqlWithSecret` | Sanitiza `secret = 'topsecret'` | ✅ PASS |
 | `testSanitizeSqlNormalizesWhitespace` | Normaliza espacios, tabs, newlines | ✅ PASS |
-| `testSanitizeSqlTruncatesLongStatements` | Trunca SQL &gt; 500 chars | ✅ PASS |
+| `testSanitizeSqlTruncatesLongStatements` | Trunca SQL > 500 chars | ✅ PASS |
 | `testSanitizeSqlDoesNotTruncateShortStatements` | No trunca SQL corto | ✅ PASS |
 | `testSanitizeSqlWithMixedPatterns` | Sanitiza múltiples patrones en una query | ✅ PASS |
 | `testSanitizeSqlWithoutSensitiveData` | Preserva SQL sin datos sensibles | ✅ PASS |
@@ -204,7 +204,7 @@ Tests run: 501, Failures: 0, Errors: 0, Skipped: 0
 
 ✅ **Todos los tests existentes siguen pasando** (no regression)  
 ✅ **13 nuevos tests añadidos para SlowQueryInspector**  
-✅ **Cobertura global mantenida &gt; 80%**
+✅ **Cobertura global mantenida > 80%**
 
 ---
 
@@ -229,9 +229,9 @@ El código fue diseñado siguiendo las reglas de SonarQube para Spring Boot y Th
    - ✅ Manejo correcto de `@NonNull` annotations
 
 4. **Complejidad:**
-   - ✅ Complejidad cognitiva &lt; 5 (muy simple)
+   - ✅ Complejidad cognitiva < 5 (muy simple)
    - ✅ 1 parámetro en constructor de bean (cumple S107)
-   - ✅ Clase &lt; 100 líneas (no God Class)
+   - ✅ Clase < 100 líneas (no God Class)
 
 5. **Tests:**
    - ✅ Cobertura 100% del componente nuevo
@@ -273,7 +273,7 @@ spring.jpa.properties.hibernate.session.events.log.LOG_QUERIES_SLOWER_THAN_MS=50
 
 ### 3. Alerting y Monitorización
 
-- Configurar alertas cuando el % de slow queries supere un umbral (ej: &gt;5%)
+- Configurar alertas cuando el % de slow queries supere un umbral (ej: >5%)
 - Implementar dashboard con métricas de rendimiento de DB
 - Agregar logging estructurado (JSON) para análisis con ELK stack
 
