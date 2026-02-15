@@ -117,4 +117,18 @@ public class BeanConfig {
         factory.setReadTimeout(10000);
         return new RestTemplate(factory);
     }
+
+    /**
+     * Bean for Hibernate 6 StatementInspector to enable slow query logging.
+     * 
+     * <p>This inspector provides centralized database observability by intercepting
+     * SQL statements and applying security sanitization. Works in conjunction with
+     * Hibernate's slow query logging configured in application.properties.</p>
+     * 
+     * @return configured SlowQueryInspector instance
+     */
+    @Bean
+    public SlowQueryInspector slowQueryInspector() {
+        return new SlowQueryInspector();
+    }
 }
