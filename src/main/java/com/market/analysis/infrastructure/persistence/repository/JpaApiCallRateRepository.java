@@ -12,4 +12,6 @@ public interface JpaApiCallRateRepository extends JpaRepository<ApiCallLogEntity
 
     void deleteByTicker(String ticker);
 
+    int deleteByOcurredAtBefore(java.time.Instant threshold);
+
 }
