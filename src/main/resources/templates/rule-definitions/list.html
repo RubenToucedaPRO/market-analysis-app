@@ -30,6 +30,15 @@
       <p class="text-muted mb-4">
         Manage available rule definitions that can be used in strategies.
       </p>
+      <div
+        th:if="${!ruleDefinitions.isEmpty()}"
+        class="d-flex justify-content-end mb-4"
+      >
+        <a th:href="@{/rule-definitions/new}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i>
+          New Rule Definition
+        </a>
+      </div>
 
       <!-- Empty State -->
       <div th:if="${ruleDefinitions.isEmpty()}" class="text-center py-5">
@@ -62,9 +71,7 @@
                   <td class="fw-semibold" th:text="${ruleDefinition.code}">
                     PRICE
                   </td>
-                  <td th:text="${ruleDefinition.name}">
-                    Current Price
-                  </td>
+                  <td th:text="${ruleDefinition.name}">Current Price</td>
                   <td>
                     <span
                       th:if="${ruleDefinition.requiresParam}"
@@ -79,7 +86,10 @@
                       <i class="bi bi-x-circle"></i> No
                     </span>
                   </td>
-                  <td class="text-muted" th:text="${ruleDefinition.description}">
+                  <td
+                    class="text-muted"
+                    th:text="${ruleDefinition.description}"
+                  >
                     The current market price
                   </td>
                   <td class="text-end">

@@ -27,87 +27,100 @@
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <h2 class="mb-4">Create New Strategy</h2>
+      <div class="mb-4 d-flex justify-content-end gap-2">
+        <a th:href="@{/strategies}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>
+          Back to List
+        </a>
+        <button type="submit" form="strategyForm" class="btn btn-primary">
+          <i class="bi bi-save me-1"></i>
+          Save Strategy
+        </button>
+      </div>
+      <div class="mb-4">
+        <form
+          id="strategyForm"
+          th:action="@{/strategies}"
+          th:object="${strategy}"
+          method="post"
+        >
+          <!-- Strategy Details Card -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="bi bi-gear text-primary me-2"></i>
+                Strategy Details
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <input type="hidden" th:field="*{id}" />
+                <!-- Strategy Name -->
+                <div class="col-md-6">
+                  <label for="strategyName" class="form-label fw-semibold"
+                    >Strategy Name</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="strategyName"
+                    th:field="*{name}"
+                    placeholder="e.g., RSI Oversold Recovery"
+                    required
+                  />
+                </div>
 
-      <form
-        id="strategyForm"
-        th:action="@{/strategies}"
-        th:object="${strategy}"
-        method="post"
-      >
-        <!-- Strategy Details Card -->
-        <div class="card mb-4">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">
-              <i class="bi bi-gear text-primary me-2"></i>
-              Strategy Details
-            </h5>
-          </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <input type="hidden" th:field="*{id}" />
-              <!-- Strategy Name -->
-              <div class="col-md-6">
-                <label for="strategyName" class="form-label fw-semibold"
-                  >Strategy Name</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="strategyName"
-                  th:field="*{name}"
-                  placeholder="e.g., RSI Oversold Recovery"
-                  required
-                />
-              </div>
-
-              <!-- Description -->
-              <div class="col-md-6">
-                <label for="strategyDescription" class="form-label fw-semibold"
-                  >Description</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="strategyDescription"
-                  th:field="*{description}"
-                  placeholder="Describe your strategy logic..."
-                  required
-                />
+                <!-- Description -->
+                <div class="col-md-6">
+                  <label
+                    for="strategyDescription"
+                    class="form-label fw-semibold"
+                    >Description</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="strategyDescription"
+                    th:field="*{description}"
+                    placeholder="Describe your strategy logic..."
+                    required
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Execution Rules Card -->
-        <div class="card">
-          <div class="card-header bg-light">
-            <h5 class="mb-0">
-              <i class="bi bi-list-check text-primary me-2"></i>
-              Execution Rules
-            </h5>
-          </div>
-          <div class="card-body">
-            <div id="rules-container">
-              <!-- Existing rules will be rendered here -->
-              <th:block th:each="rule, stat : *{rules}">
-                <div
-                  th:replace="~{fragments/rule-row :: ruleRow(index=${stat.index}, rule=${rule})}"
-                ></div>
-              </th:block>
+          <!-- Execution Rules Card -->
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="bi bi-list-check text-primary me-2"></i>
+                Execution Rules
+              </h5>
             </div>
-          </div>
+            <div class="card-body">
+              <div id="rules-container">
+                <!-- Existing rules will be rendered here -->
+                <th:block th:each="rule, stat : *{rules}">
+                  <div
+                    th:replace="~{fragments/rule-row :: ruleRow(index=${stat.index}, rule=${rule})}"
+                  ></div>
+                </th:block>
+              </div>
+            </div>
 
-          <!-- Add Rule Button -->
-          <button
-            type="button"
-            class="btn btn-outline-primary w-100"
-            onclick="addRuleRow()"
-          >
-            <i class="bi bi-plus-circle me-1"></i>
-            Add Conditional Rule
-          </button>
-        </div>
-      </form>
+            <!-- Add Rule Button -->
+            <button
+              type="button"
+              class="btn btn-outline-primary w-100"
+              onclick="addRuleRow()"
+            >
+              <i class="bi bi-plus-circle me-1"></i>
+              Add Conditional Rule
+            </button>
+          </div>
+        </form>
+      </div>
     </main>
 
     <!-- Footer -->
