@@ -21,9 +21,11 @@ public class StrategyMapper {
                 .id(entity.getId())
                 .name(entity.getName())
                 .description(entity.getDescription())
-                .rules(entity.getRules().stream()
-                        .map(ruleMapper::toDomain)
-                        .toList())
+                .rules(entity.getRules() != null 
+                        ? entity.getRules().stream()
+                                .map(ruleMapper::toDomain)
+                                .toList()
+                        : java.util.List.of())
                 .build();
     }
 

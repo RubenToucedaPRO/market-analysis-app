@@ -75,10 +75,9 @@ public class PolygonAdapter implements HistoricalProviderPort {
             if (e.getStatusCode().value() == 429) {
                 log.warn("Límite de rate limit alcanzado (429) para {}", ticker);
             }
-            throw new PolygonException("Error en comunicación con Polygon: " + e.getMessage());
+            throw new PolygonException("Error en comunicación con Polygon: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Error inesperado al procesar datos de Polygon para {}: {}", ticker, e.getMessage());
-            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList(), null);
+            throw new PolygonException("Error inesperado al procesar datos de Polygon para " + ticker, e);
         }
     }
 
@@ -98,8 +97,7 @@ public class PolygonAdapter implements HistoricalProviderPort {
                 }
             }
         } catch (Exception e) {
-            log.error("Error mapeando datos históricos para {}: {}", ticker, e.getMessage());
-            return new HistoricalData(ticker, Collections.emptyList(), Collections.emptyList(), null);
+            throw new PolygonException("Error mapeando datos históricos para " + ticker, e);
         }
 
         return new HistoricalData(ticker, prices, volumes, Instant.now());

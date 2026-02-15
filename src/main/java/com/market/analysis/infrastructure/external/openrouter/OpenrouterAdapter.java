@@ -1,14 +1,13 @@
 package com.market.analysis.infrastructure.external.openrouter;
 
 import com.market.analysis.domain.port.out.ApiIAPort;
+import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -50,8 +49,7 @@ public class OpenrouterAdapter implements ApiIAPort {
             return content;
 
         } catch (Exception e) {
-            log.error("Error calling OpenRouter API: {}", e.getMessage());
-            return null;
+            throw new AIServiceException("Error calling OpenRouter API", e);
         }
     }
 }
