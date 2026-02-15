@@ -41,6 +41,8 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
             ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(ticker);
             jpaProhibitedTickerRepository.save(entity);
             log.debug("Prohibited ticker saved successfully: {}", ticker.getTicker());
+        } else {
+            log.debug("Prohibited ticker already exists, skipping save: {}", ticker.getTicker());
         }
     }
 

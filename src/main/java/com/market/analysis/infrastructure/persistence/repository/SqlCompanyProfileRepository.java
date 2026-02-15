@@ -29,10 +29,11 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
             CompanyProfileEntity entity = mapper.toEntity(profile);
             entity.setId(existingEntity.get().getId());
             jpaRepository.save(entity);
+            log.debug("Company profile updated successfully for ticker: {}", profile.getTicker());
         } else {
             jpaRepository.save(mapper.toEntity(profile));
+            log.debug("Company profile created successfully for ticker: {}", profile.getTicker());
         }
-        log.debug("Company profile saved successfully for ticker: {}", profile.getTicker());
     }
 
     @Override
