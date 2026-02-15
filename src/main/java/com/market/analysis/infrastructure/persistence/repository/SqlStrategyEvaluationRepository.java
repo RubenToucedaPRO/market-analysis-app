@@ -12,6 +12,7 @@ import com.market.analysis.infrastructure.persistence.mapper.StrategyEvaluationM
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * SQL implementation of StrategyEvaluationRepository.
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SqlStrategyEvaluationRepository implements StrategyEvaluationRepository {
 
     private final JpaStrategyEvaluationRepository jpaRepository;
@@ -30,13 +32,16 @@ public class SqlStrategyEvaluationRepository implements StrategyEvaluationReposi
     @Override
     @Transactional
     public StrategyEvaluation save(StrategyEvaluation evaluation, Stock stock) {
+        log.debug("Saving strategy evaluation for ticker: {}, strategyId: {}", evaluation.getTicker(), evaluation.getStrategyId());
 
         StockEntity managedStock = jpaStockRepository.findById(stock.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Stock no encontrado con ID: " + stock.getId()));
 
         StrategyEvaluationEntity savedEntity = jpaRepository
                 .save(entityMapper.toEntity(evaluation, managedStock));
-        return entityMapper.toDomain(savedEntity);
+        StrategyEvaluation saved = entityMapper.toDomain(savedEntity);
+        log.debug("Strategy evaluation saved successfully for ticker: {}", saved.getTicker());
+        return saved;
     }
 
 }

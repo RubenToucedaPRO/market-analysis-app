@@ -57,7 +57,11 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
         for (Rule rule : strategy.getRules()) {
             RuleResult result = ruleEvaluator.evaluate(rule, stock);
             ruleResults.add(result);
-            log.debug("Rule '{}' evaluation: {}", rule.getName(), result.isPassed() ? PASSED : FAILED);
+            log.debug("Rule '{}' evaluation for ticker '{}': {} - {}", 
+                    rule.getName(), 
+                    stock.getTicker(),
+                    result.isPassed() ? PASSED : FAILED,
+                    result.getJustification());
         }
 
         // Calculate metrics

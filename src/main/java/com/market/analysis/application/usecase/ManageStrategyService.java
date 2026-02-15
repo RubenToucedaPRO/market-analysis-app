@@ -12,8 +12,10 @@ import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
+@Slf4j
 public class ManageStrategyService implements ManageStrategyUseCase {
 
     private final StrategyRepository strategyRepository;
@@ -23,19 +25,23 @@ public class ManageStrategyService implements ManageStrategyUseCase {
 
     @Override
     public StrategyDTO createStrategy(StrategyDTO strategy) {
+        log.info("Creating new strategy: {}", strategy.getName());
         Strategy strategyDomain = strategyMapper.toDomain(strategy);
         strategyDomain.validateConsistency();
         Strategy savedStrategy = strategyRepository.save(strategyDomain);
+        log.info("Strategy created successfully with ID: {}", savedStrategy.getId());
         return strategyMapper.toDTO(savedStrategy);
     }
 
     @Override
     public List<StrategyDTO> getAllStrategies() {
+        log.debug("Retrieving all strategies");
         return strategyRepository.findAll().stream().map(strategyMapper::toDTO).toList();
     }
 
     @Override
     public StrategyDTO getStrategyById(Long strategyId) {
+        log.debug("Retrieving strategy with ID: {}", strategyId);
         return strategyRepository.findById(strategyId)
                 .map(strategyMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Strategy not found with id: " + strategyId));
@@ -48,6 +54,8 @@ public class ManageStrategyService implements ManageStrategyUseCase {
 
     @Override
     public void deleteStrategy(Long strategyId) {
+        log.info("Deleting strategy with ID: {}", strategyId);
         strategyRepository.deleteById(strategyId);
+        log.info("Strategy deleted successfully: {}", strategyId);
     }
 }

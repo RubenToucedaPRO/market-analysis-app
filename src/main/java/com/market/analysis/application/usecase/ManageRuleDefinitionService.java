@@ -10,12 +10,14 @@ import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service implementing rule definition management use cases.
  * Coordinates operations on rule definitions through the repository port.
  */
 @RequiredArgsConstructor
+@Slf4j
 public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase {
 
     private final RuleDefinitionRepository ruleDefinitionRepository;
@@ -35,13 +37,16 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
             throw new IllegalArgumentException(
                     "RuleDefinition with code '" + ruleDefinitionDto.getCode() + "' already exists");
         }
+        log.info("Creating new rule definition: {}", ruleDefinitionDto.getCode());
         RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
         RuleDefinition savedRule = ruleDefinitionRepository.save(ruleDefinition);
+        log.info("Rule definition created successfully with ID: {}", savedRule.getId());
         return ruleDefinitionMapper.toDTO(savedRule);
     }
 
     @Override
     public List<RuleDefinitionDTO> getAllRuleDefinitions() {
+        log.debug("Retrieving all rule definitions");
         return ruleDefinitionRepository.findAll().stream().map(ruleDefinitionMapper::toDTO).toList();
     }
 
@@ -65,8 +70,10 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         if (!ruleDefinitionRepository.existsById(ruleDefinitionDto.getId())) {
             throw new StockDataNotFoundException("RuleDefinition not found with id: " + ruleDefinitionDto.getId());
         }
+        log.info("Updating rule definition with ID: {}", ruleDefinitionDto.getId());
         RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
         RuleDefinition savedRule = ruleDefinitionRepository.save(ruleDefinition);
+        log.info("Rule definition updated successfully: {}", savedRule.getId());
         return ruleDefinitionMapper.toDTO(savedRule);
     }
 
@@ -75,6 +82,8 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         if (!ruleDefinitionRepository.existsById(id)) {
             throw new StockDataNotFoundException("RuleDefinition not found with id: " + id);
         }
+        log.info("Deleting rule definition with ID: {}", id);
         ruleDefinitionRepository.deleteById(id);
+        log.info("Rule definition deleted successfully: {}", id);
     }
 }

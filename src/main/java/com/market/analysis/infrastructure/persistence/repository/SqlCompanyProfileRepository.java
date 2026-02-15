@@ -11,9 +11,11 @@ import com.market.analysis.infrastructure.persistence.entity.CompanyProfileEntit
 import com.market.analysis.infrastructure.persistence.mapper.CompanyProfileMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SqlCompanyProfileRepository implements CompanyProfileRepository {
 
     private final JpaCompanyProfileRepository jpaRepository;
@@ -21,18 +23,22 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
 
     @Override
     public void save(CompanyProfile profile) {
+        log.debug("Saving company profile for ticker: {}", profile.getTicker());
         Optional<CompanyProfileEntity> existingEntity = jpaRepository.findByTicker(profile.getTicker());
         if (existingEntity.isPresent()) {
             CompanyProfileEntity entity = mapper.toEntity(profile);
             entity.setId(existingEntity.get().getId());
             jpaRepository.save(entity);
+            log.debug("Company profile updated successfully for ticker: {}", profile.getTicker());
         } else {
             jpaRepository.save(mapper.toEntity(profile));
+            log.debug("Company profile created successfully for ticker: {}", profile.getTicker());
         }
     }
 
     @Override
     public Optional<CompanyProfile> findByTicker(String ticker) {
+        log.debug("Finding company profile by ticker: {}", ticker);
         CompanyProfileEntity entity = jpaRepository.findAll().stream()
                 .filter(p -> p.getTicker().equalsIgnoreCase(ticker))
                 .findFirst()
@@ -42,13 +48,17 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
 
     @Override
     public void update(CompanyProfile profile) {
+        log.debug("Updating company profile for ticker: {}", profile.getTicker());
         jpaRepository.save(mapper.toEntity(profile));
+        log.debug("Company profile updated successfully for ticker: {}", profile.getTicker());
     }
 
     @Override
     @Transactional
     public void deleteByTicker(String ticker) {
+        log.debug("Deleting company profile for ticker: {}", ticker);
         jpaRepository.deleteByTicker(ticker);
+        log.debug("Company profile deleted successfully for ticker: {}", ticker);
     }
 
 }
