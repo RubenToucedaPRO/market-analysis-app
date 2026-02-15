@@ -60,6 +60,10 @@ public class StrategyEvaluationMapper {
         if (entity == null) {
             return null;
         }
+        
+        if (entity.getStock() == null) {
+            throw new IllegalStateException("StrategyEvaluationEntity must have an associated Stock");
+        }
 
         return StrategyEvaluation.builder()
                 .id(entity.getId())

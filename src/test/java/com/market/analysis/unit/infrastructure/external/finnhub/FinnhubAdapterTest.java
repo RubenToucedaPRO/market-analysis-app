@@ -123,7 +123,7 @@ class FinnhubAdapterTest {
                         adapter.getQuote("INVALID");
                 });
 
-                assertEquals("Error fetching quote for INVALID: No valid data found for: INVALID",
+                assertEquals("No valid data found for: INVALID",
                                 exception.getMessage());
         }
 

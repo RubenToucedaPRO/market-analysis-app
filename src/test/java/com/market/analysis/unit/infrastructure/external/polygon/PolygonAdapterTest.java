@@ -236,7 +236,7 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error en comunicación con Polygon");
+                .hasMessageContaining("Error communicating with Polygon");
         }
 
         @Test
@@ -253,11 +253,11 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error en comunicación con Polygon");
+                .hasMessageContaining("Error communicating with Polygon");
         }
 
         @Test
-        @DisplayName("Should return empty data on JSON parsing error")
+        @DisplayName("Should throw PolygonException on JSON parsing error")
         void testFetchHistoricalDataInvalidJson() {
             // Arrange
             String ticker = "AAPL";
@@ -266,34 +266,24 @@ class PolygonAdapterTest {
             ResponseEntity<String> responseEntity = ResponseEntity.ok(invalidJsonResponse);
             when(restTemplate.getForEntity(any(URI.class), eq(String.class))).thenReturn(responseEntity);
 
-            // Act
-            HistoricalData result = adapter.fetchHistoricalData(ticker);
-
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getTicker()).isEqualTo(ticker);
-            assertThat(result.getClosingPrices()).isEmpty();
-            assertThat(result.getVolumes()).isEmpty();
-            assertThat(result.getLastUpdate()).isNull();
+            // Act & Assert
+            assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
+                .isInstanceOf(PolygonException.class)
+                .hasMessageContaining("Error mapping historical data");
         }
 
         @Test
-        @DisplayName("Should return empty data on unexpected exception")
+        @DisplayName("Should throw PolygonException on unexpected exception")
         void testFetchHistoricalDataUnexpectedException() {
             // Arrange
             String ticker = "AAPL";
             when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                 .thenThrow(new RuntimeException("Unexpected error"));
 
-            // Act
-            HistoricalData result = adapter.fetchHistoricalData(ticker);
-
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getTicker()).isEqualTo(ticker);
-            assertThat(result.getClosingPrices()).isEmpty();
-            assertThat(result.getVolumes()).isEmpty();
-            assertThat(result.getLastUpdate()).isNull();
+            // Act & Assert
+            assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
+                .isInstanceOf(PolygonException.class)
+                .hasMessageContaining("Unexpected error processing Polygon data");
         }
 
         @Test

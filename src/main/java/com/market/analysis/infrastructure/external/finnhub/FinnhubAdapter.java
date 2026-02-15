@@ -58,13 +58,13 @@ public class FinnhubAdapter implements StockProviderPort {
             return finnhubMapper.toDomain(quote);
 
         } catch (FinnhubException e) {
-            throw new FinnhubException("Error fetching quote for " + ticker + ": " + e.getMessage(), e);
+            throw e;
 
         } catch (HttpClientErrorException e) {
             throw new FinnhubException("API error for " + ticker, e);
 
         } catch (Exception e) {
-            throw new FinnhubException("Unexpected error fetching quote " + ticker + ": " + e.getMessage());
+            throw new FinnhubException("Unexpected error fetching quote " + ticker + ": " + e.getMessage(), e);
         }
     }
 

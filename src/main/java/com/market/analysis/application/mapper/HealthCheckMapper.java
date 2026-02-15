@@ -18,9 +18,13 @@ public class HealthCheckMapper {
      * Determines the appropriate HTTP status code based on the application status.
      *
      * @param healthStatus the domain health status object
-     * @return HealthCheckResponse suitable for HTTP response
+     * @return HealthCheckResponse suitable for HTTP response, or null if input is null
      */
     public HealthCheckResponse toResponse(HealthStatus healthStatus) {
+        if (healthStatus == null) {
+            return null;
+        }
+        
         int httpStatusCode = "UP".equals(healthStatus.getStatus()) ? 200 : 503;
 
         return HealthCheckResponse.builder()
