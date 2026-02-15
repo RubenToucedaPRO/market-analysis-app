@@ -10,9 +10,11 @@ import com.market.analysis.infrastructure.persistence.entity.ProhibitedTickerEnt
 import com.market.analysis.infrastructure.persistence.mapper.ProhibitedTickerMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository {
 
     private final JpaProhibitedTickerRepository jpaProhibitedTickerRepository;
@@ -20,6 +22,7 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
 
     @Override
     public List<ProhibitedTicker> findAll() {
+        log.debug("Retrieving all prohibited tickers");
         return jpaProhibitedTickerRepository.findAll().stream()
                 .map(prohibitedTickerMapper::toDomain)
                 .toList();
@@ -27,20 +30,25 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
 
     @Override
     public boolean existsByTicker(String ticker) {
+        log.debug("Checking if ticker is prohibited: {}", ticker);
         return jpaProhibitedTickerRepository.existsByTicker(ticker);
     }
 
     @Override
     public void save(ProhibitedTicker ticker) {
+        log.debug("Saving prohibited ticker: {}", ticker.getTicker());
         if (!jpaProhibitedTickerRepository.existsByTicker(ticker.getTicker())) {
             ProhibitedTickerEntity entity = prohibitedTickerMapper.toEntity(ticker);
             jpaProhibitedTickerRepository.save(entity);
+            log.debug("Prohibited ticker saved successfully: {}", ticker.getTicker());
         }
     }
 
     @Override
     public void deleteByTicker(String ticker) {
+        log.debug("Deleting prohibited ticker: {}", ticker);
         jpaProhibitedTickerRepository.deleteByTicker(ticker);
+        log.debug("Prohibited ticker deleted successfully: {}", ticker);
     }
 
 }
