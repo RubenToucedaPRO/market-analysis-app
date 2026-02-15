@@ -236,7 +236,7 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error en comunicación con Polygon");
+                .hasMessageContaining("Error communicating with Polygon");
         }
 
         @Test
@@ -253,7 +253,7 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error en comunicación con Polygon");
+                .hasMessageContaining("Error communicating with Polygon");
         }
 
         @Test
@@ -269,7 +269,7 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error mapeando datos históricos");
+                .hasMessageContaining("Error mapping historical data");
         }
 
         @Test
@@ -283,7 +283,7 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error inesperado al procesar datos de Polygon");
+                .hasMessageContaining("Unexpected error processing Polygon data");
         }
 
         @Test

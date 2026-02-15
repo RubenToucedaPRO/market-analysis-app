@@ -42,33 +42,32 @@ public class PolygonAdapter implements HistoricalProviderPort {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    private static final long RATE_LIMIT_WINDOW = 62000; // 1 minuto + margen
+    private static final long RATE_LIMIT_WINDOW = 62000; // 1 minute + margin
     private static final int MAX_CALLS_PER_MINUTE = 5;
     private static final int SIZE_HISTORICAL = 300;
 
     /**
-     * Deque para rastrear timestamps de llamadas y cumplir el rate limit en
-     * memoria.
+     * Deque to track call timestamps and enforce rate limiting in memory.
      */
     private final Deque<Instant> apiCallTimestamps = new ConcurrentLinkedDeque<>();
 
     @Override
     public HistoricalData fetchHistoricalData(String ticker) {
-        log.debug("Solicitando datos históricos a Polygon para: {}", ticker);
+        log.debug("Requesting historical data from Polygon for: {}", ticker);
 
-        // 1. Control de flujo (Responsabilidad técnica del adaptador)
+        // 1. Flow control (Adapter technical responsibility)
         waitForRateLimit();
 
-        // 2. Construcción de la URI
+        // 2. URI construction
         URI uri = buildUri(ticker, SIZE_HISTORICAL);
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
 
-            // Registrar llamada exitosa para el rate limit
+            // Record successful call for rate limiting
             recordApiCall();
 
-            // 3. Mapeo de respuesta JSON (Infraestructura) a modelo de Dominio
+            // 3. JSON response mapping (Infrastructure) to Domain model
             return mapToHistoricalData(ticker, response.getBody());
 
         } catch (PolygonException e) {
@@ -76,11 +75,11 @@ public class PolygonAdapter implements HistoricalProviderPort {
             throw e;
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 429) {
-                log.warn("Límite de rate limit alcanzado (429) para {}", ticker);
+                log.warn("Rate limit reached (429) for {}", ticker);
             }
-            throw new PolygonException("Error en comunicación con Polygon: " + e.getMessage(), e);
+            throw new PolygonException("Error communicating with Polygon: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw new PolygonException("Error inesperado al procesar datos de Polygon para " + ticker, e);
+            throw new PolygonException("Unexpected error processing Polygon data for " + ticker, e);
         }
     }
 
@@ -100,7 +99,7 @@ public class PolygonAdapter implements HistoricalProviderPort {
                 }
             }
         } catch (Exception e) {
-            throw new PolygonException("Error mapeando datos históricos para " + ticker, e);
+            throw new PolygonException("Error mapping historical data for " + ticker, e);
         }
 
         return new HistoricalData(ticker, prices, volumes, Instant.now());
@@ -108,8 +107,7 @@ public class PolygonAdapter implements HistoricalProviderPort {
 
     private URI buildUri(String ticker, int size) {
         LocalDate toDate = LocalDate.now();
-        // Se restan 350 días para asegurar que obtenemos suficientes días bursátiles
-        // para una SMA200
+        // Subtract 350 days to ensure we get enough trading days for SMA200
         LocalDate fromDate = toDate.minusDays(350);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -132,7 +130,7 @@ public class PolygonAdapter implements HistoricalProviderPort {
                         - (Instant.now().minusMillis(RATE_LIMIT_WINDOW).toEpochMilli()) + 100;
                 if (waitTime > 0) {
                     try {
-                        log.info("Rate limit alcanzado. Esperando {}ms", waitTime);
+                        log.info("Rate limit reached. Waiting {}ms", waitTime);
                         Thread.sleep(waitTime);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
