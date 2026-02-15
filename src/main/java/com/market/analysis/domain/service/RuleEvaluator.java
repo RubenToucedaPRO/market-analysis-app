@@ -7,8 +7,6 @@ import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Domain service responsible for evaluating individual technical analysis rules
  * against ticker data.
@@ -16,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
  * This is a pure domain service with no infrastructure dependencies,
  * ensuring deterministic and testable rule evaluation logic.
  */
-@Slf4j
 public class RuleEvaluator {
 
     /**
@@ -31,25 +28,19 @@ public class RuleEvaluator {
         Objects.requireNonNull(rule, "Rule cannot be null");
         Objects.requireNonNull(stock, "Stock cannot be null");
 
-        log.debug("Evaluating rule '{}' for ticker '{}'", rule.getName(), stock.getTicker());
-
         BigDecimal subjectValue = getIndicatorValue(rule.getSubjectCode(), rule.getSubjectParam(), stock);
         BigDecimal targetValue = getIndicatorValue(rule.getTargetCode(), rule.getTargetParam(), stock);
 
         if (subjectValue == null || targetValue == null) {
-            String justification = buildMissingDataJustification(rule, subjectValue, targetValue);
-            log.debug("Rule '{}' failed due to missing data: {}", rule.getName(), justification);
             return RuleResult.builder()
                     .rule(rule)
                     .passed(false)
-                    .justification(justification)
+                    .justification(buildMissingDataJustification(rule, subjectValue, targetValue))
                     .build();
         }
 
         boolean passed = evaluateOperator(rule.getOperator(), subjectValue, targetValue);
         String justification = buildJustification(rule, subjectValue, targetValue, passed);
-
-        log.debug("Rule '{}' result: {} - {}", rule.getName(), passed ? "PASSED" : "FAILED", justification);
 
         return RuleResult.builder()
                 .rule(rule)
