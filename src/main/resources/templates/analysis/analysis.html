@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>analysis - AlphaSeeker</title>
+    <title>Análisis - AlphaSeeker</title>
 
     <!-- Bootstrap 5 CSS -->
     <link
@@ -26,15 +26,15 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">analysis Tickers</h2>
+      <h2 class="mb-4">Análisis de Tickers</h2>
       <p class="text-muted mb-4">
-        Add tickers to analysis using technical analysis strategies.
+        Añade tickers para analizar usando estrategias de análisis técnico.
       </p>
 
       <!-- Add Ticker Form -->
       <div class="card mb-5">
         <div class="card-header bg-light">
-          <h5 class="mb-0">Add Ticker</h5>
+          <h5 class="mb-0">Añadir Ticker</h5>
         </div>
         <div class="card-body">
           <form
@@ -43,25 +43,25 @@
             class="row g-3"
           >
             <div class="col-md-5">
-              <label for="tickers" class="form-label">Ticker Symbol</label>
+              <label for="tickers" class="form-label">Símbolo del Ticker</label>
               <input
                 type="text"
                 class="form-control text-uppercase"
                 id="tickers"
                 th:name="tickers"
-                placeholder="Enter ticker symbol (e.g., AAPL, GOOGL)"
+                placeholder="Introduce el símbolo del ticker (ej., AAPL, GOOGL)"
                 required
               />
             </div>
             <div class="col-md-5">
-              <label for="strategyId" class="form-label">Strategy</label>
+              <label for="strategyId" class="form-label">Estrategia</label>
               <select
                 class="form-select"
                 id="strategyId"
                 th:name="strategyId"
                 required
               >
-                <option value="" selected disabled>Select a strategy</option>
+                <option value="" selected disabled>Selecciona una estrategia</option>
                 <option
                   th:each="strategy : ${strategies}"
                   th:value="${strategy.id}"
@@ -74,7 +74,7 @@
             <div class="col-md-2 d-flex align-items-end">
               <button type="submit" class="btn btn-primary w-100">
                 <i class="bi bi-plus-circle me-1"></i>
-                Add Ticker
+                Añadir Ticker
               </button>
             </div>
           </form>
@@ -89,15 +89,15 @@
               <thead class="table-light">
                 <tr>
                   <th scope="col">Ticker</th>
-                  <th scope="col">Strategy</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Current Price</th>
-                  <th scope="col">Open Price</th>
-                  <th scope="col">High of Day</th>
-                  <th scope="col">Low of Day</th>
-                  <th scope="col">Previous Close</th>
-                  <th scope="col">Volume</th>
-                  <th scope="col" class="text-end">Actions</th>
+                  <th scope="col">Estrategia</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Precio Actual</th>
+                  <th scope="col">Precio de Apertura</th>
+                  <th scope="col">Máximo del Día</th>
+                  <th scope="col">Mínimo del Día</th>
+                  <th scope="col">Cierre Anterior</th>
+                  <th scope="col">Volumen</th>
+                  <th scope="col" class="text-end">Acciones</th>
                 </tr>
               </thead>
               <tbody id="tickersTableBody">
@@ -141,7 +141,7 @@
                         th:class="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
                       ></i>
                       <span
-                        th:text="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'PASSED' : 'FAILED'}"
+                        th:text="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'APROBADO' : 'FALLIDO'}"
                       ></span>
                       (<span th:text="${ticker.complianceRate}">0</span>%)
                     </span>
@@ -168,7 +168,7 @@
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-primary"
-                        title="Refresh ticker data"
+                        title="Refrescar datos del ticker"
                       >
                         <i class="bi bi-arrow-repeat"></i>
                       </button>
@@ -182,7 +182,7 @@
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-primary"
-                        title="Analyze with AI"
+                        title="Analizar con IA"
                       >
                         <i class="bi bi-stars"></i>
                       </button>
@@ -196,7 +196,7 @@
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-danger"
-                        title="Delete ticker"
+                        title="Eliminar ticker"
                       >
                         <i class="bi bi-trash"></i>
                       </button>
@@ -213,7 +213,7 @@
     <!-- Footer -->
     <footer class="bg-light border-top text-center py-3 mt-5">
       <p class="text-muted mb-0">
-        <small>&copy; 2026 AlphaSeeker. All rights reserved.</small>
+        <small>&copy; 2026 AlphaSeeker. Todos los derechos reservados.</small>
       </p>
     </footer>
 

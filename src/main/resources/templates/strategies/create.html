@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Strategy - AlphaSeeker</title>
+    <title>Crear Estrategia - AlphaSeeker</title>
 
     <!-- Bootstrap 5 CSS -->
     <link
@@ -26,15 +26,15 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">Create New Strategy</h2>
+      <h2 class="mb-4">Crear Nueva Estrategia</h2>
       <div class="mb-4 d-flex justify-content-end gap-2">
         <a th:href="@{/strategies}" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left me-1"></i>
-          Back to List
+          Volver a la Lista
         </a>
         <button type="submit" form="strategyForm" class="btn btn-primary">
           <i class="bi bi-save me-1"></i>
-          Save Strategy
+          Guardar Estrategia
         </button>
       </div>
       <div class="mb-4">
@@ -49,7 +49,7 @@
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="bi bi-gear text-primary me-2"></i>
-                Strategy Details
+                Detalles de la Estrategia
               </h5>
             </div>
             <div class="card-body">
@@ -58,14 +58,14 @@
                 <!-- Strategy Name -->
                 <div class="col-md-6">
                   <label for="strategyName" class="form-label fw-semibold"
-                    >Strategy Name</label
+                    >Nombre de la Estrategia</label
                   >
                   <input
                     type="text"
                     class="form-control"
                     id="strategyName"
                     th:field="*{name}"
-                    placeholder="e.g., RSI Oversold Recovery"
+                    placeholder="ej., RSI Oversold Recovery"
                     required
                   />
                 </div>
@@ -75,14 +75,14 @@
                   <label
                     for="strategyDescription"
                     class="form-label fw-semibold"
-                    >Description</label
+                    >Descripción</label
                   >
                   <input
                     type="text"
                     class="form-control"
                     id="strategyDescription"
                     th:field="*{description}"
-                    placeholder="Describe your strategy logic..."
+                    placeholder="Describe la lógica de tu estrategia..."
                     required
                   />
                 </div>
@@ -95,7 +95,7 @@
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="bi bi-list-check text-primary me-2"></i>
-                Execution Rules
+                Reglas de Ejecución
               </h5>
             </div>
             <div class="card-body">
@@ -116,7 +116,7 @@
               onclick="addRuleRow()"
             >
               <i class="bi bi-plus-circle me-1"></i>
-              Add Conditional Rule
+              Añadir Regla Condicional
             </button>
           </div>
         </form>
@@ -127,7 +127,7 @@
     <footer class="bg-light border-top py-3 mt-auto">
       <div class="container text-center">
         <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. All rights reserved.</small
+          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
         >
       </div>
     </footer>

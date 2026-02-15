@@ -5,13 +5,13 @@
       <!-- Rule Name -->
       <div class="col-md-2">
         <label class="form-label small text-muted">
-          Rule Name
+          Nombre de la Regla
           <input
             type="text"
             class="form-control form-control-sm"
             th:name="|rules[${index}].name|"
             th:value="${rule != null ? rule.name : ''}"
-            placeholder="Rule Name"
+            placeholder="Nombre de la Regla"
             required
           />
         </label>
@@ -20,7 +20,7 @@
       <!-- Subject Indicator -->
       <div class="col-md-2">
         <label class="form-label small text-muted">
-          Subject Indicator
+          Indicador de Sujeto
           <select
             class="form-select form-select-sm"
             th:name="|rules[${index}].subjectCode|"
@@ -28,7 +28,7 @@
             required
           >
             <option value="" data-requires-param="false">
-              -- Select Indicator --
+              -- Seleccionar Indicador --
             </option>
             <option
               th:each="rd : ${ruleDefinitions}"
@@ -49,7 +49,7 @@
         th:style="${selectedDef == null || !selectedDef.requiresParam} ? 'display: none;' : ''"
       >
         <label class="form-label small text-muted">
-          Subject Parameter
+          Parámetro de Sujeto
           <input
             type="number"
             step="0.01"
@@ -65,7 +65,7 @@
       <!-- Operator -->
       <div class="col-md-1">
         <label class="form-label small text-muted">
-          Operator
+          Operador
           <select
             class="form-select form-select-sm"
             th:name="|rules[${index}].operator|"
@@ -95,7 +95,7 @@
       <!-- Target Indicator -->
       <div class="col-md-2">
         <label class="form-label small text-muted">
-          Target Indicator
+          Indicador de Objetivo
           <select
             class="form-select form-select-sm"
             th:name="|rules[${index}].targetCode|"
@@ -103,7 +103,7 @@
             required
           >
             <option value="" data-requires-param="false">
-              -- Select Indicator --
+              -- Seleccionar Indicador --
             </option>
             <option
               th:each="rd : ${ruleDefinitions}"
@@ -124,7 +124,7 @@
         th:style="${selectedTargetDef == null || !selectedTargetDef.requiresParam} ? 'display: none;' : ''"
       >
         <label class="form-label small text-muted">
-          Target Value
+          Valor de Objetivo
           <input
             type="number"
             step="0.01"

@@ -40,23 +40,23 @@
         />
         <div>
           <h2 class="mb-0" th:text="${ticker.ticker}">AAPL</h2>
-          <p class="text-muted mb-0">Ticker Detail</p>
+          <p class="text-muted mb-0">Detalle del Ticker</p>
         </div>
       </div>
 
       <!-- Strategy Information -->
       <div class="card mb-4">
         <div class="card-header bg-light">
-          <h5 class="mb-0">Strategy Information</h5>
+          <h5 class="mb-0">Información de la Estrategia</h5>
         </div>
         <div class="card-body">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Strategy Name:</p>
+              <p class="fw-bold">Nombre de la Estrategia:</p>
               <p th:text="${ticker.strategyName}">Strategy Name</p>
             </div>
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Evaluation Status:</p>
+              <p class="fw-bold">Estado de Evaluación:</p>
               <p>
                 <span
                   th:class="${ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
@@ -66,7 +66,7 @@
                     th:class="${ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
                   ></i>
                   <span
-                    th:text="${ticker.evaluationPassed ? 'PASSED' : 'FAILED'}"
+                    th:text="${ticker.evaluationPassed ? 'APROBADO' : 'FALLIDO'}"
                   ></span>
                 </span>
                 <span
@@ -78,11 +78,11 @@
               </p>
             </div>
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Compliance Rate:</p>
+              <p class="fw-bold">Tasa de Cumplimiento:</p>
               <p><span th:text="${ticker.complianceRate}">0</span>%</p>
             </div>
             <div class="col-md-12 mb-3" th:if="${ticker.evaluationSummary}">
-              <p class="fw-bold">Evaluation Summary:</p>
+              <p class="fw-bold">Resumen de Evaluación:</p>
               <p th:text="${ticker.evaluationSummary}" class="text-muted">
                 Evaluation summary
               </p>
@@ -94,30 +94,30 @@
       <!-- Price Information -->
       <div class="card mb-4">
         <div class="card-header bg-light">
-          <h5 class="mb-0">Price Information</h5>
+          <h5 class="mb-0">Información de Precio</h5>
         </div>
         <div class="card-body">
           <div class="row">
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Current Price:</p>
+              <p class="fw-bold">Precio Actual:</p>
               <p class="fs-5 text-primary" th:text="${ticker.currentPrice}">
                 150.00
               </p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Open Price:</p>
+              <p class="fw-bold">Precio de Apertura:</p>
               <p th:text="${ticker.openPrice}">148.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Previous Close:</p>
+              <p class="fw-bold">Cierre Anterior:</p>
               <p th:text="${ticker.previousClose}">149.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">High of Day:</p>
+              <p class="fw-bold">Máximo del Día:</p>
               <p th:text="${ticker.highOfDay}">151.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Low of Day:</p>
+              <p class="fw-bold">Mínimo del Día:</p>
               <p th:text="${ticker.lowOfDay}">147.50</p>
             </div>
           </div>
@@ -127,7 +127,7 @@
       <!-- Technical Indicators -->
       <div class="card mb-4">
         <div class="card-header bg-light">
-          <h5 class="mb-0">Technical Indicators</h5>
+          <h5 class="mb-0">Indicadores Técnicos</h5>
         </div>
         <div class="card-body">
           <div class="row">
@@ -150,16 +150,16 @@
       <!-- Volume Information -->
       <div class="card mb-4">
         <div class="card-header bg-light">
-          <h5 class="mb-0">Volume Information</h5>
+          <h5 class="mb-0">Información de Volumen</h5>
         </div>
         <div class="card-body">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Current Volume:</p>
+              <p class="fw-bold">Volumen Actual:</p>
               <p th:text="${ticker.volume}">1000000</p>
             </div>
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Average Volume (60-day):</p>
+              <p class="fw-bold">Volumen Promedio (60 días):</p>
               <p th:text="${ticker.averageVolume}">1200000</p>
             </div>
           </div>
@@ -169,12 +169,12 @@
       <!-- AI Valoration  -->
       <div class="card mb-4">
         <div class="card-header bg-light">
-          <h5 class="mb-0">AI Valoration</h5>
+          <h5 class="mb-0">Valoración IA</h5>
         </div>
         <div class="card-body">
           <div class="row">
             <div class="col-md-12 mb-3">
-              <p class="fw-bold">AI Valoration:</p>
+              <p class="fw-bold">Valoración IA:</p>
               <p th:text="${ticker.valorationIA}">AI Valoration</p>
             </div>
           </div>
@@ -184,12 +184,12 @@
       <!-- Metadata -->
       <div class="card mb-4">
         <div class="card-header bg-light">
-          <h5 class="mb-0">Metadata</h5>
+          <h5 class="mb-0">Metadatos</h5>
         </div>
         <div class="card-body">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Last Updated:</p>
+              <p class="fw-bold">Última Actualización:</p>
               <p
                 th:text="${#temporals.format(ticker.lastUpdated, 'yyyy-MM-dd HH:mm:ss')}"
               >
@@ -204,7 +204,7 @@
       <div class="d-flex gap-2">
         <a th:href="@{/analysis}" class="btn btn-secondary">
           <i class="bi bi-arrow-left me-1"></i>
-          Back to Analysis
+          Volver al Análisis
         </a>
         <form
           th:action="@{/analysis/update}"
@@ -214,7 +214,7 @@
           <input type="hidden" name="id" th:value="${ticker.id}" />
           <button type="submit" class="btn btn-primary">
             <i class="bi bi-arrow-repeat me-1"></i>
-            Refresh Data
+            Refrescar Datos
           </button>
         </form>
         <form
@@ -222,13 +222,13 @@
           method="post"
           style="display: inline"
           onsubmit="
-            return confirm('Are you sure you want to delete this ticker?');
+            return confirm('¿Estás seguro de que quieres eliminar este ticker?');
           "
         >
           <input type="hidden" name="id" th:value="${ticker.id}" />
           <button type="submit" class="btn btn-danger">
             <i class="bi bi-trash me-1"></i>
-            Delete Ticker
+            Eliminar Ticker
           </button>
         </form>
       </div>
@@ -237,7 +237,7 @@
     <!-- Footer -->
     <footer class="bg-light border-top text-center py-3 mt-5">
       <p class="text-muted mb-0">
-        <small>&copy; 2026 AlphaSeeker. All rights reserved.</small>
+        <small>&copy; 2026 AlphaSeeker. Todos los derechos reservados.</small>
       </p>
     </footer>
 
