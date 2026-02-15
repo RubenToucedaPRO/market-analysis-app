@@ -27,7 +27,7 @@
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <div class="d-flex align-items-center mb-4">
-        <h2 class="mb-0" th:text="${strategy.name}">Strategy Name</h2>
+        <h2 class="mb-0" th:text="${strategy.name}">Nombre de la Estrategia</h2>
         <span
           class="badge bg-primary ms-3"
           th:text="${strategy.rules.size()} + ' reglas'"
@@ -49,14 +49,14 @@
               <p class="form-label fw-semibold text-muted small">
                 Nombre de la Estrategia
               </p>
-              <p class="fs-5" th:text="${strategy.name}">Golden Cross</p>
+              <p class="fs-5" th:text="${strategy.name}">Cruce Dorado</p>
             </div>
             <div class="col-md-12">
               <p class="form-label fw-semibold text-muted small"
                 >Descripción</p
               >
               <p class="fs-6 text-muted" th:text="${strategy.description}">
-                Strategy description will be displayed here.
+                La descripción de la estrategia se mostrará aquí.
               </p>
             </div>
           </div>
@@ -154,7 +154,7 @@
                     class="mb-0 text-muted small"
                     th:text="${rule.description}"
                   >
-                    Rule description
+                    Descripción de la regla
                   </p>
                 </div>
               </div>
