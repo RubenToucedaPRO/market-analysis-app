@@ -24,29 +24,7 @@
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
-    <nav
-      class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm"
-    >
-      <div class="container-fluid">
-        <!-- Logo and Title -->
-        <a class="navbar-brand d-flex align-items-center" th:href="@{/strategies}">
-          <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
-          <span class="fw-bold text-primary">AlphaSeeker</span>
-        </a>
-
-        <!-- Action Buttons -->
-        <div class="d-flex gap-2">
-          <a th:href="@{/rule-definitions}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>
-            Back to List
-          </a>
-          <button type="submit" form="ruleDefinitionForm" class="btn btn-primary">
-            <i class="bi bi-save me-1"></i>
-            Save Rule Definition
-          </button>
-        </div>
-      </div>
-    </nav>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
