@@ -1,30 +1,52 @@
 <!-- templates/fragments/navbar.html -->
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+<nav
+  th:fragment="navbar"
+  class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm"
+>
   <div class="container-fluid">
     <!-- Logo and Title -->
-    <a class="navbar-brand d-flex align-items-center" th:href="@{/strategies}">
-      <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
-      <span class="fw-bold text-primary">AlphaSeeker</span>
-    </a>
+    <div class="d-flex align-items-center gap-2">
+      <a class="nav-link" th:href="@{/analysis}">
+        <i class="bi bi-graph-up-arrow text-primary fs-4"></i>
+        <span class="fw-bold text-primary">AlphaSeeker</span></a
+      >
+    </div>
 
     <!-- Navigation Links -->
-    <div class="d-flex gap-2">
-      <a th:href="@{/analysis}" class="btn btn-outline-secondary">
-        <i class="bi bi-graph-up me-1"></i>
-        Analysis
-      </a>
-      <a th:href="@{/strategies}" class="btn btn-outline-secondary">
-        <i class="bi bi-list me-1"></i>
-        Strategies
-      </a>
-      <a th:href="@{/rule-definitions}" class="btn btn-outline-secondary">
-        <i class="bi bi-collection me-1"></i>
-        Rule Definitions
-      </a>
-      <a th:href="@{/prohibited-tickers}" class="btn btn-outline-secondary">
-        <i class="bi bi-shield-x me-1"></i>
-        Prohibited Tickers
-      </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/analysis}"
+            ><i class="bi bi-graph-up me-1"></i>Analysis</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/strategies}"
+            ><i class="bi bi-list me-1"></i>Strategies</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/rule-definitions}">
+            <i class="bi bi-collection me-1"></i>Rule Definitions</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/prohibited-tickers}"
+            ><i class="bi bi-shield-x me-1"></i>Prohibited Tickers</a
+          >
+        </li>
+      </ul>
     </div>
   </div>
 </nav>
