@@ -2,6 +2,7 @@ package com.market.analysis.unit.infrastructure.monitoring;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.infrastructure.exception.PersistenceException;
 import com.market.analysis.infrastructure.monitoring.HealthCheckAdapter;
 
 /**
@@ -68,16 +70,13 @@ class HealthCheckAdapterTest {
     }
 
     @Test
-    @DisplayName("Should return false when connection acquisition fails")
+    @DisplayName("Should throw PersistenceException when connection acquisition fails")
     void testIsDatabaseHealthyReturnsFalseOnException() throws Exception {
         // Arrange
         when(dataSource.getConnection()).thenThrow(new RuntimeException("Connection failed"));
 
-        // Act
-        boolean result = healthCheckAdapter.isDatabaseHealthy();
-
-        // Assert
-        assertFalse(result);
+        // Act & Assert
+        assertThrows(PersistenceException.class, () -> healthCheckAdapter.isDatabaseHealthy());
     }
 
     @Test
@@ -95,30 +94,24 @@ class HealthCheckAdapterTest {
     }
 
     @Test
-    @DisplayName("Should return -1 connection time when connection validation fails")
+    @DisplayName("Should throw PersistenceException when connection validation fails")
     void testGetDatabaseConnectionTimeReturnsMinusOneWhenConnectionFails() throws Exception {
         // Arrange
         when(dataSource.getConnection()).thenReturn(connection);
         when(connection.isValid(5)).thenReturn(false);
 
-        // Act
-        long connectionTime = healthCheckAdapter.getDatabaseConnectionTime();
-
-        // Assert
-        assertEquals(-1L, connectionTime);
+        // Act & Assert
+        assertThrows(PersistenceException.class, () -> healthCheckAdapter.getDatabaseConnectionTime());
     }
 
     @Test
-    @DisplayName("Should return -1 connection time when connection acquisition fails")
+    @DisplayName("Should throw PersistenceException when connection acquisition fails")
     void testGetDatabaseConnectionTimeReturnsMinusOneOnException() throws Exception {
         // Arrange
         when(dataSource.getConnection()).thenThrow(new RuntimeException("Connection failed"));
 
-        // Act
-        long connectionTime = healthCheckAdapter.getDatabaseConnectionTime();
-
-        // Assert
-        assertEquals(-1L, connectionTime);
+        // Act & Assert
+        assertThrows(PersistenceException.class, () -> healthCheckAdapter.getDatabaseConnectionTime());
     }
 
     @Test

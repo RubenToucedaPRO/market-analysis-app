@@ -3,6 +3,7 @@ package com.market.analysis.unit.infrastructure.external.openrouter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.market.analysis.infrastructure.external.openrouter.OpenrouterAdapter;
 import com.openai.client.OpenAIClient;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
@@ -59,19 +61,15 @@ class OpenrouterAdapterTest {
     }
 
     @Test
-    @DisplayName("Should handle empty stock data input")
+    @DisplayName("Should throw AIServiceException on empty stock data input")
     void shouldHandleEmptyStockDataInput() {
         // Arrange
         OpenrouterAdapter adapter = new OpenrouterAdapter(TEST_API_KEY);
         String emptyData = "";
 
-        // Act
-        String result = adapter.getValoration(emptyData);
-
-        // Assert
-        // The method should handle empty input gracefully
-        // Result will be null because API call will fail with invalid credentials
-        assertNull(result);
+        // Act & Assert
+        // The method should throw AIServiceException when API call fails
+        assertThrows(AIServiceException.class, () -> adapter.getValoration(emptyData));
     }
 
     @Test

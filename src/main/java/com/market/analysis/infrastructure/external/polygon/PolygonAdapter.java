@@ -71,6 +71,9 @@ public class PolygonAdapter implements HistoricalProviderPort {
             // 3. Mapeo de respuesta JSON (Infraestructura) a modelo de Dominio
             return mapToHistoricalData(ticker, response.getBody());
 
+        } catch (PolygonException e) {
+            // Re-throw PolygonException as-is to preserve the original message
+            throw e;
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 429) {
                 log.warn("Límite de rate limit alcanzado (429) para {}", ticker);
