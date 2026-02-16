@@ -22,13 +22,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.application.usecase.EvaluateStrategyService;
 import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
+import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.RuleEvaluator;
 
 @ExtendWith(MockitoExtension.class)

@@ -4,12 +4,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-import org.springframework.stereotype.Component;
-
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.TechnicalIndicators;
 
-@Component
 public class StockHistoricalService {
 
     public TechnicalIndicators calculateIndicators(HistoricalData data, int volumePeriod) {

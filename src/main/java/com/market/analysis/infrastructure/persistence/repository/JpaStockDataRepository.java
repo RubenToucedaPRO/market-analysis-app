@@ -23,4 +23,7 @@ public interface JpaStockDataRepository extends JpaRepository<StockEntity, Long>
     Optional<StockEntity> findByIdWithProfile(@Param("id") Long id);
 
     StockEntity findFirstByTickerAndLastUpdateBetween(String ticker, Instant start, Instant end);
+
+    @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.strategyId = :strategyId")
+    List<StockEntity> findAllByStrategyId(@Param("strategyId") Long strategyId);
 }
