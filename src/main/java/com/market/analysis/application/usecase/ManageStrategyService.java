@@ -11,7 +11,6 @@ import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
-import com.market.analysis.domain.service.EvaluateStrategyService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +25,6 @@ public class ManageStrategyService implements ManageStrategyUseCase {
     private final StrategyDTOMapper strategyMapper;
     private final RuleDefinitionDTOMapper ruleDefinitionMapper;
 
-    private EvaluateStrategyService evaluateStrategyServ;
-
     @Override
     public StrategyDTO createStrategy(StrategyDTO strategy) {
         log.info("Creating new strategy: {}", strategy.getName());
@@ -35,11 +32,6 @@ public class ManageStrategyService implements ManageStrategyUseCase {
         strategyDomain.validateConsistency();
         Strategy savedStrategy = strategyRepository.save(strategyDomain);
         log.info("Strategy created successfully with ID: {}", savedStrategy.getId());
-
-        stockDataRepository.findAllByStrategyId(savedStrategy.getId()).forEach(stock -> {
-            evaluateStrategyServ.evaluateStrategy(savedStrategy, stock);
-            stockDataRepository.updateStockData(stock);
-        });
 
         return strategyMapper.toDTO(savedStrategy);
     }

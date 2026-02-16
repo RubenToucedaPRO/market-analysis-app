@@ -49,7 +49,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockDataDTOMapper stockMapper;
 
     private final StockHistoricalService stockHistoricalService;
-    private final EvaluateStrategyService evaluateStrategyServ;
+    private final EvaluateStrategyService evaluateStrategyService;
 
     @Override
     public void getStockData(String tickers, Long strategyId) {
@@ -75,7 +75,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 Stock savedStock = stockDataRepository.save(stock);
 
                 // Evaluate the strategy against the stock data
-                StrategyEvaluation evaluationResult = evaluateStrategyServ.evaluateStrategy(strategy, savedStock);
+                StrategyEvaluation evaluationResult = evaluateStrategyService.evaluateStrategy(strategy, savedStock);
 
                 // Save the evaluation result
                 strategyEvaluationRepository.save(evaluationResult, savedStock);
