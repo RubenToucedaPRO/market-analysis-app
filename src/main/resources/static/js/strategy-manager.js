@@ -55,13 +55,26 @@ function addRuleRow() {
   const container = document.getElementById("rules-container");
   const template = document.getElementById("rule-template");
 
-  // Clonas el contenido que Thymeleaf ya procesó y dejó en el template
   const clone = template.content.cloneNode(true);
-  const newIndex = document.querySelectorAll(".rule-row").length;
+  const newIndex = container.querySelectorAll(".rule-row").length;
 
-  // Reemplazas el índice 999 por el real
   clone.querySelectorAll("[name]").forEach((el) => {
     el.name = el.name.replace("999", newIndex);
+  });
+
+  clone.querySelectorAll("[id]").forEach((el) => {
+    el.id = el.id.replace("999", newIndex);
+  });
+
+  clone.querySelectorAll("[onchange]").forEach((el) => {
+    el.setAttribute(
+      "onchange",
+      el.getAttribute("onchange").replace("999", newIndex),
+    );
+  });
+
+  clone.querySelectorAll("label[for]").forEach((el) => {
+    el.htmlFor = el.htmlFor.replace("999", newIndex);
   });
 
   container.appendChild(clone);
@@ -136,27 +149,36 @@ function reindexRules() {
   });
 }
 
-/**
- * Toggle visibility of Subject Parameter field based on selected indicator
- * @param {HTMLSelectElement} selectElement - The select element that was changed
- * @param {number} index - The index of the rule row
- */
-function toggleSubjectParameter(selectElement, index) {
+function toggleParameter(selectElement, containerId) {
   const selectedOption = selectElement.options[selectElement.selectedIndex];
-  const requiresParam = selectedOption.dataset.requiresParam === "true";
-  const paramContainer = document.getElementById(`rule-container-${index}`);
+  // Convertir explícitamente a string para comparar, manejando undefined
+  const requiresParam = String(selectedOption.dataset.requiresParam) === "true";
+  const paramContainer = document.getElementById(containerId);
 
   if (paramContainer) {
-    paramContainer.style.display = requiresParam ? "" : "none";
+    paramContainer.style.setProperty(
+      "display",
+      requiresParam ? "block" : "none",
+      "important",
+    );
 
-    // Toggle required attribute on the input field
     const input = paramContainer.querySelector("input");
     if (input) {
       if (requiresParam) {
         input.setAttribute("required", "required");
       } else {
         input.removeAttribute("required");
+        input.value = ""; // Limpiar valor si se oculta para evitar basura en el POST
       }
     }
   }
+}
+
+// Simplificación de tus funciones:
+function toggleSubjectParameter(selectElement, index) {
+  toggleParameter(selectElement, `subject-container-${index}`);
+}
+
+function toggleTargetParameter(selectElement, index) {
+  toggleParameter(selectElement, `target-container-${index}`);
 }

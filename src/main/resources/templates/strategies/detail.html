@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Strategy Details - AlphaSeeker</title>
+    <title>Detalles de la Estrategia - AlphaSeeker</title>
 
     <!-- Bootstrap 5 CSS -->
     <link
@@ -27,11 +27,11 @@
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <div class="d-flex align-items-center mb-4">
-        <h2 class="mb-0" th:text="${strategy.name}">Strategy Name</h2>
+        <h2 class="mb-0" th:text="${strategy.name}">Nombre de la Estrategia</h2>
         <span
           class="badge bg-primary ms-3"
-          th:text="${strategy.rules.size()} + ' rules'"
-          >3 rules</span
+          th:text="${strategy.rules.size()} + ' reglas'"
+          >3 reglas</span
         >
       </div>
 
@@ -40,23 +40,23 @@
         <div class="card-header bg-light">
           <h5 class="mb-0">
             <i class="bi bi-gear text-primary me-2"></i>
-            Strategy Details
+            Detalles de la Estrategia
           </h5>
         </div>
         <div class="card-body">
           <div class="row">
             <div class="col-md-12 mb-3">
-              <p class="form-label fw-semibold text-muted small"></p>
-                Strategy Name
+              <p class="form-label fw-semibold text-muted small">
+                Nombre de la Estrategia
               </p>
-              <p class="fs-5" th:text="${strategy.name}">Golden Cross</p>
+              <p class="fs-5" th:text="${strategy.name}">Cruce Dorado</p>
             </div>
             <div class="col-md-12">
               <p class="form-label fw-semibold text-muted small"
-                >Description</p
+                >Descripción</p
               >
               <p class="fs-6 text-muted" th:text="${strategy.description}">
-                Strategy description will be displayed here.
+                La descripción de la estrategia se mostrará aquí.
               </p>
             </div>
           </div>
@@ -68,14 +68,14 @@
         <div class="card-header bg-light">
           <h5 class="mb-0">
             <i class="bi bi-list-check text-primary me-2"></i>
-            Execution Rules
+            Reglas de Ejecución
           </h5>
         </div>
         <div class="card-body">
           <!-- Empty State -->
           <div th:if="${strategy.rules.isEmpty()}" class="text-center py-4">
             <i class="bi bi-info-circle text-muted" style="font-size: 3rem"></i>
-            <p class="text-muted mt-3">No rules defined for this strategy.</p>
+            <p class="text-muted mt-3">No hay reglas definidas para esta estrategia.</p>
           </div>
 
           <!-- Rules Display -->
@@ -90,7 +90,7 @@
                 >
                   <h6 class="mb-0">
                     <i class="bi bi-check-circle text-success me-1"></i>
-                    Rule <span th:text="${stat.count}">1</span>:
+                    Regla <span th:text="${stat.count}">1</span>:
                     <span th:text="${rule.name}">Rule Name</span>
                   </h6>
                 </div>
@@ -98,7 +98,7 @@
                   <!-- Subject Indicator -->
                   <div class="col-md-3">
                     <p class="form-label small text-muted fw-semibold"
-                      >Subject Indicator</p
+                      >Indicador de Sujeto</p
                     >
                     <p class="mb-0" th:text="${rule.subjectCode}">PRICE</p>
                   </div>
@@ -106,7 +106,7 @@
                   <!-- Subject Parameter -->
                   <div class="col-md-2" th:if="${rule.subjectParam != null}">
                     <p class="form-label small text-muted fw-semibold"
-                      >Subject Parameter</p
+                      >Parámetro de Sujeto</p
                     >
                     <p class="mb-0" th:text="${rule.subjectParam}">50</p>
                   </div>
@@ -114,7 +114,7 @@
                   <!-- Operator -->
                   <div class="col-md-1">
                     <p class="form-label small text-muted fw-semibold"
-                      >Operator</p>
+                      >Operador</p>
                     <p class="mb-0">
                       <span th:if="${rule.operator == '>'}">></span>
                       <span th:if="${rule.operator == '<'}">&lt;</span>
@@ -128,7 +128,7 @@
                   <!-- Target Indicator -->
                   <div class="col-md-3">
                     <label class="form-label small text-muted fw-semibold"
-                      >Target Indicator</label
+                      >Indicador de Objetivo</label
                     >
                     <p class="mb-0" th:text="${rule.targetCode}">CONSTANT</p>
                   </div>
@@ -136,7 +136,7 @@
                   <!-- Target Parameter -->
                   <div class="col-md-2" th:if="${rule.targetParam != null}">
                     <label class="form-label small text-muted fw-semibold"
-                      >Target Value</label
+                      >Valor de Objetivo</label
                     >
                     <p class="mb-0" th:text="${rule.targetParam}">100.0</p>
                   </div>
@@ -148,13 +148,13 @@
                   class="mt-3"
                 >
                   <label class="form-label small text-muted fw-semibold"
-                    >Description</label
+                    >Descripción</label
                   >
                   <p
                     class="mb-0 text-muted small"
                     th:text="${rule.description}"
                   >
-                    Rule description
+                    Descripción de la regla
                   </p>
                 </div>
               </div>
@@ -168,7 +168,7 @@
     <footer class="bg-light border-top py-3 mt-auto">
       <div class="container text-center">
         <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. All rights reserved.</small
+          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
         >
       </div>
     </footer>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Strategies List - AlphaSeeker</title>
+    <title>Lista de Estrategias - AlphaSeeker</title>
 
     <!-- Bootstrap 5 CSS -->
     <link
@@ -26,17 +26,27 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">Your Trading Strategies</h2>
+      <h2 class="mb-4">Tus Estrategias de Trading</h2>
+
+      <div
+        th:if="${!strategies.isEmpty()}"
+        class="d-flex justify-content-end mb-3"
+      >
+        <a th:href="@{/strategies/new}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i>
+          Nueva Estrategia
+        </a>
+      </div>
 
       <!-- Empty State -->
       <div th:if="${strategies.isEmpty()}" class="text-center py-5">
         <i class="bi bi-search text-muted" style="font-size: 4rem"></i>
         <p class="text-muted fs-5 mt-3">
-          No strategies found. Let's create one!
+          No se encontraron estrategias. ¡Vamos a crear una!
         </p>
         <a th:href="@{/strategies/new}" class="btn btn-primary mt-3">
           <i class="bi bi-plus me-1"></i>
-          Create Strategy
+          Crear Estrategia
         </a>
       </div>
 
@@ -47,10 +57,10 @@
             <table class="table table-hover mb-0">
               <thead class="table-light">
                 <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Description</th>
-                  <th scope="col">Rules</th>
-                  <th scope="col" class="text-end">Actions</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Descripción</th>
+                  <th scope="col">Reglas</th>
+                  <th scope="col" class="text-end">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -65,9 +75,9 @@
                     </a>
                   </td>
                   <td class="text-muted" th:text="${strategy.description}">
-                    Description of the strategy.
+                    Descripción de la estrategia.
                   </td>
-                  <td th:text="${strategy.rules.size()} + ' rules'">3 rules</td>
+                  <td th:text="${strategy.rules.size()} + ' reglas'">3 reglas</td>
                   <td class="text-end">
                     <form
                       th:action="@{/strategies/edit}"
@@ -84,7 +94,7 @@
                         class="btn btn-sm btn-outline-primary me-2"
                       >
                         <i class="bi bi-pencil"></i>
-                        Edit
+                        Editar
                       </button>
                     </form>
                     <form
@@ -106,7 +116,7 @@
                           );
                         "
                       >
-                        <i class="bi bi-trash"></i> Delete
+                        <i class="bi bi-trash"></i> Eliminar
                       </button>
                     </form>
                   </td>
@@ -122,7 +132,7 @@
     <footer class="bg-light border-top py-3 mt-auto">
       <div class="container text-center">
         <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. All rights reserved.</small
+          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
         >
       </div>
     </footer>
