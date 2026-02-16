@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,16 +17,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
-import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
+import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.RuleEvaluator;
 
@@ -38,10 +35,6 @@ class EvaluateStrategyServiceTest {
         @Mock
         private RuleEvaluator ruleEvaluator;
 
-        @Mock
-        private StrategyEvaluationRepository strategyEvaluationRepository;
-
-        @InjectMocks
         private EvaluateStrategyService service;
 
         private Stock testStock;
@@ -51,6 +44,8 @@ class EvaluateStrategyServiceTest {
 
         @BeforeEach
         void setUp() {
+                service = new EvaluateStrategyService(ruleEvaluator);
+                
                 testStock = Stock.builder()
                                 .ticker("AAPL")
                                 .currentPrice(BigDecimal.valueOf(150.00))
@@ -112,18 +107,17 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(rule2, testStock)).thenReturn(result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result).isNotNull();
-                        assertThat(result.isOverallPassed()).isTrue();
+                        assertThat(result.isCompliant()).isTrue();
                         assertThat(result.getTicker()).isEqualTo("AAPL");
-                        assertThat(result.getStrategy()).isEqualTo(testStrategy);
-                        assertThat(result.getRuleResults()).hasSize(2);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("totalRules", 2L);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("passedRules", 2L);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("failedRules", 0L);
-                        assertThat(result.calculateComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(100.00));
+                        assertThat(result.getStrategyId()).isEqualTo(1L);
+                        assertThat(result.getStrategyName()).isEqualTo("Momentum Strategy");
+                        assertThat(result.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(100.00));
+                        assertThat(result.isLatest()).isTrue();
+                        assertThat(result.getPriceAtEvaluation()).isEqualByComparingTo(BigDecimal.valueOf(150.00));
 
                         verify(ruleEvaluator, times(2)).evaluate(any(Rule.class), any(Stock.class));
                 }
@@ -148,22 +142,19 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(rule2, testStock)).thenReturn(result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result).isNotNull();
-                        assertThat(result.isOverallPassed()).isFalse();
-                        assertThat(result.getRuleResults()).hasSize(2);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("passedRules", 1L);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("failedRules", 1L);
-                        assertThat(result.calculateComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(50.00));
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(50.00));
                         assertThat(result.getSummary()).contains("FAILED");
                         assertThat(result.getSummary()).contains("Volume > Avg Volume");
                 }
 
                 @Test
-                @DisplayName("Should include analysis timestamp")
-                void shouldIncludeAnalysisTimestamp() {
+                @DisplayName("Should include evaluation timestamp")
+                void shouldIncludeEvaluationTimestamp() {
                         // Arrange
                         RuleResult result1 = RuleResult.builder()
                                         .rule(rule1)
@@ -183,13 +174,13 @@ class EvaluateStrategyServiceTest {
                         Instant before = Instant.now();
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         Instant after = Instant.now();
 
                         // Assert
-                        assertThat(result.getAnalysisTimestamp()).isNotNull();
-                        assertThat(result.getAnalysisTimestamp()).isBetween(before, after);
+                        assertThat(result.getEvaluatedAt()).isNotNull();
+                        assertThat(result.getEvaluatedAt()).isBetween(before, after);
                 }
         }
 
@@ -255,7 +246,7 @@ class EvaluateStrategyServiceTest {
                                         .thenReturn(result1, result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result.getSummary())
@@ -285,7 +276,7 @@ class EvaluateStrategyServiceTest {
                                         .thenReturn(result1, result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result.getSummary())
@@ -296,100 +287,4 @@ class EvaluateStrategyServiceTest {
                 }
         }
 
-        @Nested
-        @DisplayName("Persistence Tests")
-        class PersistenceTests {
-
-                @Test
-                @DisplayName("Should persist evaluation when strategy evaluation succeeds")
-                void shouldPersistEvaluationWhenStrategyEvaluationSucceeds() {
-                        // Arrange
-                        RuleResult result1 = RuleResult.builder()
-                                        .rule(rule1)
-                                        .passed(true)
-                                        .justification("PASSED")
-                                        .build();
-
-                        RuleResult result2 = RuleResult.builder()
-                                        .rule(rule2)
-                                        .passed(true)
-                                        .justification("PASSED")
-                                        .build();
-
-                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
-                                        .thenReturn(result1, result2);
-
-                        // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
-
-                        // Assert
-                        assertThat(result.isOverallPassed()).isTrue();
-                        verify(strategyEvaluationRepository, times(1)).save(any(), any());
-                }
-
-                @Test
-                @DisplayName("Should persist evaluation with correct data")
-                void shouldPersistEvaluationWithCorrectData() {
-                        // Arrange
-                        RuleResult result1 = RuleResult.builder()
-                                        .rule(rule1)
-                                        .passed(true)
-                                        .justification("PASSED")
-                                        .build();
-
-                        RuleResult result2 = RuleResult.builder()
-                                        .rule(rule2)
-                                        .passed(false)
-                                        .justification("FAILED")
-                                        .build();
-
-                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
-                                        .thenReturn(result1, result2);
-
-                        // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
-
-                        // Assert - Verify that save was called with correct data
-                        verify(strategyEvaluationRepository)
-                                        .save(argThat(evaluation -> evaluation.getTicker().equals("AAPL") &&
-                                                        evaluation.getStrategyId().equals(1L) &&
-                                                        !evaluation.isCompliant() &&
-                                                        evaluation.getComplianceRate()
-                                                                        .compareTo(BigDecimal.valueOf(50.00)) == 0
-                                                        &&
-                                                        evaluation.isLatest()),
-                                                        any(Stock.class));
-                        assertNotNull(result);
-                }
-
-                @Test
-                @DisplayName("Should not fail evaluation if persistence fails")
-                void shouldNotFailEvaluationIfPersistenceFails() {
-                        // Arrange
-                        RuleResult result1 = RuleResult.builder()
-                                        .rule(rule1)
-                                        .passed(true)
-                                        .justification("PASSED")
-                                        .build();
-
-                        RuleResult result2 = RuleResult.builder()
-                                        .rule(rule2)
-                                        .passed(true)
-                                        .justification("PASSED")
-                                        .build();
-
-                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
-                                        .thenReturn(result1, result2);
-
-                        // Make repository throw exception
-                        when(strategyEvaluationRepository.save(any(), any()))
-                                        .thenThrow(new RuntimeException("Database error"));
-
-                        // Act & Assert - Should not throw, just log error
-                        assertThat(service.evaluateStrategy(testStrategy, testStock))
-                                        .isNotNull()
-                                        .extracting(AnalysisResult::isOverallPassed)
-                                        .isEqualTo(true);
-                }
-        }
 }

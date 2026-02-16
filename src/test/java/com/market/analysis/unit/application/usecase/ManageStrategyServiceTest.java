@@ -19,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
@@ -30,13 +32,16 @@ import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
+import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.service.EvaluateStrategyService;
 
 /**
  * Unit tests for ManageStrategyService.
  */
 @DisplayName("ManageStrategyService Unit Tests")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ManageStrategyServiceTest {
 
     @Mock
@@ -46,10 +51,16 @@ class ManageStrategyServiceTest {
     private RuleDefinitionRepository ruleDefinitionRepository;
 
     @Mock
+    private StockDataRepository stockDataRepository;
+
+    @Mock
     private StrategyDTOMapper strategyDTOMapper;
 
     @Mock
     private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
+
+    @Mock
+    private EvaluateStrategyService evaluateStrategyService;
 
     @InjectMocks
     private ManageStrategyService manageStrategyService;
@@ -94,6 +105,9 @@ class ManageStrategyServiceTest {
                 .description("Test Description")
                 .rules(List.of(testRuleDTO))
                 .build();
+        
+        // Mock default behavior for stockDataRepository to return empty list
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of());
     }
 
     @Test
