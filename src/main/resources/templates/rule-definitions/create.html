@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title
-      th:text="${isEdit} ? 'Edit Rule Definition' : 'Create Rule Definition'"
+      th:text="${isEdit} ? 'Editar Definición de Regla' : 'Crear Definición de Regla'"
     >
       Create Rule Definition - AlphaSeeker
     </title>
@@ -32,19 +32,19 @@
     <main class="container my-5 flex-grow-1">
       <h2
         class="mb-4"
-        th:text="${isEdit} ? 'Edit Rule Definition' : 'Create New Rule Definition'"
+        th:text="${isEdit} ? 'Editar Definición de Regla' : 'Crear Nueva Definición de Regla'"
       >
-        Create New Rule Definition
+        Crear Nueva Definición de Regla
       </h2>
       <!-- Action Buttons -->
       <div class="mb-4 d-flex justify-content-end gap-2">
         <a th:href="@{/rule-definitions}" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left me-1"></i>
-          Back to List
+          Volver a la Lista
         </a>
         <button type="submit" form="ruleDefinitionForm" class="btn btn-primary">
           <i class="bi bi-save me-1"></i>
-          Save Rule Definition
+          Guardar Definición de Regla
         </button>
       </div>
       <div>
@@ -59,7 +59,7 @@
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="bi bi-gear text-primary me-2"></i>
-                Rule Definition Details
+                Detalles de la Definición de Regla
               </h5>
             </div>
             <div class="card-body">
@@ -69,38 +69,38 @@
                 <!-- Code -->
                 <div class="col-md-6">
                   <label for="code" class="form-label fw-semibold">
-                    Code <span class="text-danger">*</span>
+                    Código <span class="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     class="form-control"
                     id="code"
                     th:field="*{code}"
-                    placeholder="e.g., SMA, RSI, PRICE"
+                    placeholder="ej., SMA, RSI, PRICE"
                     required
                     th:readonly="${isEdit}"
                   />
                   <small class="form-text text-muted">
-                    Unique identifier used in the code. Cannot be changed after
-                    creation.
+                    Identificador único usado en el código. No se puede cambiar después
+                    de la creación.
                   </small>
                 </div>
 
                 <!-- Name -->
                 <div class="col-md-6">
                   <label for="name" class="form-label fw-semibold">
-                    Name <span class="text-danger">*</span>
+                    Nombre <span class="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     class="form-control"
                     id="name"
                     th:field="*{name}"
-                    placeholder="e.g., Simple Moving Average"
+                    placeholder="ej., Media Móvil Simple"
                     required
                   />
                   <small class="form-text text-muted">
-                    Human-readable name displayed in the interface.
+                    Nombre legible para humanos mostrado en la interfaz.
                   </small>
                 </div>
 
@@ -117,11 +117,11 @@
                       class="form-check-label fw-semibold"
                       for="requiresParam"
                     >
-                      Requires Parameter
+                      Requiere Parámetro
                     </label>
                     <small class="form-text text-muted d-block">
-                      Check this if the rule requires a numeric parameter (e.g.,
-                      period for SMA 200).
+                      Marca esto si la regla requiere un parámetro numérico (ej.,
+                      período para SMA 200).
                     </small>
                   </div>
                 </div>
@@ -129,17 +129,17 @@
                 <!-- Description -->
                 <div class="col-md-12">
                   <label for="description" class="form-label fw-semibold">
-                    Description
+                    Descripción
                   </label>
                   <textarea
                     class="form-control"
                     id="description"
                     th:field="*{description}"
                     rows="3"
-                    placeholder="Describe the rule definition and its purpose..."
+                    placeholder="Describe la definición de regla y su propósito..."
                   ></textarea>
                   <small class="form-text text-muted">
-                    Optional description explaining what this rule represents.
+                    Descripción opcional explicando qué representa esta regla.
                   </small>
                 </div>
               </div>
@@ -149,13 +149,13 @@
           <div class="alert alert-info mt-4" role="alert">
             <h6 class="alert-heading">
               <i class="bi bi-info-circle me-2"></i>
-              About Rule Definitions
+              Acerca de las Definiciones de Reglas
             </h6>
             <p class="mb-0">
-              Rule definitions represent the available indicators and values
-              that can be used in strategy rules. Examples include technical
-              indicators like SMA (Simple Moving Average), RSI (Relative
-              Strength Index), or basic values like PRICE or VOLUME.
+              Las definiciones de reglas representan los indicadores y valores
+              disponibles que se pueden usar en las reglas de estrategia. Los ejemplos incluyen
+              indicadores técnicos como SMA (Media Móvil Simple), RSI (Índice de
+              Fuerza Relativa), o valores básicos como PRICE o VOLUME.
             </p>
           </div>
         </form>
@@ -166,7 +166,7 @@
     <footer class="bg-light border-top py-3 mt-auto">
       <div class="container text-center">
         <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. All rights reserved.</small
+          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
         >
       </div>
     </footer>

@@ -37,24 +37,24 @@
                   <h4 class="mb-0">
                     <span th:text="${errorType} ?: 'Error'">Error</span>
                   </h4>
-                  <small>An error occurred while processing your request</small>
+                  <small>Ha ocurrido un error al procesar su solicitud</small>
                 </div>
               </div>
             </div>
             <div class="card-body">
               <!-- User-friendly error message -->
               <div class="alert alert-danger mb-4" role="alert">
-                <p class="mb-0 fs-5" th:text="${errorMessage} ?: 'An unexpected error occurred.'">
-                  An unexpected error occurred.
+                <p class="mb-0 fs-5" th:text="${errorMessage} ?: 'Ha ocurrido un error inesperado.'">
+                  Ha ocurrido un error inesperado.
                 </p>
               </div>
 
               <!-- Error details (only shown if available) -->
               <div th:if="${errorDetails}" class="mb-4">
-                <h6 class="text-muted">Technical Details:</h6>
+                <h6 class="text-muted">Detalles Técnicos:</h6>
                 <div class="bg-light p-3 rounded border">
                   <code class="text-dark" th:text="${errorDetails}">
-                    Error details will appear here
+                    Los detalles del error aparecerán aquí
                   </code>
                 </div>
               </div>
@@ -66,15 +66,15 @@
                   class="btn btn-primary"
                 >
                   <i class="bi bi-arrow-left me-1"></i>
-                  Go Back
+                  Volver
                 </button>
                 <a th:href="@{/strategies}" class="btn btn-outline-primary">
                   <i class="bi bi-house me-1"></i>
-                  Home
+                  Inicio
                 </a>
                 <a th:href="@{/analysis}" class="btn btn-outline-secondary">
                   <i class="bi bi-graph-up me-1"></i>
-                  Analysis
+                  Análisis
                 </a>
               </div>
 
@@ -82,13 +82,13 @@
               <div class="mt-4 p-3 bg-light rounded">
                 <h6 class="text-muted mb-2">
                   <i class="bi bi-lightbulb me-1"></i>
-                  Suggestions:
+                  Sugerencias:
                 </h6>
                 <ul class="mb-0 text-muted small">
-                  <li>Check if the requested resource exists</li>
-                  <li>Verify that external services are available</li>
-                  <li>Try refreshing the page</li>
-                  <li>If the problem persists, contact support</li>
+                  <li>Verifica si el recurso solicitado existe</li>
+                  <li>Verifica que los servicios externos estén disponibles</li>
+                  <li>Intenta refrescar la página</li>
+                  <li>Si el problema persiste, contacta con soporte</li>
                 </ul>
               </div>
             </div>
@@ -101,7 +101,7 @@
     <footer class="bg-light text-center py-3 mt-auto border-top">
       <div class="container">
         <span class="text-muted">
-          © 2024 AlphaSeeker - Market Analysis Application
+          © 2024 AlphaSeeker - Aplicación de Análisis de Mercado
         </span>
       </div>
     </footer>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prohibited Tickers - AlphaSeeker</title>
+    <title>Tickers Prohibidos - AlphaSeeker</title>
 
     <!-- Bootstrap 5 CSS -->
     <link
@@ -26,15 +26,15 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">Prohibited Tickers</h2>
+      <h2 class="mb-4">Tickers Prohibidos</h2>
       <p class="text-muted mb-4">
-        Review tickers blocked by the system and remove them if needed.
+        Revisa los tickers bloqueados por el sistema y elimínalos si es necesario.
       </p>
 
       <!-- Empty State -->
       <div th:if="${prohibitedTickers.isEmpty()}" class="text-center py-5">
         <i class="bi bi-shield-x text-muted" style="font-size: 4rem"></i>
-        <p class="text-muted fs-5 mt-3">No prohibited tickers found.</p>
+        <p class="text-muted fs-5 mt-3">No se encontraron tickers prohibidos.</p>
       </div>
 
       <!-- Prohibited Tickers Table -->
@@ -45,9 +45,9 @@
               <thead class="table-light">
                 <tr>
                   <th scope="col">Ticker</th>
-                  <th scope="col">Reason</th>
-                  <th scope="col">Created At</th>
-                  <th scope="col" class="text-end">Actions</th>
+                  <th scope="col">Razón</th>
+                  <th scope="col">Creado el</th>
+                  <th scope="col" class="text-end">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -56,7 +56,7 @@
                     XYZ
                   </td>
                   <td class="text-muted" th:text="${prohibitedTicker.reason}">
-                    Manual block
+                    Bloqueo manual
                   </td>
                   <td
                     th:text="${#temporals.format(prohibitedTicker.createdAt, 'yyyy-MM-dd HH:mm')}"
@@ -79,11 +79,11 @@
                         class="btn btn-sm btn-outline-danger"
                         onclick="
                           return confirm(
-                            'Are you sure you want to delete this ticker?',
+                            '¿Estás seguro de que quieres eliminar este ticker?',
                           );
                         "
                       >
-                        <i class="bi bi-trash"></i> Delete
+                        <i class="bi bi-trash"></i> Eliminar
                       </button>
                     </form>
                   </td>
@@ -99,7 +99,7 @@
     <footer class="bg-light border-top py-3 mt-auto">
       <div class="container text-center">
         <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. All rights reserved.</small
+          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
         >
       </div>
     </footer>
