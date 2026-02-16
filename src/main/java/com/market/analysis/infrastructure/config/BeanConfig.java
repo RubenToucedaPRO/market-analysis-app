@@ -49,9 +49,10 @@ public class BeanConfig {
             StrategyRepository strategyRepository,
             RuleDefinitionRepository ruleDefinitionRepository, StockDataRepository stockDataRepository,
             StrategyDTOMapper strategyMapper,
-            RuleDefinitionDTOMapper ruleDefinitionMapper) {
+            RuleDefinitionDTOMapper ruleDefinitionMapper,
+            EvaluateStrategyService evaluateStrategyService) {
         return new ManageStrategyService(strategyRepository, ruleDefinitionRepository, stockDataRepository,
-                strategyMapper, ruleDefinitionMapper);
+                strategyMapper, ruleDefinitionMapper, evaluateStrategyService);
     }
 
     @Bean

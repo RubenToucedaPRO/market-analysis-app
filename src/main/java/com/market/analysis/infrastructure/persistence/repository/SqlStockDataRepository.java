@@ -73,6 +73,11 @@ public class SqlStockDataRepository implements StockDataRepository {
     @Override
     public void updateStockData(Stock stockData) {
         var entity = mapper.toEntity(stockData);
+        Optional<CompanyProfileEntity> profile = companyProfileRepository.findByTicker(stockData.getTicker());
+        if (profile.isPresent()) {
+            entity.setCompanyProfile(profile.get());
+        }
+        entity.getStrategyEvaluation().setStock(entity);
         jpaRepository.save(entity);
     }
 
