@@ -80,6 +80,19 @@ class SqlStockDataRepositoryTest {
         testEntity.setAverageVolume(45000000L);
         testEntity.setLastUpdate(lastUpdate);
         testEntity.setCompanyProfile(testCompanyProfile);
+
+        // Initialize StrategyEvaluationEntity
+        com.market.analysis.infrastructure.persistence.entity.StrategyEvaluationEntity evaluation = 
+            new com.market.analysis.infrastructure.persistence.entity.StrategyEvaluationEntity();
+        evaluation.setId(1L);
+        evaluation.setStrategyName("Test Strategy");
+        evaluation.setCompliant(true);
+        evaluation.setComplianceRate(new BigDecimal("100.00"));
+        evaluation.setSummary("Test evaluation");
+        evaluation.setEvaluatedAt(lastUpdate);
+        evaluation.setPriceAtEvaluation(new BigDecimal("150.50"));
+        evaluation.setLatest(true);
+        testEntity.setStrategyEvaluation(evaluation);
     }
 
     @Test

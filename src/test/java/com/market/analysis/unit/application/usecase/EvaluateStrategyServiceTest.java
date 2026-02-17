@@ -494,7 +494,8 @@ class EvaluateStrategyServiceTest {
                         // Assert - Should return valid evaluation object
                         assertThat(result).isNotNull();
                         assertThat(result.isCompliant()).isTrue();
-                        assertThat(result.getId()).isEqualTo(1L);
+                        assertThat(result.getTicker()).isEqualTo("AAPL");
+                        assertThat(result.getStrategyId()).isEqualTo(1L);
                 }
         }
 }

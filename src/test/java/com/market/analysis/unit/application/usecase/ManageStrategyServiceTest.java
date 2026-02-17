@@ -51,6 +51,12 @@ class ManageStrategyServiceTest {
     @Mock
     private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
 
+    @Mock
+    private com.market.analysis.domain.port.out.StockDataRepository stockDataRepository;
+
+    @Mock
+    private com.market.analysis.domain.service.EvaluateStrategyService evaluateStrategyService;
+
     @InjectMocks
     private ManageStrategyService manageStrategyService;
 
@@ -100,6 +106,7 @@ class ManageStrategyServiceTest {
     @DisplayName("Should create strategy successfully")
     void testCreateStrategy() {
         // Arrange
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of());
         when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
         when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
         when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
