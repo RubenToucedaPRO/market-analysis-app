@@ -16,6 +16,8 @@ public interface StockDataRepository {
 
     public Stock findByTickerAndLastUpdateBetween(String ticker, Instant date, Instant endDate);
 
+    public List<Stock> findAllByStrategyId(Long strategyId);
+
     public void updateStockData(Stock stockData);
 
     public void deleteById(Long id);

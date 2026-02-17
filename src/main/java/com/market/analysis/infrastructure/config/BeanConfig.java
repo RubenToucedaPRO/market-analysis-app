@@ -13,12 +13,10 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
-import com.market.analysis.application.usecase.EvaluateStrategyService;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
-import com.market.analysis.domain.port.in.EvaluateStrategyUseCase;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
@@ -33,6 +31,7 @@ import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.RuleEvaluator;
 import com.market.analysis.domain.service.StockHistoricalService;
 
@@ -48,10 +47,12 @@ public class BeanConfig {
     @Bean
     public ManageStrategyUseCase manageStrategyUseCase(
             StrategyRepository strategyRepository,
-            RuleDefinitionRepository ruleDefinitionRepository, StrategyDTOMapper strategyMapper,
-            RuleDefinitionDTOMapper ruleDefinitionMapper) {
-        return new ManageStrategyService(strategyRepository, ruleDefinitionRepository, strategyMapper,
-                ruleDefinitionMapper);
+            RuleDefinitionRepository ruleDefinitionRepository, StockDataRepository stockDataRepository,
+            StrategyDTOMapper strategyMapper,
+            RuleDefinitionDTOMapper ruleDefinitionMapper,
+            EvaluateStrategyService evaluateStrategyService) {
+        return new ManageStrategyService(strategyRepository, ruleDefinitionRepository, stockDataRepository,
+                strategyMapper, ruleDefinitionMapper, evaluateStrategyService);
     }
 
     @Bean
@@ -69,29 +70,32 @@ public class BeanConfig {
     @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
             CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
+            StrategyEvaluationRepository strategyEvaluationRepository,
             ApiCallRateRepository apiCallRateRepository,
             StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
             ApiIAPort apiIAPort,
-            StrategyRepository strategyRepository,
-            EvaluateStrategyUseCase evaluateStrategyUseCase, StockDataDTOMapper stockMapper,
-            StockHistoricalService stockHistoricalService) {
+            StrategyRepository strategyRepository, StockDataDTOMapper stockMapper,
+            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, apiCallRateRepository, stockProviderPort, historicalProviderPort,
+                prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository, stockProviderPort,
+                historicalProviderPort,
                 apiIAPort, strategyRepository,
-                evaluateStrategyUseCase,
-                stockMapper, stockHistoricalService);
-    }
-
-    @Bean
-    public EvaluateStrategyUseCase evaluateStrategyUseCase(
-            RuleEvaluator ruleEvaluator,
-            StrategyEvaluationRepository strategyEvaluationRepository) {
-        return new EvaluateStrategyService(ruleEvaluator, strategyEvaluationRepository);
+                stockMapper, stockHistoricalService, evaluateStrategyService);
     }
 
     @Bean
     public RuleEvaluator ruleEvaluator() {
         return new RuleEvaluator();
+    }
+
+    @Bean
+    public StockHistoricalService stockHistoricalService() {
+        return new StockHistoricalService();
+    }
+
+    @Bean
+    public EvaluateStrategyService evaluateStrategyService(RuleEvaluator ruleEvaluator) {
+        return new EvaluateStrategyService(ruleEvaluator);
     }
 
     @Bean
@@ -121,9 +125,11 @@ public class BeanConfig {
     /**
      * Bean for Hibernate 6 StatementInspector to enable slow query logging.
      * 
-     * <p>This inspector provides centralized database observability by intercepting
+     * <p>
+     * This inspector provides centralized database observability by intercepting
      * SQL statements and applying security sanitization. Works in conjunction with
-     * Hibernate's slow query logging configured in application.properties.</p>
+     * Hibernate's slow query logging configured in application.properties.
+     * </p>
      * 
      * @return configured SlowQueryInspector instance
      */

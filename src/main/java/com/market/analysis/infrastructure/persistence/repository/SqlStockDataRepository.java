@@ -63,8 +63,21 @@ public class SqlStockDataRepository implements StockDataRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Stock> findAllByStrategyId(Long strategyId) {
+        return jpaRepository.findAllByStrategyId(strategyId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void updateStockData(Stock stockData) {
         var entity = mapper.toEntity(stockData);
+        Optional<CompanyProfileEntity> profile = companyProfileRepository.findByTicker(stockData.getTicker());
+        if (profile.isPresent()) {
+            entity.setCompanyProfile(profile.get());
+        }
+        entity.getStrategyEvaluation().setStock(entity);
         jpaRepository.save(entity);
     }
 

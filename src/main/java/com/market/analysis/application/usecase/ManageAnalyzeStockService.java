@@ -10,14 +10,13 @@ import java.util.stream.Collectors;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
-import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.model.TechnicalIndicators;
-import com.market.analysis.domain.port.in.EvaluateStrategyUseCase;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
@@ -26,7 +25,9 @@ import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
+import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.StockHistoricalService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,17 +37,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
+    private static final String TICKER_DATA_NOT_FOUND = "Ticker data not found for: ";
+
     private final StockDataRepository stockDataRepository;
     private final CompanyProfileRepository companyProfileRepository;
     private final ProhibitedTickerRepository prohibitedTickerRepository;
+    private final StrategyEvaluationRepository strategyEvaluationRepository;
     private final ApiCallRateRepository apiCallRateRepository;
     private final StockProviderPort stockProviderPort;
     private final HistoricalProviderPort historicalProviderPort;
     private final ApiIAPort apiIAPort;
     private final StrategyRepository strategyRepository;
-    private final EvaluateStrategyUseCase evaluateStrategyUseCase;
     private final StockDataDTOMapper stockMapper;
+
     private final StockHistoricalService stockHistoricalService;
+    private final EvaluateStrategyService evaluateStrategyService;
 
     @Override
     public void getStockData(String tickers, Long strategyId) {
@@ -72,13 +77,15 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 Stock savedStock = stockDataRepository.save(stock);
 
                 // Evaluate the strategy against the stock data
-                AnalysisResult evaluationResult = evaluateStrategyUseCase.evaluateStrategy(strategy, savedStock);
-                // Evaluation result is persisted by EvaluateStrategyService
+                StrategyEvaluation evaluationResult = evaluateStrategyService.evaluateStrategy(strategy, savedStock);
+
+                // Save the evaluation result
+                strategyEvaluationRepository.save(evaluationResult, savedStock);
 
                 log.info("Ticker {} added with strategy '{}': {}",
                         ticker,
                         strategy.getName(),
-                        evaluationResult.isOverallPassed() ? "PASSED" : "FAILED");
+                        evaluationResult.isCompliant() ? "PASSED" : "FAILED");
             }
         }
     }
@@ -93,13 +100,13 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     @Override
     public StockDataDTO findStockDataById(Long id) {
         return stockDataRepository.findById(id).map(stockMapper::toDTO)
-                .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + id));
+                .orElseThrow(() -> new StockDataNotFoundException(TICKER_DATA_NOT_FOUND + id));
     }
 
     @Override
     public void updateStockData(Long id) {
         Stock existingStockData = stockDataRepository.findById(id)
-                .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + id));
+                .orElseThrow(() -> new StockDataNotFoundException(TICKER_DATA_NOT_FOUND + id));
         String ticker = existingStockData.getTicker();
         Stock stock = stockProviderPort.getQuote(ticker);
         if (stock != null) {
@@ -238,7 +245,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     @Override
     public void getValorationIA(Long id) {
         Stock stock = stockDataRepository.findById(id)
-                .orElseThrow(() -> new StockDataNotFoundException("Ticker data not found for: " + id));
+                .orElseThrow(() -> new StockDataNotFoundException(TICKER_DATA_NOT_FOUND + id));
         String ticker = stock.getTicker();
         String datosAccion = String.format(
                 "Ticker: %s, Price: %.2f, SMA20: %.2f, SMA50: %.2f, SMA200: %.2f, Volume: %d, Average Volume: %d, Strategy: %s, Compliance Rate: %.2f, Summary: %s",

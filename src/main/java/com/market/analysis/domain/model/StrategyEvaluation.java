@@ -5,6 +5,7 @@ import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -15,6 +16,7 @@ import lombok.ToString;
  * from the persistent record, following Clean Architecture principles.
  */
 @Getter
+@Setter
 @Builder
 @ToString
 public class StrategyEvaluation {

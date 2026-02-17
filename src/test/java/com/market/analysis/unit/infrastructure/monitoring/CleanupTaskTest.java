@@ -8,10 +8,11 @@ import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -33,13 +34,6 @@ class CleanupTaskTest {
 
     @InjectMocks
     private CleanupTask cleanupTask;
-
-    private Instant testTimestamp;
-
-    @BeforeEach
-    void setUp() {
-        testTimestamp = Instant.parse("2026-02-15T00:00:00Z");
-    }
 
     @Test
     @DisplayName("Should delete old API call logs when executing cleanup")
@@ -81,25 +75,12 @@ class CleanupTaskTest {
         );
     }
 
-    @Test
-    @DisplayName("Should handle cleanup when no records are deleted")
-    void testExecuteCleanupWithNoRecordsDeleted() {
+    @ParameterizedTest
+    @ValueSource(ints = {0, 10000, 1, 100})
+    @DisplayName("Should handle cleanup with various delete counts")
+    void testExecuteCleanupWithVariousDeleteCounts(int deleteCount) {
         // Arrange
-        when(apiCallRepository.deleteByOcurredAtBefore(any(Instant.class))).thenReturn(0);
-
-        // Act
-        cleanupTask.executeCleanup();
-
-        // Assert
-        verify(apiCallRepository, times(1)).deleteByOcurredAtBefore(any(Instant.class));
-    }
-
-    @Test
-    @DisplayName("Should handle cleanup when large number of records are deleted")
-    void testExecuteCleanupWithManyRecordsDeleted() {
-        // Arrange
-        int largeDeleteCount = 10000;
-        when(apiCallRepository.deleteByOcurredAtBefore(any(Instant.class))).thenReturn(largeDeleteCount);
+        when(apiCallRepository.deleteByOcurredAtBefore(any(Instant.class))).thenReturn(deleteCount);
 
         // Act
         cleanupTask.executeCleanup();
@@ -177,24 +158,6 @@ class CleanupTaskTest {
         assertThat(thresholdCaptor.getValue()).isInstanceOf(Instant.class);
     }
 
-    @Test
-    @DisplayName("Should handle cleanup with different delete counts")
-    void testExecuteCleanupWithVariousDeleteCounts() {
-        // Test with 0 deletions
-        when(apiCallRepository.deleteByOcurredAtBefore(any(Instant.class))).thenReturn(0);
-        cleanupTask.executeCleanup();
-        verify(apiCallRepository, times(1)).deleteByOcurredAtBefore(any(Instant.class));
-
-        // Test with 1 deletion
-        when(apiCallRepository.deleteByOcurredAtBefore(any(Instant.class))).thenReturn(1);
-        cleanupTask.executeCleanup();
-        verify(apiCallRepository, times(2)).deleteByOcurredAtBefore(any(Instant.class));
-
-        // Test with 100 deletions
-        when(apiCallRepository.deleteByOcurredAtBefore(any(Instant.class))).thenReturn(100);
-        cleanupTask.executeCleanup();
-        verify(apiCallRepository, times(3)).deleteByOcurredAtBefore(any(Instant.class));
-    }
 
     @Test
     @DisplayName("Should execute cleanup with transactional context")

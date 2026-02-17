@@ -1,4 +1,4 @@
-package com.market.analysis.application.usecase;
+package com.market.analysis.domain.service;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,12 +12,6 @@ import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.StrategyEvaluation;
-import com.market.analysis.domain.port.in.EvaluateStrategyUseCase;
-import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
-import com.market.analysis.domain.service.RuleEvaluator;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Application service implementing strategy evaluation use case.
@@ -28,26 +22,25 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * Follows Clean Architecture principles with no infrastructure dependencies.
  */
-@RequiredArgsConstructor
-@Slf4j
-public class EvaluateStrategyService implements EvaluateStrategyUseCase {
+
+public class EvaluateStrategyService {
 
     private static final String PASSED = "PASSED";
     private static final String FAILED = "FAILED";
 
     private final RuleEvaluator ruleEvaluator;
-    private final StrategyEvaluationRepository strategyEvaluationRepository;
 
-    @Override
-    public AnalysisResult evaluateStrategy(Strategy strategy, Stock stock) {
+    public EvaluateStrategyService(RuleEvaluator ruleEvaluator) {
+        this.ruleEvaluator = ruleEvaluator;
+    }
+
+    public StrategyEvaluation evaluateStrategy(Strategy strategy, Stock stock) {
         if (strategy == null) {
             throw new IllegalArgumentException("Strategy cannot be null");
         }
         if (stock == null) {
             throw new IllegalArgumentException("Stock data cannot be null");
         }
-
-        log.info("Evaluating strategy '{}' for ticker '{}'", strategy.getName(), stock.getTicker());
 
         // Validate strategy consistency
         strategy.validateConsistency();
@@ -57,11 +50,6 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
         for (Rule rule : strategy.getRules()) {
             RuleResult result = ruleEvaluator.evaluate(rule, stock);
             ruleResults.add(result);
-            log.debug("Rule '{}' evaluation for ticker '{}': {} - {}", 
-                    rule.getName(), 
-                    stock.getTicker(),
-                    result.isPassed() ? PASSED : FAILED,
-                    result.getJustification());
         }
 
         // Calculate metrics
@@ -83,15 +71,17 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
                 .summary(summary)
                 .build();
 
-        log.info("Strategy evaluation completed for '{}': {} (Compliance: {}%)",
-                stock.getTicker(),
-                overallPassed ? PASSED : FAILED,
-                result.calculateComplianceRate());
-
-        // Persist evaluation result
-        persistStrategyEvaluation(stock, strategy.getId(), result);
-
-        return result;
+        return StrategyEvaluation.builder()
+                .ticker(stock.getTicker())
+                .strategyId(strategy.getId())
+                .strategyName(result.getStrategy().getName())
+                .compliant(result.isOverallPassed())
+                .complianceRate(result.calculateComplianceRate())
+                .summary(result.getSummary())
+                .evaluatedAt(result.getAnalysisTimestamp())
+                .priceAtEvaluation(stock.getCurrentPrice())
+                .isLatest(true)
+                .build();
     }
 
     /**
@@ -145,32 +135,4 @@ public class EvaluateStrategyService implements EvaluateStrategyUseCase {
         return summary.toString();
     }
 
-    /**
-     * Persists the strategy evaluation result in the database.
-     * Marks previous evaluations for this ticker+strategy as non-latest.
-     */
-    private void persistStrategyEvaluation(Stock stock, Long strategyId, AnalysisResult analysisResult) {
-        try {
-            StrategyEvaluation evaluation = StrategyEvaluation.builder()
-                    .ticker(stock.getTicker())
-                    .strategyId(strategyId)
-                    .strategyName(analysisResult.getStrategy().getName())
-                    .compliant(analysisResult.isOverallPassed())
-                    .complianceRate(analysisResult.calculateComplianceRate())
-                    .summary(analysisResult.getSummary())
-                    .evaluatedAt(analysisResult.getAnalysisTimestamp())
-                    .priceAtEvaluation(stock.getCurrentPrice())
-                    .isLatest(true)
-                    .build();
-
-            strategyEvaluationRepository.save(evaluation, stock);
-            log.debug("Strategy evaluation persisted for ticker: {}, strategyId: {}",
-                    stock.getTicker(), strategyId);
-        } catch (Exception e) {
-            log.error("Failed to persist strategy evaluation for ticker: {}, strategyId: {}",
-                    stock.getTicker(), strategyId, e);
-            // Log error but don't fail the evaluation - persistence is secondary to
-            // evaluation
-        }
-    }
 }
