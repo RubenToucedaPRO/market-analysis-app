@@ -2,6 +2,21 @@
 
 # Motor de Análisis Técnico de Acciones - TFM Desarrollo con IA
 
+---
+
+## ⚠️ ANÁLISIS CRÍTICO DE VALOR DEL PROYECTO
+
+**📋 Se ha realizado una evaluación exhaustiva del proyecto. Consulta los siguientes documentos:**
+
+- **[ANÁLISIS COMPLETO](ANALISIS_CRITICO_VALOR_PROYECTO.md)** - Evaluación crítica detallada (400+ líneas)
+- **[ÍNDICE Y GUÍA](docs/INDEX_ANALISIS.md)** - Navegación y guía de lectura
+- **[RESUMEN EJECUTIVO](docs/analisis-valor-proyecto-2026-02-17.md)** - Métricas y estadísticas
+- **[REFERENCIA RÁPIDA](docs/QUICK_REFERENCE_ANALYSIS.md)** - Veredicto y decisiones (5 min)
+
+**Veredicto:** 4.5/10 - Requiere mejoras críticas antes de presentación como TFM. Ver documentos para detalles y opciones de mejora.
+
+---
+
 ## 📊 Descripción General del Proyecto
 Este proyecto implementa un sistema avanzado de análisis técnico y apoyo a la toma de decisiones en la gestión de activos financieros. La aplicación se ha diseñado siguiendo una **Arquitectura Hexagonal  con Clean Architecture estricta**, separando de forma explícita el **dominio**, los **casos de uso** y los **adaptadores de infraestructura**, con el objetivo de obtener un sistema desacoplado, mantenible y fácilmente testeable.
 
