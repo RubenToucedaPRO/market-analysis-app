@@ -19,6 +19,169 @@
 
     <!-- Custom CSS -->
     <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+
+    <style>
+      .strategy-card {
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .strategy-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--primary-color),
+          var(--success-color)
+        );
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+      }
+
+      .strategy-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .strategy-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--primary-color);
+        box-shadow: 0 0.75rem 1.5rem rgba(13, 110, 253, 0.2) !important;
+      }
+
+      .strategy-header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+
+      .strategy-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+      }
+
+      .strategy-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 0.5rem;
+        text-decoration: none;
+        display: block;
+      }
+
+      .strategy-title:hover {
+        color: var(--primary-color);
+      }
+
+      .strategy-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 4rem;
+      }
+
+      .strategy-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+      }
+
+      .strategy-meta .badge {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+        font-weight: 600;
+      }
+
+      .strategy-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .strategy-actions .btn {
+        flex: 1;
+      }
+
+      .empty-state {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 1rem;
+        padding: 4rem 2rem;
+      }
+
+      .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .page-header {
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+      }
+
+      .stats-badge {
+        background: white;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .strategy-card {
+          margin-bottom: 1rem;
+        }
+
+        .strategy-icon {
+          width: 48px;
+          height: 48px;
+          font-size: 1.25rem;
+        }
+
+        .strategy-title {
+          font-size: 1.1rem;
+        }
+
+        .page-header {
+          padding: 1.5rem;
+        }
+      }
+    </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
@@ -26,103 +189,142 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">Tus Estrategias de Trading</h2>
-
-      <div
-        th:if="${!strategies.isEmpty()}"
-        class="d-flex justify-content-end mb-3"
-      >
-        <a th:href="@{/strategies/new}" class="btn btn-primary">
-          <i class="bi bi-plus-circle me-1"></i>
-          Nueva Estrategia
-        </a>
+      <!-- Page Header -->
+      <div class="page-header">
+        <div
+          class="d-flex justify-content-between align-items-center flex-wrap gap-3"
+        >
+          <div>
+            <h2 class="mb-2">
+              <i class="bi bi-graph-up-arrow me-2 text-primary"></i>
+              Tus Estrategias de Trading
+            </h2>
+            <p class="text-muted mb-0">
+              Gestiona y optimiza tus estrategias de inversión
+            </p>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="stats-badge" th:if="${!strategies.isEmpty()}">
+              <i class="bi bi-collection me-1"></i>
+              <span th:text="${strategies.size()}">0</span> estrategias
+            </span>
+            <a
+              th:href="@{/strategies/new}"
+              class="btn btn-primary"
+              th:if="${!strategies.isEmpty()}"
+            >
+              <i class="bi bi-plus-circle me-1"></i>
+              Nueva Estrategia
+            </a>
+          </div>
+        </div>
       </div>
 
       <!-- Empty State -->
-      <div th:if="${strategies.isEmpty()}" class="text-center py-5">
-        <i class="bi bi-search text-muted" style="font-size: 4rem"></i>
-        <p class="text-muted fs-5 mt-3">
-          No se encontraron estrategias. ¡Vamos a crear una!
+      <div th:if="${strategies.isEmpty()}" class="empty-state">
+        <div class="empty-state-icon">
+          <i class="bi bi-graph-up text-primary" style="font-size: 3rem"></i>
+        </div>
+        <h3 class="text-center mb-3">¡Comienza tu viaje de trading!</h3>
+        <p
+          class="text-muted text-center fs-5 mb-4 mx-auto"
+          style="max-width: 500px"
+        >
+          No tienes estrategias creadas aún. Crea tu primera estrategia y
+          comienza a analizar el mercado.
         </p>
-        <a th:href="@{/strategies/new}" class="btn btn-primary mt-3">
-          <i class="bi bi-plus me-1"></i>
-          Crear Estrategia
-        </a>
+        <div class="text-center">
+          <a th:href="@{/strategies/new}" class="btn btn-primary btn-lg">
+            <i class="bi bi-plus-circle me-2"></i>
+            Crear Mi Primera Estrategia
+          </a>
+        </div>
       </div>
 
-      <!-- Strategies Table -->
-      <div th:unless="${strategies.isEmpty()}" class="card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col">Reglas</th>
-                  <th scope="col" class="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr th:each="strategy : ${strategies}">
-                  <td class="fw-semibold">
-                    <a
-                      th:href="@{/strategies/{id}(id=${strategy.id})}"
-                      th:text="${strategy.name}"
-                      class="d-block w-100 h-100 text-decoration-none"
+      <!-- Strategies Grid -->
+      <div th:unless="${strategies.isEmpty()}" class="row g-4">
+        <div
+          class="col-12 col-md-6 col-lg-4"
+          th:each="strategy : ${strategies}"
+        >
+          <div class="card strategy-card shadow-sm">
+            <div class="card-body">
+              <a
+                th:href="@{/strategies/{id}(id=${strategy.id})}"
+                class="stretched-link"
+              >
+                <!-- Card Header with Icon -->
+                <div class="strategy-header">
+                  <div class="strategy-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                  </div>
+                </div>
+
+                <!-- Strategy Title -->
+                <a
+                  th:href="@{/strategies/{id}(id=${strategy.id})}"
+                  th:text="${strategy.name}"
+                  class="strategy-title"
+                >
+                  Golden Cross
+                </a>
+
+                <!-- Strategy Description -->
+                <p
+                  class="strategy-description"
+                  th:text="${strategy.description}"
+                >
+                  Descripción de la estrategia de trading que puede extenderse
+                  por varias líneas.
+                </p>
+
+                <!-- Strategy Meta Info -->
+                <div class="strategy-meta">
+                  <i class="bi bi-list-check text-primary"></i>
+                  <span class="badge bg-primary">
+                    <span th:text="${strategy.rules.size()}">3</span> reglas
+                  </span>
+                  <span class="text-muted small ms-auto">
+                    <i class="bi bi-clock me-1"></i>Activa
+                  </span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="strategy-actions">
+                  <form
+                    th:action="@{/strategies/edit}"
+                    method="post"
+                    class="flex-fill"
+                  >
+                    <input type="hidden" name="id" th:value="${strategy.id}" />
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                      <i class="bi bi-pencil-square me-1"></i>
+                      Editar
+                    </button>
+                  </form>
+
+                  <form
+                    th:action="@{/strategies/delete}"
+                    method="post"
+                    class="flex-fill"
+                  >
+                    <input type="hidden" name="id" th:value="${strategy.id}" />
+                    <button
+                      type="submit"
+                      class="btn btn-outline-danger w-100"
+                      onclick="
+                        return confirm(
+                          '¿Estás seguro de borrar esta estrategia? Esta acción no se puede deshacer.',
+                        );
+                      "
                     >
-                      Golden Cross
-                    </a>
-                  </td>
-                  <td class="text-muted" th:text="${strategy.description}">
-                    Descripción de la estrategia.
-                  </td>
-                  <td th:text="${strategy.rules.size()} + ' reglas'">3 reglas</td>
-                  <td class="text-end">
-                    <form
-                      th:action="@{/strategies/edit}"
-                      method="post"
-                      style="display: inline"
-                    >
-                      <input
-                        type="hidden"
-                        name="id"
-                        th:value="${strategy.id}"
-                      />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-primary me-2"
-                      >
-                        <i class="bi bi-pencil"></i>
-                        Editar
-                      </button>
-                    </form>
-                    <form
-                      th:action="@{/strategies/delete}"
-                      method="post"
-                      style="display: inline"
-                    >
-                      <input
-                        type="hidden"
-                        name="id"
-                        th:value="${strategy.id}"
-                      />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-danger"
-                        onclick="
-                          return confirm(
-                            '¿Estás seguro de borrar esta estrategia?',
-                          );
-                        "
-                      >
-                        <i class="bi bi-trash"></i> Eliminar
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      <i class="bi bi-trash me-1"></i>
+                      Eliminar
+                    </button>
+                  </form>
+                </div>
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -131,9 +333,9 @@
     <!-- Footer -->
     <footer class="bg-light border-top py-3 mt-auto">
       <div class="container text-center">
-        <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
-        >
+        <small class="text-muted">
+          &copy; 2026 AlphaSeeker. Todos los derechos reservados.
+        </small>
       </div>
     </footer>
 

@@ -19,6 +19,132 @@
 
     <!-- Custom CSS -->
     <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+
+    <style>
+      .ticker-card {
+        height: 100%;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .ticker-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--primary-color),
+          var(--success-color)
+        );
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+      }
+
+      .ticker-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .ticker-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--primary-color);
+        box-shadow: 0 0.75rem 1.5rem rgba(13, 110, 253, 0.2) !important;
+      }
+
+      .ticker-card.status-passed {
+        border-left-color: var(--success-color);
+      }
+
+      .ticker-card.status-failed {
+        border-left-color: var(--danger-color);
+      }
+
+      .ticker-card.status-na {
+        border-left-color: var(--secondary-color);
+      }
+
+      .ticker-logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #f8f9fa;
+        padding: 4px;
+      }
+
+      .ticker-symbol {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #212529;
+        text-decoration: none;
+      }
+
+      .ticker-symbol:hover {
+        color: var(--primary-color);
+      }
+
+      .data-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .data-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #212529;
+      }
+
+      .status-badge-large {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .action-buttons .btn {
+        flex: 1;
+      }
+
+      .page-header {
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #dee2e6;
+      }
+
+      .stats-badge {
+        background: white;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .ticker-symbol {
+          font-size: 1.25rem;
+        }
+
+        .data-value {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
@@ -26,15 +152,35 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">Análisis de Tickers</h2>
-      <p class="text-muted mb-4">
-        Añade tickers para analizar usando estrategias de análisis técnico.
-      </p>
+      <div class="page-header">
+        <div
+          class="d-flex justify-content-between align-items-center flex-wrap gap-3"
+        >
+          <div>
+            <h2 class="mb-2">
+              <i class="bi bi-graph-up-arrow me-2 text-primary"></i>
+              Análisis de Tickers
+            </h2>
+            <p class="text-muted mb-0">
+              Añade tickers para analizar usando estrategias de análisis
+              técnico.
+            </p>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="stats-badge" th:if="${!tickers.isEmpty()}">
+              <i class="bi bi-collection me-1"></i>
+              <span th:text="${tickers.size()}">0</span> tickers analizados
+            </span>
+          </div>
+        </div>
+      </div>
 
       <!-- Add Ticker Form -->
-      <div class="card mb-5">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Añadir Ticker</h5>
+      <div class="card mb-5 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="bi bi-plus-circle me-2"></i>Añadir Ticker
+          </h5>
         </div>
         <div class="card-body">
           <form
@@ -43,25 +189,31 @@
             class="row g-3"
           >
             <div class="col-md-5">
-              <label for="tickers" class="form-label">Símbolo del Ticker</label>
+              <label for="tickers" class="form-label fw-semibold"
+                >Símbolo del Ticker</label
+              >
               <input
                 type="text"
                 class="form-control text-uppercase"
                 id="tickers"
                 th:name="tickers"
-                placeholder="Introduce el símbolo del ticker (ej., AAPL, GOOGL)"
+                placeholder="Ej: AAPL, GOOGL, MSFT"
                 required
               />
             </div>
             <div class="col-md-5">
-              <label for="strategyId" class="form-label">Estrategia</label>
+              <label for="strategyId" class="form-label fw-semibold"
+                >Estrategia</label
+              >
               <select
                 class="form-select"
                 id="strategyId"
                 th:name="strategyId"
                 required
               >
-                <option value="" selected disabled>Selecciona una estrategia</option>
+                <option value="" selected disabled>
+                  Selecciona una estrategia
+                </option>
                 <option
                   th:each="strategy : ${strategies}"
                   th:value="${strategy.id}"
@@ -74,137 +226,218 @@
             <div class="col-md-2 d-flex align-items-end">
               <button type="submit" class="btn btn-primary w-100">
                 <i class="bi bi-plus-circle me-1"></i>
-                Añadir Ticker
+                Añadir
               </button>
             </div>
           </form>
         </div>
       </div>
 
-      <!-- Tickers Table -->
-      <div id="tickersTableContainer" class="card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th scope="col">Ticker</th>
-                  <th scope="col">Estrategia</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col">Precio Actual</th>
-                  <th scope="col">Precio de Apertura</th>
-                  <th scope="col">Máximo del Día</th>
-                  <th scope="col">Mínimo del Día</th>
-                  <th scope="col">Cierre Anterior</th>
-                  <th scope="col">Volumen</th>
-                  <th scope="col" class="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="tickersTableBody">
-                <tr th:each="ticker : ${tickers}">
-                  <td>
-                    <a
-                      th:href="@{/analysis/ticker/{id}(id=${ticker.id})}"
-                      style="text-decoration: none; color: inherit"
-                    >
-                      <div
-                        style="display: flex; align-items: center; gap: 10px"
-                      >
-                        <img
-                          th:src="${ticker.logoUrl}"
-                          loading="lazy"
-                          width="25"
-                          height="25"
-                          alt="logo of [[${ticker.ticker}]]"
-                        />
-                        <span
+      <!-- Tickers Grid -->
+      <div id="tickersGridContainer">
+        <div th:if="${tickers.isEmpty()}" class="text-center py-5">
+          <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+          <h5 class="text-muted">No hay tickers añadidos</h5>
+          <p class="text-muted">Comienza añadiendo un ticker para analizar</p>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-12" th:each="ticker : ${tickers}">
+            <div
+              class="card ticker-card shadow-sm"
+              th:classappend="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'status-passed' : (ticker.evaluationPassed != null ? 'status-failed' : 'status-na')}"
+            >
+              <div class="card-body">
+                <div class="row align-items-start">
+                  <!-- Ticker Info Section -->
+                  <div class="col-lg-3 col-md-4 mb-3 mb-md-0">
+                    <div class="d-flex align-items-center gap-3">
+                      <img
+                        th:src="${ticker.logoUrl}"
+                        loading="lazy"
+                        class="ticker-logo"
+                        alt="logo of [[${ticker.ticker}]]"
+                      />
+                      <div>
+                        <a
+                          th:href="@{/analysis/ticker/{id}(id=${ticker.id})}"
+                          class="ticker-symbol"
                           th:text="${ticker.ticker}"
-                          style="font-weight: bold"
-                          >AAPL</span
+                          >AAPL</a
                         >
+                        <div>
+                          <span
+                            th:text="${ticker.strategyName}"
+                            class="badge bg-secondary mt-1"
+                            >Strategy</span
+                          >
+                        </div>
                       </div>
-                    </a>
-                  </td>
-                  <td>
+                    </div>
+                  </div>
+
+                  <!-- Status Section -->
+                  <div class="col-lg-2 col-md-3 col-6 mb-3 mb-lg-0">
+                    <div class="data-label">Estado</div>
                     <span
-                      th:text="${ticker.strategyName}"
-                      class="badge bg-secondary"
-                      >Strategy</span
-                    >
-                  </td>
-                  <td>
-                    <span
-                      th:class="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
+                      th:if="${ticker.evaluationPassed != null and ticker.evaluationPassed}"
+                      class="badge bg-success status-badge-large"
                       th:title="${ticker.evaluationSummary}"
                     >
-                      <i
-                        th:class="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
-                      ></i>
-                      <span
-                        th:text="${ticker.evaluationPassed != null and ticker.evaluationPassed ? 'APROBADO' : 'FALLIDO'}"
-                      ></span>
-                      (<span th:text="${ticker.complianceRate}">0</span>%)
+                      <i class="bi bi-check-circle me-1"></i>
+                      APROBADO
+                    </span>
+                    <span
+                      th:if="${ticker.evaluationPassed != null and !ticker.evaluationPassed}"
+                      class="badge bg-danger status-badge-large"
+                      th:title="${ticker.evaluationSummary}"
+                    >
+                      <i class="bi bi-x-circle me-1"></i>
+                      FALLIDO
                     </span>
                     <span
                       th:if="${ticker.evaluationPassed == null}"
-                      class="badge bg-secondary"
+                      class="badge bg-secondary status-badge-large"
                     >
+                      <i class="bi bi-question-circle me-1"></i>
                       N/A
                     </span>
-                  </td>
-                  <td th:text="${ticker.currentPrice}">150.00</td>
-                  <td th:text="${ticker.openPrice}">148.00</td>
-                  <td th:text="${ticker.highOfDay}">151.00</td>
-                  <td th:text="${ticker.lowOfDay}">147.50</td>
-                  <td th:text="${ticker.previousClose}">149.00</td>
-                  <td th:text="${ticker.volume}">1000000</td>
-                  <td class="text-end">
-                    <form
-                      th:action="@{/analysis/update}"
-                      method="post"
-                      style="display: inline"
+                    <div
+                      class="mt-2"
+                      th:if="${ticker.evaluationPassed != null}"
                     >
-                      <input type="hidden" name="id" th:value="${ticker.id}" />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-primary"
-                        title="Refrescar datos del ticker"
-                      >
-                        <i class="bi bi-arrow-repeat"></i>
-                      </button>
-                    </form>
-                    <form
-                      th:action="@{/analysis/getValorationIA}"
-                      method="post"
-                      style="display: inline"
+                      <small class="text-muted">
+                        <i class="bi bi-graph-up me-1"></i>
+                        <span th:text="${ticker.complianceRate}">0</span>%
+                        Cumplimiento
+                      </small>
+                    </div>
+                  </div>
+
+                  <!-- Price Data Section -->
+                  <div class="col-lg-5 col-md-5 col-6 mb-3 mb-lg-0">
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <div class="data-label">Precio Actual</div>
+                        <div
+                          class="data-value text-primary"
+                          th:text="${ticker.currentPrice}"
+                        >
+                          150.00
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="data-label">Apertura</div>
+                        <div class="data-value" th:text="${ticker.openPrice}">
+                          148.00
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="data-label">Máximo</div>
+                        <div
+                          class="data-value text-success"
+                          th:text="${ticker.highOfDay}"
+                        >
+                          151.00
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="data-label">Mínimo</div>
+                        <div
+                          class="data-value text-danger"
+                          th:text="${ticker.lowOfDay}"
+                        >
+                          147.50
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="data-label">Cierre Ant.</div>
+                        <div
+                          class="data-value"
+                          th:text="${ticker.previousClose}"
+                        >
+                          149.00
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="data-label">Volumen</div>
+                        <div class="data-value" th:text="${ticker.volume}">
+                          1,000,000
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Actions Section -->
+                  <div class="col-lg-2 col-md-12">
+                    <div class="data-label mb-2 d-none d-lg-block">
+                      Acciones
+                    </div>
+                    <div
+                      class="action-buttons flex-column flex-lg-column flex-md-row"
                     >
-                      <input type="hidden" name="id" th:value="${ticker.id}" />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-primary"
-                        title="Analizar con IA"
+                      <form
+                        th:action="@{/analysis/update}"
+                        method="post"
+                        class="w-100"
                       >
-                        <i class="bi bi-stars"></i>
-                      </button>
-                    </form>
-                    <form
-                      th:action="@{/analysis/delete}"
-                      method="post"
-                      style="display: inline"
-                    >
-                      <input type="hidden" name="id" th:value="${ticker.id}" />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-danger"
-                        title="Eliminar ticker"
+                        <input
+                          type="hidden"
+                          name="id"
+                          th:value="${ticker.id}"
+                        />
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-outline-primary w-100"
+                          title="Refrescar datos del ticker"
+                        >
+                          <i class="bi bi-arrow-repeat me-1"></i>
+                          Refrescar
+                        </button>
+                      </form>
+                      <form
+                        th:action="@{/analysis/getValorationIA}"
+                        method="post"
+                        class="w-100"
                       >
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                        <input
+                          type="hidden"
+                          name="id"
+                          th:value="${ticker.id}"
+                        />
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-outline-primary w-100"
+                          title="Analizar con IA"
+                        >
+                          <i class="bi bi-stars me-1"></i>
+                          Analizar IA
+                        </button>
+                      </form>
+                      <form
+                        th:action="@{/analysis/delete}"
+                        method="post"
+                        class="w-100"
+                      >
+                        <input
+                          type="hidden"
+                          name="id"
+                          th:value="${ticker.id}"
+                        />
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-outline-danger w-100"
+                          title="Eliminar ticker"
+                        >
+                          <i class="bi bi-trash me-1"></i>
+                          Eliminar
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
