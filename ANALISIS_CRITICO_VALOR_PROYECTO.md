@@ -8,42 +8,38 @@
 
 ## 🎯 Resumen Ejecutivo
 
-**Veredicto:** Este proyecto **NO aporta valor suficiente** como Trabajo Fin de Máster en su estado actual. Aunque presenta una arquitectura técnicamente sólida, **carece de innovación real, diferenciación y aplicabilidad práctica**. Es esencialmente una aplicación CRUD con integración básica de APIs, envuelta en documentación grandilocuente que promete mucho más de lo que realmente entrega.
+**NOTA IMPORTANTE:** Este análisis se realizó bajo el malentendido de que "Desarrollo con IA" significaba desarrollar sistemas de IA/ML. Sin embargo, el título se refiere a **usar herramientas de IA (Copilot, ChatGPT, etc.) para desarrollar software**. Por tanto, la evaluación debe reinterpretarse desde esa perspectiva.
 
-**Puntuación general: 4.5/10**
+**Veredicto Revisado:** Como proyecto de **desarrollo asistido por IA**, el proyecto demuestra uso de herramientas modernas y arquitectura sólida. Sin embargo, **aún presenta gaps significativos** entre lo prometido y lo entregado en términos de funcionalidad práctica.
+
+**Puntuación general: 6.5/10** (revisada desde 4.5/10 tras aclaración del contexto)
 
 ---
 
 ## 📊 Análisis Detallado por Dimensiones
 
-### 1. **Innovación y Aportación Académica** ⚠️ **2/10**
+### 1. **Innovación y Aportación Académica** ⚠️ **5/10** (revisado)
 
-#### Lo que promete el README:
-- "Sistema avanzado de análisis técnico"
-- "Motor de estrategias declarativas"
-- "Integración de IA generativa"
-- "Análisis asistido por inteligencia artificial"
+**CORRECCIÓN:** El TFM se enfoca en **desarrollo asistido por herramientas de IA**, no en desarrollar sistemas de IA. Desde esa perspectiva:
 
-#### Lo que realmente existe:
-- **Motor de reglas básico:** Comparaciones simples (SMA50 > SMA200, Volumen > Media). Esto es **nivel de práctica de programación básica**, no TFM.
-- **"IA generativa":** Solo una llamada a la API de OpenAI para generar texto interpretativo **DESPUÉS** de que todo el análisis ya esté terminado. La IA **no participa en ninguna decisión** ni añade valor analítico real.
-- **Sin machine learning propio:** No hay modelos entrenados, ni predicción, ni aprendizaje de patrones históricos.
-- **Sin investigación original:** No hay algoritmos nuevos, métricas novedosas, ni contribución al estado del arte.
+#### Fortalezas como proyecto de desarrollo con IA:
+- ✅ **Arquitectura limpia y bien estructurada:** Uso efectivo de herramientas de IA para generar código modular
+- ✅ **Clean Architecture aplicada correctamente:** Demuestra capacidad de usar IA para mantener buenas prácticas
+- ✅ **Integración de APIs complejas:** Finnhub, Polygon, OpenAI correctamente implementadas
+- ✅ **Tests unitarios:** 71% de cobertura demuestra uso de IA para generar tests
 
-#### Problemas críticos:
-```
-❌ La "integración IA" es marketing: solo genera texto bonito sobre resultados pre-calculados
-❌ No hay nada que no se pudiera hacer con Excel + macros + API de Yahoo Finance
-❌ Cualquier biblioteca de análisis técnico (TA-Lib) hace esto mejor y más rápido
-❌ No resuelve ningún problema real del dominio financiero
-```
+#### Áreas de mejora:
+- ⚠️ **Gap funcionalidad prometida vs implementada:** 80% de features anunciadas no existen
+- ⚠️ **Falta tests de integración:** 0% de tests con APIs reales
+- ⚠️ **Funcionalidad básica:** El motor de estrategias es demasiado simple
+- ⚠️ **Sin diferenciación:** No aporta valor vs alternativas gratuitas existentes
 
-**¿Qué debería tener un TFM de "Desarrollo con IA"?**
-- Modelos de ML entrenados para predecir tendencias
-- Análisis de sentimiento de noticias financieras
-- Optimización de estrategias con algoritmos genéticos
-- Backtesting riguroso con métricas estadísticas (Sharpe, Sortino, Max Drawdown)
-- Integración IA que **tome decisiones**, no que solo decore resultados
+**Para un TFM de desarrollo asistido por IA debería demostrar:**
+- ✅ Código bien arquitecturado generado con asistencia de IA (logrado)
+- ⚠️ Funcionalidad completa y útil (parcialmente logrado: 55%)
+- ❌ Tests exhaustivos incluyendo integración (faltante)
+- ⚠️ Documentación técnica y de usuario (excesiva en arquitectura, poca en uso)
+- ❌ Características avanzadas prometidas implementadas (faltantes: R:R, calendario, tracking)
 
 ---
 
@@ -199,31 +195,52 @@ void testFetchStockData() {
 
 ## 🔍 Análisis de la "Integración IA"
 
-### ¿Qué hace realmente la IA?
+### ACLARACIÓN: Contexto del TFM
+
+Este TFM es sobre **"Desarrollo con IA"** = usar herramientas de IA (GitHub Copilot, ChatGPT, etc.) para **desarrollar software**, no sobre desarrollar sistemas de IA/ML.
+
+Desde esa perspectiva correcta:
+
+### ✅ Uso de IA como herramienta de desarrollo
+
+El proyecto demuestra uso efectivo de herramientas de IA para:
+1. **Generar código arquitectónicamente sólido:** Clean Architecture bien implementada
+2. **Crear tests unitarios:** 330 tests con buena cobertura (71%)
+3. **Documentación:** README y docs bien estructurados
+4. **Patrones de diseño:** Strategy, Factory, Repository correctamente aplicados
+
+### ⚠️ Integración de IA en la aplicación
+
+Además del uso de IA para desarrollar, el proyecto integra OpenAI:
 
 ```java
 // OpenrouterAdapter.java
 public String getValoration(String datosAccion) {
     String prompt = "Analiza estos datos: " + datosAccion;
-    return openAiClient.chat(prompt); // Simplificado
+    return openAiClient.chat(prompt);
 }
 ```
 
-**Eso es todo.** La IA recibe un string con los resultados ya calculados y devuelve texto descriptivo. **No predice, no optimiza, no decide nada.**
+**Propósito:** Generar análisis cualitativo interpretativo de resultados técnicos ya calculados.
 
-### Problemas:
-1. **No es "integración avanzada":** Es una llamada HTTP a una API externa.
-2. **No aprovecha IA generativa:** GPT-4o-mini podría hacer análisis complejos, pero aquí solo genera párrafos bonitos.
-3. **No hay prompt engineering real:** Prompt básico sin contexto, ejemplos, o chain-of-thought.
-4. **Sin validación:** No hay verificación de calidad de las respuestas de IA.
-5. **Sin embeddings, RAG, fine-tuning, ni nada del estado del arte actual.**
+**Evaluación de esta integración:**
+- ✅ Funciona correctamente y añade valor interpretativo
+- ⚠️ Prompt básico sin ingeniería avanzada (podría mejorarse)
+- ⚠️ Sin validación de calidad de respuestas
+- ⚠️ Sin manejo de errores robusto
 
-**Alternativa trivial:**
-```python
-# Con 10 líneas de Python logras lo mismo
-import openai
-result = openai.chat(f"Analiza: {stock_data}")
-```
+### Recomendaciones para mejorar el uso de IA
+
+1. **Como herramienta de desarrollo:**
+   - ✅ Continuar usando IA para generar código limpio
+   - ⚠️ Usar IA para generar tests de integración (actualmente ausentes)
+   - ⚠️ Usar IA para implementar las features prometidas faltantes
+
+2. **Como integración en la aplicación:**
+   - Mejorar prompt engineering (contexto, ejemplos, chain-of-thought)
+   - Añadir validación de respuestas
+   - Implementar retry logic y fallbacks
+   - Considerar embeddings para análisis de noticias (futuro)
 
 ---
 
@@ -256,190 +273,219 @@ result = openai.chat(f"Analiza: {stock_data}")
 
 **¿Por qué usaría esto?** No hay respuesta.
 
-### 4. **No es un TFM de "Desarrollo con IA"**
-Para ser un TFM de IA debería tener:
-- ❌ Modelos de ML entrenados
-- ❌ Pipeline de datos (ETL, feature engineering)
-- ❌ Experimentos con diferentes arquitecturas
-- ❌ Métricas de evaluación de modelos
-- ❌ Comparación de estrategias con ML vs tradicionales
-- ❌ Análisis de NLP sobre noticias
-- ❌ Predicción de movimientos de precios
+### 4. **No es un TFM de "Desarrollo con IA"** → **CORRECCIÓN: SÍ lo es**
 
-**Lo que tiene:** Una llamada a GPT para generar texto. Eso no es un TFM de IA, es un tutorial de "Cómo usar la API de OpenAI".
+**MALENTENDIDO CORREGIDO:** El TFM trata sobre usar herramientas de IA para desarrollar software, no sobre desarrollar sistemas de IA/ML.
+
+**Evaluación correcta:**
+
+✅ **Demuestra uso de IA para desarrollo:**
+- Arquitectura limpia y modular
+- Código bien estructurado
+- Tests unitarios generados
+- Documentación exhaustiva
+
+⚠️ **Áreas de mejora:**
+- Completar features prometidas (55% implementadas)
+- Añadir tests de integración (0% actualmente)
+- Mejorar la integración de OpenAI con mejor prompt engineering
+- Reducir gap entre promesas del README y realidad
+
+**Conclusión revisada:** Como TFM de desarrollo asistido por IA, el proyecto demuestra uso efectivo de herramientas modernas. Sin embargo, debe completar la funcionalidad prometida para ser un proyecto sólido.
 
 ---
 
 ## 💡 Propuestas de Mejora para Aportar Valor Real
 
-### **Opción 1: Convertirlo en un TFM de IA real** 🎯 **(Recomendado)**
+### CONTEXTO CORREGIDO
 
-#### A. **Sistema de Predicción con Machine Learning**
-```python
-Implementación sugerida:
-1. Recolectar datos históricos de 500+ tickers (5 años)
-2. Feature engineering:
-   - Indicadores técnicos (RSI, MACD, Bollinger)
-   - Sentiment analysis de noticias (FinBERT)
-   - Volatilidad histórica, volumen relativo
-3. Entrenar modelos:
-   - LSTM para series temporales
-   - XGBoost para clasificación (subida/bajada)
-   - Transformer para predección multi-horizonte
-4. Backtesting riguroso:
-   - Walk-forward validation
-   - Métricas: Sharpe Ratio, Max Drawdown, Win Rate
-5. Comparación ML vs estrategias técnicas tradicionales
+Dado que el TFM es sobre **desarrollo asistido por IA** (usar Copilot, ChatGPT para programar), no sobre desarrollar IA/ML, las recomendaciones se reorientan:
+
+### **Opción 1: Completar Features Prometidas** 🎯 **(Recomendado - Prioridad Alta)**
+
+```
+Tiempo: 2-3 semanas
+Complejidad: Media
+Valor académico: 8/10
+Enfoque: Usar IA para completar lo prometido
+
+Implementar con asistencia de IA:
+✓ Cálculo real de R:R (Risk:Reward) basado en soporte/resistencia
+✓ Calendario de ganancias (ya disponible en Finnhub API)
+✓ Tracking temporal de evaluaciones (persistencia histórica)
+✓ Gráficos interactivos (Chart.js) para visualizar SMAs
+✓ Backtesting básico (evaluar estrategia sobre últimos 90 días)
+✓ Tests de integración con APIs reales
+✓ Comparación side-by-side de estrategias
+✓ Mejora del prompt engineering para OpenAI
 ```
 
-**Aportación:** Demostrar empíricamente si ML supera a reglas técnicas clásicas.
-
-#### B. **Optimización de Estrategias con IA**
-```
-1. Implementar algoritmos genéticos para evolucionar reglas
-2. Usar Reinforcement Learning (PPO, A3C) para trading automático
-3. Multi-objective optimization (retorno vs riesgo)
-4. Explainabilidad con SHAP/LIME
-```
-
-**Aportación:** Estrategias optimizadas automáticamente, no definidas manualmente.
-
-#### C. **Análisis de Sentimiento en Tiempo Real**
-```
-1. Scraping de Twitter, Reddit (r/wallstreetbets), noticias financieras
-2. NLP con modelos fine-tuned (FinBERT, sentiment140)
-3. Correlación sentimiento → movimiento de precio
-4. Alertas cuando sentimiento + técnico alineados
-```
-
-**Aportación:** Fusión de análisis cuantitativo + cualitativo con IA.
+**Valor:** Cierra el gap del 80% entre lo prometido y lo entregado. Demuestra capacidad de usar IA para completar un proyecto complejo.
 
 ---
 
-### **Opción 2: Pivotar a Sistema de Backtesting Profesional** 📈
+### **Opción 2: Sistema de Backtesting Profesional (Si hay más tiempo)**
 
 ```
-Funcionalidades clave:
-1. Importar estrategias en formato estándar (Pine Script like)
-2. Backtesting sobre datos históricos reales (10+ años)
-3. Métricas profesionales:
+Tiempo: 4 semanas
+Complejidad: Alta
+Valor académico: 8/10
+Enfoque: Usar IA para implementar backtesting avanzado
+
+Funcionalidades clave (desarrollar con IA):
+1. Backtesting sobre datos históricos reales (10+ años)
+2. Métricas profesionales:
    - Sharpe Ratio, Sortino Ratio
    - Max Drawdown, CAGR
    - Win Rate, Profit Factor
-4. Visualización de equity curve
-5. Optimización de parámetros (grid search, bayesian)
-6. Walk-forward analysis
-7. Reportes PDF/CSV exportables
+3. Visualización de equity curve
+4. Optimización de parámetros (grid search)
+5. Walk-forward analysis
+6. Reportes PDF/CSV exportables
 ```
 
-**Valor:** Herramienta útil para traders que quieren validar estrategias antes de arriesgar capital real.
+**Valor:** Herramienta útil para traders. Demuestra uso avanzado de IA para desarrollar features complejas.
 
 ---
 
-### **Opción 3: Sistema Educativo con Simulación** 🎓
+### **Opción 3: Mejoras Incrementales Urgentes** 🔧 **(Mínimo Viable)**
 
-```
-Pivote completo del enfoque:
-1. No ser herramienta de análisis real
-2. Ser plataforma educativa de trading algorítmico
-3. Sandbox con dinero virtual
-4. Tutoriales interactivos de análisis técnico
-5. Competencias entre estrategias de usuarios
-6. Leaderboard con paper trading
-7. Explicaciones didácticas de cada indicador
-```
-
-**Valor:** Enseñar conceptos de trading algorítmico sin riesgo, dirigido a estudiantes de finanzas.
-
----
-
-### **Opción 4: Micro-mejoras Incrementales (Plan Mínimo)** 🔧
-
-Si no puedes rehacer todo, al menos añade:
-
-#### Corto plazo (1 semana):
+#### Corto plazo (1 semana) - Usar IA para generar:
 1. **Gráficos reales:** Integrar Chart.js para visualizar SMAs sobre precio
-2. **Backtesting básico:** Evaluar estrategia sobre últimos 90 días, mostrar win rate
-3. **Comparación:** Permitir evaluar múltiples estrategias a la vez
-4. **Persistencia histórica:** Guardar evaluaciones y mostrar evolución temporal
-5. **Tests de integración:** Validar que las APIs realmente funcionan
+2. **Cálculo R:R:** Implementar detección de soporte/resistencia y calcular risk:reward
+3. **Tests de integración:** Validar que las APIs realmente funcionan
+4. **Actualizar README:** Eliminar promesas de features no implementadas
+5. **Documentación de usuario:** Guía práctica de uso (no solo arquitectura)
 
-#### Medio plazo (2 semanas):
-6. **Métricas reales:** Calcular R:R, Sharpe Ratio básico
-7. **Optimización de parámetros:** Grid search para encontrar mejor SMA(X) para cada ticker
-8. **Alertas por email:** Notificar cuando estrategia da señal de compra
-9. **API REST documentada:** Swagger/OpenAPI para que sea usable programáticamente
-10. **Multiusuario:** Sistema de autenticación real (OAuth2)
+#### Medio plazo (2 semanas) - Continuar con IA:
+6. **Persistencia histórica:** Guardar evaluaciones y mostrar evolución temporal
+7. **Calendario de ganancias:** Integrar datos de Finnhub
+8. **Comparación:** Permitir evaluar múltiples estrategias a la vez
+9. **Mejora prompts OpenAI:** Añadir contexto, ejemplos, chain-of-thought
+10. **API REST documentada:** Swagger/OpenAPI
 
-#### Largo plazo (1 mes):
-11. **ML básico:** Modelo LSTM para predecir próxima vela (↑↓)
-12. **Sentiment analysis:** Integrar noticias de Finnhub + FinBERT
-13. **Portfolio tracking:** Simular cartera con múltiples posiciones
-14. **Reporting profesional:** PDFs con análisis completos exportables
+---
+
+### **Nota sobre "Opción 1 ML/IA" del análisis original**
+
+**CORRECCIÓN:** La opción original de "desarrollar sistemas de ML" NO aplica a un TFM de desarrollo asistido por IA. Se eliminó porque no corresponde al objetivo del máster.
+
+Si el interés es explorar ML en el futuro, sería un proyecto separado o extensión post-TFM, no un requisito para este trabajo.
 
 ---
 
 ## 📊 Matriz de Valor: Estado Actual vs Potencial
 
-| Dimensión | Actual | Con Mejoras Opción 1 | Con Mejoras Opción 2 |
-|-----------|--------|---------------------|---------------------|
-| **Innovación Académica** | 2/10 | 9/10 | 7/10 |
-| **Aportación TFM** | 3/10 | 9/10 | 8/10 |
-| **Uso Real** | 2/10 | 7/10 | 8/10 |
-| **Complejidad Técnica** | 7/10 | 9/10 | 8/10 |
+| Dimensión | Actual | Con Opción 1 (Completar) | Con Opción 2 (Backtesting) |
+|-----------|--------|--------------------------|---------------------------|
+| **Innovación Académica** | 5/10 | 8/10 | 8/10 |
+| **Aportación TFM** | 6/10 | 9/10 | 8/10 |
+| **Uso Real** | 3/10 | 7/10 | 8/10 |
+| **Complejidad Técnica** | 7/10 | 8/10 | 9/10 |
 | **Viabilidad Económica** | 2/10 | 5/10 | 6/10 |
-| **Diferenciación** | 1/10 | 8/10 | 7/10 |
-| **Escalabilidad** | 3/10 | 7/10 | 8/10 |
-| **Aprendizaje IA** | 1/10 | 10/10 | 4/10 |
-| **Publicable (papers)** | 1/10 | 8/10 | 5/10 |
+| **Diferenciación** | 2/10 | 6/10 | 7/10 |
+| **Escalabilidad** | 3/10 | 6/10 | 8/10 |
+| **Demostración uso IA** | 7/10 | 9/10 | 8/10 |
+| **Funcionalidad completa** | 4/10 | 9/10 | 8/10 |
+
+**Nota:** Puntuaciones ajustadas tras entender que el TFM es sobre desarrollo asistido por IA, no sobre desarrollar IA/ML.
 
 ---
 
 ## 🎯 Recomendación Final
 
-### Si es un TFM de "Desarrollo con IA":
-**OPCIÓN 1 es OBLIGATORIA.** No puedes presentar esto como está porque:
-- No hay desarrollo de IA real, solo consumo de API
-- No hay investigación, experimentos, ni métricas
-- No hay comparación de técnicas ni validación científica
+### **ACTUALIZACIÓN tras aclaración del contexto:**
 
-**Tiempo necesario:** 4-6 semanas a tiempo completo para pivote completo.
+**El TFM es sobre "Desarrollo con IA"** = usar herramientas de IA (Copilot, ChatGPT) para desarrollar software, NO sobre desarrollar sistemas de IA/ML.
 
-### Si es un TFM de "Ingeniería de Software":
-El proyecto es **aceptable técnicamente** pero sigue siendo débil en funcionalidad. Implementar al menos las mejoras incrementales (Opción 4) para que tenga utilidad práctica.
+### Evaluación Corregida:
 
-**Tiempo necesario:** 1-2 semanas para mejoras mínimas.
+**Como TFM de Desarrollo Asistido por IA:**
+- ✅ Demuestra arquitectura limpia generada con asistencia de IA
+- ✅ Código bien estructurado y modular
+- ✅ Tests unitarios con buena cobertura (71%)
+- ⚠️ **GAP CRÍTICO:** 45% de funcionalidad prometida faltante
+- ⚠️ Sin tests de integración (0%)
+- ⚠️ Sin diferenciación vs alternativas gratuitas
+
+**Puntuación revisada: 6.5/10** (antes 4.5/10 con malentendido)
+
+### Recomendación Principal:
+
+**OPCIÓN 1 (2-3 semanas)** - Completar features prometidas usando IA:
+- Implementar R:R real, calendario, tracking, gráficos
+- Añadir tests de integración
+- Cerrar el gap del 45% funcionalidad faltante
+- Mejorar prompt engineering de OpenAI
+
+**Resultado esperado:** TFM sólido (8-9/10) que demuestra uso efectivo de IA para desarrollar aplicación completa y funcional.
+
+**Tiempo necesario:** 2-3 semanas a tiempo completo.
 
 ---
 
 ## 📝 Conclusión Final
 
-**Estado actual del proyecto:**
-- ✅ Arquitectura limpia y bien documentada
+**CORRECCIÓN IMPORTANTE:** El análisis original malinterpretó "Desarrollo con IA" como desarrollar sistemas de IA/ML, cuando realmente significa usar herramientas de IA para desarrollar software.
+
+**Estado revisado del proyecto:**
+- ✅ Arquitectura limpia y bien documentada (7/10)
+- ✅ Uso efectivo de IA para generar código estructurado
 - ✅ Tests unitarios decentes (71% cobertura)
 - ✅ Deployment funcional con Docker/Railway
-- ⚠️ Funcionalidad básica sin diferenciación
-- ❌ No aporta valor como TFM de IA
-- ❌ No tiene propuesta única vs alternativas gratuitas
-- ❌ Promete mucho más de lo que entrega
-- ❌ Complejidad innecesaria para lo que hace
+- ⚠️ Gap funcional del 45% entre lo prometido y entregado
+- ❌ Sin tests de integración (crítico)
+- ❌ Sin diferenciación vs alternativas gratuitas
 
-**Puntuación honesta: 4.5/10**
+**Puntuación revisada: 6.5/10** (antes 4.5/10)
 
-**¿Valdría la pena como proyecto profesional?** No, hay mejores alternativas gratuitas.  
-**¿Valdría como TFM de Ingeniería de Software?** Apenas, con mejoras.  
-**¿Valdría como TFM de Desarrollo con IA?** **No, en absoluto.**
+**¿Valdría como TFM de Desarrollo con IA?** 
+- **Estado actual:** Aceptable pero incompleto (6.5/10)
+- **Con Opción 1 implementada:** Sólido y completo (8-9/10)
+
+**Diferencias clave vs análisis original:**
+- ❌ ~~"No es TFM de IA"~~ → ✅ **SÍ es TFM de desarrollo asistido por IA**
+- ❌ ~~"Necesita modelos ML"~~ → ✅ **NO requiere desarrollar ML**
+- ❌ ~~"Puntuación 4.5/10"~~ → ✅ **Puntuación revisada 6.5/10**
+- ✅ **Mantiene:** Necesita completar features prometidas
+
+**Próximos pasos:** Implementar Opción 1 (2-3 semanas) para cerrar gaps funcionales y alcanzar nivel de TFM sólido.
 
 ---
 
 ## 🚀 Próximos Pasos Sugeridos
 
-### Decisión crítica:
-1. **Pivotar completamente a ML/IA real** (Opción 1) → 6 semanas → TFM sólido
-2. **Pivotar a backtesting profesional** (Opción 2) → 4 semanas → TFM aceptable
-3. **Mejoras incrementales** (Opción 4) → 2 semanas → TFM mínimo viable
+### Decisión Principal (Revisada):
 
-**Mi recomendación:** **Opción 1 o abandona el tema de finanzas** y haz un TFM diferente donde puedas aplicar IA de verdad (NLP, Computer Vision, sistemas de recomendación, etc.). Un TFM mediocre en un tema forzado vale menos que un TFM excelente en un tema que te motive.
+**OPCIÓN 1: Completar funcionalidad prometida** (2-3 semanas) → TFM sólido (8-9/10)
+
+**Justificación:**
+- Cierra el gap del 45% de features faltantes
+- Demuestra uso completo de IA para desarrollar aplicación funcional
+- Aporta valor práctico real
+- Diferencia el proyecto de alternativas
+
+### Pasos concretos:
+
+**Semana 1:**
+- [ ] Implementar cálculo R:R real con soporte/resistencia
+- [ ] Añadir gráficos interactivos (Chart.js)
+- [ ] Crear tests de integración con APIs reales
+- [ ] Actualizar README con funcionalidad real
+
+**Semana 2:**
+- [ ] Implementar persistencia histórica de evaluaciones
+- [ ] Añadir calendario de ganancias (Finnhub)
+- [ ] Comparación side-by-side de estrategias
+- [ ] Mejorar prompt engineering OpenAI
+
+**Semana 3:**
+- [ ] Backtesting básico (90 días)
+- [ ] Documentación de usuario final
+- [ ] Pulir UI/UX
+- [ ] Testing exhaustivo
+
+**Resultado:** TFM completo y funcional que demuestra desarrollo asistido por IA de forma efectiva.
 
 ---
 
