@@ -1,5 +1,6 @@
 package com.market.analysis.application.dto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -21,4 +22,10 @@ public class StrategyDTO {
     private String name;
     private String description;
     private List<RuleDTO> rules;
+    
+    // Objective fields for Risk:Reward calculation
+    private BigDecimal targetPrice;
+    private BigDecimal stopLossPrice;
+    private String positionType; // "LONG" or "SHORT"
+    private String objectiveDescription;
 }

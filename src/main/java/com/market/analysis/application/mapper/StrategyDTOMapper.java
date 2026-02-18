@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyObjective;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,12 +29,22 @@ public class StrategyDTOMapper {
             return null;
         }
 
-        return StrategyDTO.builder()
+        StrategyDTO.StrategyDTOBuilder builder = StrategyDTO.builder()
                 .id(strategy.getId())
                 .name(strategy.getName())
                 .description(strategy.getDescription())
-                .rules(ruleDTOMapper.toDTOList(strategy.getRules()))
-                .build();
+                .rules(ruleDTOMapper.toDTOList(strategy.getRules()));
+
+        // Map objective if present
+        if (strategy.hasObjective()) {
+            StrategyObjective objective = strategy.getObjective();
+            builder.targetPrice(objective.getTargetPrice())
+                    .stopLossPrice(objective.getStopLossPrice())
+                    .positionType(objective.getPositionType().name())
+                    .objectiveDescription(objective.getDescription());
+        }
+
+        return builder.build();
     }
 
     /**
@@ -47,11 +58,23 @@ public class StrategyDTOMapper {
             return null;
         }
 
+        // Build objective if present in DTO
+        StrategyObjective objective = null;
+        if (dto.getTargetPrice() != null && dto.getStopLossPrice() != null && dto.getPositionType() != null) {
+            objective = StrategyObjective.builder()
+                    .targetPrice(dto.getTargetPrice())
+                    .stopLossPrice(dto.getStopLossPrice())
+                    .positionType(StrategyObjective.PositionType.valueOf(dto.getPositionType()))
+                    .description(dto.getObjectiveDescription())
+                    .build();
+        }
+
         return Strategy.builder()
                 .id(dto.getId())
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .rules(ruleDTOMapper.toDomainList(dto.getRules()))
+                .objective(objective)
                 .build();
     }
 }

@@ -57,4 +57,13 @@ public class StrategyEvaluationEntity {
     @Column(name = "latest", nullable = false)
     private boolean latest;
 
+    @Column(name = "risk_reward_ratio", precision = 10, scale = 2)
+    private BigDecimal riskRewardRatio;
+
+    @Column(name = "reward_percentage", precision = 10, scale = 4)
+    private BigDecimal rewardPercentage;
+
+    @Column(name = "risk_percentage", precision = 10, scale = 4)
+    private BigDecimal riskPercentage;
+
 }

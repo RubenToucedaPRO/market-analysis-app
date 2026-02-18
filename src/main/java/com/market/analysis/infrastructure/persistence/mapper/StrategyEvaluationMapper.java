@@ -31,6 +31,9 @@ public class StrategyEvaluationMapper {
         entity.setEvaluatedAt(domain.getEvaluatedAt());
         entity.setPriceAtEvaluation(domain.getPriceAtEvaluation());
         entity.setLatest(domain.isLatest());
+        entity.setRiskRewardRatio(domain.getRiskRewardRatio());
+        entity.setRewardPercentage(domain.getRewardPercentage());
+        entity.setRiskPercentage(domain.getRiskPercentage());
 
         return entity;
     }
@@ -49,6 +52,9 @@ public class StrategyEvaluationMapper {
         entity.setEvaluatedAt(domain.getEvaluatedAt());
         entity.setPriceAtEvaluation(domain.getPriceAtEvaluation());
         entity.setLatest(domain.isLatest());
+        entity.setRiskRewardRatio(domain.getRiskRewardRatio());
+        entity.setRewardPercentage(domain.getRewardPercentage());
+        entity.setRiskPercentage(domain.getRiskPercentage());
 
         return entity;
     }
@@ -76,6 +82,9 @@ public class StrategyEvaluationMapper {
                 .evaluatedAt(entity.getEvaluatedAt())
                 .priceAtEvaluation(entity.getPriceAtEvaluation())
                 .isLatest(entity.isLatest())
+                .riskRewardRatio(entity.getRiskRewardRatio())
+                .rewardPercentage(entity.getRewardPercentage())
+                .riskPercentage(entity.getRiskPercentage())
                 .build();
     }
 }
