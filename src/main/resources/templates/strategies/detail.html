@@ -18,7 +18,7 @@
     />
 
     <!-- Custom CSS -->
-    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
@@ -26,13 +26,18 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <div class="d-flex align-items-center mb-4">
-        <h2 class="mb-0" th:text="${strategy.name}">Nombre de la Estrategia</h2>
-        <span
-          class="badge bg-primary ms-3"
-          th:text="${strategy.rules.size()} + ' reglas'"
-          >3 reglas</span
-        >
+      <div
+        class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-1"
+      >
+        <div>
+          <h2 th:text="${strategy.name}">Nombre de la Estrategia</h2>
+        </div>
+        <div>
+          <span class="stats-badge" th:if="${!strategy.rules.isEmpty()}">
+            <i class="bi bi-collection me-1"></i>
+            <span th:text="${strategy.rules.size()}">0</span> reglas definidas
+          </span>
+        </div>
       </div>
 
       <!-- Strategy Details Card -->
@@ -52,9 +57,7 @@
               <p class="fs-5" th:text="${strategy.name}">Cruce Dorado</p>
             </div>
             <div class="col-md-12">
-              <p class="form-label fw-semibold text-muted small"
-                >Descripción</p
-              >
+              <p class="form-label fw-semibold text-muted small">Descripción</p>
               <p class="fs-6 text-muted" th:text="${strategy.description}">
                 La descripción de la estrategia se mostrará aquí.
               </p>
@@ -75,7 +78,9 @@
           <!-- Empty State -->
           <div th:if="${strategy.rules.isEmpty()}" class="text-center py-4">
             <i class="bi bi-info-circle text-muted" style="font-size: 3rem"></i>
-            <p class="text-muted mt-3">No hay reglas definidas para esta estrategia.</p>
+            <p class="text-muted mt-3">
+              No hay reglas definidas para esta estrategia.
+            </p>
           </div>
 
           <!-- Rules Display -->
@@ -97,24 +102,25 @@
                 <div class="row g-3">
                   <!-- Subject Indicator -->
                   <div class="col-md-3">
-                    <p class="form-label small text-muted fw-semibold"
-                      >Indicador de Sujeto</p
-                    >
+                    <p class="form-label small text-muted fw-semibold">
+                      Indicador de Sujeto
+                    </p>
                     <p class="mb-0" th:text="${rule.subjectCode}">PRICE</p>
                   </div>
 
                   <!-- Subject Parameter -->
                   <div class="col-md-2" th:if="${rule.subjectParam != null}">
-                    <p class="form-label small text-muted fw-semibold"
-                      >Parámetro de Sujeto</p
-                    >
+                    <p class="form-label small text-muted fw-semibold">
+                      Parámetro de Sujeto
+                    </p>
                     <p class="mb-0" th:text="${rule.subjectParam}">50</p>
                   </div>
 
                   <!-- Operator -->
                   <div class="col-md-1">
-                    <p class="form-label small text-muted fw-semibold"
-                      >Operador</p>
+                    <p class="form-label small text-muted fw-semibold">
+                      Operador
+                    </p>
                     <p class="mb-0">
                       <span th:if="${rule.operator == '>'}">></span>
                       <span th:if="${rule.operator == '<'}">&lt;</span>
@@ -159,6 +165,32 @@
                 </div>
               </div>
             </div>
+            <!-- Action Buttons -->
+            <div class="strategy-actions">
+              <form th:action="@{/strategies/edit}" method="post">
+                <input type="hidden" name="id" th:value="${strategy.id}" />
+                <button type="submit" class="btn btn-outline-primary">
+                  <i class="bi bi-pencil-square me-1"></i>
+                  Editar
+                </button>
+              </form>
+
+              <form th:action="@{/strategies/delete}" method="post">
+                <input type="hidden" name="id" th:value="${strategy.id}" />
+                <button
+                  type="submit"
+                  class="btn btn-outline-danger"
+                  onclick="
+                    return confirm(
+                      '¿Estás seguro de borrar esta estrategia? Esta acción no se puede deshacer.',
+                    );
+                  "
+                >
+                  <i class="bi bi-trash me-1"></i>
+                  Eliminar
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -167,9 +199,9 @@
     <!-- Footer -->
     <footer class="bg-light border-top py-3 mt-auto">
       <div class="container text-center">
-        <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
-        >
+        <small class="text-muted">
+          &copy; 2026 AlphaSeeker. Todos los derechos reservados.
+        </small>
       </div>
     </footer>
 

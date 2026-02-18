@@ -20,7 +20,7 @@
     />
 
     <!-- Custom CSS -->
-    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
@@ -28,20 +28,14 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <!-- Header with Logo and Ticker -->
-      <div class="d-flex align-items-center mb-4">
+      <div class="mb-3 d-flex align-items-center gap-3">
         <img
           th:src="${ticker.logoUrl}"
           loading="lazy"
-          width="50"
-          height="50"
+          class="ticker-detail-logo"
           th:alt="'logo of ' + ${ticker.ticker}"
-          class="me-3"
         />
-        <div>
-          <h2 class="mb-0" th:text="${ticker.ticker}">AAPL</h2>
-          <p class="text-muted mb-0">Detalle del Ticker</p>
-        </div>
+        <h2 class="mb-0" th:text="${ticker.ticker}">AAPL</h2>
       </div>
 
       <!-- Strategy Information -->
@@ -52,11 +46,11 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Nombre de la Estrategia:</p>
+              <p class="info-label">Nombre de la Estrategia:</p>
               <p th:text="${ticker.strategyName}">Nombre de la Estrategia</p>
             </div>
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Estado de Evaluación:</p>
+              <p class="info-label">Estado de Evaluación:</p>
               <p>
                 <span
                   th:class="${ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
@@ -78,12 +72,12 @@
               </p>
             </div>
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Tasa de Cumplimiento:</p>
+              <p class="info-label">Tasa de Cumplimiento:</p>
               <p><span th:text="${ticker.complianceRate}">0</span>%</p>
             </div>
             <div class="col-md-12 mb-3" th:if="${ticker.evaluationSummary}">
-              <p class="fw-bold">Resumen de Evaluación:</p>
-              <p th:text="${ticker.evaluationSummary}" class="text-muted">
+              <p class="info-label">Resumen de Evaluación:</p>
+              <p th:text="${ticker.evaluationSummary}" class="info-value">
                 Resumen de evaluación
               </p>
             </div>
@@ -99,25 +93,25 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Precio Actual:</p>
-              <p class="fs-5 text-primary" th:text="${ticker.currentPrice}">
+              <p class="info-label">Precio Actual:</p>
+              <p class="price-highlight" th:text="${ticker.currentPrice}">
                 150.00
               </p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Precio de Apertura:</p>
+              <p class="info-label">Precio de Apertura:</p>
               <p th:text="${ticker.openPrice}">148.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Cierre Anterior:</p>
+              <p class="info-label">Cierre Anterior:</p>
               <p th:text="${ticker.previousClose}">149.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Máximo del Día:</p>
+              <p class="info-label">Máximo del Día:</p>
               <p th:text="${ticker.highOfDay}">151.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">Mínimo del Día:</p>
+              <p class="info-label">Mínimo del Día:</p>
               <p th:text="${ticker.lowOfDay}">147.50</p>
             </div>
           </div>
@@ -132,15 +126,15 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">SMA 20:</p>
+              <p class="info-label">SMA 20:</p>
               <p th:text="${ticker.sma20}">145.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">SMA 50:</p>
+              <p class="info-label">SMA 50:</p>
               <p th:text="${ticker.sma50}">142.00</p>
             </div>
             <div class="col-md-4 mb-3">
-              <p class="fw-bold">SMA 200:</p>
+              <p class="info-label">SMA 200:</p>
               <p th:text="${ticker.sma200}">138.00</p>
             </div>
           </div>
@@ -155,11 +149,11 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Volumen Actual:</p>
+              <p class="info-label">Volumen Actual:</p>
               <p th:text="${ticker.volume}">1000000</p>
             </div>
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Volumen Promedio (60 días):</p>
+              <p class="info-label">Volumen Promedio (60 días):</p>
               <p th:text="${ticker.averageVolume}">1200000</p>
             </div>
           </div>
@@ -174,7 +168,7 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-12 mb-3">
-              <p class="fw-bold">Valoración IA:</p>
+              <p class="info-label">Valoración IA:</p>
               <p th:text="${ticker.valorationIA}">Valoración IA</p>
             </div>
           </div>
@@ -189,7 +183,7 @@
         <div class="card-body">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <p class="fw-bold">Última Actualización:</p>
+              <p class="info-label">Última Actualización:</p>
               <p
                 th:text="${#temporals.format(ticker.lastUpdated, 'yyyy-MM-dd HH:mm:ss')}"
               >
@@ -204,31 +198,28 @@
       <div class="d-flex gap-2">
         <a th:href="@{/analysis}" class="btn btn-secondary">
           <i class="bi bi-arrow-left me-1"></i>
-          Volver al Análisis
+          Volver
         </a>
-        <form
-          th:action="@{/analysis/update}"
-          method="post"
-          style="display: inline"
-        >
+        <form th:action="@{/analysis/update}" method="post">
           <input type="hidden" name="id" th:value="${ticker.id}" />
           <button type="submit" class="btn btn-primary">
             <i class="bi bi-arrow-repeat me-1"></i>
-            Refrescar Datos
+            Actualizar
           </button>
         </form>
         <form
           th:action="@{/analysis/delete}"
           method="post"
-          style="display: inline"
           onsubmit="
-            return confirm('¿Estás seguro de que quieres eliminar este ticker?');
+            return confirm(
+              '¿Estás seguro de que quieres eliminar este ticker?',
+            );
           "
         >
           <input type="hidden" name="id" th:value="${ticker.id}" />
           <button type="submit" class="btn btn-danger">
             <i class="bi bi-trash me-1"></i>
-            Eliminar Ticker
+            Eliminar
           </button>
         </form>
       </div>
