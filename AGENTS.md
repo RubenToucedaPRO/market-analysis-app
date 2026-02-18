@@ -12,7 +12,7 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 - Modelos de lenguaje (IA) usados únicamente como **análisis interpretativo complementario**, sin afectar resultados ni decisiones.
 - Arquitectura hexagonal con Clean Architecture estricta: dominio puro, casos de uso en Application, detalles en Infrastructure.
 - Persistencia: H2 para desarrollo, MariaDB opcional en producción.
-- Frontend: Thymeleaf + HTMX + Bootstrap 5, interacción mínima con JavaScript.
+- Frontend: Thymeleaf + Bootstrap 5, interacción mínima con JavaScript.
 - **README.md** debe ser consultado y respetado en todo momento para asegurar coherencia de descripciones, objetivos, stack y funcionalidades.
 
 ---
@@ -123,6 +123,7 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 ## 8. Consideraciones Finales para el Asistente
 
 - Respetar siempre la **Arquitectura Hexagonal** aplicando **Clean Architecture** y **SRP**.
+- Respetar la version de Java 21 y Spring Boot 3.5.10
 - IA **solo como análisis interpretativo**.
 - No ejecutar cambios automáticos en la lógica de evaluación.
 - Documentar cada tarea inmediatamente en `/docs`.

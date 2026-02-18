@@ -6,10 +6,13 @@ import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
+import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
+import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.service.EvaluateStrategyService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +23,10 @@ public class ManageStrategyService implements ManageStrategyUseCase {
 
     private final StrategyRepository strategyRepository;
     private final RuleDefinitionRepository ruleDefinitionRepository;
+    private final StockDataRepository stockDataRepository;
     private final StrategyDTOMapper strategyMapper;
     private final RuleDefinitionDTOMapper ruleDefinitionMapper;
+    private final EvaluateStrategyService evaluateStrategyService;
 
     @Override
     public StrategyDTO createStrategy(StrategyDTO strategy) {
@@ -30,6 +35,16 @@ public class ManageStrategyService implements ManageStrategyUseCase {
         strategyDomain.validateConsistency();
         Strategy savedStrategy = strategyRepository.save(strategyDomain);
         log.info("Strategy created successfully with ID: {}", savedStrategy.getId());
+
+        List<Stock> stockDataList = stockDataRepository.findAllByStrategyId(savedStrategy.getId());
+        for (Stock stock : stockDataList) {
+            var evaluation = evaluateStrategyService.evaluateStrategy(savedStrategy, stock);
+            evaluation.setId(stock.getStrategyEvaluation().getId());
+            stock.setStrategyEvaluation(evaluation);
+            stock.setLastUpdated(evaluation.getEvaluatedAt());
+            stockDataRepository.updateStockData(stock);
+        }
+
         return strategyMapper.toDTO(savedStrategy);
     }
 
