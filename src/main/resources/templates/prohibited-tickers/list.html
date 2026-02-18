@@ -18,7 +18,7 @@
     />
 
     <!-- Custom CSS -->
-    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
@@ -26,15 +26,36 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">Tickers Prohibidos</h2>
-      <p class="text-muted mb-4">
-        Revisa los tickers bloqueados por el sistema y elimínalos si es necesario.
-      </p>
+      <div class="page-header">
+        <div
+          class="d-flex justify-content-between align-items-center flex-wrap gap-3"
+        >
+          <div>
+            <h2 class="mb-2">
+              <i class="bi bi-shield-x me-2 text-primary"></i>
+              Tickers Prohibidos
+            </h2>
+            <p class="text-muted mb-0">
+              Revisa los tickers bloqueados por el sistema y elimínalos si es
+              necesario.
+            </p>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="stats-badge" th:if="${!prohibitedTickers.isEmpty()}">
+              <i class="bi bi-collection me-1"></i>
+              <span th:text="${prohibitedTickers.size()}">0</span> tickers
+              prohibidos
+            </span>
+          </div>
+        </div>
+      </div>
 
       <!-- Empty State -->
       <div th:if="${prohibitedTickers.isEmpty()}" class="text-center py-5">
         <i class="bi bi-shield-x text-muted" style="font-size: 4rem"></i>
-        <p class="text-muted fs-5 mt-3">No se encontraron tickers prohibidos.</p>
+        <p class="text-muted fs-5 mt-3">
+          No se encontraron tickers prohibidos.
+        </p>
       </div>
 
       <!-- Prohibited Tickers Table -->
@@ -46,7 +67,6 @@
                 <tr>
                   <th scope="col">Ticker</th>
                   <th scope="col">Razón</th>
-                  <th scope="col">Creado el</th>
                   <th scope="col" class="text-end">Acciones</th>
                 </tr>
               </thead>
@@ -57,11 +77,6 @@
                   </td>
                   <td class="text-muted" th:text="${prohibitedTicker.reason}">
                     Bloqueo manual
-                  </td>
-                  <td
-                    th:text="${#temporals.format(prohibitedTicker.createdAt, 'yyyy-MM-dd HH:mm')}"
-                  >
-                    2026-02-07 10:00
                   </td>
                   <td class="text-end">
                     <form

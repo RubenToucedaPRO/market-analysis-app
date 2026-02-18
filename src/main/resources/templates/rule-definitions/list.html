@@ -18,7 +18,7 @@
     />
 
     <!-- Custom CSS -->
-    <link th:href="@{/css/strategy-common.css}" rel="stylesheet" />
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
@@ -26,18 +26,30 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <h2 class="mb-4">Definiciones de Reglas</h2>
-      <p class="text-muted mb-4">
-        Gestiona las definiciones de reglas disponibles que se pueden usar en las estrategias.
-      </p>
-      <div
-        th:if="${!ruleDefinitions.isEmpty()}"
-        class="d-flex justify-content-end mb-4"
-      >
-        <a th:href="@{/rule-definitions/new}" class="btn btn-primary">
-          <i class="bi bi-plus-circle me-1"></i>
-          Nueva Definición de Regla
-        </a>
+      <div class="page-header">
+        <div
+          class="d-flex justify-content-between align-items-center flex-wrap gap-3"
+        >
+          <div>
+            <h2 class="mb-2">
+              <i class="bi bi-collection me-1"></i>Definiciones de Reglas
+            </h2>
+            <p class="text-muted mb-0">
+              Gestiona las definiciones de reglas disponibles que se pueden usar
+              en las estrategias.
+            </p>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="stats-badge" th:if="${!ruleDefinitions.isEmpty()}">
+              <i class="bi bi-collection me-1"></i>
+              <span th:text="${ruleDefinitions.size()}">0</span> definiciones
+            </span>
+            <a th:href="@{/rule-definitions/new}" class="btn btn-primary">
+              <i class="bi bi-plus-circle me-1"></i>
+              Nueva Definición
+            </a>
+          </div>
+        </div>
       </div>
 
       <!-- Empty State -->
@@ -54,7 +66,8 @@
 
       <!-- Rule Definitions Table -->
       <div th:unless="${ruleDefinitions.isEmpty()}" class="card">
-        <div class="card-body p-0">
+        <!-- Desktop Table View (visible on screens > 768px) -->
+        <div class="rule-table-view">
           <div class="table-responsive">
             <table class="table table-hover mb-0">
               <thead class="table-light">
@@ -93,50 +106,137 @@
                     El precio actual del mercado
                   </td>
                   <td class="text-end">
-                    <form
-                      th:action="@{/rule-definitions/edit}"
-                      method="post"
-                      style="display: inline"
-                    >
-                      <input
-                        type="hidden"
-                        name="id"
-                        th:value="${ruleDefinition.id}"
-                      />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-primary me-2"
+                    <div class="strategy-actions">
+                      <form
+                        th:action="@{/rule-definitions/edit}"
+                        method="post"
+                        class="flex-fill"
                       >
-                        <i class="bi bi-pencil"></i>
-                        Editar
-                      </button>
-                    </form>
-                    <form
-                      th:action="@{/rule-definitions/delete}"
-                      method="post"
-                      style="display: inline"
-                    >
-                      <input
-                        type="hidden"
-                        name="id"
-                        th:value="${ruleDefinition.id}"
-                      />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-danger"
-                        onclick="
-                          return confirm(
-                            '¿Estás seguro de que quieres eliminar esta definición de regla?',
-                          );
-                        "
+                        <input
+                          type="hidden"
+                          name="id"
+                          th:value="${ruleDefinition.id}"
+                        />
+                        <button
+                          type="submit"
+                          class="btn btn-outline-primary w-100"
+                        >
+                          <i class="bi bi-pencil-square me-1"></i>
+                          Editar
+                        </button>
+                      </form>
+                      <form
+                        th:action="@{/rule-definitions/delete}"
+                        method="post"
+                        class="flex-fill"
                       >
-                        <i class="bi bi-trash"></i> Eliminar
-                      </button>
-                    </form>
+                        <input
+                          type="hidden"
+                          name="id"
+                          th:value="${ruleDefinition.id}"
+                        />
+                        <button
+                          type="submit"
+                          class="btn btn-outline-danger w-100"
+                          onclick="
+                            return confirm(
+                              '¿Estás seguro de que quieres eliminar esta definición de regla?',
+                            );
+                          "
+                        >
+                          <i class="bi bi-trash me-1"></i> Eliminar
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Mobile Card View (visible on screens <= 768px) -->
+        <div class="rule-card-view">
+          <div th:each="ruleDefinition : ${ruleDefinitions}">
+            <div class="card rule-definition-card mb-3">
+              <div class="card-body">
+                <!-- Header with Code and Parameter Badge -->
+                <div
+                  class="d-flex justify-content-between align-items-start mb-2"
+                >
+                  <span class="rule-code" th:text="${ruleDefinition.code}"
+                    >PRICE</span
+                  >
+                  <span
+                    th:if="${ruleDefinition.requiresParam}"
+                    class="badge bg-success rule-param-badge"
+                  >
+                    <i class="bi bi-check-circle"></i> Parámetro
+                  </span>
+                  <span
+                    th:unless="${ruleDefinition.requiresParam}"
+                    class="badge bg-secondary rule-param-badge"
+                  >
+                    <i class="bi bi-x-circle"></i> Sin parámetro
+                  </span>
+                </div>
+
+                <!-- Rule Name -->
+                <h6 class="rule-name" th:text="${ruleDefinition.name}">
+                  Precio Actual
+                </h6>
+
+                <!-- Description -->
+                <p
+                  class="rule-description"
+                  th:text="${ruleDefinition.description}"
+                >
+                  El precio actual del mercado
+                </p>
+
+                <!-- Actions -->
+                <div class="rule-actions">
+                  <form
+                    th:action="@{/rule-definitions/edit}"
+                    method="post"
+                    class="flex-fill"
+                  >
+                    <input
+                      type="hidden"
+                      name="id"
+                      th:value="${ruleDefinition.id}"
+                    />
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                      <i class="bi bi-pencil me-1"></i>
+                      Editar
+                    </button>
+                  </form>
+                  <form
+                    th:action="@{/rule-definitions/delete}"
+                    method="post"
+                    class="flex-fill"
+                  >
+                    <input
+                      type="hidden"
+                      name="id"
+                      th:value="${ruleDefinition.id}"
+                    />
+                    <button
+                      type="submit"
+                      class="btn btn-outline-danger w-100"
+                      onclick="
+                        return confirm(
+                          '¿Estás seguro de que quieres eliminar esta definición de regla?',
+                        );
+                      "
+                    >
+                      <i class="bi bi-trash me-1"></i>
+                      Eliminar
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
