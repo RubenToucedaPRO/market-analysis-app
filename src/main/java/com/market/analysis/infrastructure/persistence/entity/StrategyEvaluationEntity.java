@@ -66,4 +66,7 @@ public class StrategyEvaluationEntity {
     @Column(name = "risk_percentage", precision = 10, scale = 4)
     private BigDecimal riskPercentage;
 
+    @Column(name = "share_quantity")
+    private Integer shareQuantity;
+
 }

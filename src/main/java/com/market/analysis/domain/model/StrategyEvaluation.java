@@ -93,4 +93,10 @@ public class StrategyEvaluation {
      * Null if strategy has no objective.
      */
     private BigDecimal riskPercentage;
+
+    /**
+     * Calculated share quantity based on capital to risk.
+     * Null if strategy has no objective or no capital risk specified.
+     */
+    private Integer shareQuantity;
 }

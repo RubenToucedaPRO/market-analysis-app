@@ -38,9 +38,11 @@ public class StrategyDTOMapper {
         // Map objective if present
         if (strategy.hasObjective()) {
             StrategyObjective objective = strategy.getObjective();
-            builder.targetPrice(objective.getTargetPrice())
-                    .stopLossPrice(objective.getStopLossPrice())
-                    .positionType(objective.getPositionType().name())
+            builder.targetType(objective.getTargetType().name())
+                    .targetValue(objective.getTargetValue())
+                    .stopLossType(objective.getStopLossType().name())
+                    .stopLossValue(objective.getStopLossValue())
+                    .capitalToRisk(objective.getCapitalToRisk())
                     .objectiveDescription(objective.getDescription());
         }
 
@@ -60,11 +62,13 @@ public class StrategyDTOMapper {
 
         // Build objective if present in DTO
         StrategyObjective objective = null;
-        if (dto.getTargetPrice() != null && dto.getStopLossPrice() != null && dto.getPositionType() != null) {
+        if (dto.getTargetType() != null && dto.getStopLossType() != null) {
             objective = StrategyObjective.builder()
-                    .targetPrice(dto.getTargetPrice())
-                    .stopLossPrice(dto.getStopLossPrice())
-                    .positionType(StrategyObjective.PositionType.valueOf(dto.getPositionType()))
+                    .targetType(StrategyObjective.ObjectiveType.valueOf(dto.getTargetType()))
+                    .targetValue(dto.getTargetValue())
+                    .stopLossType(StrategyObjective.ObjectiveType.valueOf(dto.getStopLossType()))
+                    .stopLossValue(dto.getStopLossValue())
+                    .capitalToRisk(dto.getCapitalToRisk())
                     .description(dto.getObjectiveDescription())
                     .build();
         }

@@ -61,20 +61,25 @@ public class EvaluateStrategyService {
         BigDecimal riskRewardRatio = null;
         BigDecimal rewardPercentage = null;
         BigDecimal riskPercentage = null;
+        Integer shareQuantity = null;
 
         if (strategy.hasObjective()) {
             StrategyObjective objective = strategy.getObjective();
             BigDecimal entryPrice = stock.getCurrentPrice();
 
             try {
-                riskRewardRatio = objective.calculateRiskRewardRatio(entryPrice);
-                rewardPercentage = objective.calculateRewardPercentage(entryPrice);
-                riskPercentage = objective.calculateRiskPercentage(entryPrice);
+                riskRewardRatio = objective.calculateRiskRewardRatio(entryPrice, stock);
+                rewardPercentage = objective.calculateRewardPercentage(entryPrice, stock);
+                riskPercentage = objective.calculateRiskPercentage(entryPrice, stock);
+                shareQuantity = objective.calculateShareQuantity(entryPrice, stock);
 
                 // Add R:R metrics to calculated metrics map
                 metrics.put("riskRewardRatio", riskRewardRatio);
                 metrics.put("rewardPercentage", rewardPercentage);
                 metrics.put("riskPercentage", riskPercentage);
+                if (shareQuantity != null) {
+                    metrics.put("shareQuantity", shareQuantity);
+                }
             } catch (IllegalStateException | IllegalArgumentException e) {
                 // If objective validation fails, log and continue without R:R
                 // This allows strategies with invalid objectives to still be evaluated
@@ -111,6 +116,7 @@ public class EvaluateStrategyService {
                 .riskRewardRatio(riskRewardRatio)
                 .rewardPercentage(rewardPercentage)
                 .riskPercentage(riskPercentage)
+                .shareQuantity(shareQuantity)
                 .build();
     }
 

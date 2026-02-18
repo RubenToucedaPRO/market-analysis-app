@@ -20,11 +20,13 @@ public class StrategyMapper {
 
         // Build objective if present
         StrategyObjective objective = null;
-        if (entity.getTargetPrice() != null && entity.getStopLossPrice() != null && entity.getPositionType() != null) {
+        if (entity.getTargetType() != null && entity.getStopLossType() != null) {
             objective = StrategyObjective.builder()
-                    .targetPrice(entity.getTargetPrice())
-                    .stopLossPrice(entity.getStopLossPrice())
-                    .positionType(mapPositionType(entity.getPositionType()))
+                    .targetType(mapObjectiveType(entity.getTargetType()))
+                    .targetValue(entity.getTargetValue())
+                    .stopLossType(mapObjectiveType(entity.getStopLossType()))
+                    .stopLossValue(entity.getStopLossValue())
+                    .capitalToRisk(entity.getCapitalToRisk())
                     .description(entity.getObjectiveDescription())
                     .build();
         }
@@ -60,22 +62,24 @@ public class StrategyMapper {
         // Map objective if present
         if (domain.hasObjective()) {
             StrategyObjective objective = domain.getObjective();
-            entity.setTargetPrice(objective.getTargetPrice());
-            entity.setStopLossPrice(objective.getStopLossPrice());
-            entity.setPositionType(mapPositionType(objective.getPositionType()));
+            entity.setTargetType(mapObjectiveType(objective.getTargetType()));
+            entity.setTargetValue(objective.getTargetValue());
+            entity.setStopLossType(mapObjectiveType(objective.getStopLossType()));
+            entity.setStopLossValue(objective.getStopLossValue());
+            entity.setCapitalToRisk(objective.getCapitalToRisk());
             entity.setObjectiveDescription(objective.getDescription());
         }
         
         return entity;
     }
 
-    private StrategyObjective.PositionType mapPositionType(StrategyEntity.PositionType entityType) {
+    private StrategyObjective.ObjectiveType mapObjectiveType(StrategyEntity.ObjectiveType entityType) {
         if (entityType == null) return null;
-        return StrategyObjective.PositionType.valueOf(entityType.name());
+        return StrategyObjective.ObjectiveType.valueOf(entityType.name());
     }
 
-    private StrategyEntity.PositionType mapPositionType(StrategyObjective.PositionType domainType) {
+    private StrategyEntity.ObjectiveType mapObjectiveType(StrategyObjective.ObjectiveType domainType) {
         if (domainType == null) return null;
-        return StrategyEntity.PositionType.valueOf(domainType.name());
+        return StrategyEntity.ObjectiveType.valueOf(domainType.name());
     }
 }

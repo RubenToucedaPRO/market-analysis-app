@@ -9,8 +9,8 @@ import lombok.ToString;
 
 /**
  * Value object representing a strategy's objective for Risk:Reward calculation.
- * Defines entry, target (take profit), and stop loss price levels.
- * This is a deterministic, immutable object used to calculate R:R ratios.
+ * Defines target (take profit) and stop loss levels using flexible criteria.
+ * This is a deterministic, immutable object used to calculate R:R ratios and position sizing.
  */
 @Getter
 @Builder
@@ -18,22 +18,36 @@ import lombok.ToString;
 public class StrategyObjective {
 
     /**
-     * Target profit price level (take profit).
-     * Must be greater than entry price for long positions.
+     * Type of target definition (SMA, PERCENTAGE, or FIXED_PRICE).
      */
-    private final BigDecimal targetPrice;
+    private final ObjectiveType targetType;
 
     /**
-     * Stop loss price level.
-     * Must be less than entry price for long positions.
+     * Value for target based on targetType:
+     * - SMA: period (e.g., 50 for SMA50)
+     * - PERCENTAGE: profit percentage (e.g., 10.0 for 10%)
+     * - FIXED_PRICE: absolute price value
      */
-    private final BigDecimal stopLossPrice;
+    private final BigDecimal targetValue;
 
     /**
-     * Type of position: LONG or SHORT.
-     * Defaults to LONG if not specified.
+     * Type of stop loss definition (SMA, PERCENTAGE, or FIXED_PRICE).
      */
-    private final PositionType positionType;
+    private final ObjectiveType stopLossType;
+
+    /**
+     * Value for stop loss based on stopLossType:
+     * - SMA: period (e.g., 20 for SMA20)
+     * - PERCENTAGE: loss percentage (e.g., 5.0 for 5%)
+     * - FIXED_PRICE: absolute price value
+     */
+    private final BigDecimal stopLossValue;
+
+    /**
+     * Capital to risk per trade (in currency units).
+     * Used to calculate position size based on stop loss distance.
+     */
+    private final BigDecimal capitalToRisk;
 
     /**
      * Optional description of the objective.
@@ -41,140 +55,195 @@ public class StrategyObjective {
     private final String description;
 
     /**
-     * Enum defining position types.
+     * Enum defining how target/stop loss are specified.
      */
-    public enum PositionType {
-        LONG, SHORT
+    public enum ObjectiveType {
+        SMA,           // Simple Moving Average period
+        PERCENTAGE,    // Percentage from entry price
+        FIXED_PRICE    // Absolute price value
     }
 
     /**
      * Validates the consistency of the objective.
-     * Ensures target and stop loss are properly configured relative to position type.
+     * Ensures target and stop loss are properly configured.
      *
-     * @param entryPrice current price at entry (from Stock)
      * @throws IllegalStateException if the objective is not properly configured
      */
-    public void validateConsistency(BigDecimal entryPrice) {
-        if (targetPrice == null) {
-            throw new IllegalStateException("Target price cannot be null");
+    public void validateConsistency() {
+        if (targetType == null) {
+            throw new IllegalStateException("Target type cannot be null");
         }
-        if (stopLossPrice == null) {
-            throw new IllegalStateException("Stop loss price cannot be null");
+        if (targetValue == null || targetValue.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Target value must be positive");
         }
-        if (entryPrice == null) {
-            throw new IllegalStateException("Entry price cannot be null");
+        if (stopLossType == null) {
+            throw new IllegalStateException("Stop loss type cannot be null");
         }
-        if (positionType == null) {
-            throw new IllegalStateException("Position type cannot be null");
+        if (stopLossValue == null || stopLossValue.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Stop loss value must be positive");
         }
-
-        // Validate that target and stop loss are different (check this first)
-        if (targetPrice.compareTo(stopLossPrice) == 0) {
-            throw new IllegalStateException("Target price and stop loss price cannot be the same");
-        }
-
-        // Validate price relationships based on position type
-        if (positionType == PositionType.LONG) {
-            if (targetPrice.compareTo(entryPrice) <= 0) {
-                throw new IllegalStateException(
-                        String.format("For LONG positions, target price (%.2f) must be greater than entry price (%.2f)",
-                                targetPrice.doubleValue(), entryPrice.doubleValue()));
-            }
-            if (stopLossPrice.compareTo(entryPrice) >= 0) {
-                throw new IllegalStateException(
-                        String.format("For LONG positions, stop loss price (%.2f) must be less than entry price (%.2f)",
-                                stopLossPrice.doubleValue(), entryPrice.doubleValue()));
-            }
-        } else if (positionType == PositionType.SHORT) {
-            if (targetPrice.compareTo(entryPrice) >= 0) {
-                throw new IllegalStateException(
-                        String.format("For SHORT positions, target price (%.2f) must be less than entry price (%.2f)",
-                                targetPrice.doubleValue(), entryPrice.doubleValue()));
-            }
-            if (stopLossPrice.compareTo(entryPrice) <= 0) {
-                throw new IllegalStateException(
-                        String.format("For SHORT positions, stop loss price (%.2f) must be greater than entry price (%.2f)",
-                                stopLossPrice.doubleValue(), entryPrice.doubleValue()));
-            }
+        if (capitalToRisk != null && capitalToRisk.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("Capital to risk must be positive");
         }
     }
 
     /**
-     * Calculates the Risk:Reward ratio based on entry price.
+     * Resolves the target price based on the objective type.
+     *
+     * @param entryPrice current price at entry
+     * @param stock stock data containing SMAs if needed
+     * @return resolved target price
+     */
+    public BigDecimal resolveTargetPrice(BigDecimal entryPrice, Stock stock) {
+        validateConsistency();
+        
+        return switch (targetType) {
+            case FIXED_PRICE -> targetValue;
+            case PERCENTAGE -> entryPrice.add(
+                entryPrice.multiply(targetValue).divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP)
+            );
+            case SMA -> resolveSmaValue(targetValue, stock);
+        };
+    }
+
+    /**
+     * Resolves the stop loss price based on the objective type.
+     *
+     * @param entryPrice current price at entry
+     * @param stock stock data containing SMAs if needed
+     * @return resolved stop loss price
+     */
+    public BigDecimal resolveStopLossPrice(BigDecimal entryPrice, Stock stock) {
+        validateConsistency();
+        
+        return switch (stopLossType) {
+            case FIXED_PRICE -> stopLossValue;
+            case PERCENTAGE -> entryPrice.subtract(
+                entryPrice.multiply(stopLossValue).divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP)
+            );
+            case SMA -> resolveSmaValue(stopLossValue, stock);
+        };
+    }
+
+    /**
+     * Resolves SMA value from stock data based on period.
+     *
+     * @param period SMA period (20, 50, 200, etc.)
+     * @param stock stock data
+     * @return SMA value
+     */
+    private BigDecimal resolveSmaValue(BigDecimal period, Stock stock) {
+        int periodInt = period.intValue();
+        
+        return switch (periodInt) {
+            case 20 -> stock.getSma20();
+            case 50 -> stock.getSma50();
+            case 200 -> stock.getSma200();
+            default -> throw new IllegalArgumentException(
+                String.format("SMA period %d not supported. Supported periods: 20, 50, 200", periodInt)
+            );
+        };
+    }
+
+    /**
+     * Calculates the Risk:Reward ratio based on entry price and stock data.
      * R:R = Potential Reward / Potential Risk
-     * 
-     * For LONG: Reward = (Target - Entry), Risk = (Entry - StopLoss)
-     * For SHORT: Reward = (Entry - Target), Risk = (StopLoss - Entry)
+     * Reward = (Target - Entry), Risk = (Entry - StopLoss)
      *
      * @param entryPrice current price at entry (from Stock)
+     * @param stock stock data for resolving SMAs if needed
      * @return Risk:Reward ratio as BigDecimal
      * @throws IllegalArgumentException if calculation is invalid
      */
-    public BigDecimal calculateRiskRewardRatio(BigDecimal entryPrice) {
-        validateConsistency(entryPrice);
+    public BigDecimal calculateRiskRewardRatio(BigDecimal entryPrice, Stock stock) {
+        BigDecimal targetPrice = resolveTargetPrice(entryPrice, stock);
+        BigDecimal stopLossPrice = resolveStopLossPrice(entryPrice, stock);
 
-        BigDecimal reward;
-        BigDecimal risk;
-
-        if (positionType == PositionType.LONG) {
-            reward = targetPrice.subtract(entryPrice);
-            risk = entryPrice.subtract(stopLossPrice);
-        } else {
-            reward = entryPrice.subtract(targetPrice);
-            risk = stopLossPrice.subtract(entryPrice);
+        // Validate resolved prices
+        if (targetPrice.compareTo(entryPrice) <= 0) {
+            throw new IllegalArgumentException(
+                String.format("Resolved target price (%.2f) must be greater than entry price (%.2f)",
+                    targetPrice.doubleValue(), entryPrice.doubleValue())
+            );
+        }
+        if (stopLossPrice.compareTo(entryPrice) >= 0) {
+            throw new IllegalArgumentException(
+                String.format("Resolved stop loss price (%.2f) must be less than entry price (%.2f)",
+                    stopLossPrice.doubleValue(), entryPrice.doubleValue())
+            );
         }
 
-        // Ensure risk is not zero to avoid division by zero
+        BigDecimal reward = targetPrice.subtract(entryPrice);
+        BigDecimal risk = entryPrice.subtract(stopLossPrice);
+
         if (risk.compareTo(BigDecimal.ZERO) == 0) {
             throw new IllegalArgumentException("Risk cannot be zero");
         }
 
-        // Calculate R:R ratio with 2 decimal places
         return reward.divide(risk, 2, java.math.RoundingMode.HALF_UP);
     }
 
     /**
-     * Calculates potential reward percentage based on entry price.
+     * Calculates potential reward percentage based on entry price and stock data.
      * 
      * @param entryPrice current price at entry
+     * @param stock stock data for resolving SMAs if needed
      * @return reward percentage (e.g., 10.5 for 10.5%)
      */
-    public BigDecimal calculateRewardPercentage(BigDecimal entryPrice) {
+    public BigDecimal calculateRewardPercentage(BigDecimal entryPrice, Stock stock) {
         if (entryPrice == null || entryPrice.compareTo(BigDecimal.ZERO) == 0) {
             throw new IllegalArgumentException("Entry price must be greater than zero");
         }
 
-        BigDecimal reward;
-        if (positionType == PositionType.LONG) {
-            reward = targetPrice.subtract(entryPrice);
-        } else {
-            reward = entryPrice.subtract(targetPrice);
-        }
+        BigDecimal targetPrice = resolveTargetPrice(entryPrice, stock);
+        BigDecimal reward = targetPrice.subtract(entryPrice);
 
         return reward.divide(entryPrice, 4, java.math.RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
     }
 
     /**
-     * Calculates potential risk percentage based on entry price.
+     * Calculates potential risk percentage based on entry price and stock data.
      * 
      * @param entryPrice current price at entry
+     * @param stock stock data for resolving SMAs if needed
      * @return risk percentage (e.g., 5.0 for 5.0%)
      */
-    public BigDecimal calculateRiskPercentage(BigDecimal entryPrice) {
+    public BigDecimal calculateRiskPercentage(BigDecimal entryPrice, Stock stock) {
         if (entryPrice == null || entryPrice.compareTo(BigDecimal.ZERO) == 0) {
             throw new IllegalArgumentException("Entry price must be greater than zero");
         }
 
-        BigDecimal risk;
-        if (positionType == PositionType.LONG) {
-            risk = entryPrice.subtract(stopLossPrice);
-        } else {
-            risk = stopLossPrice.subtract(entryPrice);
-        }
+        BigDecimal stopLossPrice = resolveStopLossPrice(entryPrice, stock);
+        BigDecimal risk = entryPrice.subtract(stopLossPrice);
 
         return risk.divide(entryPrice, 4, java.math.RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
+    }
+
+    /**
+     * Calculates the number of shares to buy based on capital to risk.
+     * Shares = Capital to Risk / (Entry Price - Stop Loss Price)
+     * 
+     * @param entryPrice current price at entry
+     * @param stock stock data for resolving SMAs if needed
+     * @return number of shares to purchase (rounded down to whole shares)
+     */
+    public Integer calculateShareQuantity(BigDecimal entryPrice, Stock stock) {
+        if (capitalToRisk == null) {
+            return null; // No position sizing if capital to risk not specified
+        }
+
+        BigDecimal stopLossPrice = resolveStopLossPrice(entryPrice, stock);
+        BigDecimal riskPerShare = entryPrice.subtract(stopLossPrice);
+
+        if (riskPerShare.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Risk per share must be positive");
+        }
+
+        // Calculate shares and round down to whole number
+        BigDecimal shares = capitalToRisk.divide(riskPerShare, 0, java.math.RoundingMode.DOWN);
+        return shares.intValue();
     }
 
     @Override
@@ -184,13 +253,15 @@ public class StrategyObjective {
         if (o == null || getClass() != o.getClass())
             return false;
         StrategyObjective that = (StrategyObjective) o;
-        return Objects.equals(targetPrice, that.targetPrice) &&
-                Objects.equals(stopLossPrice, that.stopLossPrice) &&
-                positionType == that.positionType;
+        return targetType == that.targetType &&
+                Objects.equals(targetValue, that.targetValue) &&
+                stopLossType == that.stopLossType &&
+                Objects.equals(stopLossValue, that.stopLossValue) &&
+                Objects.equals(capitalToRisk, that.capitalToRisk);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(targetPrice, stopLossPrice, positionType);
+        return Objects.hash(targetType, targetValue, stopLossType, stopLossValue, capitalToRisk);
     }
 }

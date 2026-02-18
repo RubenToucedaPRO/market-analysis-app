@@ -24,8 +24,10 @@ public class StrategyDTO {
     private List<RuleDTO> rules;
     
     // Objective fields for Risk:Reward calculation
-    private BigDecimal targetPrice;
-    private BigDecimal stopLossPrice;
-    private String positionType; // "LONG" or "SHORT"
+    private String targetType;        // "SMA", "PERCENTAGE", or "FIXED_PRICE"
+    private BigDecimal targetValue;
+    private String stopLossType;      // "SMA", "PERCENTAGE", or "FIXED_PRICE"
+    private BigDecimal stopLossValue;
+    private BigDecimal capitalToRisk;
     private String objectiveDescription;
 }

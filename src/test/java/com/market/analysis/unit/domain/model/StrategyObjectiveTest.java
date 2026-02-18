@@ -4,13 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyObjective;
-import com.market.analysis.domain.model.StrategyObjective.PositionType;
+import com.market.analysis.domain.model.StrategyObjective.ObjectiveType;
 
 /**
  * Unit tests for StrategyObjective value object.
@@ -18,43 +21,42 @@ import com.market.analysis.domain.model.StrategyObjective.PositionType;
 @DisplayName("StrategyObjective Tests")
 class StrategyObjectiveTest {
 
+    private Stock testStock;
+
+    @BeforeEach
+    void setUp() {
+        testStock = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(BigDecimal.valueOf(150.00))
+                .sma20(BigDecimal.valueOf(145.00))
+                .sma50(BigDecimal.valueOf(140.00))
+                .sma200(BigDecimal.valueOf(130.00))
+                .volume(10000000L)
+                .averageVolume(8000000L)
+                .lastUpdated(Instant.now())
+                .build();
+    }
+
     @Nested
-    @DisplayName("LONG Position Tests")
-    class LongPositionTests {
+    @DisplayName("Fixed Price Objective Tests")
+    class FixedPriceObjectiveTests {
 
         @Test
-        @DisplayName("Should create valid LONG objective")
-        void shouldCreateValidLongObjective() {
-            // Arrange & Act
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .description("Buy signal with 2:1 R:R")
-                    .build();
-
-            // Assert
-            assertThat(objective).isNotNull();
-            assertThat(objective.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(200.00));
-            assertThat(objective.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(140.00));
-            assertThat(objective.getPositionType()).isEqualTo(PositionType.LONG);
-            assertThat(objective.getDescription()).isEqualTo("Buy signal with 2:1 R:R");
-        }
-
-        @Test
-        @DisplayName("Should calculate R:R correctly for LONG position")
-        void shouldCalculateRiskRewardForLong() {
+        @DisplayName("Should calculate R:R with fixed price target and stop loss")
+        void shouldCalculateRiskRewardWithFixedPrices() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(200.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(140.00))
+                    .description("Fixed price target")
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act
-            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice);
+            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice, testStock);
 
             // Assert
             // Reward = 200 - 150 = 50
@@ -64,208 +66,214 @@ class StrategyObjectiveTest {
         }
 
         @Test
-        @DisplayName("Should calculate reward percentage for LONG position")
-        void shouldCalculateRewardPercentageForLong() {
+        @DisplayName("Should calculate share quantity with capital to risk")
+        void shouldCalculateShareQuantityWithCapitalToRisk() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(165.00))
-                    .stopLossPrice(BigDecimal.valueOf(145.00))
-                    .positionType(PositionType.LONG)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(200.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(140.00))
+                    .capitalToRisk(BigDecimal.valueOf(1000.00))
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act
-            BigDecimal rewardPercentage = objective.calculateRewardPercentage(entryPrice);
+            Integer shareQuantity = objective.calculateShareQuantity(entryPrice, testStock);
 
             // Assert
-            // Reward = 165 - 150 = 15
-            // Percentage = (15 / 150) * 100 = 10%
-            assertThat(rewardPercentage).isEqualByComparingTo(BigDecimal.valueOf(10.00));
+            // Risk per share = 150 - 140 = 10
+            // Shares = 1000 / 10 = 100
+            assertThat(shareQuantity).isEqualTo(100);
         }
 
         @Test
-        @DisplayName("Should calculate risk percentage for LONG position")
-        void shouldCalculateRiskPercentageForLong() {
+        @DisplayName("Should return null share quantity when capital to risk not specified")
+        void shouldReturnNullShareQuantityWhenCapitalNotSpecified() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(165.00))
-                    .stopLossPrice(BigDecimal.valueOf(142.50))
-                    .positionType(PositionType.LONG)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(200.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(140.00))
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act
-            BigDecimal riskPercentage = objective.calculateRiskPercentage(entryPrice);
+            Integer shareQuantity = objective.calculateShareQuantity(entryPrice, testStock);
 
             // Assert
-            // Risk = 150 - 142.50 = 7.50
-            // Percentage = (7.50 / 150) * 100 = 5%
-            assertThat(riskPercentage).isEqualByComparingTo(BigDecimal.valueOf(5.00));
-        }
-
-        @Test
-        @DisplayName("Should fail validation when target price is less than entry for LONG")
-        void shouldFailValidationWhenTargetBelowEntry() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(140.00)) // Below entry
-                    .stopLossPrice(BigDecimal.valueOf(130.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
-
-            // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(entryPrice))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("target price")
-                    .hasMessageContaining("must be greater than entry price");
-        }
-
-        @Test
-        @DisplayName("Should fail validation when stop loss is above entry for LONG")
-        void shouldFailValidationWhenStopLossAboveEntry() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(160.00)) // Above entry
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
-
-            // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(entryPrice))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("stop loss price")
-                    .hasMessageContaining("must be less than entry price");
+            assertThat(shareQuantity).isNull();
         }
     }
 
     @Nested
-    @DisplayName("SHORT Position Tests")
-    class ShortPositionTests {
+    @DisplayName("Percentage Objective Tests")
+    class PercentageObjectiveTests {
 
         @Test
-        @DisplayName("Should create valid SHORT objective")
-        void shouldCreateValidShortObjective() {
-            // Arrange & Act
+        @DisplayName("Should calculate R:R with percentage target and stop loss")
+        void shouldCalculateRiskRewardWithPercentages() {
+            // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(100.00))
-                    .stopLossPrice(BigDecimal.valueOf(160.00))
-                    .positionType(PositionType.SHORT)
-                    .description("Sell signal with 2:1 R:R")
+                    .targetType(ObjectiveType.PERCENTAGE)
+                    .targetValue(BigDecimal.valueOf(10.00)) // 10% profit
+                    .stopLossType(ObjectiveType.PERCENTAGE)
+                    .stopLossValue(BigDecimal.valueOf(5.00)) // 5% loss
+                    .description("Percentage-based objective")
                     .build();
 
+            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+
+            // Act
+            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice, testStock);
+
             // Assert
-            assertThat(objective).isNotNull();
-            assertThat(objective.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(100.00));
-            assertThat(objective.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(160.00));
-            assertThat(objective.getPositionType()).isEqualTo(PositionType.SHORT);
+            // Target = 100 + (100 * 0.10) = 110
+            // Stop Loss = 100 - (100 * 0.05) = 95
+            // Reward = 110 - 100 = 10
+            // Risk = 100 - 95 = 5
+            // R:R = 10 / 5 = 2.00
+            assertThat(riskReward).isEqualByComparingTo(BigDecimal.valueOf(2.00));
         }
 
         @Test
-        @DisplayName("Should calculate R:R correctly for SHORT position")
-        void shouldCalculateRiskRewardForShort() {
+        @DisplayName("Should resolve target price from percentage")
+        void shouldResolveTargetPriceFromPercentage() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(100.00))
-                    .stopLossPrice(BigDecimal.valueOf(160.00))
-                    .positionType(PositionType.SHORT)
+                    .targetType(ObjectiveType.PERCENTAGE)
+                    .targetValue(BigDecimal.valueOf(20.00)) // 20% profit
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(140.00))
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act
-            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice);
+            BigDecimal targetPrice = objective.resolveTargetPrice(entryPrice, testStock);
 
             // Assert
-            // Reward = 150 - 100 = 50
-            // Risk = 160 - 150 = 10
-            // R:R = 50 / 10 = 5.00
-            assertThat(riskReward).isEqualByComparingTo(BigDecimal.valueOf(5.00));
+            // 150 + (150 * 0.20) = 180
+            assertThat(targetPrice).isEqualByComparingTo(BigDecimal.valueOf(180.00));
         }
 
         @Test
-        @DisplayName("Should calculate reward percentage for SHORT position")
-        void shouldCalculateRewardPercentageForShort() {
+        @DisplayName("Should resolve stop loss price from percentage")
+        void shouldResolveStopLossPriceFromPercentage() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(135.00))
-                    .stopLossPrice(BigDecimal.valueOf(155.00))
-                    .positionType(PositionType.SHORT)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(200.00))
+                    .stopLossType(ObjectiveType.PERCENTAGE)
+                    .stopLossValue(BigDecimal.valueOf(10.00)) // 10% loss
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act
-            BigDecimal rewardPercentage = objective.calculateRewardPercentage(entryPrice);
+            BigDecimal stopLossPrice = objective.resolveStopLossPrice(entryPrice, testStock);
 
             // Assert
-            // Reward = 150 - 135 = 15
-            // Percentage = (15 / 150) * 100 = 10%
-            assertThat(rewardPercentage).isEqualByComparingTo(BigDecimal.valueOf(10.00));
+            // 150 - (150 * 0.10) = 135
+            assertThat(stopLossPrice).isEqualByComparingTo(BigDecimal.valueOf(135.00));
         }
+    }
+
+    @Nested
+    @DisplayName("SMA Objective Tests")
+    class SmaObjectiveTests {
 
         @Test
-        @DisplayName("Should calculate risk percentage for SHORT position")
-        void shouldCalculateRiskPercentageForShort() {
+        @DisplayName("Should calculate R:R with SMA target and stop loss")
+        void shouldCalculateRiskRewardWithSma() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(135.00))
-                    .stopLossPrice(BigDecimal.valueOf(157.50))
-                    .positionType(PositionType.SHORT)
-                    .build();
-
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
-
-            // Act
-            BigDecimal riskPercentage = objective.calculateRiskPercentage(entryPrice);
-
-            // Assert
-            // Risk = 157.50 - 150 = 7.50
-            // Percentage = (7.50 / 150) * 100 = 5%
-            assertThat(riskPercentage).isEqualByComparingTo(BigDecimal.valueOf(5.00));
-        }
-
-        @Test
-        @DisplayName("Should fail validation when target price is above entry for SHORT")
-        void shouldFailValidationWhenTargetAboveEntry() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(160.00)) // Above entry
-                    .stopLossPrice(BigDecimal.valueOf(170.00))
-                    .positionType(PositionType.SHORT)
+                    .targetType(ObjectiveType.SMA)
+                    .targetValue(BigDecimal.valueOf(200)) // SMA200
+                    .stopLossType(ObjectiveType.SMA)
+                    .stopLossValue(BigDecimal.valueOf(20)) // SMA20
+                    .description("SMA-based objective")
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(entryPrice))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("target price")
-                    .hasMessageContaining("must be less than entry price");
-        }
-
-        @Test
-        @DisplayName("Should fail validation when stop loss is below entry for SHORT")
-        void shouldFailValidationWhenStopLossBelowEntry() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(100.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00)) // Below entry
-                    .positionType(PositionType.SHORT)
-                    .build();
-
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
-
-            // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(entryPrice))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("stop loss price")
+            // Target = SMA200 = 130 (below entry, will fail validation)
+            assertThatThrownBy(() -> objective.calculateRiskRewardRatio(entryPrice, testStock))
+                    .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("must be greater than entry price");
+        }
+
+        @Test
+        @DisplayName("Should resolve target from SMA50")
+        void shouldResolveTargetFromSma() {
+            // Arrange
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.SMA)
+                    .targetValue(BigDecimal.valueOf(50)) // SMA50
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(130.00))
+                    .build();
+
+            BigDecimal entryPrice = BigDecimal.valueOf(135.00);
+
+            // Act
+            BigDecimal targetPrice = objective.resolveTargetPrice(entryPrice, testStock);
+
+            // Assert
+            assertThat(targetPrice).isEqualByComparingTo(BigDecimal.valueOf(140.00)); // SMA50 from testStock
+        }
+
+        @Test
+        @DisplayName("Should fail for unsupported SMA period")
+        void shouldFailForUnsupportedSmaPeriod() {
+            // Arrange
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.SMA)
+                    .targetValue(BigDecimal.valueOf(100)) // SMA100 not supported
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(140.00))
+                    .build();
+
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+
+            // Act & Assert
+            assertThatThrownBy(() -> objective.resolveTargetPrice(entryPrice, testStock))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("SMA period 100 not supported");
+        }
+    }
+
+    @Nested
+    @DisplayName("Mixed Objective Tests")
+    class MixedObjectiveTests {
+
+        @Test
+        @DisplayName("Should calculate R:R with mixed target and stop loss types")
+        void shouldCalculateRiskRewardWithMixedTypes() {
+            // Arrange
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.PERCENTAGE)
+                    .targetValue(BigDecimal.valueOf(15.00)) // 15% profit
+                    .stopLossType(ObjectiveType.SMA)
+                    .stopLossValue(BigDecimal.valueOf(20)) // SMA20
+                    .build();
+
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+
+            // Act
+            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice, testStock);
+
+            // Assert
+            // Target = 150 + (150 * 0.15) = 172.50
+            // Stop Loss = SMA20 = 145
+            // Reward = 172.50 - 150 = 22.50
+            // Risk = 150 - 145 = 5
+            // R:R = 22.50 / 5 = 4.50
+            assertThat(riskReward).isEqualByComparingTo(BigDecimal.valueOf(4.50));
         }
     }
 
@@ -274,258 +282,125 @@ class StrategyObjectiveTest {
     class ValidationTests {
 
         @Test
-        @DisplayName("Should fail when target price is null")
-        void shouldFailWhenTargetPriceIsNull() {
+        @DisplayName("Should fail when target type is null")
+        void shouldFailWhenTargetTypeIsNull() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(null)
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
+                    .targetType(null)
+                    .targetValue(BigDecimal.valueOf(200.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(140.00))
                     .build();
 
             // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(BigDecimal.valueOf(150.00)))
+            assertThatThrownBy(() -> objective.validateConsistency())
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Target price cannot be null");
+                    .hasMessageContaining("Target type cannot be null");
         }
 
         @Test
-        @DisplayName("Should fail when stop loss price is null")
-        void shouldFailWhenStopLossPriceIsNull() {
+        @DisplayName("Should fail when target value is negative")
+        void shouldFailWhenTargetValueIsNegative() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(null)
-                    .positionType(PositionType.LONG)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(-200.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(140.00))
                     .build();
 
             // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(BigDecimal.valueOf(150.00)))
+            assertThatThrownBy(() -> objective.validateConsistency())
                     .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Stop loss price cannot be null");
+                    .hasMessageContaining("Target value must be positive");
         }
 
         @Test
-        @DisplayName("Should fail when entry price is null")
-        void shouldFailWhenEntryPriceIsNull() {
+        @DisplayName("Should fail when resolved target is below entry")
+        void shouldFailWhenTargetBelowEntry() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(140.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(130.00))
                     .build();
 
-            // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(null))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Entry price cannot be null");
-        }
-
-        @Test
-        @DisplayName("Should fail when position type is null")
-        void shouldFailWhenPositionTypeIsNull() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(null)
-                    .build();
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(BigDecimal.valueOf(150.00)))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Position type cannot be null");
-        }
-
-        @Test
-        @DisplayName("Should fail when target and stop loss are the same")
-        void shouldFailWhenTargetEqualsStopLoss() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(150.00))
-                    .stopLossPrice(BigDecimal.valueOf(150.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            // Act & Assert
-            assertThatThrownBy(() -> objective.validateConsistency(BigDecimal.valueOf(150.00)))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Target price and stop loss price cannot be the same");
-        }
-
-        @Test
-        @DisplayName("Should fail R:R calculation when entry price is zero")
-        void shouldFailRiskRewardCalculationWhenEntryPriceIsZero() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            // Act & Assert
-            assertThatThrownBy(() -> objective.calculateRewardPercentage(BigDecimal.ZERO))
+            assertThatThrownBy(() -> objective.calculateRiskRewardRatio(entryPrice, testStock))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Entry price must be greater than zero");
-        }
-    }
-
-    @Nested
-    @DisplayName("Equals and HashCode Tests")
-    class EqualsAndHashCodeTests {
-
-        @Test
-        @DisplayName("Should be equal when all fields match")
-        void shouldBeEqualWhenFieldsMatch() {
-            // Arrange
-            StrategyObjective objective1 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .description("Test")
-                    .build();
-
-            StrategyObjective objective2 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .description("Different description")
-                    .build();
-
-            // Act & Assert
-            assertThat(objective1).isEqualTo(objective2);
-            assertThat(objective1.hashCode()).isEqualTo(objective2.hashCode());
+                    .hasMessageContaining("must be greater than entry price");
         }
 
         @Test
-        @DisplayName("Should not be equal when target price differs")
-        void shouldNotBeEqualWhenTargetPriceDiffers() {
-            // Arrange
-            StrategyObjective objective1 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            StrategyObjective objective2 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(210.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            // Act & Assert
-            assertThat(objective1).isNotEqualTo(objective2);
-        }
-
-        @Test
-        @DisplayName("Should not be equal when stop loss differs")
-        void shouldNotBeEqualWhenStopLossDiffers() {
-            // Arrange
-            StrategyObjective objective1 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            StrategyObjective objective2 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(130.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            // Act & Assert
-            assertThat(objective1).isNotEqualTo(objective2);
-        }
-
-        @Test
-        @DisplayName("Should not be equal when position type differs")
-        void shouldNotBeEqualWhenPositionTypeDiffers() {
-            // Arrange
-            StrategyObjective objective1 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            StrategyObjective objective2 = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(200.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.SHORT)
-                    .build();
-
-            // Act & Assert
-            assertThat(objective1).isNotEqualTo(objective2);
-        }
-    }
-
-    @Nested
-    @DisplayName("Edge Cases Tests")
-    class EdgeCaseTests {
-
-        @Test
-        @DisplayName("Should handle very small R:R ratio")
-        void shouldHandleVerySmallRiskReward() {
+        @DisplayName("Should fail when resolved stop loss is above entry")
+        void shouldFailWhenStopLossAboveEntry() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(151.00))
-                    .stopLossPrice(BigDecimal.valueOf(140.00))
-                    .positionType(PositionType.LONG)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(200.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(160.00))
+                    .build();
+
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+
+            // Act & Assert
+            assertThatThrownBy(() -> objective.calculateRiskRewardRatio(entryPrice, testStock))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("must be less than entry price");
+        }
+    }
+
+    @Nested
+    @DisplayName("Calculation Tests")
+    class CalculationTests {
+
+        @Test
+        @DisplayName("Should calculate reward and risk percentages correctly")
+        void shouldCalculatePercentagesCorrectly() {
+            // Arrange
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(165.00)) // 10% gain
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(142.50)) // 5% loss
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act
-            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice);
+            BigDecimal rewardPct = objective.calculateRewardPercentage(entryPrice, testStock);
+            BigDecimal riskPct = objective.calculateRiskPercentage(entryPrice, testStock);
 
             // Assert
-            // Reward = 151 - 150 = 1
-            // Risk = 150 - 140 = 10
-            // R:R = 1 / 10 = 0.10
-            assertThat(riskReward).isEqualByComparingTo(BigDecimal.valueOf(0.10));
+            assertThat(rewardPct).isEqualByComparingTo(BigDecimal.valueOf(10.00));
+            assertThat(riskPct).isEqualByComparingTo(BigDecimal.valueOf(5.00));
         }
 
         @Test
-        @DisplayName("Should handle large R:R ratio")
-        void shouldHandleLargeRiskReward() {
+        @DisplayName("Should round share quantity down to whole number")
+        void shouldRoundShareQuantityDown() {
             // Arrange
             StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(250.00))
-                    .stopLossPrice(BigDecimal.valueOf(149.00))
-                    .positionType(PositionType.LONG)
+                    .targetType(ObjectiveType.FIXED_PRICE)
+                    .targetValue(BigDecimal.valueOf(200.00))
+                    .stopLossType(ObjectiveType.FIXED_PRICE)
+                    .stopLossValue(BigDecimal.valueOf(143.00))
+                    .capitalToRisk(BigDecimal.valueOf(100.00))
                     .build();
 
             BigDecimal entryPrice = BigDecimal.valueOf(150.00);
 
             // Act
-            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice);
+            Integer shareQuantity = objective.calculateShareQuantity(entryPrice, testStock);
 
             // Assert
-            // Reward = 250 - 150 = 100
-            // Risk = 150 - 149 = 1
-            // R:R = 100 / 1 = 100.00
-            assertThat(riskReward).isEqualByComparingTo(BigDecimal.valueOf(100.00));
-        }
-
-        @Test
-        @DisplayName("Should handle decimal prices correctly")
-        void shouldHandleDecimalPrices() {
-            // Arrange
-            StrategyObjective objective = StrategyObjective.builder()
-                    .targetPrice(BigDecimal.valueOf(153.75))
-                    .stopLossPrice(BigDecimal.valueOf(148.25))
-                    .positionType(PositionType.LONG)
-                    .build();
-
-            BigDecimal entryPrice = BigDecimal.valueOf(151.00);
-
-            // Act
-            BigDecimal riskReward = objective.calculateRiskRewardRatio(entryPrice);
-
-            // Assert
-            // Reward = 153.75 - 151.00 = 2.75
-            // Risk = 151.00 - 148.25 = 2.75
-            // R:R = 2.75 / 2.75 = 1.00
-            assertThat(riskReward).isEqualByComparingTo(BigDecimal.valueOf(1.00));
+            // Risk per share = 150 - 143 = 7
+            // Shares = 100 / 7 = 14.28... → 14 (rounded down)
+            assertThat(shareQuantity).isEqualTo(14);
         }
     }
 }

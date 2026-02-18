@@ -33,21 +33,28 @@ public class StrategyEntity {
     private List<RuleEntity> rules = new java.util.ArrayList<>();
 
     // Objective fields for Risk:Reward calculation
-    @Column(name = "target_price", precision = 19, scale = 2)
-    private BigDecimal targetPrice;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "target_type", length = 20)
+    private ObjectiveType targetType;
 
-    @Column(name = "stop_loss_price", precision = 19, scale = 2)
-    private BigDecimal stopLossPrice;
+    @Column(name = "target_value", precision = 19, scale = 2)
+    private BigDecimal targetValue;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "position_type", length = 10)
-    private PositionType positionType;
+    @Column(name = "stop_loss_type", length = 20)
+    private ObjectiveType stopLossType;
+
+    @Column(name = "stop_loss_value", precision = 19, scale = 2)
+    private BigDecimal stopLossValue;
+
+    @Column(name = "capital_to_risk", precision = 19, scale = 2)
+    private BigDecimal capitalToRisk;
 
     @Column(name = "objective_description", length = 500)
     private String objectiveDescription;
 
-    public enum PositionType {
-        LONG, SHORT
+    public enum ObjectiveType {
+        SMA, PERCENTAGE, FIXED_PRICE
     }
 
     public void addRule(RuleEntity rule) {
