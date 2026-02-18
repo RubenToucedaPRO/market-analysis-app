@@ -1,5 +1,6 @@
 package com.market.analysis.domain.service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.domain.model.StrategyObjective;
 
 /**
  * Application service implementing strategy evaluation use case.
@@ -55,11 +57,36 @@ public class EvaluateStrategyService {
         // Calculate metrics
         Map<String, Object> metrics = calculateMetrics(ruleResults);
 
+        // Calculate Risk:Reward if objective is defined
+        BigDecimal riskRewardRatio = null;
+        BigDecimal rewardPercentage = null;
+        BigDecimal riskPercentage = null;
+
+        if (strategy.hasObjective()) {
+            StrategyObjective objective = strategy.getObjective();
+            BigDecimal entryPrice = stock.getCurrentPrice();
+
+            try {
+                riskRewardRatio = objective.calculateRiskRewardRatio(entryPrice);
+                rewardPercentage = objective.calculateRewardPercentage(entryPrice);
+                riskPercentage = objective.calculateRiskPercentage(entryPrice);
+
+                // Add R:R metrics to calculated metrics map
+                metrics.put("riskRewardRatio", riskRewardRatio);
+                metrics.put("rewardPercentage", rewardPercentage);
+                metrics.put("riskPercentage", riskPercentage);
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                // If objective validation fails, log and continue without R:R
+                // This allows strategies with invalid objectives to still be evaluated
+                metrics.put("riskRewardError", e.getMessage());
+            }
+        }
+
         // Determine overall pass/fail
         boolean overallPassed = determineOverallResult(ruleResults);
 
         // Generate summary
-        String summary = generateSummary(strategy, stock.getTicker(), ruleResults, overallPassed);
+        String summary = generateSummary(strategy, stock.getTicker(), ruleResults, overallPassed, riskRewardRatio);
 
         AnalysisResult result = AnalysisResult.builder()
                 .strategy(strategy)
@@ -81,6 +108,9 @@ public class EvaluateStrategyService {
                 .evaluatedAt(result.getAnalysisTimestamp())
                 .priceAtEvaluation(stock.getCurrentPrice())
                 .isLatest(true)
+                .riskRewardRatio(riskRewardRatio)
+                .rewardPercentage(rewardPercentage)
+                .riskPercentage(riskPercentage)
                 .build();
     }
 
@@ -112,7 +142,7 @@ public class EvaluateStrategyService {
      * Generates a human-readable summary of the evaluation.
      */
     private String generateSummary(Strategy strategy, String ticker, List<RuleResult> ruleResults,
-            boolean overallPassed) {
+            boolean overallPassed, BigDecimal riskRewardRatio) {
         long passedCount = ruleResults.stream().filter(RuleResult::isPassed).count();
         long totalCount = ruleResults.size();
 
@@ -122,6 +152,11 @@ public class EvaluateStrategyService {
                 ticker,
                 overallPassed ? PASSED : FAILED));
         summary.append(String.format("%d/%d rules passed.", passedCount, totalCount));
+
+        // Add R:R information if available
+        if (riskRewardRatio != null) {
+            summary.append(String.format(" Risk:Reward ratio: 1:%.2f.", riskRewardRatio.doubleValue()));
+        }
 
         if (!overallPassed) {
             summary.append(" Failed rules: ");

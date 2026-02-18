@@ -75,4 +75,22 @@ public class StrategyEvaluation {
      * Helps optimize queries for most recent evaluation.
      */
     private boolean isLatest;
+
+    /**
+     * Risk:Reward ratio if strategy has an objective defined.
+     * Null if strategy has no objective.
+     */
+    private BigDecimal riskRewardRatio;
+
+    /**
+     * Potential reward percentage based on objective.
+     * Null if strategy has no objective.
+     */
+    private BigDecimal rewardPercentage;
+
+    /**
+     * Potential risk percentage based on objective.
+     * Null if strategy has no objective.
+     */
+    private BigDecimal riskPercentage;
 }

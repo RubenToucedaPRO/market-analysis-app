@@ -38,12 +38,19 @@ public class Strategy {
      */
     private final List<Rule> rules;
 
+    /**
+     * Optional objective for Risk:Reward calculation.
+     * Defines target price and stop loss for the strategy.
+     */
+    private final StrategyObjective objective;
+
     @Builder
-    public Strategy(Long id, String name, String description, List<Rule> rules) {
+    public Strategy(Long id, String name, String description, List<Rule> rules, StrategyObjective objective) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.rules = rules == null ? new ArrayList<>() : new ArrayList<>(rules);
+        this.objective = objective;
     }
 
     /**
@@ -79,6 +86,18 @@ public class Strategy {
             }
             // Rules will validate themselves when evaluated
         }
+
+        // Objective is optional, no validation needed here
+        // Objective will be validated when R:R is calculated
+    }
+
+    /**
+     * Checks if this strategy has an objective defined.
+     *
+     * @return true if objective is present, false otherwise
+     */
+    public boolean hasObjective() {
+        return objective != null;
     }
 
     @Override
