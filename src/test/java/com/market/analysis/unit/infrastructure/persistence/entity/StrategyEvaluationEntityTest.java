@@ -412,5 +412,37 @@ class StrategyEvaluationEntityTest {
             // Assert
             assertThat(entity.isLatest()).isTrue();
         }
+
+        @Test
+        @DisplayName("Should get and set risk-reward fields")
+        void shouldGetAndSetRiskRewardFields() {
+            // Arrange
+            StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+
+            // Act
+            entity.setTargetPrice(BigDecimal.valueOf(160.0000));
+            entity.setStopLossPrice(BigDecimal.valueOf(140.0000));
+            entity.setRiskRewardRatio(BigDecimal.valueOf(2.5000));
+            entity.setRecommendedShares(10);
+
+            // Assert
+            assertThat(entity.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(160.0000));
+            assertThat(entity.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(140.0000));
+            assertThat(entity.getRiskRewardRatio()).isEqualByComparingTo(BigDecimal.valueOf(2.5000));
+            assertThat(entity.getRecommendedShares()).isEqualTo(10);
+        }
+
+        @Test
+        @DisplayName("Should allow null values for risk-reward fields")
+        void shouldAllowNullValuesForRiskRewardFields() {
+            // Arrange
+            StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+
+            // Assert
+            assertThat(entity.getTargetPrice()).isNull();
+            assertThat(entity.getStopLossPrice()).isNull();
+            assertThat(entity.getRiskRewardRatio()).isNull();
+            assertThat(entity.getRecommendedShares()).isNull();
+        }
     }
 }
