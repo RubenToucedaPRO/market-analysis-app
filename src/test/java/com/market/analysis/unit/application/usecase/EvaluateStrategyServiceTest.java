@@ -3,6 +3,7 @@ package com.market.analysis.unit.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,13 +21,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.domain.exception.MissingIndicatorException;
+import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.domain.model.StrategyObjective;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
+import com.market.analysis.domain.service.RiskRewardCalculator;
 import com.market.analysis.domain.service.RuleEvaluator;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +40,9 @@ class EvaluateStrategyServiceTest {
 
         @Mock
         private RuleEvaluator ruleEvaluator;
+
+        @Mock
+        private RiskRewardCalculator riskRewardCalculator;
 
         @Mock
         private StrategyEvaluationRepository strategyEvaluationRepository;
@@ -97,7 +105,26 @@ class EvaluateStrategyServiceTest {
                                 .name("Momentum Strategy")
                                 .description("Bullish momentum indicator")
                                 .rules(List.of(rule1, rule2))
+                                .objective(StrategyObjective.builder()
+                                                .targetType(ObjectiveType.PERCENTAGE)
+                                                .stopLossType(ObjectiveType.PERCENTAGE)
+                                                .targetValue(BigDecimal.valueOf(5.0))
+                                                .stopLossValue(BigDecimal.valueOf(2.0))
+                                                .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                .description("Momentum objective")
+                                                .build())
                                 .build();
+
+                // lenient: non-compliant test paths do not call the calculator,
+                // so these stubs must be lenient to avoid UnnecessaryStubbingException.
+                lenient().when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(157.50));
+                lenient().when(riskRewardCalculator.calculateStopLossPrice(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(147.00));
+                lenient().when(riskRewardCalculator.calculateRiskRewardRatio(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(2.5));
+                lenient().when(riskRewardCalculator.calculatePositionSize(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(94));
         }
 
         @Nested
@@ -216,6 +243,14 @@ class EvaluateStrategyServiceTest {
                                         .name("Single Rule Strategy")
                                         .description("Only one rule")
                                         .rules(List.of(rule1))
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.PERCENTAGE)
+                                                        .stopLossType(ObjectiveType.PERCENTAGE)
+                                                        .targetValue(BigDecimal.valueOf(5.0))
+                                                        .stopLossValue(BigDecimal.valueOf(2.0))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("Single rule objective")
+                                                        .build())
                                         .build();
 
                         RuleResult result1 = RuleResult.builder()
@@ -496,6 +531,101 @@ class EvaluateStrategyServiceTest {
                         assertThat(result.isCompliant()).isTrue();
                         assertThat(result.getTicker()).isEqualTo("AAPL");
                         assertThat(result.getStrategyId()).isEqualTo(1L);
+                }
+        }
+
+        @Nested
+        @DisplayName("Risk Calculation Tests")
+        class RiskCalculationTests {
+
+                @Test
+                @DisplayName("Should populate risk fields when strategy is compliant")
+                void shouldPopulateRiskFieldsWhenCompliant() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(157.50));
+                        assertThat(result.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(147.00));
+                        assertThat(result.getRiskRewardRatio()).isEqualByComparingTo(BigDecimal.valueOf(2.5));
+                        assertThat(result.getRecommendedShares()).isEqualTo(94);
+                }
+
+                @Test
+                @DisplayName("Should leave risk fields null when strategy is not compliant")
+                void shouldLeaveRiskFieldsNullWhenNotCompliant() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(false)
+                                        .justification("FAILED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when indicator is missing")
+                void shouldLeaveRiskFieldsNullOnMissingIndicator() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenThrow(new MissingIndicatorException("SMA200 missing"));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
                 }
         }
 }

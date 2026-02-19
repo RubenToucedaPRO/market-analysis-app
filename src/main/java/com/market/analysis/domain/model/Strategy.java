@@ -38,12 +38,19 @@ public class Strategy {
      */
     private final List<Rule> rules;
 
+    /**
+     * Risk management objectives for this strategy.
+     * Defines target, stop-loss and capital risk parameters.
+     */
+    private final StrategyObjective objective;
+
     @Builder
-    public Strategy(Long id, String name, String description, List<Rule> rules) {
+    public Strategy(Long id, String name, String description, List<Rule> rules, StrategyObjective objective) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.rules = rules == null ? new ArrayList<>() : new ArrayList<>(rules);
+        this.objective = objective;
     }
 
     /**
@@ -79,6 +86,11 @@ public class Strategy {
             }
             // Rules will validate themselves when evaluated
         }
+
+        if (objective == null) {
+            throw new IllegalStateException("Strategy objective cannot be null");
+        }
+        objective.validate();
     }
 
     @Override

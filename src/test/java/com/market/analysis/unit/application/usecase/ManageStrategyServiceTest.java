@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,9 +27,11 @@ import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.ManageStrategyService;
+import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyObjective;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 
@@ -82,6 +85,14 @@ class ManageStrategyServiceTest {
                 .name("Test Strategy")
                 .description("Test Description")
                 .rules(List.of(testRule))
+                .objective(StrategyObjective.builder()
+                        .targetType(ObjectiveType.PERCENTAGE)
+                        .stopLossType(ObjectiveType.PERCENTAGE)
+                        .targetValue(BigDecimal.valueOf(5.0))
+                        .stopLossValue(BigDecimal.valueOf(2.0))
+                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                        .description("Test objective")
+                        .build())
                 .build();
 
         testRuleDTO = RuleDTO.builder()

@@ -39,9 +39,11 @@ public class ManageStrategyService implements ManageStrategyUseCase {
         List<Stock> stockDataList = stockDataRepository.findAllByStrategyId(savedStrategy.getId());
         for (Stock stock : stockDataList) {
             var evaluation = evaluateStrategyService.evaluateStrategy(savedStrategy, stock);
-            evaluation.setId(stock.getStrategyEvaluation().getId());
-            stock.setStrategyEvaluation(evaluation);
-            stock.setLastUpdated(evaluation.getEvaluatedAt());
+            var evaluationWithId = evaluation.toBuilder()
+                    .id(stock.getStrategyEvaluation().getId())
+                    .build();
+            stock.setStrategyEvaluation(evaluationWithId);
+            stock.setLastUpdated(evaluationWithId.getEvaluatedAt());
             stockDataRepository.updateStockData(stock);
         }
 

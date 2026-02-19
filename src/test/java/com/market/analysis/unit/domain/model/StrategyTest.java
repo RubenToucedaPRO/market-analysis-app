@@ -6,14 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyObjective;
 
 /**
  * Unit tests for Strategy domain entity.
@@ -204,15 +207,94 @@ class StrategyTest {
                 .build()
         );
 
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(5.0))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(1000.0))
+                .description("Test objective")
+                .build();
+
         Strategy strategy = Strategy.builder()
                 .id(1L)
                 .name("Test Strategy")
                 .description("Description")
                 .rules(rules)
+                .objective(objective)
                 .build();
 
         // Act & Assert - should not throw
         strategy.validateConsistency();
+    }
+
+    @Test
+    @DisplayName("Should validate consistency and throw exception when objective is null")
+    void testValidateConsistencyThrowsExceptionWhenObjectiveIsNull() {
+        // Arrange
+        List<Rule> rules = List.of(
+            Rule.builder()
+                .id(1L)
+                .name("Rule 1")
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .description("Description")
+                .build()
+        );
+
+        Strategy strategy = Strategy.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Description")
+                .rules(rules)
+                .objective(null)
+                .build();
+
+        // Act & Assert
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            strategy::validateConsistency);
+        assertTrue(exception.getMessage().contains("objective"));
+    }
+
+    @Test
+    @DisplayName("Should validate consistency and throw exception when objective is invalid")
+    void testValidateConsistencyThrowsExceptionWhenObjectiveIsInvalid() {
+        // Arrange
+        List<Rule> rules = List.of(
+            Rule.builder()
+                .id(1L)
+                .name("Rule 1")
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .description("Description")
+                .build()
+        );
+
+        StrategyObjective invalidObjective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(null) // invalid: null stopLossType
+                .targetValue(BigDecimal.valueOf(5.0))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(1000.0))
+                .description("Test objective")
+                .build();
+
+        Strategy strategy = Strategy.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Description")
+                .rules(rules)
+                .objective(invalidObjective)
+                .build();
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, strategy::validateConsistency);
     }
 
     @Test

@@ -5,7 +5,6 @@ import java.time.Instant;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -16,8 +15,7 @@ import lombok.ToString;
  * from the persistent record, following Clean Architecture principles.
  */
 @Getter
-@Setter
-@Builder
+@Builder(toBuilder = true)
 @ToString
 public class StrategyEvaluation {
 
@@ -75,4 +73,28 @@ public class StrategyEvaluation {
      * Helps optimize queries for most recent evaluation.
      */
     private boolean isLatest;
+
+    /**
+     * Calculated target price for the trade plan at evaluation time.
+     * Null if the strategy was not compliant or if a required indicator was missing.
+     */
+    private BigDecimal targetPrice;
+
+    /**
+     * Calculated stop-loss price for the trade plan at evaluation time.
+     * Null if the strategy was not compliant or if a required indicator was missing.
+     */
+    private BigDecimal stopLossPrice;
+
+    /**
+     * Risk-reward ratio calculated at evaluation time.
+     * Null if the strategy was not compliant or if a required indicator was missing.
+     */
+    private BigDecimal riskRewardRatio;
+
+    /**
+     * Recommended number of shares based on capital at risk.
+     * Null if the strategy was not compliant or if a required indicator was missing.
+     */
+    private Integer recommendedShares;
 }

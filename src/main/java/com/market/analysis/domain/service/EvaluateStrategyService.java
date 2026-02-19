@@ -1,11 +1,13 @@
 package com.market.analysis.domain.service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
@@ -29,9 +31,11 @@ public class EvaluateStrategyService {
     private static final String FAILED = "FAILED";
 
     private final RuleEvaluator ruleEvaluator;
+    private final RiskRewardCalculator riskRewardCalculator;
 
-    public EvaluateStrategyService(RuleEvaluator ruleEvaluator) {
+    public EvaluateStrategyService(RuleEvaluator ruleEvaluator, RiskRewardCalculator riskRewardCalculator) {
         this.ruleEvaluator = ruleEvaluator;
+        this.riskRewardCalculator = riskRewardCalculator;
     }
 
     public StrategyEvaluation evaluateStrategy(Strategy strategy, Stock stock) {
@@ -71,16 +75,39 @@ public class EvaluateStrategyService {
                 .summary(summary)
                 .build();
 
+        BigDecimal targetPrice = null;
+        BigDecimal stopLossPrice = null;
+        BigDecimal riskRewardRatio = null;
+        Integer recommendedShares = null;
+
+        if (overallPassed) {
+            try {
+                BigDecimal entryPrice = stock.getCurrentPrice();
+                targetPrice = riskRewardCalculator.calculateTargetPrice(entryPrice, strategy.getObjective(), stock);
+                stopLossPrice = riskRewardCalculator.calculateStopLossPrice(entryPrice, strategy.getObjective(), stock);
+                riskRewardRatio = riskRewardCalculator.calculateRiskRewardRatio(entryPrice, targetPrice, stopLossPrice);
+                recommendedShares = riskRewardCalculator
+                        .calculatePositionSize(entryPrice, stopLossPrice, strategy.getObjective().getCapitalToRisk())
+                        .intValue();
+            } catch (MissingIndicatorException e) {
+                summary = summary + " Risk plan could not be calculated: " + e.getMessage();
+            }
+        }
+
         return StrategyEvaluation.builder()
                 .ticker(stock.getTicker())
                 .strategyId(strategy.getId())
                 .strategyName(result.getStrategy().getName())
                 .compliant(result.isOverallPassed())
                 .complianceRate(result.calculateComplianceRate())
-                .summary(result.getSummary())
+                .summary(summary)
                 .evaluatedAt(result.getAnalysisTimestamp())
                 .priceAtEvaluation(stock.getCurrentPrice())
                 .isLatest(true)
+                .targetPrice(targetPrice)
+                .stopLossPrice(stopLossPrice)
+                .riskRewardRatio(riskRewardRatio)
+                .recommendedShares(recommendedShares)
                 .build();
     }
 
