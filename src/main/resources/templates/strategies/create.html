@@ -92,6 +92,113 @@
             </div>
           </div>
 
+          <!-- Risk Management Card -->
+          <div class="card mb-4">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">
+                <i class="bi bi-shield-check text-primary me-2"></i>
+                Gestión de Riesgo
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <!-- Target Type -->
+                <div class="col-md-4">
+                  <label for="objectiveTargetType" class="form-label fw-semibold">Tipo de Objetivo</label>
+                  <select
+                    class="form-select"
+                    id="objectiveTargetType"
+                    name="objective.targetType"
+                    required
+                  >
+                    <option value="" th:selected="${strategy.objective == null or strategy.objective.targetType == null}">Selecciona tipo...</option>
+                    <option value="SMA" th:selected="${strategy.objective != null and strategy.objective.targetType == 'SMA'}">SMA</option>
+                    <option value="PERCENTAGE" th:selected="${strategy.objective != null and strategy.objective.targetType == 'PERCENTAGE'}">PERCENTAGE</option>
+                    <option value="FIXED_PRICE" th:selected="${strategy.objective != null and strategy.objective.targetType == 'FIXED_PRICE'}">FIXED_PRICE</option>
+                  </select>
+                </div>
+
+                <!-- Target Value -->
+                <div class="col-md-4">
+                  <label for="objectiveTargetValue" class="form-label fw-semibold">Valor Objetivo</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="objectiveTargetValue"
+                    name="objective.targetValue"
+                    th:value="${strategy.objective != null ? strategy.objective.targetValue : ''}"
+                    placeholder="ej., 5.00"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                <!-- Stop-Loss Type -->
+                <div class="col-md-4">
+                  <label for="objectiveStopLossType" class="form-label fw-semibold">Tipo de Stop Loss</label>
+                  <select
+                    class="form-select"
+                    id="objectiveStopLossType"
+                    name="objective.stopLossType"
+                    required
+                  >
+                    <option value="" th:selected="${strategy.objective == null or strategy.objective.stopLossType == null}">Selecciona tipo...</option>
+                    <option value="SMA" th:selected="${strategy.objective != null and strategy.objective.stopLossType == 'SMA'}">SMA</option>
+                    <option value="PERCENTAGE" th:selected="${strategy.objective != null and strategy.objective.stopLossType == 'PERCENTAGE'}">PERCENTAGE</option>
+                    <option value="FIXED_PRICE" th:selected="${strategy.objective != null and strategy.objective.stopLossType == 'FIXED_PRICE'}">FIXED_PRICE</option>
+                  </select>
+                </div>
+
+                <!-- Stop-Loss Value -->
+                <div class="col-md-4">
+                  <label for="objectiveStopLossValue" class="form-label fw-semibold">Valor Stop Loss</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="objectiveStopLossValue"
+                    name="objective.stopLossValue"
+                    th:value="${strategy.objective != null ? strategy.objective.stopLossValue : ''}"
+                    placeholder="ej., 2.00"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                <!-- Capital to Risk -->
+                <div class="col-md-4">
+                  <label for="objectiveCapitalToRisk" class="form-label fw-semibold">Capital a Arriesgar</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="objectiveCapitalToRisk"
+                    name="objective.capitalToRisk"
+                    th:value="${strategy.objective != null ? strategy.objective.capitalToRisk : ''}"
+                    placeholder="ej., 1000.00"
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                <!-- Objective Description -->
+                <div class="col-md-12">
+                  <label for="objectiveDescription" class="form-label fw-semibold">Descripción del Objetivo</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="objectiveDescription"
+                    name="objective.description"
+                    th:value="${strategy.objective != null ? strategy.objective.description : ''}"
+                    placeholder="Describe los objetivos de riesgo de tu estrategia..."
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Execution Rules Card -->
           <div class="card">
             <div class="card-header bg-light">

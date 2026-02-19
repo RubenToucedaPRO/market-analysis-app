@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.StrategyObjectiveDTO;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 
@@ -54,6 +55,7 @@ public class StrategyController {
                 .name("")
                 .description("")
                 .rules(new ArrayList<>(List.of(emptyRule)))
+                .objective(StrategyObjectiveDTO.builder().build())
                 .build();
 
         List<RuleDefinitionDTO> ruleDefinitions = manageRuleDefinitionUseCase.getAllRuleDefinitions();
