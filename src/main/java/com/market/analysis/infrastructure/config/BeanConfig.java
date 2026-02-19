@@ -32,6 +32,7 @@ import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
+import com.market.analysis.domain.service.RiskRewardCalculator;
 import com.market.analysis.domain.service.RuleEvaluator;
 import com.market.analysis.domain.service.StockHistoricalService;
 
@@ -94,8 +95,13 @@ public class BeanConfig {
     }
 
     @Bean
-    public EvaluateStrategyService evaluateStrategyService(RuleEvaluator ruleEvaluator) {
-        return new EvaluateStrategyService(ruleEvaluator);
+    public RiskRewardCalculator riskRewardCalculator() {
+        return new RiskRewardCalculator();
+    }
+
+    @Bean
+    public EvaluateStrategyService evaluateStrategyService(RuleEvaluator ruleEvaluator, RiskRewardCalculator riskRewardCalculator) {
+        return new EvaluateStrategyService(ruleEvaluator, riskRewardCalculator);
     }
 
     @Bean
