@@ -160,6 +160,43 @@
         </div>
       </div>
 
+      <!-- Risk Management Results -->
+      <div class="card mb-4" th:if="${ticker.evaluationPassed}">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="bi bi-graph-up-arrow text-primary me-2"></i>
+            Plan de Riesgo / Recompensa
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <p class="info-label">Precio Objetivo:</p>
+              <p class="price-highlight" th:text="${ticker.targetPrice != null ? ticker.targetPrice : 'N/A'}">N/A</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <p class="info-label">Stop Loss:</p>
+              <p class="price-highlight" th:text="${ticker.stopLossPrice != null ? ticker.stopLossPrice : 'N/A'}">N/A</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <p class="info-label">Acciones Sugeridas:</p>
+              <p class="price-highlight" th:text="${ticker.recommendedShares != null ? ticker.recommendedShares : 'N/A'}">N/A</p>
+            </div>
+            <div class="col-md-4 mb-3">
+              <p class="info-label">Ratio Riesgo/Recompensa:</p>
+              <p>
+                <span
+                  th:if="${ticker.riskRewardRatio != null}"
+                  th:text="${ticker.riskRewardRatio}"
+                  th:class="${ticker.riskRewardRatio >= 2.0 ? 'fw-bold text-success' : (ticker.riskRewardRatio >= 1.0 ? 'fw-bold text-warning' : 'fw-bold text-danger')}"
+                >0.00</span>
+                <span th:if="${ticker.riskRewardRatio == null}">N/A</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- AI Valoration  -->
       <div class="card mb-4">
         <div class="card-header bg-light">

@@ -3,7 +3,10 @@ package com.market.analysis.application.mapper;
 import org.springframework.stereotype.Component;
 
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.StrategyObjectiveDTO;
+import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyObjective;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +36,7 @@ public class StrategyDTOMapper {
                 .name(strategy.getName())
                 .description(strategy.getDescription())
                 .rules(ruleDTOMapper.toDTOList(strategy.getRules()))
+                .objective(toObjectiveDTO(strategy.getObjective()))
                 .build();
     }
 
@@ -52,6 +56,35 @@ public class StrategyDTOMapper {
                 .name(dto.getName())
                 .description(dto.getDescription())
                 .rules(ruleDTOMapper.toDomainList(dto.getRules()))
+                .objective(toObjectiveDomain(dto.getObjective()))
+                .build();
+    }
+
+    private StrategyObjectiveDTO toObjectiveDTO(StrategyObjective objective) {
+        if (objective == null) {
+            return null;
+        }
+        return StrategyObjectiveDTO.builder()
+                .targetType(objective.getTargetType() != null ? objective.getTargetType().name() : null)
+                .targetValue(objective.getTargetValue())
+                .stopLossType(objective.getStopLossType() != null ? objective.getStopLossType().name() : null)
+                .stopLossValue(objective.getStopLossValue())
+                .capitalToRisk(objective.getCapitalToRisk())
+                .description(objective.getDescription())
+                .build();
+    }
+
+    private StrategyObjective toObjectiveDomain(StrategyObjectiveDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        return StrategyObjective.builder()
+                .targetType(dto.getTargetType() != null ? ObjectiveType.valueOf(dto.getTargetType()) : null)
+                .targetValue(dto.getTargetValue())
+                .stopLossType(dto.getStopLossType() != null ? ObjectiveType.valueOf(dto.getStopLossType()) : null)
+                .stopLossValue(dto.getStopLossValue())
+                .capitalToRisk(dto.getCapitalToRisk())
+                .description(dto.getDescription())
                 .build();
     }
 }

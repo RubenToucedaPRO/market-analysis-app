@@ -49,6 +49,22 @@ public class StockDataDTOMapper {
                                                                 ? stock.getStrategyEvaluation().getSummary()
                                                                 : null)
                                 .valorationIA(stock.getValorationIA())
+                                .targetPrice(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getTargetPrice()
+                                                                : null)
+                                .stopLossPrice(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getStopLossPrice()
+                                                                : null)
+                                .riskRewardRatio(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getRiskRewardRatio()
+                                                                : null)
+                                .recommendedShares(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getRecommendedShares()
+                                                                : null)
                                 .build();
         }
 

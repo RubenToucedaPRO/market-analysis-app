@@ -73,4 +73,16 @@ public class StockDataDTO {
 
     /** AI valoration of the stock */
     private String valorationIA;
+
+    /** Calculated target price from risk-reward evaluation */
+    private BigDecimal targetPrice;
+
+    /** Calculated stop-loss price from risk-reward evaluation */
+    private BigDecimal stopLossPrice;
+
+    /** Risk-reward ratio calculated at evaluation time */
+    private BigDecimal riskRewardRatio;
+
+    /** Recommended number of shares based on capital at risk */
+    private Integer recommendedShares;
 }
