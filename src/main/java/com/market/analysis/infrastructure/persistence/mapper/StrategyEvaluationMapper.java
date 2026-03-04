@@ -31,6 +31,10 @@ public class StrategyEvaluationMapper {
         entity.setEvaluatedAt(domain.getEvaluatedAt());
         entity.setPriceAtEvaluation(domain.getPriceAtEvaluation());
         entity.setLatest(domain.isLatest());
+        entity.setTargetPrice(domain.getTargetPrice());
+        entity.setStopLossPrice(domain.getStopLossPrice());
+        entity.setRiskRewardRatio(domain.getRiskRewardRatio());
+        entity.setRecommendedShares(domain.getRecommendedShares());
 
         return entity;
     }
@@ -49,6 +53,10 @@ public class StrategyEvaluationMapper {
         entity.setEvaluatedAt(domain.getEvaluatedAt());
         entity.setPriceAtEvaluation(domain.getPriceAtEvaluation());
         entity.setLatest(domain.isLatest());
+        entity.setTargetPrice(domain.getTargetPrice());
+        entity.setStopLossPrice(domain.getStopLossPrice());
+        entity.setRiskRewardRatio(domain.getRiskRewardRatio());
+        entity.setRecommendedShares(domain.getRecommendedShares());
 
         return entity;
     }
@@ -76,6 +84,10 @@ public class StrategyEvaluationMapper {
                 .evaluatedAt(entity.getEvaluatedAt())
                 .priceAtEvaluation(entity.getPriceAtEvaluation())
                 .isLatest(entity.isLatest())
+                .targetPrice(entity.getTargetPrice())
+                .stopLossPrice(entity.getStopLossPrice())
+                .riskRewardRatio(entity.getRiskRewardRatio())
+                .recommendedShares(entity.getRecommendedShares())
                 .build();
     }
 }

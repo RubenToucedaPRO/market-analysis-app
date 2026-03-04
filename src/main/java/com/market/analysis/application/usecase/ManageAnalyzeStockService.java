@@ -115,6 +115,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             existingStockData.setHighOfDay(stock.getHighOfDay());
             existingStockData.setLowOfDay(stock.getLowOfDay());
             existingStockData.setPreviousClose(stock.getPreviousClose());
+            existingStockData.setLastUpdated(Instant.now());
             stockDataRepository.save(existingStockData);
         } else {
             log.warn("No stock data found for ticker {}, skipping update", ticker);

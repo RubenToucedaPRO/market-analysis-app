@@ -39,8 +39,6 @@ import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
-import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
-import com.market.analysis.domain.service.EvaluateStrategyService;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ManageAnalyzeStockService Tests")
@@ -90,7 +88,6 @@ class ManageAnalyzeStockServiceTest {
     private CompanyProfile validCompanyProfile;
     private CompanyProfile prohibitedCompanyProfile;
     private com.market.analysis.domain.model.Strategy testStrategy;
-    private com.market.analysis.domain.model.AnalysisResult analysisResult;
 
     @BeforeEach
     void setUp() {
@@ -129,16 +126,6 @@ class ManageAnalyzeStockServiceTest {
                                 .targetParam(20.0)
                                 .description("Price above SMA20")
                                 .build()))
-                .build();
-
-        analysisResult = com.market.analysis.domain.model.AnalysisResult.builder()
-                .strategy(testStrategy)
-                .ticker("AAPL")
-                .analysisTimestamp(Instant.now())
-                .ruleResults(Arrays.asList())
-                .calculatedMetrics(new java.util.HashMap<>())
-                .overallPassed(true)
-                .summary("Test passed")
                 .build();
 
         // Setup default mocks for historical data flow

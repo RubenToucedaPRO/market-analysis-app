@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StrategyEvaluation;
 
 /**
  * Unit tests for StockDataDTOMapper.
@@ -163,5 +164,56 @@ class StockDataDTOMapperTest {
         assertThat(dto.getTicker()).isEqualTo("TSLA");
         assertThat(dto.getValorationIA()).isNull();
         assertThat(dto.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("250.00"));
+    }
+
+    @Test
+    @DisplayName("Should correctly map risk-reward fields from strategy evaluation")
+    void testToDTOWithRiskRewardFields() {
+        // Arrange
+        StrategyEvaluation evaluation = StrategyEvaluation.builder()
+                .strategyName("Test Strategy")
+                .compliant(true)
+                .complianceRate(new BigDecimal("100.00"))
+                .targetPrice(new BigDecimal("165.00"))
+                .stopLossPrice(new BigDecimal("145.00"))
+                .riskRewardRatio(new BigDecimal("1.5000"))
+                .recommendedShares(100)
+                .build();
+
+        Stock stock = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(new BigDecimal("150.00"))
+                .strategyEvaluation(evaluation)
+                .build();
+
+        // Act
+        StockDataDTO dto = mapper.toDTO(stock);
+
+        // Assert
+        assertThat(dto).isNotNull();
+        assertThat(dto.getTargetPrice()).isEqualByComparingTo(new BigDecimal("165.00"));
+        assertThat(dto.getStopLossPrice()).isEqualByComparingTo(new BigDecimal("145.00"));
+        assertThat(dto.getRiskRewardRatio()).isEqualByComparingTo(new BigDecimal("1.5000"));
+        assertThat(dto.getRecommendedShares()).isEqualTo(100);
+    }
+
+    @Test
+    @DisplayName("Should map null risk-reward fields when no strategy evaluation")
+    void testToDTOWithNullRiskRewardWhenNoEvaluation() {
+        // Arrange
+        Stock stock = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(new BigDecimal("150.00"))
+                .build();
+
+        // Act
+        StockDataDTO dto = mapper.toDTO(stock);
+
+        // Assert
+        assertThat(dto).isNotNull();
+        assertThat(dto.getTargetPrice()).isNull();
+        assertThat(dto.getStopLossPrice()).isNull();
+        assertThat(dto.getRiskRewardRatio()).isNull();
+        assertThat(dto.getRecommendedShares()).isNull();
     }
 }

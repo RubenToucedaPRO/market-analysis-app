@@ -3,6 +3,7 @@ package com.market.analysis.infrastructure.persistence.entity;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,6 +24,9 @@ public class StrategyEntity {
     private Long id;
     private String name;
     private String description;
+
+    @Embedded
+    private StrategyObjectiveEntity objective;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "strategy_id")

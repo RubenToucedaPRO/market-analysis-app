@@ -198,7 +198,7 @@ class StockHistoricalServiceTest {
 
             // Assert
             assertThat(indicators.getSma20()).isNotNull();
-            assertThat(indicators.getSma20().scale()).isEqualTo(2);
+            assertThat(indicators.getSma20().scale()).isEqualTo(4);
         }
     }
 

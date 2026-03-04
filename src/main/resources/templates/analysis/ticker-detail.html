@@ -3,236 +3,371 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${ticker.ticker} + ' - AlphaSeeker'">
-      Ticker Detail - AlphaSeeker
+    <title th:text="${ticker.ticker} + ' - Detalle Análisis | AlphaSeeker'">
+      Ticker Detail
     </title>
 
-    <!-- Bootstrap 5 CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-
-    <!-- Bootstrap Icons -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
     />
-
-    <!-- Custom CSS -->
     <link th:href="@{/css/styles.css}" rel="stylesheet" />
   </head>
-  <body class="d-flex flex-column min-vh-100">
-    <!-- Navigation Bar -->
+  <body class="d-flex flex-column min-vh-100 bg-light">
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-      <div class="mb-3 d-flex align-items-center gap-3">
-        <img
-          th:src="${ticker.logoUrl}"
-          loading="lazy"
-          class="ticker-detail-logo"
-          th:alt="'logo of ' + ${ticker.ticker}"
-        />
-        <h2 class="mb-0" th:text="${ticker.ticker}">AAPL</h2>
-      </div>
-
-      <!-- Strategy Information -->
-      <div class="card mb-4">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Información de la Estrategia</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <p class="info-label">Nombre de la Estrategia:</p>
-              <p th:text="${ticker.strategyName}">Nombre de la Estrategia</p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <p class="info-label">Estado de Evaluación:</p>
-              <p>
-                <span
-                  th:class="${ticker.evaluationPassed ? 'badge bg-success' : 'badge bg-danger'}"
-                  th:if="${ticker.evaluationPassed != null}"
-                >
-                  <i
-                    th:class="${ticker.evaluationPassed ? 'bi bi-check-circle' : 'bi bi-x-circle'}"
-                  ></i>
-                  <span
-                    th:text="${ticker.evaluationPassed ? 'APROBADO' : 'FALLIDO'}"
-                  ></span>
-                </span>
-                <span
-                  th:if="${ticker.evaluationPassed == null}"
-                  class="badge bg-secondary"
-                >
-                  N/A
-                </span>
-              </p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <p class="info-label">Tasa de Cumplimiento:</p>
-              <p><span th:text="${ticker.complianceRate}">0</span>%</p>
-            </div>
-            <div class="col-md-12 mb-3" th:if="${ticker.evaluationSummary}">
-              <p class="info-label">Resumen de Evaluación:</p>
-              <p th:text="${ticker.evaluationSummary}" class="info-value">
-                Resumen de evaluación
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Price Information -->
-      <div class="card mb-4">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Información de Precio</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <p class="info-label">Precio Actual:</p>
-              <p class="price-highlight" th:text="${ticker.currentPrice}">
-                150.00
-              </p>
-            </div>
-            <div class="col-md-4 mb-3">
-              <p class="info-label">Precio de Apertura:</p>
-              <p th:text="${ticker.openPrice}">148.00</p>
-            </div>
-            <div class="col-md-4 mb-3">
-              <p class="info-label">Cierre Anterior:</p>
-              <p th:text="${ticker.previousClose}">149.00</p>
-            </div>
-            <div class="col-md-4 mb-3">
-              <p class="info-label">Máximo del Día:</p>
-              <p th:text="${ticker.highOfDay}">151.00</p>
-            </div>
-            <div class="col-md-4 mb-3">
-              <p class="info-label">Mínimo del Día:</p>
-              <p th:text="${ticker.lowOfDay}">147.50</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Technical Indicators -->
-      <div class="card mb-4">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Indicadores Técnicos</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <p class="info-label">SMA 20:</p>
-              <p th:text="${ticker.sma20}">145.00</p>
-            </div>
-            <div class="col-md-4 mb-3">
-              <p class="info-label">SMA 50:</p>
-              <p th:text="${ticker.sma50}">142.00</p>
-            </div>
-            <div class="col-md-4 mb-3">
-              <p class="info-label">SMA 200:</p>
-              <p th:text="${ticker.sma200}">138.00</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Volume Information -->
-      <div class="card mb-4">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Información de Volumen</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <p class="info-label">Volumen Actual:</p>
-              <p th:text="${ticker.volume}">1000000</p>
-            </div>
-            <div class="col-md-6 mb-3">
-              <p class="info-label">Volumen Promedio (60 días):</p>
-              <p th:text="${ticker.averageVolume}">1200000</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AI Valoration  -->
-      <div class="card mb-4">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Valoración IA</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-12 mb-3">
-              <p class="info-label">Valoración IA:</p>
-              <p th:text="${ticker.valorationIA}">Valoración IA</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Metadata -->
-      <div class="card mb-4">
-        <div class="card-header bg-light">
-          <h5 class="mb-0">Metadatos</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <p class="info-label">Última Actualización:</p>
-              <p
-                th:text="${#temporals.format(ticker.lastUpdated, 'yyyy-MM-dd HH:mm:ss')}"
+      <div
+        class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3 p-4 bg-white rounded shadow-sm"
+      >
+        <div class="d-flex align-items-center gap-3">
+          <img
+            th:src="${ticker.logoUrl}"
+            th:alt="${ticker.ticker + ' logo'}"
+            class="shadow-sm border"
+            style="
+              width: 72px;
+              height: 72px;
+              border-radius: 16px;
+              object-fit: contain;
+            "
+          />
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h1 class="display-5 fw-bold mb-0" th:text="${ticker.ticker}">
+                AAPL
+              </h1>
+              <span
+                th:if="${ticker.valorationIA != null}"
+                class="text-info h4 mb-0"
+                data-bs-toggle="tooltip"
+                th:title="${ticker.valorationIA}"
+                style="cursor: help"
               >
-                2026-01-01 12:00:00
-              </p>
+                <i class="bi bi-stars"></i>
+              </span>
+            </div>
+            <span
+              class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2"
+              th:text="${ticker.strategyName}"
+              >Estrategia</span
+            >
+          </div>
+        </div>
+        <div class="text-end">
+          <div
+            class="display-6 fw-bold text-dark"
+            th:text="'$' + ${#numbers.formatDecimal(ticker.currentPrice, 1, 2)}"
+          >
+            150.00
+          </div>
+          <div
+            th:with="change=${((ticker.currentPrice - ticker.previousClose) / ticker.previousClose) * 100}"
+          >
+            <span
+              th:class="${change >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'}"
+            >
+              <i
+                th:class="${change >= 0 ? 'bi bi-caret-up-fill' : 'bi bi-caret-down-fill'}"
+              ></i>
+              <span th:text="${#numbers.formatDecimal(change, 1, 2)} + '%'"
+                >1.20%</span
+              >
+            </span>
+          </div>
+          <div
+            th:text="${#temporals.format(ticker.lastUpdated, 'dd/MM/yyyy HH:mm')}"
+          ></div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+          <div class="card h-100 border-0 shadow-sm">
+            <div
+              class="card-body text-center d-flex flex-column justify-content-center py-2"
+            >
+              <h6 class="text-muted text-uppercase fw-semibold mb-3">
+                Estado de Evaluación
+              </h6>
+              <div class="mb-2">
+                <span
+                  th:if="${ticker.evaluationPassed}"
+                  class="display-1 text-success"
+                  ><i class="bi bi-check-circle-fill"></i
+                ></span>
+                <span
+                  th:if="${!ticker.evaluationPassed}"
+                  class="display-1 text-danger"
+                  ><i class="bi bi-patch-exclamation-fill"></i
+                ></span>
+              </div>
+              <h4
+                th:class="${ticker.evaluationPassed ? 'text-success fw-bold' : 'text-danger fw-bold'}"
+              >
+                <span
+                  th:text="${ticker.evaluationPassed ? 'APTO PARA TRADE' : 'NO CUMPLE REGLAS'}"
+                  >Evaluation Status</span
+                >
+              </h4>
+
+              <div class="mt-2 px-3">
+                <div class="d-flex justify-content-between mb-1">
+                  <small class="text-muted">Tasa de Cumplimiento</small>
+                  <small
+                    class="fw-bold"
+                    th:text="${ticker.complianceRate} + '%'"
+                  ></small>
+                </div>
+                <progress
+                  class="w-100"
+                  th:value="${ticker.complianceRate}"
+                  max="100"
+                ></progress>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-8" th:if="${ticker.evaluationPassed}">
+          <div class="card h-100 border-0 shadow-sm overflow-hidden">
+            <div class="card-body p-4">
+              <h6 class="text-info text-uppercase fw-bold mb-4">
+                <i class="bi bi-lightning-charge-fill me-2"></i>Plan de
+                Ejecución Sugerido
+              </h6>
+              <div class="row text-center g-3">
+                <div
+                  class="col-md-3 border-end border-secondary border-opacity-50"
+                >
+                  <div class="small text-secondary mb-1">ENTRADA</div>
+                  <div
+                    class="h3 mb-0"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.currentPrice, 1, 2)}"
+                  >
+                    150
+                  </div>
+                </div>
+                <div
+                  class="col-md-3 border-end border-secondary border-opacity-50"
+                >
+                  <div class="small text-success mb-1">TARGET</div>
+                  <div
+                    class="h3 mb-0 text-success"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.targetPrice, 1, 2)}"
+                  >
+                    175
+                  </div>
+                </div>
+                <div
+                  class="col-md-3 border-end border-secondary border-opacity-50"
+                >
+                  <div class="small text-danger mb-1">STOP LOSS</div>
+                  <div
+                    class="h3 mb-0 text-danger"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.stopLossPrice, 1, 2)}"
+                  >
+                    145
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="small text-info mb-1">TÍTULOS</div>
+                  <div
+                    class="h3 mb-0 text-info"
+                    th:text="${ticker.recommendedShares}"
+                  >
+                    45
+                  </div>
+                </div>
+              </div>
+              <div
+                class="mt-4 p-3 bg-white bg-opacity-10 rounded-3 text-center d-flex align-items-center justify-content-center gap-3"
+              >
+                <span class="small text-secondary fw-semibold"
+                  >RATIO RIESGO/RECOMPENSA</span
+                >
+                <span
+                  th:text="${#numbers.formatDecimal(ticker.riskRewardRatio, 1, 2)}"
+                  class="badge px-3 py-2"
+                  th:classappend="${ticker.riskRewardRatio >= 2.0 ? 'bg-success' : (ticker.riskRewardRatio >= 1.0 ? 'bg-warning' : 'bg-danger')}"
+                  >2.5</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-8" th:if="${!ticker.evaluationPassed}">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-4 d-flex flex-column h-100">
+              <h6 class="text-muted text-uppercase fw-bold mb-3">
+                Motivo del Rechazo
+              </h6>
+              <div
+                class="p-4 bg-light rounded-3 flex-grow-1 d-flex align-items-center"
+              >
+                <p class="text-muted" th:text="${ticker.evaluationSummary}">
+                  Resumen de evaluación
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="d-flex gap-2">
-        <a th:href="@{/analysis}" class="btn btn-secondary">
-          <i class="bi bi-arrow-left me-1"></i>
-          Volver
-        </a>
-        <form th:action="@{/analysis/update}" method="post">
-          <input type="hidden" name="id" th:value="${ticker.id}" />
-          <button type="submit" class="btn btn-primary">
-            <i class="bi bi-arrow-repeat me-1"></i>
-            Actualizar
-          </button>
-        </form>
-        <form
-          th:action="@{/analysis/delete}"
-          method="post"
-          onsubmit="
-            return confirm(
-              '¿Estás seguro de que quieres eliminar este ticker?',
-            );
-          "
+      <div class="row g-4 mb-5">
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-3">
+              <h6 class="mb-0 fw-bold">Indicadores Técnicos</h6>
+            </div>
+            <div class="card-body">
+              <ul class="list-group list-group-flush">
+                <li
+                  class="list-group-item d-flex justify-content-between align-items-center px-0"
+                >
+                  <span>Media Móvil (SMA 20)</span>
+                  <span
+                    class="fw-bold"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.sma20, 1, 2)}"
+                  ></span>
+                </li>
+                <li
+                  class="list-group-item d-flex justify-content-between align-items-center px-0"
+                >
+                  <span>Media Móvil (SMA 50)</span>
+                  <span
+                    class="fw-bold"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.sma50, 1, 2)}"
+                  ></span>
+                </li>
+                <li
+                  class="list-group-item d-flex justify-content-between align-items-center px-0 border-0"
+                >
+                  <span>Media Móvil (SMA 200)</span>
+                  <span
+                    class="fw-bold"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.sma200, 1, 2)}"
+                  ></span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-3">
+              <h6 class="mb-0 fw-bold">Sesión y Volumen</h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-6">
+                  <small class="text-muted d-block">Máximo / Mínimo Día</small>
+                  <span
+                    class="fw-bold"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.highOfDay, 1, 2)} + ' / $' + ${#numbers.formatDecimal(ticker.lowOfDay, 1, 2)}"
+                  ></span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted d-block"
+                    >Apertura / Cierre Ant.</small
+                  >
+                  <span
+                    class="fw-bold"
+                    th:text="'$' + ${#numbers.formatDecimal(ticker.openPrice, 1, 2)} + ' / $' + ${#numbers.formatDecimal(ticker.previousClose, 1, 2)}"
+                  ></span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted d-block">Volumen Actual</small>
+                  <span
+                    class="fw-bold"
+                    th:text="${#numbers.formatInteger(ticker.volume, 0, 'POINT')}"
+                  ></span>
+                </div>
+                <div class="col-6">
+                  <small class="text-muted d-block">Vol. Promedio (60d)</small>
+                  <span
+                    class="fw-bold"
+                    th:text="${#numbers.formatInteger(ticker.averageVolume, 0, 'POINT')}"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="card border-0 shadow-sm mb-5"
+        th:if="${ticker.valorationIA != null}"
+      >
+        <div
+          class="card-header bg-white border-0 py-3 d-flex align-items-center gap-2"
         >
-          <input type="hidden" name="id" th:value="${ticker.id}" />
-          <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash me-1"></i>
-            Eliminar
-          </button>
-        </form>
+          <i class="bi bi-stars text-info"></i>
+          <h6 class="mb-0 fw-bold">
+            Análisis Profundo con Inteligencia Artificial
+          </h6>
+        </div>
+        <div class="card-body bg-light bg-opacity-50 p-4">
+          <p class="mb-0 lh-lg" th:text="${ticker.valorationIA}">
+            Valoración IA
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="d-flex justify-content-between align-items-center flex-wrap gap-3"
+      >
+        <div class="d-flex gap-2">
+          <a th:href="@{/analysis}" class="btn btn-outline-secondary px-4"
+            ><i class="bi bi-arrow-left me-2"></i>Volver</a
+          >
+          <form
+            th:action="@{/analysis/ticker/{id}/update(id=${ticker.id})}"
+            method="post"
+          >
+            <input type="hidden" name="id" th:value="${ticker.id}" />
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-arrow-repeat me-2"></i>Actualizar Datos
+            </button>
+          </form>
+          <form
+            th:action="@{/analysis/delete}"
+            method="post"
+            onsubmit="return confirm('¿Eliminar este ticker del análisis?');"
+          >
+            <input type="hidden" name="id" th:value="${ticker.id}" />
+            <button type="submit" class="btn btn-danger px-4">
+              <i class="bi bi-trash me-2"></i>Eliminar
+            </button>
+          </form>
+        </div>
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light border-top text-center py-3 mt-5">
+    <footer class="bg-white border-top text-center py-4 mt-auto shadow-sm">
       <p class="text-muted mb-0">
-        <small>&copy; 2026 AlphaSeeker. Todos los derechos reservados.</small>
+        <small
+          >&copy; 2026 AlphaSeeker - Terminal de Análisis Cuantitativo</small
+        >
       </p>
     </footer>
 
-    <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Inicializar tooltips
+      var tooltipTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="tooltip"]'),
+      );
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    </script>
   </body>
 </html>

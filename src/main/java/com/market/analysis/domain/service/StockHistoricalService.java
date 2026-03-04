@@ -9,6 +9,8 @@ import com.market.analysis.domain.model.TechnicalIndicators;
 
 public class StockHistoricalService {
 
+    private static final int SMA_SCALE = 4;
+
     public TechnicalIndicators calculateIndicators(HistoricalData data, int volumePeriod) {
         BigDecimal sma20 = calculateSma(data.getClosingPrices(), 20);
         BigDecimal sma50 = calculateSma(data.getClosingPrices(), 50);
@@ -37,7 +39,7 @@ public class StockHistoricalService {
                 .sum();
 
         return BigDecimal.valueOf(sum / period)
-                .setScale(2, RoundingMode.HALF_UP);
+                .setScale(SMA_SCALE, RoundingMode.HALF_UP);
     }
 
     private Long calculateAverageVolume(List<Long> volumes, int period) {
