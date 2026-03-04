@@ -52,6 +52,12 @@ public class AnalyzeTickerController {
         return REDIRECT_ANALYZE;
     }
 
+    @PostMapping("/ticker/{id}/update")
+    public String updateTickerFromDetail(@PathVariable Long id) {
+        manageAnalyzeTickerUseCase.updateStockData(id);
+        return REDIRECT_ANALYZE + "/ticker/" + id;
+    }
+
     @PostMapping("/delete")
     public String deleteTicker(@RequestParam Long id) {
         manageAnalyzeTickerUseCase.deleteById(id);
@@ -68,7 +74,6 @@ public class AnalyzeTickerController {
     @PostMapping("/getValorationIA")
     public String getValorationIA(@RequestParam Long id) {
         manageAnalyzeTickerUseCase.getValorationIA(id);
-
         return REDIRECT_ANALYZE;
     }
 

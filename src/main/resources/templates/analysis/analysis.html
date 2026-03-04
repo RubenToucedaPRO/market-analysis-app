@@ -128,9 +128,25 @@
                           th:alt="'logo of ' + ${ticker.ticker}"
                         />
                         <div>
-                          <h1 class="ticker-symbol" th:text="${ticker.ticker}">
-                            AAPL
-                          </h1>
+                          <div class="d-flex align-items-center gap-2">
+                            <h1
+                              class="ticker-symbol mb-0"
+                              th:text="${ticker.ticker}"
+                            >
+                              AAPL
+                            </h1>
+
+                            <span
+                              th:if="${ticker.valorationIA != null}"
+                              class="text-info"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="top"
+                              th:title="${ticker.valorationIA}"
+                              style="cursor: help"
+                            >
+                              <i class="bi bi-stars"></i>
+                            </span>
+                          </div>
                           <div>
                             <span
                               th:text="${ticker.strategyName}"
@@ -174,63 +190,108 @@
                       >
                         <small class="text-muted">
                           <i class="bi bi-graph-up me-1"></i>
-                          <span th:text="${ticker.complianceRate}">0</span>%
-                          Cumplimiento
+                          <div
+                            class="mt-2"
+                            th:if="${ticker.complianceRate != null}"
+                          >
+                            <div
+                              class="d-flex justify-content-between align-items-center mb-1"
+                            >
+                              <small class="text-muted">Cumplimiento</small>
+                              <small
+                                class="fw-bold"
+                                th:text="${#numbers.formatDecimal(ticker.complianceRate, 1, 2) + '%'}"
+                                >0%</small
+                              >
+                            </div>
+                            <progress
+                              class="w-100"
+                              th:value="${ticker.complianceRate}"
+                              max="100"
+                              style="height: 6px"
+                              th:attr="title=${ticker.complianceRate + '%'}"
+                            ></progress>
+                          </div>
                         </small>
                       </div>
                     </div>
 
                     <!-- Price Data Section -->
-                    <div class="col-lg-5 col-md-5 col-6 mb-3 mb-lg-0">
+                    <div class="col-lg-5 col-md-5 col-12 mb-3 mb-lg-0">
                       <div class="row g-3">
-                        <div class="col-6">
-                          <div class="data-label">Precio Actual</div>
+                        <div class="col-4">
+                          <div class="data-label">Precio Entrada</div>
                           <div
                             class="data-value text-primary"
-                            th:text="${ticker.currentPrice}"
+                            th:text="${#numbers.formatDecimal(ticker.currentPrice, 1, 2)}"
                           >
                             150.00
                           </div>
                         </div>
-                        <div class="col-6">
-                          <div class="data-label">Apertura</div>
-                          <div class="data-value" th:text="${ticker.openPrice}">
-                            148.00
-                          </div>
-                        </div>
-                        <div class="col-6">
-                          <div class="data-label">Máximo</div>
-                          <div
-                            class="data-value text-success"
-                            th:text="${ticker.highOfDay}"
-                          >
-                            151.00
-                          </div>
-                        </div>
-                        <div class="col-6">
-                          <div class="data-label">Mínimo</div>
-                          <div
-                            class="data-value text-danger"
-                            th:text="${ticker.lowOfDay}"
-                          >
-                            147.50
-                          </div>
-                        </div>
-                        <div class="col-6">
-                          <div class="data-label">Cierre Ant.</div>
+                        <div class="col-4">
+                          <div class="data-label">Volumen</div>
                           <div
                             class="data-value"
-                            th:text="${ticker.previousClose}"
+                            th:text="${#numbers.formatInteger(ticker.volume, 0, 'POINT')}"
                           >
-                            149.00
+                            1.000.000
                           </div>
                         </div>
-                        <div class="col-6">
-                          <div class="data-label">Volumen</div>
-                          <div class="data-value" th:text="${ticker.volume}">
-                            1,000,000
+
+                        <th:block th:if="${ticker.evaluationPassed}">
+                          <div class="col-4">
+                            <div class="data-label">Ratio R:R</div>
+                            <span
+                              class="badge"
+                              th:classappend="${ticker.riskRewardRatio >= 2.0 ? 'bg-success' : (ticker.riskRewardRatio >= 1.0 ? 'bg-warning' : 'bg-danger')}"
+                              th:text="${#numbers.formatDecimal(ticker.riskRewardRatio, 1, 2)}"
+                              >2.5</span
+                            >
                           </div>
-                        </div>
+                          <div class="col-4">
+                            <div class="data-label text-success">
+                              Target Price
+                            </div>
+                            <div
+                              class="data-value fw-bold text-success"
+                              th:text="${#numbers.formatDecimal(ticker.targetPrice, 1, 2)}"
+                            >
+                              175.00
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="data-label text-danger">Stop Loss</div>
+                            <div
+                              class="data-value fw-bold text-danger"
+                              th:text="${#numbers.formatDecimal(ticker.stopLossPrice, 1, 2)}"
+                            >
+                              145.00
+                            </div>
+                          </div>
+                          <div class="col-4">
+                            <div class="data-label text-info">
+                              Acciones Sug.
+                            </div>
+                            <div
+                              class="data-value fw-bold"
+                              th:text="${#numbers.formatInteger(ticker.recommendedShares, 0, 'POINT')}"
+                            >
+                              45
+                            </div>
+                          </div>
+                        </th:block>
+
+                        <th:block th:if="${!ticker.evaluationPassed}">
+                          <div class="col-8">
+                            <div class="alert alert-light p-1 mb-0 border-0">
+                              <small class="text-muted italic">
+                                <i class="bi bi-info-circle me-1"></i>
+                                No cumple criterios para establecer plan de
+                                trade.
+                              </small>
+                            </div>
+                          </div>
+                        </th:block>
                       </div>
                     </div>
 
@@ -264,7 +325,7 @@
                         <form
                           th:action="@{/analysis/getValorationIA}"
                           method="post"
-                          class="w-100"
+                          class="w-100 ai-form"
                         >
                           <input
                             type="hidden"
@@ -273,11 +334,15 @@
                           />
                           <button
                             type="submit"
-                            class="btn btn-sm btn-outline-primary w-100"
-                            title="Analizar con IA"
+                            class="btn btn-sm btn-outline-primary w-100 btn-ai"
                           >
-                            <i class="bi bi-stars me-1"></i>
-                            Analizar IA
+                            <span class="btn-content">
+                              <i class="bi bi-stars me-1"></i> Analizar IA
+                            </span>
+                            <output
+                              class="spinner-border spinner-border-sm d-none"
+                              aria-hidden="true"
+                            ></output>
                           </button>
                         </form>
                         <form
@@ -319,5 +384,7 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script th:src="@{/js/validation-ia.js}"></script>
   </body>
 </html>
