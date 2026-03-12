@@ -13,6 +13,7 @@ public class CandleMapper {
             return null;
         }
         CandleEntity entity = new CandleEntity();
+        entity.setTicker(candle.getTicker());
         entity.setDateTime(candle.getDateTime());
         entity.setOpenPrice(candle.getOpenPrice());
         entity.setHighPrice(candle.getHighPrice());
@@ -27,6 +28,7 @@ public class CandleMapper {
             return null;
         }
         return Candle.builder()
+                .ticker(entity.getTicker())
                 .dateTime(entity.getDateTime())
                 .openPrice(entity.getOpenPrice())
                 .highPrice(entity.getHighPrice())
