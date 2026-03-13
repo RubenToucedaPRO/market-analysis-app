@@ -3,9 +3,7 @@ package com.market.analysis.unit.infrastructure.external.polygon;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -34,7 +31,6 @@ import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.external.polygon.PolygonAdapter;
-import com.market.analysis.infrastructure.persistence.repository.SqlCandleHistoryRepository;
 
 /**
  * Unit tests for PolygonAdapter.
@@ -47,16 +43,13 @@ class PolygonAdapterTest {
     @Mock
     private RestTemplate restTemplate;
 
-    @Mock
-    private SqlCandleHistoryRepository candleHistoryRepository;
-
     private PolygonAdapter adapter;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        adapter = new PolygonAdapter(restTemplate, objectMapper, candleHistoryRepository);
+        adapter = new PolygonAdapter(restTemplate, objectMapper);
 
         ReflectionTestUtils.setField(adapter, "apiToken", "test-api-key");
         ReflectionTestUtils.setField(adapter, "baseUrl", "https://api.polygon.io");
@@ -556,25 +549,20 @@ class PolygonAdapterTest {
                 """;
 
         @Test
-        @DisplayName("Should parse full OHLCV fields into persisted candles")
-        @SuppressWarnings("unchecked")
+        @DisplayName("Should parse full OHLCV fields into candles returned in HistoricalData")
         void testExtractsFullOhlcv() {
             // Arrange
             when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                     .thenReturn(ResponseEntity.ok(FULL_OHLCV_JSON));
 
             // Act
-            adapter.fetchHistoricalData("AAPL");
+            HistoricalData result = adapter.fetchHistoricalData("AAPL");
 
             // Assert
-            ArgumentCaptor<List<Candle>> captor = ArgumentCaptor.forClass(List.class);
-            verify(candleHistoryRepository).saveCandlesForTicker(eq("AAPL"), captor.capture());
-
-            List<Candle> candles = captor.getValue();
+            List<Candle> candles = result.getCandles();
             assertThat(candles).hasSize(2);
 
-            Candle first = candles.get(0);
-            assertThat(first)
+            assertThat(candles.get(0))
                     .satisfies(c -> {
                         assertThat(c.getTicker()).isEqualTo("AAPL");
                         assertThat(c.getOpenPrice()).isEqualByComparingTo(BigDecimal.valueOf(149.0));
@@ -588,7 +576,6 @@ class PolygonAdapterTest {
 
         @Test
         @DisplayName("Should convert timestamp millis to Instant correctly")
-        @SuppressWarnings("unchecked")
         void testConvertsTimestampToInstant() {
             // Arrange
             String json = """
@@ -602,13 +589,12 @@ class PolygonAdapterTest {
                     .thenReturn(ResponseEntity.ok(json));
 
             // Act
-            adapter.fetchHistoricalData("MSFT");
+            HistoricalData result = adapter.fetchHistoricalData("MSFT");
 
             // Assert
-            ArgumentCaptor<List<Candle>> captor = ArgumentCaptor.forClass(List.class);
-            verify(candleHistoryRepository).saveCandlesForTicker(eq("MSFT"), captor.capture());
-            assertThat(captor.getValue()).hasSize(1);
-            assertThat(captor.getValue().get(0).getDateTime()).isEqualTo(Instant.ofEpochMilli(1672531200000L));
+            assertThat(result.getCandles()).hasSize(1);
+            assertThat(result.getCandles().get(0).getDateTime())
+                    .isEqualTo(Instant.ofEpochMilli(1672531200000L));
         }
 
         @Test
@@ -631,11 +617,8 @@ class PolygonAdapterTest {
 
             // Assert: HistoricalData collects both closing prices
             assertThat(result.getClosingPrices()).containsExactly(150.0, 150.5);
-            // Only one candle (with timestamp) is persisted
-            @SuppressWarnings("unchecked")
-            ArgumentCaptor<List<Candle>> captor = ArgumentCaptor.forClass(List.class);
-            verify(candleHistoryRepository).saveCandlesForTicker(eq("AAPL"), captor.capture());
-            assertThat(captor.getValue()).hasSize(1);
+            // Only one candle (with timestamp) is returned
+            assertThat(result.getCandles()).hasSize(1);
         }
 
         @Test
@@ -652,17 +635,17 @@ class PolygonAdapterTest {
             assertThat(result.getTicker()).isEqualTo("AAPL");
             assertThat(result.getClosingPrices()).containsExactly(151.0, 149.0);
             assertThat(result.getVolumes()).containsExactly(50000000L, 48000000L);
+            assertThat(result.getCandles()).hasSize(2);
         }
     }
 
     @Nested
-    @DisplayName("Candle Persistence Integration Tests (F1.7)")
-    class CandlePersistenceIntegrationTests {
+    @DisplayName("Candle Extraction Tests (F1.7 – adapter responsibility ends at returning candles)")
+    class CandleExtractionTests {
 
         @Test
-        @DisplayName("Should call saveCandlesForTicker when response contains valid candles")
-        @SuppressWarnings("unchecked")
-        void testPersistsCandles_whenResponseHasTimestamps() {
+        @DisplayName("Should return candles in HistoricalData when response contains valid timestamps")
+        void testReturnsCandles_whenResponseHasTimestamps() {
             // Arrange
             String ticker = "AAPL";
             String jsonResponse = """
@@ -678,17 +661,15 @@ class PolygonAdapterTest {
                     .thenReturn(ResponseEntity.ok(jsonResponse));
 
             // Act
-            adapter.fetchHistoricalData(ticker);
+            HistoricalData result = adapter.fetchHistoricalData(ticker);
 
-            // Assert
-            ArgumentCaptor<List<Candle>> captor = ArgumentCaptor.forClass(List.class);
-            verify(candleHistoryRepository, times(1)).saveCandlesForTicker(eq(ticker), captor.capture());
-            assertThat(captor.getValue()).hasSize(2);
+            // Assert: adapter returns candles inside HistoricalData; persistence is the Use Case's concern
+            assertThat(result.getCandles()).hasSize(2);
         }
 
         @Test
-        @DisplayName("Should NOT call saveCandlesForTicker when JSON parse fails")
-        void testDoesNotPersistCandles_whenJsonInvalid() {
+        @DisplayName("Should throw PolygonException and return no data when JSON parse fails")
+        void testThrowsException_whenJsonInvalid() {
             // Arrange
             when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                     .thenReturn(ResponseEntity.ok("{ invalid json }"));
@@ -696,12 +677,11 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData("AAPL"))
                     .isInstanceOf(PolygonException.class);
-            verify(candleHistoryRepository, never()).saveCandlesForTicker(any(), anyList());
         }
 
         @Test
-        @DisplayName("Should NOT call saveCandlesForTicker when HTTP call fails")
-        void testDoesNotPersistCandles_whenHttpError() {
+        @DisplayName("Should throw PolygonException and return no data when HTTP call fails")
+        void testThrowsException_whenHttpError() {
             // Arrange
             when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
                     .thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error"));
@@ -709,12 +689,11 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData("AAPL"))
                     .isInstanceOf(PolygonException.class);
-            verify(candleHistoryRepository, never()).saveCandlesForTicker(any(), anyList());
         }
 
         @Test
-        @DisplayName("Should NOT call saveCandlesForTicker when results have no timestamps")
-        void testDoesNotPersist_whenNoTimestamps() {
+        @DisplayName("Should return empty candle list when results have no timestamps")
+        void testReturnsEmptyCandles_whenNoTimestamps() {
             // Arrange
             String jsonResponse = """
                     {
@@ -728,10 +707,11 @@ class PolygonAdapterTest {
                     .thenReturn(ResponseEntity.ok(jsonResponse));
 
             // Act
-            adapter.fetchHistoricalData("AAPL");
+            HistoricalData result = adapter.fetchHistoricalData("AAPL");
 
-            // Assert: saveCandlesForTicker is NOT called when candle list is empty
-            verify(candleHistoryRepository, never()).saveCandlesForTicker(any(), anyList());
+            // Assert: no candle created when timestamp is absent; closing prices still collected
+            assertThat(result.getCandles()).isEmpty();
+            assertThat(result.getClosingPrices()).containsExactly(150.0);
         }
     }
 }

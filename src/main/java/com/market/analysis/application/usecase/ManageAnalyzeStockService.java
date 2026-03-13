@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedTicker;
@@ -20,6 +21,7 @@ import com.market.analysis.domain.model.TechnicalIndicators;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
+import com.market.analysis.domain.port.out.CandleHistoryPort;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -46,6 +48,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final ApiCallRateRepository apiCallRateRepository;
     private final StockProviderPort stockProviderPort;
     private final HistoricalProviderPort historicalProviderPort;
+    private final CandleHistoryPort candleHistoryPort;
     private final ApiIAPort apiIAPort;
     private final StrategyRepository strategyRepository;
     private final StockDataDTOMapper stockMapper;
@@ -229,6 +232,15 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             if (historicalData != null) {
                 apiCallRateRepository.save(ticker, historicalData.getLastUpdate());
                 log.info("Historical data for ticker {} fetched and saved successfully", ticker);
+
+                // F1.7: persist OHLCV candles orchestrated by the Use Case (F1.8: observability)
+                List<Candle> candles = historicalData.getCandles();
+                if (!candles.isEmpty()) {
+                    log.info("Persisting {} candle(s) for ticker={}", candles.size(), ticker);
+                    candleHistoryPort.saveCandlesForTicker(ticker, candles);
+                } else {
+                    log.debug("No candles to persist for ticker={}", ticker);
+                }
             }
             TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
                     20);
