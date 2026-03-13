@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
-import com.market.analysis.domain.port.out.HistoricalProviderPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.infrastructure.exception.PolygonException;
 
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PolygonAdapter implements HistoricalProviderPort {
+public class PolygonAdapter implements CandleHistoryRepository {
 
     @Value("${polygon.api.token:}")
     private String apiToken;

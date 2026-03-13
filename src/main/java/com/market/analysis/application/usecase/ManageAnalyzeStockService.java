@@ -22,8 +22,8 @@ import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.domain.port.out.CandleHistoryPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
-import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
@@ -47,7 +47,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StrategyEvaluationRepository strategyEvaluationRepository;
     private final ApiCallRateRepository apiCallRateRepository;
     private final StockProviderPort stockProviderPort;
-    private final HistoricalProviderPort historicalProviderPort;
+    private final CandleHistoryRepository historicalProviderPort;
     private final CandleHistoryPort candleHistoryPort;
     private final ApiIAPort apiIAPort;
     private final StrategyRepository strategyRepository;

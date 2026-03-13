@@ -68,7 +68,7 @@ class ManageAnalyzeStockServiceTest {
     private com.market.analysis.domain.port.out.ApiCallRateRepository apiCallRateRepository;
 
     @Mock
-    private com.market.analysis.domain.port.out.HistoricalProviderPort historicalProviderPort;
+    private com.market.analysis.domain.port.out.CandleHistoryRepository historicalProviderPort;
 
     @Mock
     private CandleHistoryPort candleHistoryPort;
