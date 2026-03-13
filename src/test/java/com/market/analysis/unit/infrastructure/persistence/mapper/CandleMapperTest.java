@@ -32,7 +32,6 @@ class CandleMapperTest {
         // Arrange
         Instant dateTime = Instant.now();
         Candle candle = Candle.builder()
-                .ticker("AAPL")
                 .dateTime(dateTime)
                 .openPrice(new BigDecimal("100.50"))
                 .highPrice(new BigDecimal("102.00"))
@@ -46,7 +45,6 @@ class CandleMapperTest {
 
         // Assert
         assertThat(entity).isNotNull();
-        assertThat(entity.getTicker()).isEqualTo("AAPL");
         assertThat(entity.getDateTime()).isEqualTo(dateTime);
         assertThat(entity.getOpenPrice()).isEqualByComparingTo(new BigDecimal("100.50"));
         assertThat(entity.getHighPrice()).isEqualByComparingTo(new BigDecimal("102.00"));
@@ -62,7 +60,6 @@ class CandleMapperTest {
         Instant dateTime = Instant.now();
         CandleEntity entity = new CandleEntity();
         entity.setId(1L);
-        entity.setTicker("AAPL");
         entity.setDateTime(dateTime);
         entity.setOpenPrice(new BigDecimal("100.50"));
         entity.setHighPrice(new BigDecimal("102.00"));
@@ -75,7 +72,6 @@ class CandleMapperTest {
 
         // Assert
         assertThat(candle).isNotNull();
-        assertThat(candle.getTicker()).isEqualTo("AAPL");
         assertThat(candle.getDateTime()).isEqualTo(dateTime);
         assertThat(candle.getOpenPrice()).isEqualByComparingTo(new BigDecimal("100.50"));
         assertThat(candle.getHighPrice()).isEqualByComparingTo(new BigDecimal("102.00"));
@@ -110,7 +106,6 @@ class CandleMapperTest {
         // Arrange
         Instant dateTime = Instant.now();
         Candle candle = Candle.builder()
-                .ticker("ZERO")
                 .dateTime(dateTime)
                 .openPrice(BigDecimal.ZERO)
                 .highPrice(BigDecimal.ZERO)
@@ -124,7 +119,6 @@ class CandleMapperTest {
 
         // Assert
         assertThat(entity).isNotNull();
-        assertThat(entity.getTicker()).isEqualTo("ZERO");
         assertThat(entity.getOpenPrice()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(entity.getVolume()).isZero();
     }
