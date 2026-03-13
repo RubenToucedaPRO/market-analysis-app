@@ -1,12 +1,15 @@
 package com.market.analysis.infrastructure.external.polygon;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,9 +22,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.infrastructure.exception.PolygonException;
+import com.market.analysis.infrastructure.persistence.repository.SqlCandleHistoryRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +45,7 @@ public class PolygonAdapter implements HistoricalProviderPort {
     @Qualifier("polygonRestTemplate")
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+    private final SqlCandleHistoryRepository candleHistoryRepository;
 
     private static final long RATE_LIMIT_WINDOW = 62000; // 1 minute + margin
     private static final int MAX_CALLS_PER_MINUTE = 5;
@@ -49,6 +55,12 @@ public class PolygonAdapter implements HistoricalProviderPort {
      * Deque to track call timestamps and enforce rate limiting in memory.
      */
     private final Deque<Instant> apiCallTimestamps = new ConcurrentLinkedDeque<>();
+
+    /**
+     * Holds both the HistoricalData (for indicator calculations) and the
+     * parsed candle list (for persistence) from a single JSON parse pass.
+     */
+    private record ParseResult(HistoricalData historicalData, List<Candle> candles) {}
 
     @Override
     public HistoricalData fetchHistoricalData(String ticker) {
@@ -67,7 +79,12 @@ public class PolygonAdapter implements HistoricalProviderPort {
             recordApiCall();
 
             // 3. JSON response mapping (Infrastructure) to Domain model
-            return mapToHistoricalData(ticker, response.getBody());
+            ParseResult parseResult = parseApiResponse(ticker, response.getBody());
+
+            // 4. Persist candle history (F1.7)
+            persistCandles(ticker, parseResult.candles());
+
+            return parseResult.historicalData();
 
         } catch (PolygonException e) {
             // Re-throw PolygonException as-is to preserve the original message
@@ -82,9 +99,20 @@ public class PolygonAdapter implements HistoricalProviderPort {
         }
     }
 
-    private HistoricalData mapToHistoricalData(String ticker, String jsonBody) {
+    /**
+     * Parses the Polygon JSON response and extracts both the HistoricalData
+     * (closing prices + volumes for indicator calculations) and a full list of
+     * OHLCV candles for persistence.
+     *
+     * <p>Candles are only created when the result node contains a valid
+     * {@code t} timestamp field (epoch milliseconds &gt; 0). Nodes with no
+     * timestamp are still counted toward {@code closingPrices} and
+     * {@code volumes} to preserve the existing contract.</p>
+     */
+    ParseResult parseApiResponse(String ticker, String jsonBody) {
         List<Double> prices = new ArrayList<>();
         List<Long> volumes = new ArrayList<>();
+        List<Candle> candles = new ArrayList<>();
         try {
             JsonNode root = objectMapper.readTree(jsonBody);
             JsonNode resultsNode = root.path("results");
@@ -92,16 +120,49 @@ public class PolygonAdapter implements HistoricalProviderPort {
             if (resultsNode.isArray()) {
                 for (JsonNode node : resultsNode) {
                     // 'c' = close price, 'v' = volume en la API de Polygon
-                    prices.add(node.path("c").asDouble());
-                    volumes.add(node.path("v").asLong());
+                    double closePrice = node.path("c").asDouble();
+                    long volume = node.path("v").asLong();
+                    prices.add(closePrice);
+                    volumes.add(volume);
 
+                    // F1.6: extract full OHLCV + timestamp for candle persistence
+                    long timestampMs = node.path("t").asLong();
+                    if (timestampMs > 0) {
+                        candles.add(Candle.builder()
+                                .ticker(ticker)
+                                .dateTime(Instant.ofEpochMilli(timestampMs))
+                                .openPrice(BigDecimal.valueOf(node.path("o").asDouble()))
+                                .highPrice(BigDecimal.valueOf(node.path("h").asDouble()))
+                                .lowPrice(BigDecimal.valueOf(node.path("l").asDouble()))
+                                .closePrice(BigDecimal.valueOf(closePrice))
+                                .volume(volume)
+                                .build());
+                    }
                 }
             }
         } catch (Exception e) {
             throw new PolygonException("Error mapping historical data for " + ticker, e);
         }
 
-        return new HistoricalData(ticker, prices, volumes, Instant.now());
+        return new ParseResult(new HistoricalData(ticker, prices, volumes, Instant.now()), candles);
+    }
+
+    /**
+     * Persists the parsed candles and logs observability data (F1.7 + F1.8).
+     */
+    private void persistCandles(String ticker, List<Candle> candles) {
+        if (candles.isEmpty()) {
+            log.debug("persistCandles: no candles with timestamp to persist for ticker={}", ticker);
+            return;
+        }
+
+        Optional<Instant> minDate = candles.stream().map(Candle::getDateTime).min(Comparator.naturalOrder());
+        Optional<Instant> maxDate = candles.stream().map(Candle::getDateTime).max(Comparator.naturalOrder());
+
+        log.info("persistCandles: persisting {} candle(s) for ticker={} from={} to={}",
+                candles.size(), ticker, minDate.orElse(null), maxDate.orElse(null));
+
+        candleHistoryRepository.saveCandlesForTicker(ticker, candles);
     }
 
     private URI buildUri(String ticker, int size) {
