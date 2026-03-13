@@ -23,8 +23,9 @@ import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
+import com.market.analysis.domain.port.out.CandleHistoryPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
-import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
@@ -73,13 +74,14 @@ public class BeanConfig {
             CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
             StrategyEvaluationRepository strategyEvaluationRepository,
             ApiCallRateRepository apiCallRateRepository,
-            StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
+            StockProviderPort stockProviderPort, CandleHistoryRepository historicalProviderPort,
+            CandleHistoryPort candleHistoryPort,
             ApiIAPort apiIAPort,
             StrategyRepository strategyRepository, StockDataDTOMapper stockMapper,
             StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
                 prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository, stockProviderPort,
-                historicalProviderPort,
+                historicalProviderPort, candleHistoryPort,
                 apiIAPort, strategyRepository,
                 stockMapper, stockHistoricalService, evaluateStrategyService);
     }

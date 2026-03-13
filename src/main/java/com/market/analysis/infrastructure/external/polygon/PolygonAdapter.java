@@ -1,5 +1,6 @@
 package com.market.analysis.infrastructure.external.polygon;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -19,8 +20,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
-import com.market.analysis.domain.port.out.HistoricalProviderPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.infrastructure.exception.PolygonException;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PolygonAdapter implements HistoricalProviderPort {
+public class PolygonAdapter implements CandleHistoryRepository {
 
     @Value("${polygon.api.token:}")
     private String apiToken;
@@ -66,8 +68,9 @@ public class PolygonAdapter implements HistoricalProviderPort {
             // Record successful call for rate limiting
             recordApiCall();
 
-            // 3. JSON response mapping (Infrastructure) to Domain model
-            return mapToHistoricalData(ticker, response.getBody());
+            // 3. JSON response mapping (Infrastructure) to Domain model.
+            //    Candle persistence is orchestrated by the Application Use Case.
+            return parseApiResponse(ticker, response.getBody());
 
         } catch (PolygonException e) {
             // Re-throw PolygonException as-is to preserve the original message
@@ -82,9 +85,20 @@ public class PolygonAdapter implements HistoricalProviderPort {
         }
     }
 
-    private HistoricalData mapToHistoricalData(String ticker, String jsonBody) {
+    /**
+     * Parses the Polygon JSON response into a {@link HistoricalData} object that
+     * contains both closing prices / volumes (for technical indicator calculations)
+     * and the full OHLCV candle list (for persistence by the Application layer).
+     *
+     * <p>Candles are only created when the result node contains a valid
+     * {@code t} timestamp field (epoch milliseconds &gt; 0). Nodes with no
+     * timestamp are still counted toward {@code closingPrices} and
+     * {@code volumes} to preserve the existing contract.</p>
+     */
+    private HistoricalData parseApiResponse(String ticker, String jsonBody) {
         List<Double> prices = new ArrayList<>();
         List<Long> volumes = new ArrayList<>();
+        List<Candle> candles = new ArrayList<>();
         try {
             JsonNode root = objectMapper.readTree(jsonBody);
             JsonNode resultsNode = root.path("results");
@@ -92,16 +106,41 @@ public class PolygonAdapter implements HistoricalProviderPort {
             if (resultsNode.isArray()) {
                 for (JsonNode node : resultsNode) {
                     // 'c' = close price, 'v' = volume en la API de Polygon
-                    prices.add(node.path("c").asDouble());
-                    volumes.add(node.path("v").asLong());
+                    double closePrice = node.path("c").asDouble();
+                    long volume = node.path("v").asLong();
+                    prices.add(closePrice);
+                    volumes.add(volume);
 
+                    // F1.6: extract full OHLCV + timestamp into domain Candle
+                    long timestampMs = node.path("t").asLong();
+                    if (timestampMs > 0) {
+                        candles.add(buildCandle(ticker, node, closePrice, volume, timestampMs));
+                    }
                 }
             }
         } catch (Exception e) {
-            throw new PolygonException("Error mapping historical data for " + ticker, e);
+            throw new PolygonException("Error parsing API response for ticker " + ticker, e);
         }
 
-        return new HistoricalData(ticker, prices, volumes, Instant.now());
+        return HistoricalData.builder()
+                .ticker(ticker)
+                .closingPrices(prices)
+                .volumes(volumes)
+                .lastUpdate(Instant.now())
+                .candles(candles)
+                .build();
+    }
+
+    private Candle buildCandle(String ticker, JsonNode node, double closePrice, long volume, long timestampMs) {
+        return Candle.builder()
+                .ticker(ticker)
+                .dateTime(Instant.ofEpochMilli(timestampMs))
+                .openPrice(BigDecimal.valueOf(node.path("o").asDouble()))
+                .highPrice(BigDecimal.valueOf(node.path("h").asDouble()))
+                .lowPrice(BigDecimal.valueOf(node.path("l").asDouble()))
+                .closePrice(BigDecimal.valueOf(closePrice))
+                .volume(volume)
+                .build();
     }
 
     private URI buildUri(String ticker, int size) {

@@ -35,6 +35,7 @@ import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.domain.port.out.CandleHistoryPort;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
@@ -67,7 +68,10 @@ class ManageAnalyzeStockServiceTest {
     private com.market.analysis.domain.port.out.ApiCallRateRepository apiCallRateRepository;
 
     @Mock
-    private com.market.analysis.domain.port.out.HistoricalProviderPort historicalProviderPort;
+    private com.market.analysis.domain.port.out.CandleHistoryRepository historicalProviderPort;
+
+    @Mock
+    private CandleHistoryPort candleHistoryPort;
 
     @Mock
     private com.market.analysis.domain.service.StockHistoricalService stockHistoricalService;
