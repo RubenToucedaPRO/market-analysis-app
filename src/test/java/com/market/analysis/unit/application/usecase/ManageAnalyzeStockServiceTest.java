@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,6 +33,7 @@ import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
@@ -566,5 +569,57 @@ class ManageAnalyzeStockServiceTest {
         verify(stockDataRepository, times(1)).findById(stockId);
         verify(apiIAPort, times(1)).getValoration(anyString());
         verify(stockDataRepository, times(1)).save(any(Stock.class));
+    }
+
+    // -------------------------------------------------------------------------
+    // F1.9 – Candle persistence orchestration (Use Case responsibility)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should call saveCandlesForTicker when historical data contains candles")
+    void shouldPersistCandlesWhenHistoricalDataContainsCandles() {
+        // Arrange
+        Candle candle = Candle.builder()
+                .ticker("AAPL")
+                .dateTime(Instant.now())
+                .openPrice(BigDecimal.valueOf(149.0))
+                .highPrice(BigDecimal.valueOf(152.0))
+                .lowPrice(BigDecimal.valueOf(148.5))
+                .closePrice(BigDecimal.valueOf(151.0))
+                .volume(50_000_000L)
+                .build();
+
+        com.market.analysis.domain.model.HistoricalData historicalDataWithCandles =
+                com.market.analysis.domain.model.HistoricalData.builder()
+                        .ticker("AAPL")
+                        .lastUpdate(Instant.now())
+                        .candles(List.of(candle))
+                        .build();
+
+        when(historicalProviderPort.fetchHistoricalData("AAPL")).thenReturn(historicalDataWithCandles);
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+
+        // Act
+        service.getStockData("AAPL", 1L);
+
+        // Assert
+        verify(candleHistoryPort, times(1)).saveCandlesForTicker(eq("AAPL"), anyList());
+    }
+
+    @Test
+    @DisplayName("Should not call saveCandlesForTicker when historical data has no candles")
+    void shouldNotPersistCandlesWhenHistoricalDataHasNoCandles() {
+        // Arrange — default historicalData from setUp() has an empty candles list
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+
+        // Act
+        service.getStockData("AAPL", 1L);
+
+        // Assert
+        verify(candleHistoryPort, never()).saveCandlesForTicker(anyString(), anyList());
     }
 }
