@@ -280,7 +280,7 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error mapping historical data");
+                .hasMessageContaining("Error parsing API response for ticker");
         }
 
         @Test
@@ -574,13 +574,16 @@ class PolygonAdapterTest {
             assertThat(candles).hasSize(2);
 
             Candle first = candles.get(0);
-            assertThat(first.getTicker()).isEqualTo("AAPL");
-            assertThat(first.getOpenPrice()).isEqualByComparingTo(BigDecimal.valueOf(149.0));
-            assertThat(first.getHighPrice()).isEqualByComparingTo(BigDecimal.valueOf(152.0));
-            assertThat(first.getLowPrice()).isEqualByComparingTo(BigDecimal.valueOf(148.5));
-            assertThat(first.getClosePrice()).isEqualByComparingTo(BigDecimal.valueOf(151.0));
-            assertThat(first.getVolume()).isEqualTo(50000000L);
-            assertThat(first.getDateTime()).isEqualTo(Instant.ofEpochMilli(1707868800000L));
+            assertThat(first)
+                    .satisfies(c -> {
+                        assertThat(c.getTicker()).isEqualTo("AAPL");
+                        assertThat(c.getOpenPrice()).isEqualByComparingTo(BigDecimal.valueOf(149.0));
+                        assertThat(c.getHighPrice()).isEqualByComparingTo(BigDecimal.valueOf(152.0));
+                        assertThat(c.getLowPrice()).isEqualByComparingTo(BigDecimal.valueOf(148.5));
+                        assertThat(c.getClosePrice()).isEqualByComparingTo(BigDecimal.valueOf(151.0));
+                        assertThat(c.getVolume()).isEqualTo(50000000L);
+                        assertThat(c.getDateTime()).isEqualTo(Instant.ofEpochMilli(1707868800000L));
+                    });
         }
 
         @Test

@@ -109,7 +109,7 @@ public class PolygonAdapter implements HistoricalProviderPort {
      * timestamp are still counted toward {@code closingPrices} and
      * {@code volumes} to preserve the existing contract.</p>
      */
-    ParseResult parseApiResponse(String ticker, String jsonBody) {
+    private ParseResult parseApiResponse(String ticker, String jsonBody) {
         List<Double> prices = new ArrayList<>();
         List<Long> volumes = new ArrayList<>();
         List<Candle> candles = new ArrayList<>();
@@ -128,23 +128,27 @@ public class PolygonAdapter implements HistoricalProviderPort {
                     // F1.6: extract full OHLCV + timestamp for candle persistence
                     long timestampMs = node.path("t").asLong();
                     if (timestampMs > 0) {
-                        candles.add(Candle.builder()
-                                .ticker(ticker)
-                                .dateTime(Instant.ofEpochMilli(timestampMs))
-                                .openPrice(BigDecimal.valueOf(node.path("o").asDouble()))
-                                .highPrice(BigDecimal.valueOf(node.path("h").asDouble()))
-                                .lowPrice(BigDecimal.valueOf(node.path("l").asDouble()))
-                                .closePrice(BigDecimal.valueOf(closePrice))
-                                .volume(volume)
-                                .build());
+                        candles.add(buildCandle(ticker, node, closePrice, volume, timestampMs));
                     }
                 }
             }
         } catch (Exception e) {
-            throw new PolygonException("Error mapping historical data for " + ticker, e);
+            throw new PolygonException("Error parsing API response for ticker " + ticker, e);
         }
 
         return new ParseResult(new HistoricalData(ticker, prices, volumes, Instant.now()), candles);
+    }
+
+    private Candle buildCandle(String ticker, JsonNode node, double closePrice, long volume, long timestampMs) {
+        return Candle.builder()
+                .ticker(ticker)
+                .dateTime(Instant.ofEpochMilli(timestampMs))
+                .openPrice(BigDecimal.valueOf(node.path("o").asDouble()))
+                .highPrice(BigDecimal.valueOf(node.path("h").asDouble()))
+                .lowPrice(BigDecimal.valueOf(node.path("l").asDouble()))
+                .closePrice(BigDecimal.valueOf(closePrice))
+                .volume(volume)
+                .build();
     }
 
     /**
