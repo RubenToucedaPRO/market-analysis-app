@@ -126,15 +126,14 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     }
 
     @Override
-    public void deleteById(Long id,String ticker) {
+    public void deleteById(Long id, String ticker) {
         stockDataRepository.deleteById(id);
-        if(!stockDataRepository.existsByTicker(ticker)) {
+        if (!stockDataRepository.existsByTicker(ticker)) {
             log.info("No more stock data exists for ticker {}, deleting associated candles", ticker);
             candleHistoryRepository.deleteCandlesByTicker(ticker);
         } else {
             log.info("Stock data still exists for ticker {}, skipping candle deletion", ticker);
         }
-        
     }
 
     /**

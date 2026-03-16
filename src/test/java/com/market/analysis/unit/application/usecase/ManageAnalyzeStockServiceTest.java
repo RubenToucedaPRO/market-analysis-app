@@ -622,4 +622,36 @@ class ManageAnalyzeStockServiceTest {
         // Assert
         verify(candleHistoryPort, never()).saveCandlesForTicker(anyString(), anyList());
     }
+
+    // -------------------------------------------------------------------------
+    // deleteById – conditional candle cleanup
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should delete associated candles when no stock data remains for ticker after deletion")
+    void deleteById_noRemainingStockForTicker_deletesCandles() {
+        Long id = 1L;
+        String ticker = "AAPL";
+
+        when(stockDataRepository.existsByTicker(ticker)).thenReturn(false);
+
+        service.deleteById(id, ticker);
+
+        verify(stockDataRepository, times(1)).deleteById(id);
+        verify(candleHistoryPort, times(1)).deleteCandlesByTicker(ticker);
+    }
+
+    @Test
+    @DisplayName("Should not delete candles when stock data still exists for ticker after deletion")
+    void deleteById_stockDataStillExistsForTicker_skipsCandleDeletion() {
+        Long id = 2L;
+        String ticker = "MSFT";
+
+        when(stockDataRepository.existsByTicker(ticker)).thenReturn(true);
+
+        service.deleteById(id, ticker);
+
+        verify(stockDataRepository, times(1)).deleteById(id);
+        verify(candleHistoryPort, never()).deleteCandlesByTicker(anyString());
+    }
 }

@@ -128,6 +128,34 @@ class SqlCandleHistoryRepositoryTest {
     }
 
     // -------------------------------------------------------------------------
+    // deleteCandlesByTicker
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("deleteCandlesByTicker: should throw when ticker is null")
+    void deleteCandlesByTicker_nullTicker_throwsIllegalArgument() {
+        assertThrows(IllegalArgumentException.class,
+                () -> sqlCandleHistoryRepository.deleteCandlesByTicker(null));
+    }
+
+    @Test
+    @DisplayName("deleteCandlesByTicker: should throw when ticker is blank")
+    void deleteCandlesByTicker_blankTicker_throwsIllegalArgument() {
+        assertThrows(IllegalArgumentException.class,
+                () -> sqlCandleHistoryRepository.deleteCandlesByTicker("  "));
+    }
+
+    @Test
+    @DisplayName("deleteCandlesByTicker: should delegate to JPA repository exactly once")
+    void deleteCandlesByTicker_validTicker_delegatesToJpa() {
+        String ticker = "AAPL";
+
+        sqlCandleHistoryRepository.deleteCandlesByTicker(ticker);
+
+        verify(jpaCandleRepository, times(1)).deleteByTicker(ticker);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

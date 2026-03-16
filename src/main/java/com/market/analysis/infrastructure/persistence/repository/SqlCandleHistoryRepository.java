@@ -64,10 +64,10 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
         log.info("saveCandlesForTicker: persisted {} candle(s) for ticker={}", entities.size(), ticker);
     }
 
-
     @Override
     @Transactional
     public void deleteCandlesByTicker(String ticker) {
+        Assert.hasText(ticker, "ticker must not be null or blank");
         jpaCandleRepository.deleteByTicker(ticker);
     }
 
