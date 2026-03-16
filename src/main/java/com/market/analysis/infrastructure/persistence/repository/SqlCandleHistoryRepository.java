@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.market.analysis.domain.model.Candle;
-import com.market.analysis.domain.port.out.CandleHistoryPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.infrastructure.persistence.entity.CandleEntity;
 import com.market.analysis.infrastructure.persistence.mapper.CandleMapper;
 
@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Component
 @RequiredArgsConstructor
-public class SqlCandleHistoryRepository implements CandleHistoryPort {
+public class SqlCandleHistoryRepository implements CandleHistoryRepository {
 
     private static final Logger log = LoggerFactory.getLogger(SqlCandleHistoryRepository.class);
 
