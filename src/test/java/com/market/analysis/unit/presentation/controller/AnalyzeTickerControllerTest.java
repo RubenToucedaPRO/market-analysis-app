@@ -170,7 +170,7 @@ class AnalyzeTickerControllerTest {
         Long id = 1L;
 
         // Act
-        String viewName = controller.deleteTicker(id);
+        String viewName = controller.deleteTicker(id, "AAPL");
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");

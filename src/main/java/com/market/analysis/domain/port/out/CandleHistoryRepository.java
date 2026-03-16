@@ -17,4 +17,11 @@ public interface CandleHistoryRepository {
      * @param candles the candles to persist; a null or empty list is a no-op
      */
     void saveCandlesForTicker(String ticker, List<Candle> candles);
+
+    /**
+     * Deletes all candles associated with the given ticker.
+     *
+     * @param ticker the ticker symbol (must not be blank)
+     */
+    void deleteCandlesByTicker(String ticker);
 }

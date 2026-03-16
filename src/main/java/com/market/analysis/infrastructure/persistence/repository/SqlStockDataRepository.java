@@ -55,6 +55,12 @@ public class SqlStockDataRepository implements StockDataRepository {
         return jpaRepository.findByIdWithProfile(id).map(mapper::toDomain);
 
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existsByTicker(String ticker) {
+        return jpaRepository.existsByTicker(ticker);
+    }
 
     @Override
     @Transactional(readOnly = true)

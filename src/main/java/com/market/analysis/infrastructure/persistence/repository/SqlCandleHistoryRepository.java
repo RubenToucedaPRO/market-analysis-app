@@ -46,7 +46,8 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
         Assert.hasText(ticker, "ticker must not be null or blank");
 
         if (candles == null || candles.isEmpty()) {
-            log.debug("saveCandlesForTicker: skipping persistence for ticker={} — candle list is null or empty", ticker);
+            log.debug("saveCandlesForTicker: skipping persistence for ticker={} — candle list is null or empty",
+                    ticker);
             return;
         }
 
@@ -62,4 +63,12 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
 
         log.info("saveCandlesForTicker: persisted {} candle(s) for ticker={}", entities.size(), ticker);
     }
+
+
+    @Override
+    @Transactional
+    public void deleteCandlesByTicker(String ticker) {
+        jpaCandleRepository.deleteByTicker(ticker);
+    }
+
 }

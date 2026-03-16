@@ -26,4 +26,6 @@ public interface JpaStockDataRepository extends JpaRepository<StockEntity, Long>
 
     @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.strategyId = :strategyId")
     List<StockEntity> findAllByStrategyId(@Param("strategyId") Long strategyId);
+
+    boolean existsByTicker(String ticker);
 }
