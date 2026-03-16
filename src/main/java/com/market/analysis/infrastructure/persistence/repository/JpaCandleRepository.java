@@ -3,6 +3,9 @@ package com.market.analysis.infrastructure.persistence.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.market.analysis.infrastructure.persistence.entity.CandleEntity;
@@ -23,11 +26,18 @@ public interface JpaCandleRepository extends JpaRepository<CandleEntity, Long> {
     List<CandleEntity> findByTickerOrderByDateTimeAsc(String ticker);
 
     /**
-     * Deletes all candles for a given ticker.
+     * Bulk-deletes all candles for a given ticker using a JPQL statement.
+     *
+     * <p>Using {@code @Modifying} with {@code clearAutomatically = true} ensures
+     * that (a) the DELETE is sent to the database immediately rather than being
+     * queued after pending INSERT/UPDATE actions, and (b) the first-level cache
+     * is cleared afterwards so subsequent reads and writes are consistent.</p>
      *
      * @param ticker the ticker symbol
      */
-    void deleteByTicker(String ticker);
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM CandleEntity c WHERE c.ticker = :ticker")
+    void deleteByTicker(@Param("ticker") String ticker);
 
     /**
      * Checks whether any candle exists for the given ticker.
