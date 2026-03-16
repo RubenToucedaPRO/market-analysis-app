@@ -23,6 +23,7 @@ import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -72,15 +73,15 @@ public class BeanConfig {
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
             CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
             StrategyEvaluationRepository strategyEvaluationRepository,
-            ApiCallRateRepository apiCallRateRepository,
+            ApiCallRateRepository apiCallRateRepository, CandleHistoryRepository candleHistoryRepository,
+            StrategyRepository strategyRepository,
             StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
-            ApiIAPort apiIAPort,
-            StrategyRepository strategyRepository, StockDataDTOMapper stockMapper,
+            ApiIAPort apiIAPort, StockDataDTOMapper stockMapper,
             StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository, stockProviderPort,
+                prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,candleHistoryRepository, strategyRepository,stockProviderPort,
                 historicalProviderPort,
-                apiIAPort, strategyRepository,
+                apiIAPort,
                 stockMapper, stockHistoricalService, evaluateStrategyService);
     }
 

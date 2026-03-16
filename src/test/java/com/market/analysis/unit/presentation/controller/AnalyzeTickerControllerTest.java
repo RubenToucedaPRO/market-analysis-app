@@ -170,11 +170,11 @@ class AnalyzeTickerControllerTest {
         Long id = 1L;
 
         // Act
-        String viewName = controller.deleteTicker(id);
+        String viewName = controller.deleteTicker(id, "AAPL");
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
-        verify(manageAnalyzeTickerUseCase, times(1)).deleteById(id);
+        verify(manageAnalyzeTickerUseCase, times(1)).deleteById(id, "AAPL");
     }
 
     @Test
@@ -183,11 +183,11 @@ class AnalyzeTickerControllerTest {
         // Test create, update, and delete in sequence
         controller.getTickerData("AAPL", 1L);
         controller.updateTicker(1L);
-        controller.deleteTicker(1L);
+        controller.deleteTicker(1L, "AAPL");
 
         verify(manageAnalyzeTickerUseCase, times(1)).getStockData("AAPL", 1L);
         verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(1L);
-        verify(manageAnalyzeTickerUseCase, times(1)).deleteById(1L);
+        verify(manageAnalyzeTickerUseCase, times(1)).deleteById(1L, "AAPL");
     }
 
     @Test

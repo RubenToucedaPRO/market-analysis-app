@@ -14,6 +14,8 @@ public interface StockDataRepository {
 
     public Optional<Stock> findById(Long id);
 
+    public boolean existsByTicker(String ticker);
+
     public Stock findByTickerAndLastUpdateBetween(String ticker, Instant date, Instant endDate);
 
     public List<Stock> findAllByStrategyId(Long strategyId);

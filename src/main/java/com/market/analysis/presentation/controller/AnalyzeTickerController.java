@@ -59,8 +59,8 @@ public class AnalyzeTickerController {
     }
 
     @PostMapping("/delete")
-    public String deleteTicker(@RequestParam Long id) {
-        manageAnalyzeTickerUseCase.deleteById(id);
+    public String deleteTicker(@RequestParam Long id,@RequestParam String ticker) {
+        manageAnalyzeTickerUseCase.deleteById(id, ticker);
         return REDIRECT_ANALYZE;
     }
 

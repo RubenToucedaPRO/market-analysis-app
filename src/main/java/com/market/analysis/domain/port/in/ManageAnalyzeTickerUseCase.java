@@ -14,7 +14,7 @@ public interface ManageAnalyzeTickerUseCase {
 
         public void updateStockData(Long id);
 
-        public void deleteById(Long id);
+        public void deleteById(Long id, String ticker);
 
         public void getValorationIA(Long id);
 

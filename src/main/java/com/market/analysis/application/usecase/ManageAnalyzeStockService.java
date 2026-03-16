@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedTicker;
@@ -20,6 +21,7 @@ import com.market.analysis.domain.model.TechnicalIndicators;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -44,10 +46,11 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final ProhibitedTickerRepository prohibitedTickerRepository;
     private final StrategyEvaluationRepository strategyEvaluationRepository;
     private final ApiCallRateRepository apiCallRateRepository;
+    private final CandleHistoryRepository candleHistoryRepository;
+    private final StrategyRepository strategyRepository;
     private final StockProviderPort stockProviderPort;
     private final HistoricalProviderPort historicalProviderPort;
     private final ApiIAPort apiIAPort;
-    private final StrategyRepository strategyRepository;
     private final StockDataDTOMapper stockMapper;
 
     private final StockHistoricalService stockHistoricalService;
@@ -123,8 +126,14 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(Long id, String ticker) {
         stockDataRepository.deleteById(id);
+        if (!stockDataRepository.existsByTicker(ticker)) {
+            log.info("No more stock data exists for ticker {}, deleting associated candles", ticker);
+            candleHistoryRepository.deleteCandlesByTicker(ticker);
+        } else {
+            log.info("Stock data still exists for ticker {}, skipping candle deletion", ticker);
+        }
     }
 
     /**
@@ -229,6 +238,15 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             if (historicalData != null) {
                 apiCallRateRepository.save(ticker, historicalData.getLastUpdate());
                 log.info("Historical data for ticker {} fetched and saved successfully", ticker);
+
+                // F1.7: persist OHLCV candles orchestrated by the Use Case (F1.8: observability)
+                List<Candle> candles = historicalData.getCandles();
+                if (!candles.isEmpty()) {
+                    log.info("Persisting {} candle(s) for ticker={}", candles.size(), ticker);
+                    candleHistoryRepository.saveCandlesForTicker(ticker, candles);
+                } else {
+                    log.debug("No candles to persist for ticker={}", ticker);
+                }
             }
             TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
                     20);
