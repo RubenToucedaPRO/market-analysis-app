@@ -22,6 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.dto.CandleChartDTO;
+import com.market.analysis.application.dto.CandleDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.presentation.controller.AnalyzeTickerController;
@@ -236,5 +238,81 @@ class AnalyzeTickerControllerTest {
         assertThat(viewName2).isEqualTo("redirect:/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id1);
         verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id2);
+    }
+
+    // -------------------------------------------------------------------------
+    // F2.7 — GET /analysis/ticker/{id}/candles (JSON endpoint)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("F2.7: getCandleChart should delegate to use case and return CandleChartDTO")
+    void getCandleChart_delegatesToUseCase_returnsCandleChartDTO() {
+        Long id = 1L;
+        CandleChartDTO expected = CandleChartDTO.builder()
+                .ticker("AAPL")
+                .candles(List.of(
+                        CandleDTO.builder()
+                                .time(1705276800L)
+                                .open(new BigDecimal("181.00"))
+                                .high(new BigDecimal("183.50"))
+                                .low(new BigDecimal("180.00"))
+                                .close(new BigDecimal("182.75"))
+                                .volume(55_000_000L)
+                                .build()))
+                .sma20(new BigDecimal("150.00"))
+                .sma50(new BigDecimal("145.00"))
+                .sma200(new BigDecimal("140.00"))
+                .build();
+        when(manageAnalyzeTickerUseCase.findCandlesByStockId(id)).thenReturn(expected);
+
+        CandleChartDTO result = controller.getCandleChart(id);
+
+        assertThat(result).isEqualTo(expected);
+        assertThat(result.getTicker()).isEqualTo("AAPL");
+        assertThat(result.getCandles()).hasSize(1);
+        verify(manageAnalyzeTickerUseCase, times(1)).findCandlesByStockId(id);
+    }
+
+    @Test
+    @DisplayName("F2.7: getCandleChart should return empty candle list when no candles")
+    void getCandleChart_noCandles_returnsEmptyList() {
+        Long id = 2L;
+        CandleChartDTO empty = CandleChartDTO.builder().ticker("TSLA").candles(List.of()).build();
+        when(manageAnalyzeTickerUseCase.findCandlesByStockId(id)).thenReturn(empty);
+
+        CandleChartDTO result = controller.getCandleChart(id);
+
+        assertThat(result.getCandles()).isEmpty();
+        verify(manageAnalyzeTickerUseCase, times(1)).findCandlesByStockId(id);
+    }
+
+    // -------------------------------------------------------------------------
+    // F2.8 — GET /analysis/ticker/{id}/chart (Thymeleaf view)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("F2.8: getTickerChart should add ticker to model and return ticker-chart view")
+    void getTickerChart_addsTickerToModel_returnsChartView() {
+        Long id = 1L;
+        when(manageAnalyzeTickerUseCase.findStockDataById(id)).thenReturn(testStockDataDTO);
+
+        String viewName = controller.getTickerChart(id, model);
+
+        assertThat(viewName).isEqualTo("analysis/ticker-chart");
+        verify(manageAnalyzeTickerUseCase, times(1)).findStockDataById(id);
+        verify(model, times(1)).addAttribute("ticker", testStockDataDTO);
+    }
+
+    @Test
+    @DisplayName("F2.8: getTickerChart calls findStockDataById with correct id")
+    void getTickerChart_callsFindStockDataById_withCorrectId() {
+        Long id = 99L;
+        StockDataDTO otherStock = StockDataDTO.builder().ticker("MSFT").build();
+        when(manageAnalyzeTickerUseCase.findStockDataById(id)).thenReturn(otherStock);
+
+        String viewName = controller.getTickerChart(id, model);
+
+        assertThat(viewName).isEqualTo("analysis/ticker-chart");
+        verify(manageAnalyzeTickerUseCase, times(1)).findStockDataById(99L);
     }
 }

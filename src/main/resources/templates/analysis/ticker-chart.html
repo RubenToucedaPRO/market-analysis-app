@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${ticker.ticker} + ' - Gráfico | AlphaSeeker'">
+      Candlestick Chart
+    </title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
+  </head>
+  <body class="d-flex flex-column min-vh-100 bg-light">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <main class="container my-5 flex-grow-1">
+
+      <!-- Header row -->
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <img
+            th:src="${ticker.logoUrl}"
+            th:alt="${ticker.ticker + ' logo'}"
+            class="shadow-sm border"
+            style="width: 48px; height: 48px; border-radius: 12px; object-fit: contain;"
+          />
+          <div>
+            <h1 class="h3 fw-bold mb-0" th:text="${ticker.ticker}">AAPL</h1>
+            <small class="text-muted">Gráfico de Velas · SMA 20/50/200</small>
+          </div>
+        </div>
+        <a th:href="@{/analysis/ticker/{id}(id=${ticker.id})}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Volver al Detalle
+        </a>
+      </div>
+
+      <!-- Legend -->
+      <div class="d-flex gap-3 mb-2 flex-wrap">
+        <span class="d-flex align-items-center gap-1 small">
+          <span style="width:16px;height:3px;background:#26a69a;display:inline-block"></span>
+          Alcista
+        </span>
+        <span class="d-flex align-items-center gap-1 small">
+          <span style="width:16px;height:3px;background:#ef5350;display:inline-block"></span>
+          Bajista
+        </span>
+        <span class="d-flex align-items-center gap-1 small">
+          <span style="width:16px;height:3px;background:#2196f3;display:inline-block"></span>
+          SMA 20
+        </span>
+        <span class="d-flex align-items-center gap-1 small">
+          <span style="width:16px;height:3px;background:#ff9800;display:inline-block"></span>
+          SMA 50
+        </span>
+        <span class="d-flex align-items-center gap-1 small">
+          <span style="width:16px;height:3px;background:#9c27b0;display:inline-block"></span>
+          SMA 200
+        </span>
+      </div>
+
+      <!-- Chart card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-0" style="height: 540px; overflow: hidden;">
+          <div
+            id="candle-chart"
+            th:attr="data-ticker-id=${ticker.id}"
+            style="width: 100%; height: 100%;"
+          ></div>
+        </div>
+      </div>
+
+      <!-- SMA scalar reference -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+          <h6 class="mb-0 fw-bold">Medias Móviles Actuales (referencia)</h6>
+        </div>
+        <div class="card-body">
+          <div class="row text-center g-3">
+            <div class="col-md-4">
+              <small class="text-secondary d-block mb-1">SMA 20</small>
+              <span
+                class="fw-bold"
+                th:text="${ticker.sma20 != null ? '$' + #numbers.formatDecimal(ticker.sma20, 1, 2) : 'N/D'}"
+              >N/D</span>
+            </div>
+            <div class="col-md-4">
+              <small class="text-secondary d-block mb-1">SMA 50</small>
+              <span
+                class="fw-bold"
+                th:text="${ticker.sma50 != null ? '$' + #numbers.formatDecimal(ticker.sma50, 1, 2) : 'N/D'}"
+              >N/D</span>
+            </div>
+            <div class="col-md-4">
+              <small class="text-secondary d-block mb-1">SMA 200</small>
+              <span
+                class="fw-bold"
+                th:text="${ticker.sma200 != null ? '$' + #numbers.formatDecimal(ticker.sma200, 1, 2) : 'N/D'}"
+              >N/D</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="bg-white border-top text-center py-4 mt-auto shadow-sm">
+      <p class="text-muted mb-0">
+        <small>&copy; 2026 AlphaSeeker - Terminal de Análisis Cuantitativo</small>
+      </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- TradingView Lightweight Charts v4 (Apache 2.0) -->
+    <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script th:src="@{/js/candle-chart.js}"></script>
+  </body>
+</html>
