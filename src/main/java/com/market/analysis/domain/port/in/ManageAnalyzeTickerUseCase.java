@@ -2,6 +2,7 @@ package com.market.analysis.domain.port.in;
 
 import java.util.List;
 
+import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 
 public interface ManageAnalyzeTickerUseCase {
@@ -17,5 +18,7 @@ public interface ManageAnalyzeTickerUseCase {
         public void deleteById(Long id, String ticker);
 
         public void getValorationIA(Long id);
+
+        public CandleChartDTO findCandlesByStockId(Long id);
 
 }

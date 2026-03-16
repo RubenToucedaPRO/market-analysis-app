@@ -165,6 +165,62 @@ class SqlCandleHistoryRepositoryIT {
     }
 
     // -------------------------------------------------------------------------
+    // findCandlesByTicker
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("findCandlesByTicker: should return empty list when no candles exist")
+    void findCandlesByTicker_noCandles_returnsEmptyList() {
+        List<Candle> result = sqlCandleHistoryRepository.findCandlesByTicker(TICKER);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("findCandlesByTicker: should return candles ordered ascending by dateTime")
+    void findCandlesByTicker_savedCandles_returnsOrderedAscending() {
+        Instant start = Instant.parse("2024-06-01T00:00:00Z");
+        List<Candle> saved = buildCandles(TICKER, 10, start);
+        sqlCandleHistoryRepository.saveCandlesForTicker(TICKER, saved);
+
+        List<Candle> result = sqlCandleHistoryRepository.findCandlesByTicker(TICKER);
+
+        assertThat(result).hasSize(10);
+        List<java.time.Instant> dateTimes = result.stream().map(Candle::getDateTime).toList();
+        assertThat(dateTimes).isSortedAccordingTo(Instant::compareTo);
+    }
+
+    @Test
+    @DisplayName("findCandlesByTicker: should return domain Candle objects with correct OHLCV values")
+    void findCandlesByTicker_savedCandles_returnsCorrectDomainValues() {
+        Instant start = Instant.parse("2024-09-01T00:00:00Z");
+        List<Candle> saved = buildCandles(TICKER, 3, start);
+        sqlCandleHistoryRepository.saveCandlesForTicker(TICKER, saved);
+
+        List<Candle> result = sqlCandleHistoryRepository.findCandlesByTicker(TICKER);
+
+        assertThat(result).hasSize(3);
+        result.forEach(c -> {
+            assertThat(c.getTicker()).isEqualTo(TICKER);
+            assertThat(c.getOpenPrice()).isNotNull();
+            assertThat(c.getClosePrice()).isNotNull();
+            assertThat(c.getVolume()).isNotNull();
+        });
+    }
+
+    @Test
+    @DisplayName("findCandlesByTicker: should not return candles of other tickers")
+    void findCandlesByTicker_multiTicker_returnOnlyRequested() {
+        sqlCandleHistoryRepository.saveCandlesForTicker(TICKER, buildCandles(TICKER, 5, Instant.parse("2024-01-01T00:00:00Z")));
+        sqlCandleHistoryRepository.saveCandlesForTicker(OTHER_TICKER, buildCandles(OTHER_TICKER, 3, Instant.parse("2024-01-01T00:00:00Z")));
+
+        List<Candle> result = sqlCandleHistoryRepository.findCandlesByTicker(TICKER);
+
+        assertThat(result).hasSize(5);
+        assertThat(result).allMatch(c -> TICKER.equals(c.getTicker()));
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

@@ -1,5 +1,6 @@
 package com.market.analysis.unit.application.usecase;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,6 +67,9 @@ class ManageAnalyzeStockServiceTest {
 
     @Mock
     private StockDataDTOMapper stockDataDTOMapper;
+
+    @Mock
+    private com.market.analysis.application.mapper.CandleDTOMapper candleDTOMapper;
 
     @Mock
     private com.market.analysis.domain.port.out.ApiCallRateRepository apiCallRateRepository;
@@ -653,5 +657,88 @@ class ManageAnalyzeStockServiceTest {
 
         verify(stockDataRepository, times(1)).deleteById(id);
         verify(candleHistoryPort, never()).deleteCandlesByTicker(anyString());
+    }
+
+    // -------------------------------------------------------------------------
+    // findCandlesByStockId (F2.6)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("findCandlesByStockId: should throw StockDataNotFoundException when stock not found")
+    void findCandlesByStockId_stockNotFound_throwsException() {
+        when(stockDataRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(com.market.analysis.domain.exception.StockDataNotFoundException.class,
+                () -> service.findCandlesByStockId(999L));
+
+        verify(candleHistoryPort, never()).findCandlesByTicker(anyString());
+    }
+
+    @Test
+    @DisplayName("findCandlesByStockId: should delegate to candleDTOMapper with stock and candles")
+    void findCandlesByStockId_noCandles_delegatesToMapper() {
+        Stock stockWithSmas = Stock.builder()
+                .id(1L)
+                .ticker("AAPL")
+                .sma20(BigDecimal.valueOf(148.00))
+                .sma50(BigDecimal.valueOf(145.00))
+                .sma200(BigDecimal.valueOf(140.00))
+                .build();
+        com.market.analysis.application.dto.CandleChartDTO expected =
+                com.market.analysis.application.dto.CandleChartDTO.builder()
+                        .ticker("AAPL")
+                        .candles(List.of())
+                        .sma20(BigDecimal.valueOf(148.00))
+                        .sma50(BigDecimal.valueOf(145.00))
+                        .sma200(BigDecimal.valueOf(140.00))
+                        .build();
+        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stockWithSmas));
+        when(candleHistoryPort.findCandlesByTicker("AAPL")).thenReturn(List.of());
+        when(candleDTOMapper.toChartDTO(stockWithSmas, List.of())).thenReturn(expected);
+
+        com.market.analysis.application.dto.CandleChartDTO result = service.findCandlesByStockId(1L);
+
+        assertNotNull(result);
+        assertEquals("AAPL", result.getTicker());
+        assertThat(result.getCandles()).isEmpty();
+        verify(candleDTOMapper, times(1)).toChartDTO(stockWithSmas, List.of());
+    }
+
+    @Test
+    @DisplayName("findCandlesByStockId: should pass candle list to mapper")
+    void findCandlesByStockId_withCandles_passesCandles() {
+        Instant candle1Time = Instant.parse("2024-01-15T00:00:00Z");
+        Candle candle1 = Candle.builder()
+                .ticker("AAPL")
+                .dateTime(candle1Time)
+                .openPrice(BigDecimal.valueOf(181.00))
+                .highPrice(BigDecimal.valueOf(183.50))
+                .lowPrice(BigDecimal.valueOf(180.00))
+                .closePrice(BigDecimal.valueOf(182.75))
+                .volume(55_000_000L)
+                .build();
+
+        Stock stockWithSmas = Stock.builder()
+                .id(1L)
+                .ticker("AAPL")
+                .sma20(BigDecimal.valueOf(148.00))
+                .sma50(null)
+                .sma200(null)
+                .build();
+
+        com.market.analysis.application.dto.CandleChartDTO expected =
+                com.market.analysis.application.dto.CandleChartDTO.builder()
+                        .ticker("AAPL")
+                        .candles(List.of())
+                        .build();
+
+        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stockWithSmas));
+        when(candleHistoryPort.findCandlesByTicker("AAPL")).thenReturn(List.of(candle1));
+        when(candleDTOMapper.toChartDTO(eq(stockWithSmas), anyList())).thenReturn(expected);
+
+        service.findCandlesByStockId(1L);
+
+        verify(candleHistoryPort, times(1)).findCandlesByTicker("AAPL");
+        verify(candleDTOMapper, times(1)).toChartDTO(eq(stockWithSmas), eq(List.of(candle1)));
     }
 }

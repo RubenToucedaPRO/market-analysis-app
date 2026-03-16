@@ -71,4 +71,16 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
         jpaCandleRepository.deleteByTicker(ticker);
     }
 
+    @Override
+    public List<Candle> findCandlesByTicker(String ticker) {
+        Assert.hasText(ticker, "ticker must not be null or blank");
+        log.debug("findCandlesByTicker: querying candles for ticker={}", ticker);
+        List<Candle> candles = jpaCandleRepository.findByTickerOrderByDateTimeAsc(ticker)
+                .stream()
+                .map(candleMapper::toDomain)
+                .toList();
+        log.debug("findCandlesByTicker: found {} candle(s) for ticker={}", candles.size(), ticker);
+        return candles;
+    }
+
 }

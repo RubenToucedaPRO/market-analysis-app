@@ -9,6 +9,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
+import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
@@ -76,13 +77,13 @@ public class BeanConfig {
             ApiCallRateRepository apiCallRateRepository, CandleHistoryRepository candleHistoryRepository,
             StrategyRepository strategyRepository,
             StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
-            ApiIAPort apiIAPort, StockDataDTOMapper stockMapper,
+            ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
             StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
                 prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,candleHistoryRepository, strategyRepository,stockProviderPort,
                 historicalProviderPort,
                 apiIAPort,
-                stockMapper, stockHistoricalService, evaluateStrategyService);
+                stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService);
     }
 
     @Bean
