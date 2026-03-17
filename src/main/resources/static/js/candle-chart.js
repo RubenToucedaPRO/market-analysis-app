@@ -56,16 +56,18 @@ document.addEventListener("DOMContentLoaded", function () {
       const candles = data.candles.map(function (c) {
         return {
           time: c.time,
-          open: parseFloat(c.open),
-          high: parseFloat(c.high),
-          low: parseFloat(c.low),
-          close: parseFloat(c.close),
+          open: Number.parseFloat(c.open),
+          high: Number.parseFloat(c.high),
+          low: Number.parseFloat(c.low),
+          close: Number.parseFloat(c.close),
         };
       });
       candleSeries.setData(candles);
 
       // Compute and plot SMA line series from close prices (client-side, SRP)
-      const closes = candles.map(function (c) { return c.close; });
+      const closes = candles.map(function (c) {
+        return c.close;
+      });
 
       function computeSMA(prices, period) {
         const result = [];
@@ -77,16 +79,35 @@ document.addEventListener("DOMContentLoaded", function () {
         return result;
       }
 
-      const smaSeries20 = chart.addLineSeries({ color: "#2196f3", lineWidth: 1, title: "SMA20" });
+      const smaSeries20 = chart.addLineSeries({
+        color: "#2196f3",
+        lineWidth: 1,
+        title: "SMA20",
+      });
       smaSeries20.setData(computeSMA(closes, 20));
 
-      const smaSeries50 = chart.addLineSeries({ color: "#ff9800", lineWidth: 1, title: "SMA50" });
+      const smaSeries50 = chart.addLineSeries({
+        color: "#ff9800",
+        lineWidth: 1,
+        title: "SMA50",
+      });
       smaSeries50.setData(computeSMA(closes, 50));
 
-      const smaSeries200 = chart.addLineSeries({ color: "#9c27b0", lineWidth: 1, title: "SMA200" });
+      const smaSeries200 = chart.addLineSeries({
+        color: "#9c27b0",
+        lineWidth: 1,
+        title: "SMA200",
+      });
       smaSeries200.setData(computeSMA(closes, 200));
 
-      chart.timeScale().fitContent();
+      chart.timeScale().setVisibleLogicalRange({
+        from: candles.length - 80,
+        to: candles.length,
+      });
+
+      chart.timeScale().applyOptions({
+        rightOffset: 20,
+      });
 
       // Responsive resize
       window.addEventListener("resize", function () {

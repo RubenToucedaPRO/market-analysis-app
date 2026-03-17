@@ -21,22 +21,31 @@
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <main class="container my-5 flex-grow-1">
-
       <!-- Header row -->
-      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+      <div
+        class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
+      >
         <div class="d-flex align-items-center gap-3">
           <img
             th:src="${ticker.logoUrl}"
             th:alt="${ticker.ticker + ' logo'}"
             class="shadow-sm border"
-            style="width: 48px; height: 48px; border-radius: 12px; object-fit: contain;"
+            style="
+              width: 48px;
+              height: 48px;
+              border-radius: 12px;
+              object-fit: contain;
+            "
           />
           <div>
             <h1 class="h3 fw-bold mb-0" th:text="${ticker.ticker}">AAPL</h1>
             <small class="text-muted">Gráfico de Velas · SMA 20/50/200</small>
           </div>
         </div>
-        <a th:href="@{/analysis/ticker/{id}(id=${ticker.id})}" class="btn btn-outline-secondary">
+        <a
+          th:href="@{/analysis/ticker/{id}(id=${ticker.id})}"
+          class="btn btn-outline-secondary"
+        >
           <i class="bi bi-arrow-left me-1"></i>Volver al Detalle
         </a>
       </div>
@@ -44,34 +53,69 @@
       <!-- Legend -->
       <div class="d-flex gap-3 mb-2 flex-wrap">
         <span class="d-flex align-items-center gap-1 small">
-          <span style="width:16px;height:3px;background:#26a69a;display:inline-block"></span>
+          <span
+            style="
+              width: 16px;
+              height: 3px;
+              background: #26a69a;
+              display: inline-block;
+            "
+          ></span>
           Alcista
         </span>
         <span class="d-flex align-items-center gap-1 small">
-          <span style="width:16px;height:3px;background:#ef5350;display:inline-block"></span>
+          <span
+            style="
+              width: 16px;
+              height: 3px;
+              background: #ef5350;
+              display: inline-block;
+            "
+          ></span>
           Bajista
         </span>
         <span class="d-flex align-items-center gap-1 small">
-          <span style="width:16px;height:3px;background:#2196f3;display:inline-block"></span>
+          <span
+            style="
+              width: 16px;
+              height: 3px;
+              background: #2196f3;
+              display: inline-block;
+            "
+          ></span>
           SMA 20
         </span>
         <span class="d-flex align-items-center gap-1 small">
-          <span style="width:16px;height:3px;background:#ff9800;display:inline-block"></span>
+          <span
+            style="
+              width: 16px;
+              height: 3px;
+              background: #ff9800;
+              display: inline-block;
+            "
+          ></span>
           SMA 50
         </span>
         <span class="d-flex align-items-center gap-1 small">
-          <span style="width:16px;height:3px;background:#9c27b0;display:inline-block"></span>
+          <span
+            style="
+              width: 16px;
+              height: 3px;
+              background: #9c27b0;
+              display: inline-block;
+            "
+          ></span>
           SMA 200
         </span>
       </div>
 
       <!-- Chart card -->
       <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-0" style="height: 540px; overflow: hidden;">
+        <div class="card-body p-0" style="height: 540px; overflow: hidden">
           <div
             id="candle-chart"
             th:attr="data-ticker-id=${ticker.id}"
-            style="width: 100%; height: 100%;"
+            style="width: 100%; height: 100%"
           ></div>
         </div>
       </div>
@@ -88,31 +132,35 @@
               <span
                 class="fw-bold"
                 th:text="${ticker.sma20 != null ? '$' + #numbers.formatDecimal(ticker.sma20, 1, 2) : 'N/D'}"
-              >N/D</span>
+                >N/D</span
+              >
             </div>
             <div class="col-md-4">
               <small class="text-secondary d-block mb-1">SMA 50</small>
               <span
                 class="fw-bold"
                 th:text="${ticker.sma50 != null ? '$' + #numbers.formatDecimal(ticker.sma50, 1, 2) : 'N/D'}"
-              >N/D</span>
+                >N/D</span
+              >
             </div>
             <div class="col-md-4">
               <small class="text-secondary d-block mb-1">SMA 200</small>
               <span
                 class="fw-bold"
                 th:text="${ticker.sma200 != null ? '$' + #numbers.formatDecimal(ticker.sma200, 1, 2) : 'N/D'}"
-              >N/D</span>
+                >N/D</span
+              >
             </div>
           </div>
         </div>
       </div>
-
     </main>
 
     <footer class="bg-white border-top text-center py-4 mt-auto shadow-sm">
       <p class="text-muted mb-0">
-        <small>&copy; 2026 AlphaSeeker - Terminal de Análisis Cuantitativo</small>
+        <small
+          >&copy; 2026 AlphaSeeker - Terminal de Análisis Cuantitativo</small
+        >
       </p>
     </footer>
 

@@ -57,25 +57,27 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       // Show last 60 candles in the thumbnail
-      const recent = data.candles.slice(-60);
+      const recent = data.candles.slice(-150);
       candleSeries.setData(
         recent.map(function (c) {
           return {
             time: c.time,
-            open: parseFloat(c.open),
-            high: parseFloat(c.high),
-            low: parseFloat(c.low),
-            close: parseFloat(c.close),
+            open: Number.parseFloat(c.open),
+            high: Number.parseFloat(c.high),
+            low: Number.parseFloat(c.low),
+            close: Number.parseFloat(c.close),
           };
-        })
+        }),
       );
 
-      chart.timeScale().fitContent();
+      chart.timeScale().applyOptions({
+        rightOffset: 20,
+      });
 
       // Click → navigate to full chart view
       container.style.cursor = "pointer";
       container.addEventListener("click", function () {
-        window.location.href = "/analysis/ticker/" + tickerId + "/chart";
+        globalThis.location.href = "/analysis/ticker/" + tickerId + "/chart";
       });
 
       // Resize
