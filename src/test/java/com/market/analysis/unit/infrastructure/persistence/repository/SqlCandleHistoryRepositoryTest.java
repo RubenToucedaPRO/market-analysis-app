@@ -1,10 +1,12 @@
 package com.market.analysis.unit.infrastructure.persistence.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -153,6 +155,54 @@ class SqlCandleHistoryRepositoryTest {
         sqlCandleHistoryRepository.deleteCandlesByTicker(ticker);
 
         verify(jpaCandleRepository, times(1)).deleteByTicker(ticker);
+    }
+
+    // -------------------------------------------------------------------------
+    // findCandlesByTicker
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("findCandlesByTicker: should throw when ticker is null")
+    void findCandlesByTicker_nullTicker_throwsIllegalArgument() {
+        assertThrows(IllegalArgumentException.class,
+                () -> sqlCandleHistoryRepository.findCandlesByTicker(null));
+    }
+
+    @Test
+    @DisplayName("findCandlesByTicker: should throw when ticker is blank")
+    void findCandlesByTicker_blankTicker_throwsIllegalArgument() {
+        assertThrows(IllegalArgumentException.class,
+                () -> sqlCandleHistoryRepository.findCandlesByTicker("  "));
+    }
+
+    @Test
+    @DisplayName("findCandlesByTicker: should return empty list when JPA returns no results")
+    void findCandlesByTicker_noEntities_returnsEmptyList() {
+        when(jpaCandleRepository.findByTickerOrderByDateTimeAsc("AAPL")).thenReturn(List.of());
+
+        List<Candle> result = sqlCandleHistoryRepository.findCandlesByTicker("AAPL");
+
+        assertThat(result).isEmpty();
+        verify(candleMapper, never()).toDomain(any());
+    }
+
+    @Test
+    @DisplayName("findCandlesByTicker: should map every entity and return domain candles")
+    void findCandlesByTicker_twoEntities_returnsTwoMappedCandles() {
+        String ticker = "AAPL";
+        CandleEntity entity1 = new CandleEntity();
+        CandleEntity entity2 = new CandleEntity();
+        Candle candle1 = buildCandle(ticker);
+        Candle candle2 = buildCandle(ticker);
+
+        when(jpaCandleRepository.findByTickerOrderByDateTimeAsc(ticker)).thenReturn(List.of(entity1, entity2));
+        when(candleMapper.toDomain(entity1)).thenReturn(candle1);
+        when(candleMapper.toDomain(entity2)).thenReturn(candle2);
+
+        List<Candle> result = sqlCandleHistoryRepository.findCandlesByTicker(ticker);
+
+        assertThat(result).containsExactly(candle1, candle2);
+        verify(candleMapper, times(2)).toDomain(any(CandleEntity.class));
     }
 
     // -------------------------------------------------------------------------

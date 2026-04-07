@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Candle;
@@ -52,6 +54,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final HistoricalProviderPort historicalProviderPort;
     private final ApiIAPort apiIAPort;
     private final StockDataDTOMapper stockMapper;
+    private final CandleDTOMapper candleDTOMapper;
 
     private final StockHistoricalService stockHistoricalService;
     private final EvaluateStrategyService evaluateStrategyService;
@@ -259,6 +262,14 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         }
 
         return stock;
+    }
+
+    @Override
+    public CandleChartDTO findCandlesByStockId(Long id) {
+        Stock stock = stockDataRepository.findById(id)
+                .orElseThrow(() -> new StockDataNotFoundException(TICKER_DATA_NOT_FOUND + id));
+        List<Candle> candles = candleHistoryRepository.findCandlesByTicker(stock.getTicker());
+        return candleDTOMapper.toChartDTO(stock, candles);
     }
 
     @Override

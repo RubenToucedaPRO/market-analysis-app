@@ -5,7 +5,7 @@ import java.util.List;
 import com.market.analysis.domain.model.Candle;
 
 /**
- * Output port for persisting OHLCV candle history.
+ * Output port for persisting and querying OHLCV candle history.
  * Implemented by infrastructure adapters (e.g. SQL).
  */
 public interface CandleHistoryRepository {
@@ -24,4 +24,12 @@ public interface CandleHistoryRepository {
      * @param ticker the ticker symbol (must not be blank)
      */
     void deleteCandlesByTicker(String ticker);
+
+    /**
+     * Returns all candles for the given ticker ordered by date ascending.
+     *
+     * @param ticker the ticker symbol (must not be blank)
+     * @return ordered list of candles; empty list if none found
+     */
+    List<Candle> findCandlesByTicker(String ticker);
 }
