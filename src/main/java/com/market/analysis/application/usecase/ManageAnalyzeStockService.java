@@ -259,6 +259,25 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             stock.setVolume(technicalIndicators.getCurrentVolume());
             stock.setAverageVolume(technicalIndicators.getAverageVolume());
             stock.setLastUpdated(technicalIndicators.getLastUpdated());
+            // EMA
+            stock.setEma9(technicalIndicators.getEma9());
+            stock.setEma12(technicalIndicators.getEma12());
+            stock.setEma20(technicalIndicators.getEma20());
+            stock.setEma26(technicalIndicators.getEma26());
+            stock.setEma50(technicalIndicators.getEma50());
+            stock.setEma200(technicalIndicators.getEma200());
+            // RSI
+            stock.setRsi14(technicalIndicators.getRsi14());
+            stock.setRsi30(technicalIndicators.getRsi30());
+            // MACD
+            stock.setMacdLine(technicalIndicators.getMacdLine());
+            stock.setMacdSignal(technicalIndicators.getMacdSignal());
+            stock.setMacdHistogram(technicalIndicators.getMacdHistogram());
+            // Bollinger Bands
+            stock.setBbUpper20(technicalIndicators.getBbUpper20());
+            stock.setBbLower20(technicalIndicators.getBbLower20());
+            // ATR
+            stock.setAtr14(technicalIndicators.getAtr14());
         }
 
         return stock;
