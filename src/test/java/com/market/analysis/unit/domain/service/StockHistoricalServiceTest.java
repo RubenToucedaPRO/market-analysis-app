@@ -455,8 +455,8 @@ class StockHistoricalServiceTest {
     class NewIndicatorFieldsTests {
 
         @Test
-        @DisplayName("New indicator fields (EMA, RSI, MACD, BB, ATR) are null in TechnicalIndicators until phase 2 calculation is implemented")
-        void testNewIndicatorFieldsAreNullBeforePhase2() {
+        @DisplayName("RSI, MACD, BB, ATR fields are null until their respective phases are implemented")
+        void testPhase3To5IndicatorFieldsAreNull() {
             // Arrange
             List<Double> prices = new ArrayList<>();
             List<Long> volumes = new ArrayList<>();
@@ -475,13 +475,7 @@ class StockHistoricalServiceTest {
             // Act
             TechnicalIndicators indicators = service.calculateIndicators(data, 20);
 
-            // Assert – phase 2 calculations not yet implemented, fields must be null
-            assertThat(indicators.getEma9()).isNull();
-            assertThat(indicators.getEma12()).isNull();
-            assertThat(indicators.getEma20()).isNull();
-            assertThat(indicators.getEma26()).isNull();
-            assertThat(indicators.getEma50()).isNull();
-            assertThat(indicators.getEma200()).isNull();
+            // Assert – phases 3-5 not yet implemented; these fields must remain null
             assertThat(indicators.getRsi14()).isNull();
             assertThat(indicators.getRsi30()).isNull();
             assertThat(indicators.getMacdLine()).isNull();
@@ -529,6 +523,144 @@ class StockHistoricalServiceTest {
             assertThat(indicators.getBbUpper20()).isEqualByComparingTo(new BigDecimal("105.00"));
             assertThat(indicators.getBbLower20()).isEqualByComparingTo(new BigDecimal("95.00"));
             assertThat(indicators.getAtr14()).isEqualByComparingTo(new BigDecimal("3.00"));
+        }
+    }
+
+    @Nested
+    @DisplayName("Phase 2 — EMA Calculation Tests")
+    class EmaCalculationTests {
+
+        private List<Double> pricesDesc(int count, double startHigh) {
+            // Simulate Polygon desc order: index 0 = most recent (highest price)
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                prices.add(startHigh - i);
+            }
+            return prices;
+        }
+
+        private HistoricalData buildData(List<Double> prices) {
+            List<Long> volumes = new ArrayList<>(Collections.nCopies(prices.size(), 1000000L));
+            return HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(prices)
+                    .volumes(volumes)
+                    .lastUpdate(Instant.now())
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should return null EMA9 when only 8 prices are available")
+        void shouldReturnNullEmaWhenInsufficientData() {
+            List<Double> prices = Arrays.asList(100.0, 101.0, 102.0, 103.0, 104.0, 105.0, 106.0, 107.0);
+            List<Long> volumes = new ArrayList<>(Collections.nCopies(8, 1000000L));
+            HistoricalData data = HistoricalData.builder()
+                    .ticker("TSLA")
+                    .closingPrices(prices)
+                    .volumes(volumes)
+                    .lastUpdate(Instant.now())
+                    .build();
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 8);
+
+            assertThat(indicators.getEma9()).isNull();
+            assertThat(indicators.getEma12()).isNull();
+            assertThat(indicators.getEma200()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return non-null EMA9 with exactly 9 prices")
+        void shouldReturnNonNullEmaWithExactlyPeriodPrices() {
+            List<Double> prices = Collections.nCopies(9, 100.0);
+            List<Long> volumes = new ArrayList<>(Collections.nCopies(9, 1000000L));
+            HistoricalData data = HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(prices)
+                    .volumes(volumes)
+                    .lastUpdate(Instant.now())
+                    .build();
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 9);
+
+            assertThat(indicators.getEma9()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should return constant price as EMA when all prices are equal")
+        void shouldReturnConstantPriceEmaWhenAllPricesEqual() {
+            // With all prices = 100.0, EMA seed = 100.0 and all iterations stay at 100.0
+            List<Double> prices = Collections.nCopies(50, 100.0);
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getEma9()).isNotNull();
+            assertThat(indicators.getEma9()).isEqualByComparingTo(new BigDecimal("100.0000"));
+        }
+
+        @Test
+        @DisplayName("calculateIndicators should populate all six EMA fields with 300 prices")
+        void shouldPopulateAllEmaFieldsInCalculateIndicators() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 300; i++) {
+                prices.add(150.0 + i * 0.5);
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getEma9()).isNotNull();
+            assertThat(indicators.getEma12()).isNotNull();
+            assertThat(indicators.getEma20()).isNotNull();
+            assertThat(indicators.getEma26()).isNotNull();
+            assertThat(indicators.getEma50()).isNotNull();
+            assertThat(indicators.getEma200()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("EMA values should be positive for realistic positive prices")
+        void shouldProducePositiveEmaForPositivePrices() {
+            // 200 prices in Polygon desc order (most recent first)
+            List<Double> descPrices = pricesDesc(200, 299.0);
+            HistoricalData data = buildData(descPrices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getEma9()).isNotNull();
+            assertThat(indicators.getEma9().compareTo(BigDecimal.ZERO)).isGreaterThan(0);
+        }
+
+        @Test
+        @DisplayName("EMA result should have scale of 4 decimal places")
+        void shouldReturnEmaWithScale4() {
+            List<Double> prices = Collections.nCopies(30, 123.456789);
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getEma9()).isNotNull();
+            assertThat(indicators.getEma9().scale()).isEqualTo(4);
+        }
+
+        @Test
+        @DisplayName("EMA9 should respond faster to recent price changes than EMA200")
+        void shouldShowEmaFasterResponseForShorterPeriod() {
+            // Create 300 prices: first 250 stable at 100, then spike to 200
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                prices.add(200.0); // most recent 50 prices are high (Polygon desc)
+            }
+            for (int i = 0; i < 250; i++) {
+                prices.add(100.0); // older 250 prices are lower
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getEma9()).isNotNull();
+            assertThat(indicators.getEma200()).isNotNull();
+            // EMA9 reacts faster to recent spike → should be higher than EMA200
+            assertThat(indicators.getEma9().compareTo(indicators.getEma200())).isGreaterThan(0);
         }
     }
 }
