@@ -30,6 +30,11 @@ public class StockHistoricalService {
         BigDecimal rsi14 = calculateRsi(data.getClosingPrices(), 14);
         BigDecimal rsi30 = calculateRsi(data.getClosingPrices(), 30);
 
+        BigDecimal[] macd = calculateMacd(data.getClosingPrices());
+        BigDecimal macdLine      = macd != null ? macd[0] : null;
+        BigDecimal macdSignal    = macd != null ? macd[1] : null;
+        BigDecimal macdHistogram = macd != null ? macd[2] : null;
+
         return TechnicalIndicators.builder()
                 .sma20(sma20)
                 .sma50(sma50)
@@ -45,6 +50,9 @@ public class StockHistoricalService {
                 .ema200(ema200)
                 .rsi14(rsi14)
                 .rsi30(rsi30)
+                .macdLine(macdLine)
+                .macdSignal(macdSignal)
+                .macdHistogram(macdHistogram)
                 .build();
     }
 
@@ -139,6 +147,83 @@ public class StockHistoricalService {
         }
 
         return BigDecimal.valueOf(rsi).setScale(SMA_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Calculates MACD Line, Signal Line and Histogram from closing prices.
+     *
+     * <p>Standard parameters: fast EMA = 12, slow EMA = 26, signal EMA = 9.
+     * Requires at least {@code slow + signal} (35) data points.
+     *
+     * @param prices closing prices in descending order (most recent at index 0)
+     * @return {@code BigDecimal[3]} = {macdLine, macdSignal, macdHistogram}, or
+     *         {@code null} if there are insufficient data points
+     */
+    BigDecimal[] calculateMacd(List<Double> prices) {
+        final int fast = 12;
+        final int slow = 26;
+        final int signal = 9;
+
+        if (prices == null || prices.size() < slow + signal) {
+            return null;
+        }
+
+        // Polygon returns data desc; reverse to process oldest → newest
+        List<Double> asc = new ArrayList<>(prices);
+        asc = asc.reversed();
+
+        List<Double> emaFast = calculateEmaAsDoubles(asc, fast);
+        List<Double> emaSlow = calculateEmaAsDoubles(asc, slow);
+
+        // MACD series starts at index (slow - 1) where emaSlow first has a value
+        int macdStart = slow - 1;
+        List<Double> macdSeries = new ArrayList<>();
+        for (int i = macdStart; i < emaFast.size(); i++) {
+            macdSeries.add(emaFast.get(i) - emaSlow.get(i - macdStart));
+        }
+
+        List<Double> signalSeries = calculateEmaAsDoubles(macdSeries, signal);
+
+        double lastMacdLine = macdSeries.get(macdSeries.size() - 1);
+        double lastSignal = signalSeries.get(signalSeries.size() - 1);
+        double histogram = lastMacdLine - lastSignal;
+
+        return new BigDecimal[] {
+                BigDecimal.valueOf(lastMacdLine).setScale(SMA_SCALE, RoundingMode.HALF_UP),
+                BigDecimal.valueOf(lastSignal).setScale(SMA_SCALE, RoundingMode.HALF_UP),
+                BigDecimal.valueOf(histogram).setScale(SMA_SCALE, RoundingMode.HALF_UP)
+        };
+    }
+
+    /**
+     * Computes the full EMA series as a {@code List<Double>} over the provided
+     * prices (already sorted ascending — oldest first).
+     *
+     * <p>The returned list has length {@code prices.size() - period + 1}: the first
+     * element corresponds to the seed SMA, and subsequent elements are the EMA
+     * values for every additional price.
+     *
+     * @param ascPrices prices sorted ascending (oldest first)
+     * @param period    EMA period
+     * @return full EMA series as doubles
+     */
+    private List<Double> calculateEmaAsDoubles(List<Double> ascPrices, int period) {
+        double seed = ascPrices.stream()
+                .limit(period)
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0.0);
+
+        double multiplier = 2.0 / (period + 1);
+        List<Double> emaSeries = new ArrayList<>();
+        emaSeries.add(seed);
+
+        for (int i = period; i < ascPrices.size(); i++) {
+            double prev = emaSeries.get(emaSeries.size() - 1);
+            emaSeries.add((ascPrices.get(i) - prev) * multiplier + prev);
+        }
+
+        return emaSeries;
     }
 
     private BigDecimal calculateSma(List<Double> prices, int period) {

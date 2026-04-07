@@ -455,8 +455,8 @@ class StockHistoricalServiceTest {
     class NewIndicatorFieldsTests {
 
         @Test
-        @DisplayName("MACD, BB and ATR fields are null until their respective phases are implemented")
-        void testMacdBbAtrFieldsAreNull() {
+        @DisplayName("BB and ATR fields are null until their respective phases are implemented")
+        void testBbAtrFieldsAreNull() {
             // Arrange
             List<Double> prices = new ArrayList<>();
             List<Long> volumes = new ArrayList<>();
@@ -475,13 +475,14 @@ class StockHistoricalServiceTest {
             // Act
             TechnicalIndicators indicators = service.calculateIndicators(data, 20);
 
-            // Assert – phases 4-5 not yet implemented; these fields must remain null
-            assertThat(indicators.getMacdLine()).isNull();
-            assertThat(indicators.getMacdSignal()).isNull();
-            assertThat(indicators.getMacdHistogram()).isNull();
+            // Assert – phase 5 not yet implemented; BB and ATR fields must remain null
             assertThat(indicators.getBbUpper20()).isNull();
             assertThat(indicators.getBbLower20()).isNull();
             assertThat(indicators.getAtr14()).isNull();
+            // Phase 4 (MACD) is implemented – values should be present
+            assertThat(indicators.getMacdLine()).isNotNull();
+            assertThat(indicators.getMacdSignal()).isNotNull();
+            assertThat(indicators.getMacdHistogram()).isNotNull();
         }
 
         @Test
@@ -845,6 +846,119 @@ class StockHistoricalServiceTest {
             assertThat(indicators.getRsi14()).isNotNull();
             assertThat(indicators.getRsi14().compareTo(BigDecimal.ZERO)).isGreaterThanOrEqualTo(0);
             assertThat(indicators.getRsi14().compareTo(new BigDecimal("100"))).isLessThanOrEqualTo(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("Phase 4 — MACD Calculation Tests")
+    class MacdCalculationTests {
+
+        private HistoricalData buildData(List<Double> prices) {
+            List<Long> volumes = new ArrayList<>(Collections.nCopies(prices.size(), 1000000L));
+            return HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(prices)
+                    .volumes(volumes)
+                    .lastUpdate(Instant.now())
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should return null MACD when prices list has fewer than 35 elements")
+        void calculateIndicators_shouldReturnNullMacdForInsufficientData() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 34; i++) {
+                prices.add(100.0 + i);
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getMacdLine()).isNull();
+            assertThat(indicators.getMacdSignal()).isNull();
+            assertThat(indicators.getMacdHistogram()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return non-null MACD when at least 35 prices are available")
+        void calculateIndicators_shouldReturnNonNullMacdForSufficientData() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                prices.add(100.0 + i);
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getMacdLine()).isNotNull();
+            assertThat(indicators.getMacdSignal()).isNotNull();
+            assertThat(indicators.getMacdHistogram()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should return MACD values with scale 4")
+        void calculateIndicators_shouldReturnMacdValuesWithScaleFour() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                prices.add(100.0 + i);
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getMacdLine().scale()).isEqualTo(4);
+            assertThat(indicators.getMacdSignal().scale()).isEqualTo(4);
+            assertThat(indicators.getMacdHistogram().scale()).isEqualTo(4);
+        }
+
+        @Test
+        @DisplayName("MACD histogram should equal macdLine minus macdSignal")
+        void calculateIndicators_histogramShouldEqualLineMinusSignal() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                prices.add(100.0 + i);
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            BigDecimal expectedHistogram = indicators.getMacdLine()
+                    .subtract(indicators.getMacdSignal())
+                    .setScale(4, java.math.RoundingMode.HALF_UP);
+            assertThat(indicators.getMacdHistogram()).isEqualByComparingTo(expectedHistogram);
+        }
+
+        @Test
+        @DisplayName("Should compute non-zero MACD for a trending price series")
+        void calculateIndicators_shouldComputeNonZeroMacdForTrendingSeries() {
+            // Monotonically increasing prices (descending order as Polygon provides)
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 200; i++) {
+                pricesDesc.add(200.0 - i); // index 0 = 200 (most recent), index 199 = 1 (oldest)
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getMacdLine()).isNotNull();
+            // For a monotonically increasing series, fast EMA > slow EMA, so MACD_LINE > 0
+            assertThat(indicators.getMacdLine().compareTo(BigDecimal.ZERO)).isGreaterThan(0);
+        }
+
+        @Test
+        @DisplayName("MACD fields should be null in calculateIndicators when fewer than 35 prices")
+        void calculateIndicators_shouldReturnNullMacdWhenInsufficientData() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                prices.add(100.0 + i);
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 5);
+
+            assertThat(indicators.getMacdLine()).isNull();
+            assertThat(indicators.getMacdSignal()).isNull();
+            assertThat(indicators.getMacdHistogram()).isNull();
         }
     }
 }
