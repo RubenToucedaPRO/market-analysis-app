@@ -455,8 +455,8 @@ class StockHistoricalServiceTest {
     class NewIndicatorFieldsTests {
 
         @Test
-        @DisplayName("RSI, MACD, BB, ATR fields are null until their respective phases are implemented")
-        void testRsiMacdBbAtrFieldsAreNull() {
+        @DisplayName("MACD, BB and ATR fields are null until their respective phases are implemented")
+        void testMacdBbAtrFieldsAreNull() {
             // Arrange
             List<Double> prices = new ArrayList<>();
             List<Long> volumes = new ArrayList<>();
@@ -475,9 +475,7 @@ class StockHistoricalServiceTest {
             // Act
             TechnicalIndicators indicators = service.calculateIndicators(data, 20);
 
-            // Assert – phases 3-5 not yet implemented; these fields must remain null
-            assertThat(indicators.getRsi14()).isNull();
-            assertThat(indicators.getRsi30()).isNull();
+            // Assert – phases 4-5 not yet implemented; these fields must remain null
             assertThat(indicators.getMacdLine()).isNull();
             assertThat(indicators.getMacdSignal()).isNull();
             assertThat(indicators.getMacdHistogram()).isNull();
@@ -661,6 +659,192 @@ class StockHistoricalServiceTest {
             assertThat(indicators.getEma200()).isNotNull();
             // EMA9 reacts faster to recent spike → should be higher than EMA200
             assertThat(indicators.getEma9().compareTo(indicators.getEma200())).isGreaterThan(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("Phase 3 — RSI Calculation Tests")
+    class RsiCalculationTests {
+
+        /**
+         * Builds a HistoricalData with prices in Polygon descending order
+         * (index 0 = most recent price).
+         */
+        private HistoricalData buildData(List<Double> pricesDesc) {
+            List<Long> volumes = new ArrayList<>(Collections.nCopies(pricesDesc.size(), 1_000_000L));
+            return HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(pricesDesc)
+                    .volumes(volumes)
+                    .lastUpdate(Instant.now())
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should return null RSI when fewer than period+1 prices are available")
+        void shouldReturnNullRsiWhenInsufficientData() {
+            // 14 prices → cannot compute 14 deltas (need at least 15)
+            List<Double> prices = new ArrayList<>(Collections.nCopies(14, 100.0));
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 14);
+
+            assertThat(indicators.getRsi14()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return null RSI when prices list is null")
+        void shouldReturnNullRsiWhenPricesNull() {
+            HistoricalData data = HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(null)
+                    .volumes(Collections.emptyList())
+                    .lastUpdate(Instant.now())
+                    .build();
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 14);
+
+            assertThat(indicators.getRsi14()).isNull();
+            assertThat(indicators.getRsi30()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return RSI=100 when all price changes are gains (no losses)")
+        void shouldReturnRsi100WhenAllPricesRising() {
+            // Polygon desc order: most recent price first → prices decrease from index 0 to end
+            // After reverse (oldest→newest) prices will be ascending → all deltas positive
+            // 15 prices in desc order: 114, 113, 112, ..., 100
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 15; i++) {
+                pricesDesc.add(114.0 - i); // desc: [114, 113, ..., 100]
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 14);
+
+            assertThat(indicators.getRsi14()).isNotNull();
+            assertThat(indicators.getRsi14()).isEqualByComparingTo(new BigDecimal("100.0000"));
+        }
+
+        @Test
+        @DisplayName("Should return RSI=0 when all price changes are losses (no gains)")
+        void shouldReturnRsi0WhenAllPricesFalling() {
+            // Polygon desc order: most recent first → prices increase from index 0 to end
+            // After reverse (oldest→newest) prices will be descending → all deltas negative
+            // 15 prices in desc order: 100, 101, 102, ..., 114
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 15; i++) {
+                pricesDesc.add(100.0 + i); // desc: [100, 101, ..., 114]
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 14);
+
+            assertThat(indicators.getRsi14()).isNotNull();
+            assertThat(indicators.getRsi14()).isEqualByComparingTo(new BigDecimal("0.0000"));
+        }
+
+        @Test
+        @DisplayName("Should calculate RSI=50 when gains equal losses over the period")
+        void shouldCalculateRsi50WhenGainsEqualLosses() {
+            // 15 prices (desc) alternating so that after reversal we get 7 gains and 7 losses of equal magnitude
+            // desc: [101, 100, 101, 100, 101, 100, 101, 100, 101, 100, 101, 100, 101, 100, 101]
+            // reversed (asc): [101, 100, 101, 100, ..., 101]
+            // deltas: -1, +1, -1, +1, ... → 7 gains (+1) and 7 losses (|-1|)
+            // avgGain = 7/14 = 0.5, avgLoss = 7/14 = 0.5, RS = 1, RSI = 50
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 15; i++) {
+                pricesDesc.add(i % 2 == 0 ? 101.0 : 100.0);
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 14);
+
+            assertThat(indicators.getRsi14()).isNotNull();
+            assertThat(indicators.getRsi14()).isEqualByComparingTo(new BigDecimal("50.0000"));
+        }
+
+        @Test
+        @DisplayName("Should calculate RSI14 with a known result from deterministic price series")
+        void shouldCalculateRsi14WithKnownValues() {
+            // 15 prices (desc order, Polygon format): oldest price at end, newest at index 0
+            // desc: [114,112,110,108,106,104,102,100,102,104,106,108,110,112,114]
+            // reversed (oldest→newest): [114,112,110,108,106,104,102,100,102,104,106,108,110,112,114]
+            // 14 deltas: -2,-2,-2,-2,-2,-2,-2,+2,+2,+2,+2,+2,+2,+2
+            // gains: 7 × 2 = 14, avgGain = 1.0
+            // losses: 7 × 2 = 14, avgLoss = 1.0
+            // RS = 1, RSI = 50
+            List<Double> pricesDesc = Arrays.asList(
+                114.0, 112.0, 110.0, 108.0, 106.0, 104.0, 102.0, 100.0,
+                102.0, 104.0, 106.0, 108.0, 110.0, 112.0, 114.0
+            );
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 14);
+
+            assertThat(indicators.getRsi14()).isEqualByComparingTo(new BigDecimal("50.0000"));
+        }
+
+        @Test
+        @DisplayName("Should calculate RSI30 when at least 31 prices are available")
+        void shouldCalculateRsi30WithSufficientData() {
+            // 31 prices: ascending in desc order → after reverse = descending → all deltas negative → RSI=0
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 31; i++) {
+                pricesDesc.add(100.0 + i);
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getRsi30()).isNotNull();
+            assertThat(indicators.getRsi30()).isEqualByComparingTo(new BigDecimal("0.0000"));
+        }
+
+        @Test
+        @DisplayName("calculateIndicators should populate both RSI14 and RSI30 with sufficient data")
+        void shouldPopulateBothRsiFieldsInCalculateIndicators() {
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 200; i++) {
+                pricesDesc.add(150.0 - i * 0.1); // slight descent in time (desc order)
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getRsi14()).isNotNull();
+            assertThat(indicators.getRsi30()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("RSI result should have scale of 4 decimal places")
+        void shouldReturnRsiWithScale4() {
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                pricesDesc.add(100.0 - i * 0.5);
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getRsi14()).isNotNull();
+            assertThat(indicators.getRsi14().scale()).isEqualTo(4);
+        }
+
+        @Test
+        @DisplayName("RSI value should be in range [0, 100]")
+        void shouldReturnRsiInValidRange() {
+            List<Double> pricesDesc = new ArrayList<>();
+            for (int i = 0; i < 100; i++) {
+                pricesDesc.add(100.0 + Math.sin(i) * 10);
+            }
+            HistoricalData data = buildData(pricesDesc);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getRsi14()).isNotNull();
+            assertThat(indicators.getRsi14().compareTo(BigDecimal.ZERO)).isGreaterThanOrEqualTo(0);
+            assertThat(indicators.getRsi14().compareTo(new BigDecimal("100"))).isLessThanOrEqualTo(0);
         }
     }
 }

@@ -28,6 +28,9 @@ public class StockHistoricalService {
         BigDecimal ema50 = calculateEma(data.getClosingPrices(), 50);
         BigDecimal ema200 = calculateEma(data.getClosingPrices(), 200);
 
+        BigDecimal rsi14 = calculateRsi(data.getClosingPrices(), 14);
+        BigDecimal rsi30 = calculateRsi(data.getClosingPrices(), 30);
+
         return TechnicalIndicators.builder()
                 .sma20(sma20)
                 .sma50(sma50)
@@ -41,6 +44,8 @@ public class StockHistoricalService {
                 .ema26(ema26)
                 .ema50(ema50)
                 .ema200(ema200)
+                .rsi14(rsi14)
+                .rsi30(rsi30)
                 .build();
     }
 
@@ -80,6 +85,61 @@ public class StockHistoricalService {
         }
 
         return BigDecimal.valueOf(ema).setScale(SMA_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Calculates the Relative Strength Index (RSI) for the given period using a
+     * simple average of gains and losses over the first {@code period} price changes.
+     *
+     * <p>Polygon returns data sorted descending (most recent first). This method
+     * reverses the list internally so that deltas are computed from oldest to newest.
+     *
+     * <p>Edge cases:
+     * <ul>
+     *   <li>If avgLoss is zero → RSI = 100 (no losses in the period)</li>
+     *   <li>If avgGain is zero → RSI = 0 (no gains in the period)</li>
+     * </ul>
+     *
+     * @param prices closing prices in descending order (most recent at index 0)
+     * @param period RSI period (e.g. 14, 30)
+     * @return the RSI value rounded to 4 decimal places, or {@code null} if there
+     *         are fewer than {@code period + 1} prices
+     */
+    BigDecimal calculateRsi(List<Double> prices, int period) {
+        if (prices == null || prices.size() < period + 1) {
+            return null;
+        }
+
+        // Polygon returns data desc; reverse to process oldest → newest
+        List<Double> asc = new ArrayList<>(prices);
+        Collections.reverse(asc);
+
+        double totalGain = 0.0;
+        double totalLoss = 0.0;
+
+        for (int i = 1; i <= period; i++) {
+            double delta = asc.get(i) - asc.get(i - 1);
+            if (delta > 0) {
+                totalGain += delta;
+            } else {
+                totalLoss += Math.abs(delta);
+            }
+        }
+
+        double avgGain = totalGain / period;
+        double avgLoss = totalLoss / period;
+
+        double rsi;
+        if (avgLoss == 0.0) {
+            rsi = 100.0;
+        } else if (avgGain == 0.0) {
+            rsi = 0.0;
+        } else {
+            double rs = avgGain / avgLoss;
+            rsi = 100.0 - (100.0 / (1.0 + rs));
+        }
+
+        return BigDecimal.valueOf(rsi).setScale(SMA_SCALE, RoundingMode.HALF_UP);
     }
 
     private BigDecimal calculateSma(List<Double> prices, int period) {

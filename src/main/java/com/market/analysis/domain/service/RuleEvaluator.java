@@ -68,6 +68,7 @@ public class RuleEvaluator {
             case "PRICE" -> stock.getCurrentPrice();
             case "SMA" -> getSmaValue(param, stock);
             case "EMA" -> getEmaValue(param, stock);
+            case "RSI" -> getRsiValue(param, stock);
             case "VOLUME" -> stock.getVolume() != null ? BigDecimal.valueOf(stock.getVolume()) : null;
             case "AVG_VOLUME" -> stock.getAverageVolume() != null ? BigDecimal.valueOf(stock.getAverageVolume()) : null;
             case "OPEN" -> stock.getOpenPrice();
@@ -112,6 +113,22 @@ public class RuleEvaluator {
             case 26 -> stock.getEma26();
             case 50 -> stock.getEma50();
             case 200 -> stock.getEma200();
+            default -> null;
+        };
+    }
+
+    /**
+     * Gets the RSI value based on the period parameter.
+     */
+    private BigDecimal getRsiValue(Double param, Stock stock) {
+        if (param == null) {
+            return null;
+        }
+
+        int period = param.intValue();
+        return switch (period) {
+            case 14 -> stock.getRsi14();
+            case 30 -> stock.getRsi30();
             default -> null;
         };
     }
@@ -179,6 +196,7 @@ public class RuleEvaluator {
         return switch (code.toUpperCase()) {
             case "SMA" -> String.format("SMA%d", param.intValue());
             case "EMA" -> String.format("EMA%d", param.intValue());
+            case "RSI" -> String.format("RSI%d", param.intValue());
             case "CONSTANT" -> String.format("%.2f", param);
             default -> code;
         };
