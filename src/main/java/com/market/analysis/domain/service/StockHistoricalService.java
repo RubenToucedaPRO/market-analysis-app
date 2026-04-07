@@ -31,9 +31,9 @@ public class StockHistoricalService {
         BigDecimal rsi30 = calculateRsi(data.getClosingPrices(), 30);
 
         BigDecimal[] macd = calculateMacd(data.getClosingPrices());
-        BigDecimal macdLine      = macd != null ? macd[0] : null;
-        BigDecimal macdSignal    = macd != null ? macd[1] : null;
-        BigDecimal macdHistogram = macd != null ? macd[2] : null;
+        BigDecimal macdLine      = macd.length > 0 ? macd[0] : null;
+        BigDecimal macdSignal    = macd.length > 0 ? macd[1] : null;
+        BigDecimal macdHistogram = macd.length > 0 ? macd[2] : null;
 
         return TechnicalIndicators.builder()
                 .sma20(sma20)
@@ -157,7 +157,7 @@ public class StockHistoricalService {
      *
      * @param prices closing prices in descending order (most recent at index 0)
      * @return {@code BigDecimal[3]} = {macdLine, macdSignal, macdHistogram}, or
-     *         {@code null} if there are insufficient data points
+     *         an empty array if there are insufficient data points
      */
     BigDecimal[] calculateMacd(List<Double> prices) {
         final int fast = 12;
@@ -165,7 +165,7 @@ public class StockHistoricalService {
         final int signal = 9;
 
         if (prices == null || prices.size() < slow + signal) {
-            return null;
+            return new BigDecimal[0];
         }
 
         // Polygon returns data desc; reverse to process oldest → newest
