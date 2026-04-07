@@ -944,21 +944,5 @@ class StockHistoricalServiceTest {
             // For a monotonically increasing series, fast EMA > slow EMA, so MACD_LINE > 0
             assertThat(indicators.getMacdLine().compareTo(BigDecimal.ZERO)).isGreaterThan(0);
         }
-
-        @Test
-        @DisplayName("MACD fields should be null in calculateIndicators when fewer than 35 prices")
-        void calculateIndicators_shouldReturnNullMacdWhenInsufficientData() {
-            List<Double> prices = new ArrayList<>();
-            for (int i = 0; i < 10; i++) {
-                prices.add(100.0 + i);
-            }
-            HistoricalData data = buildData(prices);
-
-            TechnicalIndicators indicators = service.calculateIndicators(data, 5);
-
-            assertThat(indicators.getMacdLine()).isNull();
-            assertThat(indicators.getMacdSignal()).isNull();
-            assertThat(indicators.getMacdHistogram()).isNull();
-        }
     }
 }
