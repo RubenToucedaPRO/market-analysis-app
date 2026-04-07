@@ -449,4 +449,86 @@ class StockHistoricalServiceTest {
             assertThat(indicators.getAverageVolume()).isNotNull();
         }
     }
+
+    @Nested
+    @DisplayName("Phase 1 — New Indicator Fields")
+    class NewIndicatorFieldsTests {
+
+        @Test
+        @DisplayName("New indicator fields (EMA, RSI, MACD, BB, ATR) are null in TechnicalIndicators until phase 2 calculation is implemented")
+        void testNewIndicatorFieldsAreNullBeforePhase2() {
+            // Arrange
+            List<Double> prices = new ArrayList<>();
+            List<Long> volumes = new ArrayList<>();
+            for (int i = 0; i < 250; i++) {
+                prices.add(100.0 + i);
+                volumes.add(1000000L);
+            }
+
+            HistoricalData data = HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(prices)
+                    .volumes(volumes)
+                    .lastUpdate(Instant.now())
+                    .build();
+
+            // Act
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            // Assert – phase 2 calculations not yet implemented, fields must be null
+            assertThat(indicators.getEma9()).isNull();
+            assertThat(indicators.getEma12()).isNull();
+            assertThat(indicators.getEma20()).isNull();
+            assertThat(indicators.getEma26()).isNull();
+            assertThat(indicators.getEma50()).isNull();
+            assertThat(indicators.getEma200()).isNull();
+            assertThat(indicators.getRsi14()).isNull();
+            assertThat(indicators.getRsi30()).isNull();
+            assertThat(indicators.getMacdLine()).isNull();
+            assertThat(indicators.getMacdSignal()).isNull();
+            assertThat(indicators.getMacdHistogram()).isNull();
+            assertThat(indicators.getBbUpper20()).isNull();
+            assertThat(indicators.getBbLower20()).isNull();
+            assertThat(indicators.getAtr14()).isNull();
+        }
+
+        @Test
+        @DisplayName("TechnicalIndicators builder supports all new indicator fields")
+        void testTechnicalIndicatorsBuilderSupportsNewFields() {
+            // Arrange & Act
+            TechnicalIndicators indicators = TechnicalIndicators.builder()
+                    .sma20(new BigDecimal("100.00"))
+                    .ema9(new BigDecimal("99.50"))
+                    .ema12(new BigDecimal("99.00"))
+                    .ema20(new BigDecimal("98.00"))
+                    .ema26(new BigDecimal("97.00"))
+                    .ema50(new BigDecimal("95.00"))
+                    .ema200(new BigDecimal("90.00"))
+                    .rsi14(new BigDecimal("60.00"))
+                    .rsi30(new BigDecimal("55.00"))
+                    .macdLine(new BigDecimal("2.00"))
+                    .macdSignal(new BigDecimal("1.50"))
+                    .macdHistogram(new BigDecimal("0.50"))
+                    .bbUpper20(new BigDecimal("105.00"))
+                    .bbLower20(new BigDecimal("95.00"))
+                    .atr14(new BigDecimal("3.00"))
+                    .build();
+
+            // Assert
+            assertThat(indicators.getEma9()).isEqualByComparingTo(new BigDecimal("99.50"));
+            assertThat(indicators.getEma12()).isEqualByComparingTo(new BigDecimal("99.00"));
+            assertThat(indicators.getEma20()).isEqualByComparingTo(new BigDecimal("98.00"));
+            assertThat(indicators.getEma26()).isEqualByComparingTo(new BigDecimal("97.00"));
+            assertThat(indicators.getEma50()).isEqualByComparingTo(new BigDecimal("95.00"));
+            assertThat(indicators.getEma200()).isEqualByComparingTo(new BigDecimal("90.00"));
+            assertThat(indicators.getRsi14()).isEqualByComparingTo(new BigDecimal("60.00"));
+            assertThat(indicators.getRsi30()).isEqualByComparingTo(new BigDecimal("55.00"));
+            assertThat(indicators.getMacdLine()).isEqualByComparingTo(new BigDecimal("2.00"));
+            assertThat(indicators.getMacdSignal()).isEqualByComparingTo(new BigDecimal("1.50"));
+            assertThat(indicators.getMacdHistogram()).isEqualByComparingTo(new BigDecimal("0.50"));
+            assertThat(indicators.getBbUpper20()).isEqualByComparingTo(new BigDecimal("105.00"));
+            assertThat(indicators.getBbLower20()).isEqualByComparingTo(new BigDecimal("95.00"));
+            assertThat(indicators.getAtr14()).isEqualByComparingTo(new BigDecimal("3.00"));
+        }
+    }
 }

@@ -63,4 +63,51 @@ public class StockEntity {
     @Column(name = "valoration_ia", columnDefinition = "TEXT")
     private String valorationIA;
 
+    // EMA
+    @Column(precision = 19, scale = 4)
+    private BigDecimal ema9;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal ema12;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal ema20;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal ema26;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal ema50;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal ema200;
+
+    // RSI
+    @Column(precision = 19, scale = 4)
+    private BigDecimal rsi14;
+
+    @Column(precision = 19, scale = 4)
+    private BigDecimal rsi30;
+
+    // MACD
+    @Column(name = "macd_line", precision = 19, scale = 4)
+    private BigDecimal macdLine;
+
+    @Column(name = "macd_signal", precision = 19, scale = 4)
+    private BigDecimal macdSignal;
+
+    @Column(name = "macd_hist", precision = 19, scale = 4)
+    private BigDecimal macdHistogram;
+
+    // Bollinger Bands
+    @Column(name = "bb_upper20", precision = 19, scale = 4)
+    private BigDecimal bbUpper20;
+
+    @Column(name = "bb_lower20", precision = 19, scale = 4)
+    private BigDecimal bbLower20;
+
+    // ATR
+    @Column(precision = 19, scale = 4)
+    private BigDecimal atr14;
+
 }
