@@ -3,7 +3,6 @@ package com.market.analysis.domain.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.market.analysis.domain.model.HistoricalData;
@@ -68,7 +67,7 @@ public class StockHistoricalService {
 
         // Polygon returns data desc; reverse to process oldest → newest
         List<Double> asc = new ArrayList<>(prices);
-        Collections.reverse(asc);
+        asc = asc.reversed();
 
         // Seed: SMA of the first `period` values (oldest prices)
         double seed = asc.stream()
@@ -112,7 +111,7 @@ public class StockHistoricalService {
 
         // Polygon returns data desc; reverse to process oldest → newest
         List<Double> asc = new ArrayList<>(prices);
-        Collections.reverse(asc);
+        asc = asc.reversed();
 
         double totalGain = 0.0;
         double totalLoss = 0.0;
