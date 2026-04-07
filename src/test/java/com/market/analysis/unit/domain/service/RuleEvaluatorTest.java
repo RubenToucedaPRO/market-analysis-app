@@ -464,4 +464,174 @@ class RuleEvaluatorTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("RSI Rule Tests")
+    class RsiRuleTests {
+
+        private Stock stockWithRsi;
+
+        @BeforeEach
+        void setUpRsiStock() {
+            stockWithRsi = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(155.00))
+                    .rsi14(BigDecimal.valueOf(65.00))
+                    .rsi30(BigDecimal.valueOf(55.00))
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should pass rule when RSI14 is below oversold threshold (RSI14 < 30)")
+        void shouldPassRuleWhenRsi14BelowOversoldThreshold() {
+            Stock oversoldStock = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(100.00))
+                    .rsi14(BigDecimal.valueOf(25.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(1L)
+                    .name("RSI14 < 30")
+                    .subjectCode("RSI")
+                    .subjectParam(14.0)
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(30.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, oversoldStock);
+
+            assertThat(result.isPassed()).isTrue();
+            assertThat(result.getJustification()).contains("PASSED");
+        }
+
+        @Test
+        @DisplayName("Should pass rule when RSI14 is above overbought threshold (RSI14 > 70)")
+        void shouldPassRuleWhenRsi14AboveOverboughtThreshold() {
+            Stock overboughtStock = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(200.00))
+                    .rsi14(BigDecimal.valueOf(75.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(2L)
+                    .name("RSI14 > 70")
+                    .subjectCode("RSI")
+                    .subjectParam(14.0)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(70.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, overboughtStock);
+
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should pass rule when RSI30 > 50 (positive long-term momentum)")
+        void shouldPassRuleWhenRsi30AboveFifty() {
+            Rule rule = Rule.builder()
+                    .id(3L)
+                    .name("RSI30 > 50")
+                    .subjectCode("RSI")
+                    .subjectParam(30.0)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(50.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithRsi);
+
+            // RSI30 = 55 > 50 → should pass
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should fail rule when RSI14 is missing (null)")
+        void shouldFailRuleWhenRsi14IsNull() {
+            Stock stockNoRsi = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(150.00))
+                    .rsi14(null)
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(4L)
+                    .name("RSI14 < 30")
+                    .subjectCode("RSI")
+                    .subjectParam(14.0)
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(30.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockNoRsi);
+
+            assertThat(result.isPassed()).isFalse();
+            assertThat(result.getJustification()).contains("Missing");
+        }
+
+        @Test
+        @DisplayName("Should fail rule for unsupported RSI period")
+        void shouldFailRuleForUnsupportedRsiPeriod() {
+            Rule rule = Rule.builder()
+                    .id(5L)
+                    .name("RSI50 < 50")
+                    .subjectCode("RSI")
+                    .subjectParam(50.0)
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(50.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithRsi);
+
+            // RSI50 is not a supported period → null → failed
+            assertThat(result.isPassed()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should format RSI name correctly in justification")
+        void shouldFormatRsiNameCorrectlyInJustification() {
+            Rule rule = Rule.builder()
+                    .id(6L)
+                    .name("RSI14 > 50")
+                    .subjectCode("RSI")
+                    .subjectParam(14.0)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(50.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithRsi);
+
+            assertThat(result.getJustification()).contains("RSI14");
+        }
+
+        @Test
+        @DisplayName("Should handle both RSI14 and RSI30 periods")
+        void shouldHandleBothSupportedRsiPeriods() {
+            double[] periods = {14.0, 30.0};
+
+            for (double period : periods) {
+                Rule rule = Rule.builder()
+                        .id(7L)
+                        .name("RSI" + (int) period + " > 0")
+                        .subjectCode("RSI")
+                        .subjectParam(period)
+                        .operator(">")
+                        .targetCode("CONSTANT")
+                        .targetParam(0.0)
+                        .build();
+
+                RuleResult result = ruleEvaluator.evaluate(rule, stockWithRsi);
+                assertThat(result.isPassed())
+                        .as("Expected RSI%d > 0 to pass", (int) period)
+                        .isTrue();
+            }
+        }
+    }
 }
