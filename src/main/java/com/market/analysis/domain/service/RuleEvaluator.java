@@ -72,6 +72,9 @@ public class RuleEvaluator {
             case "MACD_LINE" -> stock.getMacdLine();
             case "MACD_SIGNAL" -> stock.getMacdSignal();
             case "MACD_HIST" -> stock.getMacdHistogram();
+            case "BB_UPPER" -> getBbValue(param, stock, true);
+            case "BB_LOWER" -> getBbValue(param, stock, false);
+            case "ATR" -> getAtrValue(param, stock);
             case "VOLUME" -> stock.getVolume() != null ? BigDecimal.valueOf(stock.getVolume()) : null;
             case "AVG_VOLUME" -> stock.getAverageVolume() != null ? BigDecimal.valueOf(stock.getAverageVolume()) : null;
             case "OPEN" -> stock.getOpenPrice();
@@ -132,6 +135,28 @@ public class RuleEvaluator {
         return switch (period) {
             case 14 -> stock.getRsi14();
             case 30 -> stock.getRsi30();
+            default -> null;
+        };
+    }
+
+    /**
+     * Gets the Bollinger Band value based on the period parameter.
+     */
+    private BigDecimal getBbValue(Double param, Stock stock, boolean upper) {
+        int period = param != null ? param.intValue() : 20;
+        return switch (period) {
+            case 20 -> upper ? stock.getBbUpper20() : stock.getBbLower20();
+            default -> null;
+        };
+    }
+
+    /**
+     * Gets the ATR value based on the period parameter.
+     */
+    private BigDecimal getAtrValue(Double param, Stock stock) {
+        int period = param != null ? param.intValue() : 14;
+        return switch (period) {
+            case 14 -> stock.getAtr14();
             default -> null;
         };
     }
