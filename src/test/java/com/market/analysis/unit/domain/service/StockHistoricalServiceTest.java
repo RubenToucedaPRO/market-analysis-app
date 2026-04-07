@@ -456,7 +456,7 @@ class StockHistoricalServiceTest {
 
         @Test
         @DisplayName("RSI, MACD, BB, ATR fields are null until their respective phases are implemented")
-        void testPhase3To5IndicatorFieldsAreNull() {
+        void testRsiMacdBbAtrFieldsAreNull() {
             // Arrange
             List<Double> prices = new ArrayList<>();
             List<Long> volumes = new ArrayList<>();
