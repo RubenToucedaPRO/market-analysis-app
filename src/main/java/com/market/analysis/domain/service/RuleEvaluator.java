@@ -69,6 +69,9 @@ public class RuleEvaluator {
             case "SMA" -> getSmaValue(param, stock);
             case "EMA" -> getEmaValue(param, stock);
             case "RSI" -> getRsiValue(param, stock);
+            case "MACD_LINE" -> stock.getMacdLine();
+            case "MACD_SIGNAL" -> stock.getMacdSignal();
+            case "MACD_HIST" -> stock.getMacdHistogram();
             case "VOLUME" -> stock.getVolume() != null ? BigDecimal.valueOf(stock.getVolume()) : null;
             case "AVG_VOLUME" -> stock.getAverageVolume() != null ? BigDecimal.valueOf(stock.getAverageVolume()) : null;
             case "OPEN" -> stock.getOpenPrice();

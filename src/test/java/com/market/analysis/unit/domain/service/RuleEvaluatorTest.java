@@ -634,4 +634,148 @@ class RuleEvaluatorTest {
             }
         }
     }
+
+    @Nested
+    @DisplayName("MACD Rule Tests")
+    class MacdRuleTests {
+
+        private Stock stockWithMacd;
+
+        @BeforeEach
+        void setUpMacdStock() {
+            stockWithMacd = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(155.00))
+                    .macdLine(BigDecimal.valueOf(2.50))
+                    .macdSignal(BigDecimal.valueOf(1.80))
+                    .macdHistogram(BigDecimal.valueOf(0.70))
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should pass rule when MACD_LINE crosses above zero (bullish)")
+        void shouldPassRuleWhenMacdLineAboveZero() {
+            Rule rule = Rule.builder()
+                    .id(1L)
+                    .name("MACD_LINE > 0")
+                    .subjectCode("MACD_LINE")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(0.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithMacd);
+
+            assertThat(result.isPassed()).isTrue();
+            assertThat(result.getJustification()).contains("PASSED");
+        }
+
+        @Test
+        @DisplayName("Should pass rule when MACD_LINE is above MACD_SIGNAL (bullish crossover)")
+        void shouldPassRuleWhenMacdLineAboveMacdSignal() {
+            Rule rule = Rule.builder()
+                    .id(2L)
+                    .name("MACD_LINE > MACD_SIGNAL")
+                    .subjectCode("MACD_LINE")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("MACD_SIGNAL")
+                    .targetParam(null)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithMacd);
+
+            // macdLine (2.50) > macdSignal (1.80) → should pass
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should pass rule when MACD_HIST is positive (bullish momentum)")
+        void shouldPassRuleWhenMacdHistIsPositive() {
+            Rule rule = Rule.builder()
+                    .id(3L)
+                    .name("MACD_HIST > 0")
+                    .subjectCode("MACD_HIST")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(0.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithMacd);
+
+            // macdHistogram (0.70) > 0 → should pass
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should fail rule when MACD_LINE is null (no data available)")
+        void shouldFailRuleWhenMacdLineIsNull() {
+            Stock stockNoMacd = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(100.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(4L)
+                    .name("MACD_LINE > 0")
+                    .subjectCode("MACD_LINE")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(0.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockNoMacd);
+
+            assertThat(result.isPassed()).isFalse();
+            assertThat(result.getJustification()).contains("Missing");
+        }
+
+        @Test
+        @DisplayName("Should fail rule when MACD_LINE is below zero (bearish)")
+        void shouldFailRuleWhenMacdLineIsBelowZero() {
+            Stock bearishStock = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(100.00))
+                    .macdLine(BigDecimal.valueOf(-1.50))
+                    .macdSignal(BigDecimal.valueOf(-1.00))
+                    .macdHistogram(BigDecimal.valueOf(-0.50))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(5L)
+                    .name("MACD_LINE > 0")
+                    .subjectCode("MACD_LINE")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(0.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, bearishStock);
+
+            assertThat(result.isPassed()).isFalse();
+            assertThat(result.getJustification()).contains("FAILED");
+        }
+
+        @Test
+        @DisplayName("Justification should include MACD_LINE code for display")
+        void justificationShouldIncludeMacdLineCode() {
+            Rule rule = Rule.builder()
+                    .id(6L)
+                    .name("MACD_LINE > 0")
+                    .subjectCode("MACD_LINE")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("CONSTANT")
+                    .targetParam(0.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithMacd);
+
+            assertThat(result.getJustification()).contains("MACD_LINE");
+        }
+    }
 }
