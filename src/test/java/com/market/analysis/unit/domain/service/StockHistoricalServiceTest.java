@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.TechnicalIndicators;
 import com.market.analysis.domain.service.StockHistoricalService;
@@ -475,10 +476,10 @@ class StockHistoricalServiceTest {
             // Act
             TechnicalIndicators indicators = service.calculateIndicators(data, 20);
 
-            // Assert – phase 5 not yet implemented; BB and ATR fields must remain null
-            assertThat(indicators.getBbUpper20()).isNull();
-            assertThat(indicators.getBbLower20()).isNull();
-            assertThat(indicators.getAtr14()).isNull();
+            // Assert – phase 5 is implemented; BB and ATR fields must be populated
+            assertThat(indicators.getBbUpper20()).isNotNull();
+            assertThat(indicators.getBbLower20()).isNotNull();
+            assertThat(indicators.getAtr14()).isNull(); // ATR requires candles; none provided here
             // Phase 4 (MACD) is implemented – values should be present
             assertThat(indicators.getMacdLine()).isNotNull();
             assertThat(indicators.getMacdSignal()).isNotNull();
@@ -943,6 +944,181 @@ class StockHistoricalServiceTest {
             assertThat(indicators.getMacdLine()).isNotNull();
             // For a monotonically increasing series, fast EMA > slow EMA, so MACD_LINE > 0
             assertThat(indicators.getMacdLine().compareTo(BigDecimal.ZERO)).isGreaterThan(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("Phase 5 — Bollinger Bands and ATR Calculation Tests")
+    class BollingerAtrCalculationTests {
+
+        private List<Double> pricesDesc(int count, double basePrice) {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                prices.add(basePrice + (count - 1 - i)); // desc: most recent first
+            }
+            return prices;
+        }
+
+        private HistoricalData buildDataWithCandles(List<Double> prices, List<Candle> candles) {
+            List<Long> volumes = new ArrayList<>(Collections.nCopies(prices.size(), 1000000L));
+            return HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(prices)
+                    .volumes(volumes)
+                    .candles(candles)
+                    .lastUpdate(Instant.now())
+                    .build();
+        }
+
+        private Candle candle(double close, double high, double low) {
+            return Candle.builder()
+                    .ticker("AAPL")
+                    .dateTime(Instant.now())
+                    .openPrice(BigDecimal.valueOf(close))
+                    .closePrice(BigDecimal.valueOf(close))
+                    .highPrice(BigDecimal.valueOf(high))
+                    .lowPrice(BigDecimal.valueOf(low))
+                    .volume(1000000L)
+                    .build();
+        }
+
+        // ---- Bollinger Bands ----
+
+        @Test
+        @DisplayName("Should return null BB when fewer than 20 prices are available")
+        void calculateBollingerUpper_shouldReturnNullForInsufficientData() {
+            List<Double> prices = pricesDesc(19, 100.0);
+            HistoricalData data = buildDataWithCandles(prices, Collections.emptyList());
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getBbUpper20()).isNull();
+            assertThat(indicators.getBbLower20()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return non-null BB when at least 20 prices are available")
+        void calculateBollingerBands_shouldReturnNonNullForSufficientData() {
+            List<Double> prices = pricesDesc(50, 100.0);
+            HistoricalData data = buildDataWithCandles(prices, Collections.emptyList());
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getBbUpper20()).isNotNull();
+            assertThat(indicators.getBbLower20()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("BB bands should have scale 4")
+        void calculateBollingerBands_shouldHaveScaleFour() {
+            List<Double> prices = pricesDesc(50, 100.0);
+            HistoricalData data = buildDataWithCandles(prices, Collections.emptyList());
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getBbUpper20().scale()).isEqualTo(4);
+            assertThat(indicators.getBbLower20().scale()).isEqualTo(4);
+        }
+
+        @Test
+        @DisplayName("BB upper should be greater than BB lower")
+        void calculateBollingerBands_upperShouldBeGreaterThanLower() {
+            // Use varying prices so StdDev > 0
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                prices.add(100.0 + (i % 5) * 2.0);
+            }
+            HistoricalData data = buildDataWithCandles(prices, Collections.emptyList());
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getBbUpper20().compareTo(indicators.getBbLower20())).isGreaterThan(0);
+        }
+
+        @Test
+        @DisplayName("BB upper and lower should be symmetric around the SMA20")
+        void calculateBollingerBands_shouldBeSymmetricAroundSma() {
+            // All prices equal → stdDev = 0 → upper = lower = mean = SMA20
+            List<Double> prices = new ArrayList<>(Collections.nCopies(50, 100.0));
+            HistoricalData data = buildDataWithCandles(prices, Collections.emptyList());
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getBbUpper20()).isEqualByComparingTo(indicators.getSma20());
+            assertThat(indicators.getBbLower20()).isEqualByComparingTo(indicators.getSma20());
+        }
+
+        // ---- ATR ----
+
+        @Test
+        @DisplayName("Should return null ATR when candles list is null")
+        void calculateAtr_shouldReturnNullForNullCandles() {
+            List<Double> prices = pricesDesc(50, 100.0);
+            HistoricalData data = buildDataWithCandles(prices, null);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getAtr14()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return null ATR when fewer than 15 candles are available")
+        void calculateAtr_shouldReturnNullForInsufficientCandles() {
+            List<Double> prices = pricesDesc(14, 100.0);
+            List<Candle> candles = new ArrayList<>();
+            for (int i = 0; i < 14; i++) {
+                candles.add(candle(100.0 + i, 102.0 + i, 98.0 + i));
+            }
+            HistoricalData data = buildDataWithCandles(prices, candles);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getAtr14()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return non-null ATR when at least 15 candles are available")
+        void calculateAtr_shouldReturnNonNullForSufficientCandles() {
+            List<Double> prices = pricesDesc(50, 100.0);
+            List<Candle> candles = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                candles.add(candle(100.0 + i, 102.0 + i, 98.0 + i));
+            }
+            HistoricalData data = buildDataWithCandles(prices, candles);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getAtr14()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("ATR should have scale 4")
+        void calculateAtr_shouldHaveScaleFour() {
+            List<Double> prices = pricesDesc(50, 100.0);
+            List<Candle> candles = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                candles.add(candle(100.0 + i, 102.0 + i, 98.0 + i));
+            }
+            HistoricalData data = buildDataWithCandles(prices, candles);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getAtr14().scale()).isEqualTo(4);
+        }
+
+        @Test
+        @DisplayName("ATR should be positive for candles with a non-zero range")
+        void calculateAtr_shouldBePositiveForNonZeroRange() {
+            List<Double> prices = pricesDesc(50, 100.0);
+            List<Candle> candles = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                candles.add(candle(100.0, 104.0, 96.0)); // fixed 8-point range
+            }
+            HistoricalData data = buildDataWithCandles(prices, candles);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getAtr14().compareTo(BigDecimal.ZERO)).isGreaterThan(0);
         }
     }
 }

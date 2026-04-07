@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.TechnicalIndicators;
 
@@ -35,6 +36,11 @@ public class StockHistoricalService {
         BigDecimal macdSignal    = macd.length > 0 ? macd[1] : null;
         BigDecimal macdHistogram = macd.length > 0 ? macd[2] : null;
 
+        BigDecimal bbUpper20 = calculateBollingerUpper(data.getClosingPrices(), 20, 2.0);
+        BigDecimal bbLower20 = calculateBollingerLower(data.getClosingPrices(), 20, 2.0);
+
+        BigDecimal atr14 = calculateAtr(data.getCandles(), 14);
+
         return TechnicalIndicators.builder()
                 .sma20(sma20)
                 .sma50(sma50)
@@ -53,6 +59,9 @@ public class StockHistoricalService {
                 .macdLine(macdLine)
                 .macdSignal(macdSignal)
                 .macdHistogram(macdHistogram)
+                .bbUpper20(bbUpper20)
+                .bbLower20(bbLower20)
+                .atr14(atr14)
                 .build();
     }
 
@@ -224,6 +233,116 @@ public class StockHistoricalService {
         }
 
         return emaSeries;
+    }
+
+    /**
+     * Calculates the upper Bollinger Band for the given period and multiplier k.
+     *
+     * <p>Formula: SMA(period) + k * StdDev(period).
+     * Polygon returns data descending; this method works on the first {@code period}
+     * values (most recent), which matches the convention used by {@link #calculateSma}.
+     *
+     * @param prices closing prices in descending order (most recent at index 0)
+     * @param period lookback period (e.g. 20)
+     * @param k      standard-deviation multiplier (typically 2.0)
+     * @return upper band rounded to 4 decimal places, or {@code null} if insufficient data
+     */
+    BigDecimal calculateBollingerUpper(List<Double> prices, int period, double k) {
+        return calculateBollingerBand(prices, period, k, true);
+    }
+
+    /**
+     * Calculates the lower Bollinger Band for the given period and multiplier k.
+     *
+     * <p>Formula: SMA(period) - k * StdDev(period).
+     *
+     * @param prices closing prices in descending order (most recent at index 0)
+     * @param period lookback period (e.g. 20)
+     * @param k      standard-deviation multiplier (typically 2.0)
+     * @return lower band rounded to 4 decimal places, or {@code null} if insufficient data
+     */
+    BigDecimal calculateBollingerLower(List<Double> prices, int period, double k) {
+        return calculateBollingerBand(prices, period, k, false);
+    }
+
+    private BigDecimal calculateBollingerBand(List<Double> prices, int period, double k, boolean upper) {
+        if (prices == null || prices.size() < period) {
+            return null;
+        }
+
+        // Work on the first `period` values (most recent) — same order as calculateSma
+        double sum = 0.0;
+        for (int i = 0; i < period; i++) {
+            sum += prices.get(i);
+        }
+        double mean = sum / period;
+
+        double variance = 0.0;
+        for (int i = 0; i < period; i++) {
+            double diff = prices.get(i) - mean;
+            variance += diff * diff;
+        }
+        variance /= period;
+
+        double stdDev = Math.sqrt(variance);
+        double band = upper ? mean + k * stdDev : mean - k * stdDev;
+        return BigDecimal.valueOf(band).setScale(SMA_SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Calculates the Average True Range (ATR) using Wilder's smoothing.
+     *
+     * <p>Algorithm:
+     * <ol>
+     *   <li>Reverse the candle list (Polygon provides data descending).</li>
+     *   <li>Compute True Range for each candle: TR = max(high-low, |high-prevClose|, |low-prevClose|)</li>
+     *   <li>Seed ATR = simple average of the first {@code period} TR values.</li>
+     *   <li>Subsequent values: ATR = (prevATR * (period-1) + TR) / period.</li>
+     * </ol>
+     *
+     * @param candles OHLCV candles in descending order (most recent at index 0)
+     * @param period  ATR period (e.g. 14)
+     * @return the latest ATR rounded to 4 decimal places, or {@code null} if insufficient data
+     */
+    BigDecimal calculateAtr(List<Candle> candles, int period) {
+        if (candles == null || candles.size() < period + 1) {
+            return null;
+        }
+
+        // Polygon returns data desc; reverse to process oldest → newest
+        List<Candle> asc = new ArrayList<>(candles);
+        asc = asc.reversed();
+
+        // Compute True Range series
+        List<Double> trSeries = new ArrayList<>();
+        for (int i = 1; i < asc.size(); i++) {
+            double high = asc.get(i).getHighPrice().doubleValue();
+            double low  = asc.get(i).getLowPrice().doubleValue();
+            double prevClose = asc.get(i - 1).getClosePrice().doubleValue();
+
+            double tr = Math.max(high - low,
+                         Math.max(Math.abs(high - prevClose),
+                                  Math.abs(low  - prevClose)));
+            trSeries.add(tr);
+        }
+
+        if (trSeries.size() < period) {
+            return null;
+        }
+
+        // Seed: simple average of the first `period` TR values
+        double atr = 0.0;
+        for (int i = 0; i < period; i++) {
+            atr += trSeries.get(i);
+        }
+        atr /= period;
+
+        // Wilder's smoothing for the remaining TR values
+        for (int i = period; i < trSeries.size(); i++) {
+            atr = (atr * (period - 1) + trSeries.get(i)) / period;
+        }
+
+        return BigDecimal.valueOf(atr).setScale(SMA_SCALE, RoundingMode.HALF_UP);
     }
 
     private BigDecimal calculateSma(List<Double> prices, int period) {

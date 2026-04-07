@@ -778,4 +778,161 @@ class RuleEvaluatorTest {
             assertThat(result.getJustification()).contains("MACD_LINE");
         }
     }
+
+    @Nested
+    @DisplayName("Phase 5 — Bollinger Bands and ATR Rule Tests")
+    class BollingerAtrRuleTests {
+
+        private Stock stockWithBbAtr;
+
+        @BeforeEach
+        void setUp() {
+            stockWithBbAtr = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(102.00))
+                    .bbUpper20(BigDecimal.valueOf(110.00))
+                    .bbLower20(BigDecimal.valueOf(90.00))
+                    .atr14(BigDecimal.valueOf(3.50))
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should pass rule when price is below BB_UPPER(20)")
+        void shouldPassRuleWhenPriceIsBelowBbUpper() {
+            Rule rule = Rule.builder()
+                    .id(1L)
+                    .name("PRICE < BB_UPPER(20)")
+                    .subjectCode("PRICE")
+                    .subjectParam(null)
+                    .operator("<")
+                    .targetCode("BB_UPPER")
+                    .targetParam(20.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithBbAtr);
+
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should pass rule when price is above BB_LOWER(20)")
+        void shouldPassRuleWhenPriceIsAboveBbLower() {
+            Rule rule = Rule.builder()
+                    .id(2L)
+                    .name("PRICE > BB_LOWER(20)")
+                    .subjectCode("PRICE")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("BB_LOWER")
+                    .targetParam(20.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithBbAtr);
+
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should fail rule when BB_UPPER param is unsupported period")
+        void shouldReturnNullForUnsupportedBbPeriod() {
+            Stock stock = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(100.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(3L)
+                    .name("PRICE < BB_UPPER(50)")
+                    .subjectCode("PRICE")
+                    .subjectParam(null)
+                    .operator("<")
+                    .targetCode("BB_UPPER")
+                    .targetParam(50.0) // unsupported period
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stock);
+
+            assertThat(result.isPassed()).isFalse();
+            assertThat(result.getJustification()).contains("Missing");
+        }
+
+        @Test
+        @DisplayName("Should pass rule when ATR(14) is below a constant threshold")
+        void shouldPassRuleWhenAtrIsBelowThreshold() {
+            Rule rule = Rule.builder()
+                    .id(4L)
+                    .name("ATR < 5.00")
+                    .subjectCode("ATR")
+                    .subjectParam(14.0)
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(5.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithBbAtr);
+
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should fail rule when ATR(14) is above a constant threshold")
+        void shouldFailRuleWhenAtrIsAboveThreshold() {
+            Rule rule = Rule.builder()
+                    .id(5L)
+                    .name("ATR < 2.00")
+                    .subjectCode("ATR")
+                    .subjectParam(14.0)
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(2.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithBbAtr);
+
+            assertThat(result.isPassed()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Should fail rule when ATR is null (no data)")
+        void shouldFailRuleWhenAtrIsNull() {
+            Stock stockNoAtr = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(100.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(6L)
+                    .name("ATR < 5.00")
+                    .subjectCode("ATR")
+                    .subjectParam(14.0)
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(5.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockNoAtr);
+
+            assertThat(result.isPassed()).isFalse();
+            assertThat(result.getJustification()).contains("Missing");
+        }
+
+        @Test
+        @DisplayName("Should return null for unsupported ATR period")
+        void shouldReturnNullForUnsupportedAtrPeriod() {
+            Rule rule = Rule.builder()
+                    .id(7L)
+                    .name("ATR(30) < 5.00")
+                    .subjectCode("ATR")
+                    .subjectParam(30.0) // unsupported period
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(5.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithBbAtr);
+
+            assertThat(result.isPassed()).isFalse();
+            assertThat(result.getJustification()).contains("Missing");
+        }
+    }
 }
