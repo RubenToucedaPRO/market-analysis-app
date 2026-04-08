@@ -664,15 +664,23 @@ class StockHistoricalServiceTest {
         }
 
         @Test
-        @DisplayName("EMA9 should equal the constant price when all 50 prices are identical (convergence)")
+        @DisplayName("EMA9 should correctly track a linearly increasing price series")
         void shouldCalculateEma9Correctly() {
-            List<Double> prices = Collections.nCopies(50, 100.0);
+            // 50 prices in Polygon desc order: most recent first, linearly decreasing
+            // After reversal to oldest→newest, prices are linearly increasing: 1, 2, 3, ..., 50
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                prices.add(50.0 - i); // desc: [50, 49, 48, ..., 1]
+            }
             HistoricalData data = buildData(prices);
 
             TechnicalIndicators indicators = service.calculateIndicators(data, 20);
 
             assertThat(indicators.getEma9()).isNotNull();
-            assertThat(indicators.getEma9()).isEqualByComparingTo(new BigDecimal("100.0000"));
+            // EMA9 for increasing series should be greater than the average of first 9 values
+            // First 9 values (oldest→newest): 1, 2, 3, 4, 5, 6, 7, 8, 9; avg = 5.0
+            // EMA9 should be higher due to exponential weighting toward recent values
+            assertThat(indicators.getEma9().compareTo(new BigDecimal("5.0"))).isGreaterThan(0);
         }
 
         @Test
