@@ -6,6 +6,7 @@ import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
+import com.market.analysis.domain.model.RuleCapability;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
@@ -105,7 +106,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         }
 
         boolean catalogRequiresParam = RuleCapabilityCatalog.getCapability(code)
-                .map(cap -> cap.isRequiresParam())
+                .map(RuleCapability::isRequiresParam)
                 .orElse(false);
         if (dto.isRequiresParam() != catalogRequiresParam) {
             throw new IllegalArgumentException(
