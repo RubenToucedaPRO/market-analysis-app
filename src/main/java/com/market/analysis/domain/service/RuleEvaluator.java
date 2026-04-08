@@ -3,33 +3,44 @@ package com.market.analysis.domain.service;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.RuleNotEvaluableException;
 import com.market.analysis.domain.model.Rule;
+import com.market.analysis.domain.model.RuleCapability;
+import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 
 /**
  * Domain service responsible for evaluating individual technical analysis rules
  * against ticker data.
- * 
- * This is a pure domain service with no infrastructure dependencies,
- * ensuring deterministic and testable rule evaluation logic.
+ *
+ * <p>This is a pure domain service with no infrastructure dependencies,
+ * ensuring deterministic and testable rule evaluation logic.</p>
+ *
+ * <p>Since P1 the evaluator is entirely driven by {@link RuleCapabilityCatalog}:
+ * indicator resolution is delegated to the capability's {@code IndicatorResolver}
+ * instead of being hard-coded in {@code switch} statements.  An unsupported
+ * indicator code now throws {@link RuleNotEvaluableException} rather than
+ * silently returning {@code null}.</p>
  */
 public class RuleEvaluator {
 
     /**
      * Evaluates a single rule against the provided ticker data.
-     * 
+     *
      * @param rule  the rule to evaluate
      * @param stock the stock data to evaluate against
      * @return RuleResult containing pass/fail status and justification
-     * @throws IllegalArgumentException if rule or stock is null
+     * @throws IllegalArgumentException  if rule or stock is null
+     * @throws RuleNotEvaluableException if the rule's indicator codes or operator
+     *                                   are not supported by the evaluator
      */
     public RuleResult evaluate(Rule rule, Stock stock) {
         Objects.requireNonNull(rule, "Rule cannot be null");
         Objects.requireNonNull(stock, "Stock cannot be null");
 
-        BigDecimal subjectValue = getIndicatorValue(rule.getSubjectCode(), rule.getSubjectParam(), stock);
-        BigDecimal targetValue = getIndicatorValue(rule.getTargetCode(), rule.getTargetParam(), stock);
+        BigDecimal subjectValue = resolveIndicator(rule.getSubjectCode(), rule.getSubjectParam(), stock);
+        BigDecimal targetValue = resolveIndicator(rule.getTargetCode(), rule.getTargetParam(), stock);
 
         if (subjectValue == null || targetValue == null) {
             return RuleResult.builder()
@@ -50,123 +61,32 @@ public class RuleEvaluator {
     }
 
     /**
-     * Gets the value of a technical indicator from stock data.
-     * 
-     * @param indicatorCode the code of the indicator (e.g., "PRICE", "SMA",
-     *                      "VOLUME")
-     * @param param         optional parameter for the indicator (e.g., 50 for
-     *                      SMA50)
+     * Resolves the value of a technical indicator from stock data by delegating
+     * to the capability registered in {@link RuleCapabilityCatalog}.
+     *
+     * @param indicatorCode the code of the indicator (e.g., "PRICE", "SMA", "VOLUME")
+     * @param param         optional parameter for the indicator (e.g., 50 for SMA50)
      * @param stock         the stock data
-     * @return the indicator value, or null if not available
+     * @return the indicator value, or {@code null} if the stock has no data for this parameter
+     * @throws RuleNotEvaluableException if the indicator code is not in the catalog
      */
-    private BigDecimal getIndicatorValue(String indicatorCode, Double param, Stock stock) {
-        if (indicatorCode == null) {
-            return null;
-        }
-
-        return switch (indicatorCode.toUpperCase()) {
-            case "PRICE" -> stock.getCurrentPrice();
-            case "SMA" -> getSmaValue(param, stock);
-            case "EMA" -> getEmaValue(param, stock);
-            case "RSI" -> getRsiValue(param, stock);
-            case "MACD_LINE" -> stock.getMacdLine();
-            case "MACD_SIGNAL" -> stock.getMacdSignal();
-            case "MACD_HIST" -> stock.getMacdHistogram();
-            case "BB_UPPER" -> getBbValue(param, stock, true);
-            case "BB_LOWER" -> getBbValue(param, stock, false);
-            case "ATR" -> getAtrValue(param, stock);
-            case "VOLUME" -> stock.getVolume() != null ? BigDecimal.valueOf(stock.getVolume()) : null;
-            case "AVG_VOLUME" -> stock.getAverageVolume() != null ? BigDecimal.valueOf(stock.getAverageVolume()) : null;
-            case "OPEN" -> stock.getOpenPrice();
-            case "HIGH" -> stock.getHighOfDay();
-            case "LOW" -> stock.getLowOfDay();
-            case "PREV_CLOSE" -> stock.getPreviousClose();
-            case "CONSTANT", "VALUE" -> param != null ? BigDecimal.valueOf(param) : null;
-            default -> null;
-        };
-    }
-
-    /**
-     * Gets the SMA value based on the period parameter.
-     */
-    private BigDecimal getSmaValue(Double param, Stock stock) {
-        if (param == null) {
-            return null;
-        }
-
-        int period = param.intValue();
-        return switch (period) {
-            case 20 -> stock.getSma20();
-            case 50 -> stock.getSma50();
-            case 200 -> stock.getSma200();
-            default -> null;
-        };
-    }
-
-    /**
-     * Gets the EMA value based on the period parameter.
-     */
-    private BigDecimal getEmaValue(Double param, Stock stock) {
-        if (param == null) {
-            return null;
-        }
-
-        int period = param.intValue();
-        return switch (period) {
-            case 9 -> stock.getEma9();
-            case 12 -> stock.getEma12();
-            case 20 -> stock.getEma20();
-            case 26 -> stock.getEma26();
-            case 50 -> stock.getEma50();
-            case 200 -> stock.getEma200();
-            default -> null;
-        };
-    }
-
-    /**
-     * Gets the RSI value based on the period parameter.
-     */
-    private BigDecimal getRsiValue(Double param, Stock stock) {
-        if (param == null) {
-            return null;
-        }
-
-        int period = param.intValue();
-        return switch (period) {
-            case 14 -> stock.getRsi14();
-            case 30 -> stock.getRsi30();
-            default -> null;
-        };
-    }
-
-    /**
-     * Gets the Bollinger Band value based on the period parameter.
-     */
-    private BigDecimal getBbValue(Double param, Stock stock, boolean upper) {
-        int period = param != null ? param.intValue() : 20;
-        return switch (period) {
-            case 20 -> upper ? stock.getBbUpper20() : stock.getBbLower20();
-            default -> null;
-        };
-    }
-
-    /**
-     * Gets the ATR value based on the period parameter.
-     */
-    private BigDecimal getAtrValue(Double param, Stock stock) {
-        int period = param != null ? param.intValue() : 14;
-        return switch (period) {
-            case 14 -> stock.getAtr14();
-            default -> null;
-        };
+    private BigDecimal resolveIndicator(String indicatorCode, Double param, Stock stock) {
+        RuleCapability cap = RuleCapabilityCatalog.getCapability(indicatorCode)
+                .orElseThrow(() -> new RuleNotEvaluableException(
+                        "Indicator '" + indicatorCode + "' is not supported by the rule evaluator. "
+                                + "Supported codes: " + RuleCapabilityCatalog.getSupportedCodes()));
+        return cap.resolve(param, stock);
     }
 
     /**
      * Evaluates the comparison operator between subject and target values.
+     *
+     * @throws RuleNotEvaluableException if the operator is not supported
      */
     private boolean evaluateOperator(String operator, BigDecimal subject, BigDecimal target) {
-        if (operator == null) {
-            return false;
+        if (operator == null || !RuleCapabilityCatalog.isOperatorSupported(operator)) {
+            throw new RuleNotEvaluableException(
+                    "Operator '" + operator + "' is not supported by the rule evaluator.");
         }
 
         return switch (operator.toUpperCase()) {
@@ -176,7 +96,8 @@ public class RuleEvaluator {
             case "<=", "LESS_THAN_OR_EQUAL" -> subject.compareTo(target) <= 0;
             case "=", "==", "EQUALS" -> subject.compareTo(target) == 0;
             case "!=", "NOT_EQUALS" -> subject.compareTo(target) != 0;
-            default -> false;
+            default -> throw new RuleNotEvaluableException(
+                    "Operator '" + operator + "' is not supported by the rule evaluator.");
         };
     }
 
