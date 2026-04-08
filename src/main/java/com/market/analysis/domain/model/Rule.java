@@ -58,17 +58,34 @@ public class Rule {
 
     /**
      * Validates that this rule is evaluable by the rule engine.
-     * Checks that subject code, target code, their respective parameters
-     * and the operator are all supported by {@link RuleCapabilityCatalog}.
+     * Checks that subject code, target code, their respective parameters,
+     * the operator, and the role constraints (subject / target allowed) are
+     * all supported by {@link RuleCapabilityCatalog}.
      *
      * @throws IllegalArgumentException if any part of the rule is not supported
      */
     public void validate() {
-        validateIndicator("subject", subjectCode, subjectParam);
-        validateIndicator("target", targetCode, targetParam);
+        validateIndicatorAsSubject(subjectCode, subjectParam);
+        validateIndicatorAsTarget(targetCode, targetParam);
         if (!RuleCapabilityCatalog.isOperatorSupported(operator)) {
             throw new IllegalArgumentException(
                     "Operator '" + operator + "' is not supported by the rule evaluator.");
+        }
+    }
+
+    private void validateIndicatorAsSubject(String code, Double param) {
+        validateIndicator("subject", code, param);
+        if (!RuleCapabilityCatalog.isSubjectAllowed(code)) {
+            throw new IllegalArgumentException(
+                    "Indicator '" + code + "' is not allowed as a rule subject.");
+        }
+    }
+
+    private void validateIndicatorAsTarget(String code, Double param) {
+        validateIndicator("target", code, param);
+        if (!RuleCapabilityCatalog.isTargetAllowed(code)) {
+            throw new IllegalArgumentException(
+                    "Indicator '" + code + "' is not allowed as a rule target.");
         }
     }
 
