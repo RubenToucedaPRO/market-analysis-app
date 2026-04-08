@@ -84,7 +84,7 @@ public class Strategy {
             if (rule == null) {
                 throw new IllegalStateException("Strategy cannot contain null rules");
             }
-            // Rules will validate themselves when evaluated
+            rule.validate();
         }
 
         if (objective == null) {

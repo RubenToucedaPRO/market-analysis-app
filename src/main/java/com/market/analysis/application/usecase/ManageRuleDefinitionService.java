@@ -5,6 +5,8 @@ import java.util.List;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.domain.model.RuleCapabilityCatalog;
+import com.market.analysis.domain.model.RuleCapability;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
@@ -32,6 +34,8 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         if (ruleDefinitionDto.getCode() == null || ruleDefinitionDto.getCode().isBlank()) {
             throw new IllegalArgumentException("RuleDefinition code cannot be null or empty");
         }
+
+        validateAgainstCatalog(ruleDefinitionDto);
 
         if (ruleDefinitionRepository.existsByCode(ruleDefinitionDto.getCode())) {
             throw new IllegalArgumentException(
@@ -70,6 +74,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         if (!ruleDefinitionRepository.existsById(ruleDefinitionDto.getId())) {
             throw new StockDataNotFoundException("RuleDefinition not found with id: " + ruleDefinitionDto.getId());
         }
+        validateAgainstCatalog(ruleDefinitionDto);
         log.info("Updating rule definition with ID: {}", ruleDefinitionDto.getId());
         RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
         RuleDefinition savedRule = ruleDefinitionRepository.save(ruleDefinition);
@@ -85,5 +90,28 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         log.info("Deleting rule definition with ID: {}", id);
         ruleDefinitionRepository.deleteById(id);
         log.info("Rule definition deleted successfully: {}", id);
+    }
+
+    /**
+     * Validates a RuleDefinitionDTO against the canonical capability catalog.
+     * Ensures the code is supported and the requiresParam flag is consistent
+     * with what the evaluator expects.
+     */
+    private void validateAgainstCatalog(RuleDefinitionDTO dto) {
+        String code = dto.getCode();
+        if (!RuleCapabilityCatalog.isSupported(code)) {
+            throw new IllegalArgumentException(
+                    "Rule code '" + code + "' is not supported by the rule evaluator. "
+                            + "Supported codes: " + RuleCapabilityCatalog.getSupportedCodes());
+        }
+
+        boolean catalogRequiresParam = RuleCapabilityCatalog.getCapability(code)
+                .map(RuleCapability::isRequiresParam)
+                .orElse(false);
+        if (dto.isRequiresParam() != catalogRequiresParam) {
+            throw new IllegalArgumentException(
+                    "Rule code '" + code + "' requires requiresParam=" + catalogRequiresParam
+                            + " according to the canonical catalog, but got " + dto.isRequiresParam());
+        }
     }
 }
