@@ -38,6 +38,7 @@ public class RuleDefinitionController {
     public String showCreateForm(Model model) {
         model.addAttribute("ruleDefinition", new RuleDefinitionDTO());
         model.addAttribute("isEdit", false);
+        model.addAttribute("capabilities", manageRuleDefinitionUseCase.getCatalogCapabilities());
         return "rule-definitions/create";
     }
 

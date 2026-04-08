@@ -167,6 +167,14 @@ public final class RuleCapability {
     }
 
     /**
+     * Returns whether this capability accepts any numeric parameter value
+     * (as opposed to a fixed set of allowed values).
+     */
+    public boolean isAnyParamAllowed() {
+        return anyParamAllowed;
+    }
+
+    /**
      * Returns the set of operators valid for this indicator.
      */
     public Set<String> getAllowedOperators() {
