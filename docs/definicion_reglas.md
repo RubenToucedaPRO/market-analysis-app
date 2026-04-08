@@ -206,3 +206,79 @@ Si se quiere reducir riesgo, el orden más seguro es:
 6. Fase 5 para limpiar y migrar datos existentes.
 
 Ese orden permite corregir el problema sin romper la evaluación actual mientras se hace la transición.
+
+## 9. Backlog técnico priorizado
+
+### P0. Blindaje mínimo para cortar fallos en runtime
+
+1. Crear un catálogo canónico inicial en dominio (solo lectura)
+- Qué hacer: centralizar códigos válidos, necesidad de parámetro y parámetros permitidos por indicador.
+- Dependencias: ninguna.
+- Criterio de cierre: existe un único punto de consulta para capacidades soportadas.
+
+2. Validar alta y edición de `RuleDefinition` contra el catálogo canónico
+- Qué hacer: en el caso de uso de gestión de definiciones, rechazar códigos no soportados y combinaciones incoherentes (`requiresParam` inconsistente).
+- Dependencias: tarea 1.
+- Criterio de cierre: no se puede persistir una definición que no exista en capacidades reales.
+
+3. Endurecer validación en creación de estrategia
+- Qué hacer: validar cada `Rule` (subjectCode, targetCode, subjectParam, targetParam, operator) antes de guardar.
+- Dependencias: tarea 1.
+- Criterio de cierre: no entra ninguna estrategia con reglas no evaluables.
+
+4. Tests de regresión P0
+- Qué hacer: añadir tests unitarios para casos válidos e inválidos en servicios de gestión y creación de estrategia.
+- Dependencias: tareas 2 y 3.
+- Criterio de cierre: cobertura de ramas en validación crítica y evidencia de rechazo temprano.
+
+### P1. Alineación de modelo y evaluador
+
+5. Introducir modelo explícito de capacidad de regla
+- Qué hacer: crear Value Object o agregado de capacidad (código, parámetros permitidos, operadores permitidos, roles sujeto/objetivo).
+- Dependencias: tarea 1.
+- Criterio de cierre: reglas de validez viven en dominio y no en condicionales dispersos.
+
+6. Refactor del `RuleEvaluator` para consumir capacidades
+- Qué hacer: encapsular resolución por indicador con estrategia/resolutor y eliminar dependencia directa de cadenas mágicas.
+- Dependencias: tarea 5.
+- Criterio de cierre: el evaluador usa el catálogo de capacidades como contrato de ejecución.
+
+7. Normalización de errores de negocio
+- Qué hacer: reemplazar fallos silenciosos por excepciones o resultados explícitos de validación con mensaje accionable.
+- Dependencias: tareas 5 y 6.
+- Criterio de cierre: errores consistentes en aplicación y presentación.
+
+8. Tests de regresión P1
+- Qué hacer: ampliar tests de `RuleEvaluator` para cubrir catálogos, límites de parámetros y operadores no permitidos.
+- Dependencias: tareas 6 y 7.
+- Criterio de cierre: pruebas de dominio cubren caminos felices y negativos de capacidad.
+
+### P2. UX y migración segura
+
+9. UI guiada por capacidades
+- Qué hacer: filtrar selects y parámetros en formulario para que solo muestre combinaciones válidas.
+- Dependencias: tareas 5 y 7.
+- Criterio de cierre: frontend no permite construir reglas inválidas por diseño.
+
+10. Migración de datos existentes
+- Qué hacer: script de saneamiento para `rule_definitions` y estrategias existentes, marcando o corrigiendo registros no compatibles.
+- Dependencias: tareas 2, 3 y 5.
+- Criterio de cierre: dataset vigente consistente con catálogo canónico.
+
+11. Observabilidad y trazabilidad
+- Qué hacer: añadir logging estructurado de rechazos de validación y métricas de error por tipo.
+- Dependencias: tareas 2, 3 y 7.
+- Criterio de cierre: diagnóstico rápido de causas de rechazo sin inspección manual profunda.
+
+12. Checklist de release
+- Qué hacer: ejecutar suite completa, validar cobertura, revisar SonarQube y actualizar documentación funcional/técnica.
+- Dependencias: tareas 4, 8, 10 y 11.
+- Criterio de cierre: release candidate sin deuda crítica en reglas.
+
+## 10. Orden recomendado de implementación (iteraciones)
+
+Iteración A (estabilidad inmediata): 1, 2, 3, 4
+
+Iteración B (alineación de arquitectura): 5, 6, 7, 8
+
+Iteración C (adopción y cierre): 9, 10, 11, 12
