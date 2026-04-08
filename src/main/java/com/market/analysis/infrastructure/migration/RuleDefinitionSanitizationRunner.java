@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
+import com.market.analysis.domain.model.RuleCapability;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 
@@ -55,7 +56,7 @@ public class RuleDefinitionSanitizationRunner implements CommandLineRunner {
             }
 
             boolean expectedRequiresParam = RuleCapabilityCatalog.getCapability(rd.getCode())
-                    .map(cap -> cap.isRequiresParam())
+                    .map(RuleCapability::isRequiresParam)
                     .orElse(false);
 
             if (rd.isRequiresParam() != expectedRequiresParam) {

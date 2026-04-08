@@ -27,7 +27,7 @@
             th:onchange="|toggleSubjectParameter(this, ${index})|"
             required
           >
-            <option value="" data-requires-param="false" data-allowed-params="[]" data-any-param="false">
+            <option value="" data-requires-param="false" data-any-param="false">
               -- Seleccionar Indicador --
             </option>
             <option
@@ -35,7 +35,6 @@
               th:value="${rd.code}"
               th:text="${rd.name}"
               th:attr="data-requires-param=${rd.requiresParam},data-any-param=${rd.anyParamAllowed}"
-              th:data-allowed-params="${rd.allowedParams}"
               th:selected="${rule != null && rule.subjectCode == rd.code}"
             ></option>
           </select>
@@ -122,7 +121,7 @@
             th:onchange="|toggleTargetParameter(this, ${index})|"
             required
           >
-            <option value="" data-requires-param="false" data-allowed-params="[]" data-any-param="false">
+            <option value="" data-requires-param="false" data-any-param="false">
               -- Seleccionar Indicador --
             </option>
             <option
@@ -130,7 +129,6 @@
               th:value="${rd.code}"
               th:text="${rd.name}"
               th:attr="data-requires-param=${rd.requiresParam},data-any-param=${rd.anyParamAllowed}"
-              th:data-allowed-params="${rd.allowedParams}"
               th:selected="${rule != null && rule.targetCode == rd.code}"
             ></option>
           </select>

@@ -135,7 +135,7 @@
                       type="checkbox"
                       id="requiresParam"
                       th:field="*{requiresParam}"
-                      th:disabled="${!isEdit}"
+                      th:onclick="${!isEdit} ? 'return false' : ''"
                     />
                     <label
                       class="form-check-label fw-semibold"

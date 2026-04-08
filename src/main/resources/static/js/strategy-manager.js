@@ -175,16 +175,14 @@ function toggleParameter(selectElement, containerId, paramSelectId, paramInputId
 
   paramContainer.style.setProperty("display", "block", "important");
 
-  // Determine whether we should show a constrained-value select or a free number input.
-  // allowedParams comes from the option's data attribute (set by Thymeleaf as a Set<Double>
-  // serialised to a string like "[20.0, 50.0, 200.0]").
-  const rawAllowed = selectedOption.dataset.allowedParams || "[]";
-  // Parse the Set<Double> toString representation produced by Java / Thymeleaf.
-  const allowedValues = rawAllowed
-    .replace(/[\[\]\s]/g, "")
-    .split(",")
-    .map(Number)
-    .filter((v) => !isNaN(v) && v !== null);
+  // Determine whether to show a constrained-value select or a free number input.
+  // allowedParams comes from the JSON-serialised ruleDefinitions array injected by
+  // Thymeleaf – this avoids fragile Set.toString() parsing of data attributes.
+  const code = selectedOption.value;
+  const rdEntry = (globalThis.ruleDefinitions || []).find((d) => d.code === code);
+  const allowedValues = rdEntry && Array.isArray(rdEntry.allowedParams)
+    ? rdEntry.allowedParams
+    : [];
 
   const sel = document.getElementById(paramSelectId);
   const inp = document.getElementById(paramInputId);
@@ -209,7 +207,7 @@ function toggleParameter(selectElement, containerId, paramSelectId, paramInputId
       inp.value = "";
     }
   } else {
-    // Free-value number input
+    // Free-value number input (anyParamAllowed indicators like CONSTANT/VALUE)
     if (inp) {
       inp.style.display = "";
       inp.disabled = false;
