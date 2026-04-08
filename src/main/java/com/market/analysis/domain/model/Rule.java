@@ -56,6 +56,37 @@ public class Rule {
      */
     private final String description;
 
+    /**
+     * Validates that this rule is evaluable by the rule engine.
+     * Checks that subject code, target code, their respective parameters
+     * and the operator are all supported by {@link RuleCapabilityCatalog}.
+     *
+     * @throws IllegalArgumentException if any part of the rule is not supported
+     */
+    public void validate() {
+        validateIndicator("subject", subjectCode, subjectParam);
+        validateIndicator("target", targetCode, targetParam);
+        if (!RuleCapabilityCatalog.isOperatorSupported(operator)) {
+            throw new IllegalArgumentException(
+                    "Operator '" + operator + "' is not supported by the rule evaluator.");
+        }
+    }
+
+    private void validateIndicator(String role, String code, Double param) {
+        if (!RuleCapabilityCatalog.isSupported(code)) {
+            throw new IllegalArgumentException(
+                    "Rule " + role + " code '" + code + "' is not supported by the rule evaluator. "
+                            + "Supported codes: " + RuleCapabilityCatalog.getSupportedCodes());
+        }
+        RuleCapabilityCatalog.getCapability(code).ifPresent(cap -> {
+            if (!cap.isParamAllowed(param)) {
+                throw new IllegalArgumentException(
+                        "Parameter " + param + " is not valid for rule " + role + " code '" + code + "'. "
+                                + "Allowed params: " + cap.getAllowedParams());
+            }
+        });
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
