@@ -140,7 +140,8 @@ public final class RuleCapability {
         if (operator == null) {
             return false;
         }
-        return allowedOperators.contains(operator) || allowedOperators.contains(operator.toUpperCase());
+        String upper = operator.toUpperCase();
+        return allowedOperators.contains(operator) || allowedOperators.contains(upper);
     }
 
     /**

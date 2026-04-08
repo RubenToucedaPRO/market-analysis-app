@@ -84,7 +84,11 @@ public class RuleEvaluator {
      * @throws RuleNotEvaluableException if the operator is not supported
      */
     private boolean evaluateOperator(String operator, BigDecimal subject, BigDecimal target) {
-        if (operator == null || !RuleCapabilityCatalog.isOperatorSupported(operator)) {
+        if (operator == null) {
+            throw new RuleNotEvaluableException(
+                    "Rule operator is null; a comparison operator is required.");
+        }
+        if (!RuleCapabilityCatalog.isOperatorSupported(operator)) {
             throw new RuleNotEvaluableException(
                     "Operator '" + operator + "' is not supported by the rule evaluator.");
         }

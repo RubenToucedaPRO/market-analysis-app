@@ -128,7 +128,7 @@ class RuleEvaluatorP1Test {
         }
 
         @Test
-        @DisplayName("Null operator throws RuleNotEvaluableException")
+        @DisplayName("Null operator throws RuleNotEvaluableException with descriptive message")
         void shouldThrowForNullOperator() {
             Stock stock = Stock.builder().ticker("X")
                     .currentPrice(BigDecimal.valueOf(100))
@@ -142,7 +142,8 @@ class RuleEvaluatorP1Test {
                     .build();
 
             assertThatThrownBy(() -> ruleEvaluator.evaluate(rule, stock))
-                    .isInstanceOf(RuleNotEvaluableException.class);
+                    .isInstanceOf(RuleNotEvaluableException.class)
+                    .hasMessageContaining("null");
         }
 
         @ParameterizedTest
@@ -193,7 +194,7 @@ class RuleEvaluatorP1Test {
 
         @Test
         @DisplayName("MACD_LINE in catalog but no MACD data → FAILED: Missing subject data")
-        void macdLineInCatalogButNoData() {
+        void macdLineInCatalogButNoSubjectData() {
             Stock stock = Stock.builder().ticker("X")
                     .currentPrice(BigDecimal.valueOf(100))
                     .build(); // no MACD fields
