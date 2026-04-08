@@ -345,6 +345,13 @@ public class StockHistoricalService {
         return BigDecimal.valueOf(atr).setScale(SMA_SCALE, RoundingMode.HALF_UP);
     }
 
+    /*
+     * Calculates the Simple Moving Average (SMA) for a list of prices.
+     *
+     * @param prices List of closing prices
+     * @param period The number of periods for the SMA
+     * @return The SMA rounded to 4 decimal places, or {@code null} if insufficient data
+     */
     private BigDecimal calculateSma(List<Double> prices, int period) {
         if (prices == null || prices.size() < period)
             return null;
