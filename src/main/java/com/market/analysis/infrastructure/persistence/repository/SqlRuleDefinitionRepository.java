@@ -10,6 +10,7 @@ import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.infrastructure.persistence.entity.RuleDefinitionEntity;
 import com.market.analysis.infrastructure.persistence.mapper.RuleDefinitionMapper;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,6 +60,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         log.debug("Deleting rule definition with ID: {}", id);
         if (strategyRepository.findAll().stream()

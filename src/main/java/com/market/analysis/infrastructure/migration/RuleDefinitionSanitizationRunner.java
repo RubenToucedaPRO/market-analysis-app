@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.RuleCapability;
+import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 
