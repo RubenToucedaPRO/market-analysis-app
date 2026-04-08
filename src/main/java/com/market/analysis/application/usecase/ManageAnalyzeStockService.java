@@ -42,6 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private static final String TICKER_DATA_NOT_FOUND = "Ticker data not found for: ";
+    private static final ZoneId NEW_YORK_ZONE = ZoneId.of("America/New_York");
+    private static final int DEFAULT_INDICATOR_PERIOD = 20;
 
     private final StockDataRepository stockDataRepository;
     private final CompanyProfileRepository companyProfileRepository;
@@ -73,7 +75,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
-            Stock stock = getdataFromProvider(ticker);
+            Stock stock = getDataFromProvider(ticker);
 
             if (stock != null) {
                 // Set the strategy ID
@@ -210,58 +212,105 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         log.info("Company profile for ticker {} saved/updated successfully", ticker);
     }
 
-    private Stock getdataFromProvider(String ticker) {
+    private Stock getDataFromProvider(String ticker) {
         Stock stock = stockProviderPort.getQuote(ticker);
         if (stock == null) {
             log.warn("No stock quote found for ticker: {}", ticker);
             return null;
         }
-        ZoneId zone = ZoneId.of("America/New_York");
-        Instant startOfToday = LocalDate.now(zone)
-                .atStartOfDay(zone)
+
+        Instant startOfToday = LocalDate.now(NEW_YORK_ZONE)
+                .atStartOfDay(NEW_YORK_ZONE)
+                .toInstant();
+        Instant startOfTomorrow = LocalDate.now(NEW_YORK_ZONE)
+                .plusDays(1)
+                .atStartOfDay(NEW_YORK_ZONE)
                 .toInstant();
 
-        Instant startOfTomorrow = LocalDate.now(zone)
-                .plusDays(1)
-                .atStartOfDay(zone)
-                .toInstant();
         Stock existingStock = stockDataRepository.findByTickerAndLastUpdateBetween(ticker, startOfToday,
                 startOfTomorrow);
+
         if (existingStock != null) {
             log.info("Using historical existing stock data for ticker: {}", ticker);
-            stock.setSma20(existingStock.getSma20());
-            stock.setSma50(existingStock.getSma50());
-            stock.setSma200(existingStock.getSma200());
-            stock.setVolume(existingStock.getVolume());
-            stock.setAverageVolume(existingStock.getAverageVolume());
-            stock.setLastUpdated(existingStock.getLastUpdated());
+            applyCachedDailyMetrics(stock, existingStock);
         } else {
-            log.info("Fetching new stock data for ticker: {}", ticker);
-            HistoricalData historicalData = historicalProviderPort.fetchHistoricalData(ticker);
-            if (historicalData != null) {
-                apiCallRateRepository.save(ticker, historicalData.getLastUpdate());
-                log.info("Historical data for ticker {} fetched and saved successfully", ticker);
-
-                // F1.7: persist OHLCV candles orchestrated by the Use Case (F1.8: observability)
-                List<Candle> candles = historicalData.getCandles();
-                if (!candles.isEmpty()) {
-                    log.info("Persisting {} candle(s) for ticker={}", candles.size(), ticker);
-                    candleHistoryRepository.saveCandlesForTicker(ticker, candles);
-                } else {
-                    log.debug("No candles to persist for ticker={}", ticker);
-                }
-            }
-            TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
-                    20);
-            stock.setSma20(technicalIndicators.getSma20());
-            stock.setSma50(technicalIndicators.getSma50());
-            stock.setSma200(technicalIndicators.getSma200());
-            stock.setVolume(technicalIndicators.getCurrentVolume());
-            stock.setAverageVolume(technicalIndicators.getAverageVolume());
-            stock.setLastUpdated(technicalIndicators.getLastUpdated());
+            enrichWithFreshHistoricalIndicators(ticker, stock);
         }
 
         return stock;
+    }
+
+    private void applyCachedDailyMetrics(Stock targetStock, Stock cachedStock) {
+        targetStock.setSma20(cachedStock.getSma20());
+        targetStock.setSma50(cachedStock.getSma50());
+        targetStock.setSma200(cachedStock.getSma200());
+        targetStock.setVolume(cachedStock.getVolume());
+        targetStock.setAverageVolume(cachedStock.getAverageVolume());
+        targetStock.setLastUpdated(cachedStock.getLastUpdated());
+    }
+
+    private void enrichWithFreshHistoricalIndicators(String ticker, Stock stock) {
+        log.info("Fetching new stock data for ticker: {}", ticker);
+        HistoricalData historicalData = historicalProviderPort.fetchHistoricalData(ticker);
+        if (historicalData == null) {
+            log.warn("No historical data found for ticker: {}, skipping technical indicators", ticker);
+            return;
+        }
+
+        apiCallRateRepository.save(ticker, historicalData.getLastUpdate());
+        log.info("Historical data for ticker {} fetched and saved successfully", ticker);
+        persistCandlesIfPresent(ticker, historicalData.getCandles());
+
+        TechnicalIndicators technicalIndicators = stockHistoricalService.calculateIndicators(historicalData,
+                DEFAULT_INDICATOR_PERIOD);
+        if (technicalIndicators == null) {
+            log.warn("No technical indicators calculated for ticker: {}", ticker);
+            return;
+        }
+
+        applyTechnicalIndicators(stock, technicalIndicators);
+    }
+
+    private void persistCandlesIfPresent(String ticker, List<Candle> candles) {
+        if (candles == null || candles.isEmpty()) {
+            log.debug("No candles to persist for ticker={}", ticker);
+            return;
+        }
+        log.info("Persisting {} candle(s) for ticker={}", candles.size(), ticker);
+        candleHistoryRepository.saveCandlesForTicker(ticker, candles);
+    }
+
+    private void applyTechnicalIndicators(Stock stock, TechnicalIndicators technicalIndicators) {
+        stock.setSma20(technicalIndicators.getSma20());
+        stock.setSma50(technicalIndicators.getSma50());
+        stock.setSma200(technicalIndicators.getSma200());
+        stock.setVolume(technicalIndicators.getCurrentVolume());
+        stock.setAverageVolume(technicalIndicators.getAverageVolume());
+        stock.setLastUpdated(technicalIndicators.getLastUpdated());
+
+        // EMA
+        stock.setEma9(technicalIndicators.getEma9());
+        stock.setEma12(technicalIndicators.getEma12());
+        stock.setEma20(technicalIndicators.getEma20());
+        stock.setEma26(technicalIndicators.getEma26());
+        stock.setEma50(technicalIndicators.getEma50());
+        stock.setEma200(technicalIndicators.getEma200());
+
+        // RSI
+        stock.setRsi14(technicalIndicators.getRsi14());
+        stock.setRsi30(technicalIndicators.getRsi30());
+
+        // MACD
+        stock.setMacdLine(technicalIndicators.getMacdLine());
+        stock.setMacdSignal(technicalIndicators.getMacdSignal());
+        stock.setMacdHistogram(technicalIndicators.getMacdHistogram());
+
+        // Bollinger Bands
+        stock.setBbUpper20(technicalIndicators.getBbUpper20());
+        stock.setBbLower20(technicalIndicators.getBbLower20());
+
+        // ATR
+        stock.setAtr14(technicalIndicators.getAtr14());
     }
 
     @Override

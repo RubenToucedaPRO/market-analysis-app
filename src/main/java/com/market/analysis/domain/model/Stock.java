@@ -76,4 +76,28 @@ public class Stock {
 
     private String valorationIA;
 
+    // EMA
+    private BigDecimal ema9;
+    private BigDecimal ema12;
+    private BigDecimal ema20;
+    private BigDecimal ema26;
+    private BigDecimal ema50;
+    private BigDecimal ema200;
+
+    // RSI
+    private BigDecimal rsi14;
+    private BigDecimal rsi30;
+
+    // MACD (derived from EMA)
+    private BigDecimal macdLine;      // EMA(12) - EMA(26)
+    private BigDecimal macdSignal;    // EMA(9) of MACD line
+    private BigDecimal macdHistogram; // macdLine - macdSignal
+
+    // Bollinger Bands (period 20)
+    private BigDecimal bbUpper20;     // SMA20 + 2*StdDev20
+    private BigDecimal bbLower20;     // SMA20 - 2*StdDev20
+
+    // ATR
+    private BigDecimal atr14;
+
 }

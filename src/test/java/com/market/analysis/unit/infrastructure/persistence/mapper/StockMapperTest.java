@@ -229,4 +229,122 @@ class StockMapperTest {
         assertThat(stock.getValorationIA()).isNull();
         assertThat(stock.getCurrentPrice()).isEqualByComparingTo(new BigDecimal("250.00"));
     }
+
+    @Test
+    @DisplayName("Should map new indicator fields (EMA, RSI, MACD, BB, ATR) from domain to entity")
+    void testToEntityWithNewIndicatorFields() {
+        // Arrange
+        Stock stock = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(new BigDecimal("150.00"))
+                .ema9(new BigDecimal("149.50"))
+                .ema12(new BigDecimal("149.00"))
+                .ema20(new BigDecimal("148.00"))
+                .ema26(new BigDecimal("147.00"))
+                .ema50(new BigDecimal("145.00"))
+                .ema200(new BigDecimal("140.00"))
+                .rsi14(new BigDecimal("62.50"))
+                .rsi30(new BigDecimal("55.00"))
+                .macdLine(new BigDecimal("2.00"))
+                .macdSignal(new BigDecimal("1.50"))
+                .macdHistogram(new BigDecimal("0.50"))
+                .bbUpper20(new BigDecimal("155.00"))
+                .bbLower20(new BigDecimal("145.00"))
+                .atr14(new BigDecimal("3.20"))
+                .build();
+
+        // Act
+        StockEntity entity = stockMapper.toEntity(stock);
+
+        // Assert
+        assertThat(entity).isNotNull();
+        assertThat(entity.getEma9()).isEqualByComparingTo(new BigDecimal("149.50"));
+        assertThat(entity.getEma12()).isEqualByComparingTo(new BigDecimal("149.00"));
+        assertThat(entity.getEma20()).isEqualByComparingTo(new BigDecimal("148.00"));
+        assertThat(entity.getEma26()).isEqualByComparingTo(new BigDecimal("147.00"));
+        assertThat(entity.getEma50()).isEqualByComparingTo(new BigDecimal("145.00"));
+        assertThat(entity.getEma200()).isEqualByComparingTo(new BigDecimal("140.00"));
+        assertThat(entity.getRsi14()).isEqualByComparingTo(new BigDecimal("62.50"));
+        assertThat(entity.getRsi30()).isEqualByComparingTo(new BigDecimal("55.00"));
+        assertThat(entity.getMacdLine()).isEqualByComparingTo(new BigDecimal("2.00"));
+        assertThat(entity.getMacdSignal()).isEqualByComparingTo(new BigDecimal("1.50"));
+        assertThat(entity.getMacdHistogram()).isEqualByComparingTo(new BigDecimal("0.50"));
+        assertThat(entity.getBbUpper20()).isEqualByComparingTo(new BigDecimal("155.00"));
+        assertThat(entity.getBbLower20()).isEqualByComparingTo(new BigDecimal("145.00"));
+        assertThat(entity.getAtr14()).isEqualByComparingTo(new BigDecimal("3.20"));
+    }
+
+    @Test
+    @DisplayName("Should map new indicator fields (EMA, RSI, MACD, BB, ATR) from entity to domain")
+    void testToDomainWithNewIndicatorFields() {
+        // Arrange
+        StockEntity entity = new StockEntity();
+        entity.setId(1L);
+        entity.setTicker("MSFT");
+        entity.setCurrentPrice(new BigDecimal("300.00"));
+        entity.setEma9(new BigDecimal("299.00"));
+        entity.setEma12(new BigDecimal("298.00"));
+        entity.setEma20(new BigDecimal("295.00"));
+        entity.setEma26(new BigDecimal("292.00"));
+        entity.setEma50(new BigDecimal("285.00"));
+        entity.setEma200(new BigDecimal("260.00"));
+        entity.setRsi14(new BigDecimal("70.00"));
+        entity.setRsi30(new BigDecimal("65.00"));
+        entity.setMacdLine(new BigDecimal("3.50"));
+        entity.setMacdSignal(new BigDecimal("2.80"));
+        entity.setMacdHistogram(new BigDecimal("0.70"));
+        entity.setBbUpper20(new BigDecimal("310.00"));
+        entity.setBbLower20(new BigDecimal("290.00"));
+        entity.setAtr14(new BigDecimal("4.50"));
+
+        // Act
+        Stock stock = stockMapper.toDomain(entity);
+
+        // Assert
+        assertThat(stock).isNotNull();
+        assertThat(stock.getEma9()).isEqualByComparingTo(new BigDecimal("299.00"));
+        assertThat(stock.getEma12()).isEqualByComparingTo(new BigDecimal("298.00"));
+        assertThat(stock.getEma20()).isEqualByComparingTo(new BigDecimal("295.00"));
+        assertThat(stock.getEma26()).isEqualByComparingTo(new BigDecimal("292.00"));
+        assertThat(stock.getEma50()).isEqualByComparingTo(new BigDecimal("285.00"));
+        assertThat(stock.getEma200()).isEqualByComparingTo(new BigDecimal("260.00"));
+        assertThat(stock.getRsi14()).isEqualByComparingTo(new BigDecimal("70.00"));
+        assertThat(stock.getRsi30()).isEqualByComparingTo(new BigDecimal("65.00"));
+        assertThat(stock.getMacdLine()).isEqualByComparingTo(new BigDecimal("3.50"));
+        assertThat(stock.getMacdSignal()).isEqualByComparingTo(new BigDecimal("2.80"));
+        assertThat(stock.getMacdHistogram()).isEqualByComparingTo(new BigDecimal("0.70"));
+        assertThat(stock.getBbUpper20()).isEqualByComparingTo(new BigDecimal("310.00"));
+        assertThat(stock.getBbLower20()).isEqualByComparingTo(new BigDecimal("290.00"));
+        assertThat(stock.getAtr14()).isEqualByComparingTo(new BigDecimal("4.50"));
+    }
+
+    @Test
+    @DisplayName("Should return null for new indicator fields when not set in entity")
+    void testToDomainWithNullNewIndicatorFields() {
+        // Arrange
+        StockEntity entity = new StockEntity();
+        entity.setId(1L);
+        entity.setTicker("GOOGL");
+        entity.setCurrentPrice(new BigDecimal("100.00"));
+
+        // Act
+        Stock stock = stockMapper.toDomain(entity);
+
+        // Assert
+        assertThat(stock).isNotNull();
+        assertThat(stock.getEma9()).isNull();
+        assertThat(stock.getEma12()).isNull();
+        assertThat(stock.getEma20()).isNull();
+        assertThat(stock.getEma26()).isNull();
+        assertThat(stock.getEma50()).isNull();
+        assertThat(stock.getEma200()).isNull();
+        assertThat(stock.getRsi14()).isNull();
+        assertThat(stock.getRsi30()).isNull();
+        assertThat(stock.getMacdLine()).isNull();
+        assertThat(stock.getMacdSignal()).isNull();
+        assertThat(stock.getMacdHistogram()).isNull();
+        assertThat(stock.getBbUpper20()).isNull();
+        assertThat(stock.getBbLower20()).isNull();
+        assertThat(stock.getAtr14()).isNull();
+    }
 }
