@@ -662,6 +662,47 @@ class StockHistoricalServiceTest {
             // EMA9 reacts faster to recent spike → should be higher than EMA200
             assertThat(indicators.getEma9().compareTo(indicators.getEma200())).isGreaterThan(0);
         }
+
+        @Test
+        @DisplayName("EMA9 should correctly track a linearly increasing price series")
+        void shouldCalculateEma9Correctly() {
+            // 50 prices in Polygon desc order: most recent first, linearly decreasing
+            // After reversal to oldest→newest, prices are linearly increasing: 1, 2, 3, ..., 50
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                prices.add(50.0 - i); // desc: [50, 49, 48, ..., 1]
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getEma9()).isNotNull();
+            // EMA9 for increasing series should be greater than the average of first 9 values
+            // First 9 values (oldest→newest): 1, 2, 3, 4, 5, 6, 7, 8, 9; avg = 5.0
+            // EMA9 should be higher due to exponential weighting toward recent values
+            assertThat(indicators.getEma9().compareTo(new BigDecimal("5.0"))).isGreaterThan(0);
+        }
+
+        @Test
+        @DisplayName("EMA(N) seed should equal SMA(N) of the first N values when only N prices are available")
+        void shouldUseSmaAsEmaInitialSeed() {
+            // With exactly 9 prices, there are no further iterations: EMA(9) = seed = SMA of all 9 prices
+            List<Double> prices = Arrays.asList(101.0, 99.0, 102.0, 98.0, 100.0, 103.0, 97.0, 101.0, 100.0);
+            double expectedAvg = prices.stream().mapToDouble(Double::doubleValue).average().getAsDouble();
+            BigDecimal expected = BigDecimal.valueOf(expectedAvg).setScale(4, java.math.RoundingMode.HALF_UP);
+
+            List<Long> volumes = new ArrayList<>(Collections.nCopies(9, 1_000_000L));
+            HistoricalData data = HistoricalData.builder()
+                    .ticker("AAPL")
+                    .closingPrices(prices)
+                    .volumes(volumes)
+                    .lastUpdate(java.time.Instant.now())
+                    .build();
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 9);
+
+            assertThat(indicators.getEma9()).isEqualByComparingTo(expected);
+        }
     }
 
     @Nested
@@ -945,6 +986,25 @@ class StockHistoricalServiceTest {
             // For a monotonically increasing series, fast EMA > slow EMA, so MACD_LINE > 0
             assertThat(indicators.getMacdLine().compareTo(BigDecimal.ZERO)).isGreaterThan(0);
         }
+
+        @Test
+        @DisplayName("MACD_LINE should equal EMA12 minus EMA26 for constant-price series")
+        void shouldCalculateMacdLineAsDifferenceOfEmas() {
+            // With constant prices, EMA12 = EMA26 = constant, so MACD_LINE = EMA12 - EMA26 = 0
+            List<Double> prices = Collections.nCopies(100, 100.0);
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getMacdLine()).isNotNull();
+            assertThat(indicators.getEma12()).isNotNull();
+            assertThat(indicators.getEma26()).isNotNull();
+
+            BigDecimal expectedLine = indicators.getEma12()
+                    .subtract(indicators.getEma26())
+                    .setScale(4, java.math.RoundingMode.HALF_UP);
+            assertThat(indicators.getMacdLine()).isEqualByComparingTo(expectedLine);
+        }
     }
 
     @Nested
@@ -1046,6 +1106,38 @@ class StockHistoricalServiceTest {
 
             assertThat(indicators.getBbUpper20()).isEqualByComparingTo(indicators.getSma20());
             assertThat(indicators.getBbLower20()).isEqualByComparingTo(indicators.getSma20());
+        }
+
+        @Test
+        @DisplayName("BB_UPPER should be strictly above SMA20 when prices vary (stdDev > 0)")
+        void shouldCalculateBbUpperAboveSma() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                prices.add(100.0 + (i % 5) * 2.0); // alternating prices, stdDev > 0
+            }
+            HistoricalData data = buildDataWithCandles(prices, Collections.emptyList());
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getBbUpper20()).isNotNull();
+            assertThat(indicators.getSma20()).isNotNull();
+            assertThat(indicators.getBbUpper20().compareTo(indicators.getSma20())).isGreaterThan(0);
+        }
+
+        @Test
+        @DisplayName("BB_LOWER should be strictly below SMA20 when prices vary (stdDev > 0)")
+        void shouldCalculateBbLowerBelowSma() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                prices.add(100.0 + (i % 5) * 2.0); // alternating prices, stdDev > 0
+            }
+            HistoricalData data = buildDataWithCandles(prices, Collections.emptyList());
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getBbLower20()).isNotNull();
+            assertThat(indicators.getSma20()).isNotNull();
+            assertThat(indicators.getBbLower20().compareTo(indicators.getSma20())).isLessThan(0);
         }
 
         // ---- ATR ----

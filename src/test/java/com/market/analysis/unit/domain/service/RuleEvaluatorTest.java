@@ -934,5 +934,97 @@ class RuleEvaluatorTest {
             assertThat(result.isPassed()).isFalse();
             assertThat(result.getJustification()).contains("Missing");
         }
+
+        @Test
+        @DisplayName("Should pass rule when price is below BB_LOWER (oversold signal)")
+        void shouldPassRuleWhenPriceBelowBbLower() {
+            Stock stockBelowBands = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(85.00))
+                    .bbUpper20(BigDecimal.valueOf(110.00))
+                    .bbLower20(BigDecimal.valueOf(90.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(8L)
+                    .name("PRICE < BB_LOWER(20)")
+                    .subjectCode("PRICE")
+                    .subjectParam(null)
+                    .operator("<")
+                    .targetCode("BB_LOWER")
+                    .targetParam(20.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockBelowBands);
+
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should pass rule when price is above BB_UPPER (overbought signal)")
+        void shouldPassRuleWhenPriceAboveBbUpper() {
+            Stock stockAboveBands = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(115.00))
+                    .bbUpper20(BigDecimal.valueOf(110.00))
+                    .bbLower20(BigDecimal.valueOf(90.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(9L)
+                    .name("PRICE > BB_UPPER(20)")
+                    .subjectCode("PRICE")
+                    .subjectParam(null)
+                    .operator(">")
+                    .targetCode("BB_UPPER")
+                    .targetParam(20.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockAboveBands);
+
+            assertThat(result.isPassed()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Should fail rule when BB value is null (no indicator data available)")
+        void shouldReturnFailedWhenBbValueIsNull() {
+            Stock stockNoBb = Stock.builder()
+                    .ticker("AAPL")
+                    .currentPrice(BigDecimal.valueOf(100.00))
+                    .build();
+
+            Rule rule = Rule.builder()
+                    .id(10L)
+                    .name("PRICE < BB_UPPER(20)")
+                    .subjectCode("PRICE")
+                    .subjectParam(null)
+                    .operator("<")
+                    .targetCode("BB_UPPER")
+                    .targetParam(20.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockNoBb);
+
+            assertThat(result.isPassed()).isFalse();
+            assertThat(result.getJustification()).contains("Missing");
+        }
+
+        @Test
+        @DisplayName("Justification should include ATR code when evaluating ATR rule")
+        void shouldFormatAtrNameInJustification() {
+            Rule rule = Rule.builder()
+                    .id(11L)
+                    .name("ATR < 5.00")
+                    .subjectCode("ATR")
+                    .subjectParam(14.0)
+                    .operator("<")
+                    .targetCode("CONSTANT")
+                    .targetParam(5.0)
+                    .build();
+
+            RuleResult result = ruleEvaluator.evaluate(rule, stockWithBbAtr);
+
+            assertThat(result.getJustification()).contains("ATR");
+        }
     }
 }
