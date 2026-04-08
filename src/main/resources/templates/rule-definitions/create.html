@@ -92,17 +92,9 @@
                       th:value="${cap.code}"
                       th:text="${cap.code}"
                       th:attr="data-requires-param=${cap.requiresParam}"
-                      th:selected="*{code == cap.code}"
+                      th:selected="*{code} == ${cap.code}"
                     ></option>
                   </select>
-                  <input
-                    th:if="${isEdit}"
-                    type="text"
-                    class="form-control"
-                    id="code"
-                    th:field="*{code}"
-                    readonly
-                  />
                   <small class="form-text text-muted">
                     Identificador único usado en el código. No se puede cambiar
                     después de la creación.
@@ -144,7 +136,8 @@
                       Requiere Parámetro
                     </label>
                     <small class="form-text text-muted d-block">
-                      Se establece automáticamente según el indicador seleccionado.
+                      Se establece automáticamente según el indicador
+                      seleccionado.
                     </small>
                   </div>
                 </div>
