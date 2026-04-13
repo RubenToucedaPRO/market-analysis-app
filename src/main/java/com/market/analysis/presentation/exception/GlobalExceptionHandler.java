@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.market.analysis.domain.exception.EntityInUseException;
 import com.market.analysis.domain.exception.RuleDefinitionNotFoundException;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.infrastructure.exception.AIServiceException;
@@ -14,192 +16,185 @@ import com.market.analysis.infrastructure.exception.PersistenceException;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.exception.StockException;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 /**
  * Global exception handler for the application.
  * This class captures exceptions thrown by controllers and provides
  * a centralized error handling mechanism following the Clean Architecture pattern.
- * 
- * Handles domain, infrastructure, and generic exceptions,
- * providing user-friendly error pages with navigation capabilities.
+ *
+ * <p>Exceptions are grouped by behaviour:</p>
+ * <ul>
+ *   <li>Domain/Navigation errors → redirect to referer with original message (log.warn)</li>
+ *   <li>Integrity errors        → redirect to referer with a fixed user-friendly message</li>
+ *   <li>External-service errors → redirect to referer with a fixed user-friendly message (log.error)</li>
+ *   <li>Critical errors         → render error.html with technical details</li>
+ * </ul>
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-    
+
     private static final String ERROR_VIEW = "error";
     private static final String ATTR_ERROR_MESSAGE = "errorMessage";
     private static final String ATTR_ERROR_DETAILS = "errorDetails";
     private static final String ATTR_ERROR_TYPE = "errorType";
+    private static final String DEFAULT_REFERER = "/";
+
+    private static final String EXTERNAL_SERVICE_MSG =
+            "El servicio de datos de mercado no está disponible temporalmente";
+    private static final String ENTITY_IN_USE_MSG =
+            "No se puede eliminar el recurso porque tiene dependencias asociadas";
+
+    // -------------------------------------------------------------------------
+    // Domain / Navigation errors – redirect with warn + original exception message
+    // -------------------------------------------------------------------------
 
     /**
-     * Handles RuleDefinitionNotFoundException - domain exception.
-     * Thrown when a requested rule definition is not found in the system.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
+     * Handles RuleDefinitionNotFoundException – domain exception.
      */
     @ExceptionHandler(RuleDefinitionNotFoundException.class)
-    public String handleRuleDefinitionNotFoundException(RuleDefinitionNotFoundException ex, Model model) {
-        log.error("Rule definition not found: {}", ex.getMessage(), ex);
-        
-        model.addAttribute(ATTR_ERROR_TYPE, "Rule Definition Not Found");
-        model.addAttribute(ATTR_ERROR_MESSAGE, "The requested rule definition could not be found.");
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
-        return ERROR_VIEW;
+    public String handleRuleDefinitionNotFoundException(
+            RuleDefinitionNotFoundException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.warn("Rule definition not found: {}", ex.getMessage());
+        return redirectWithError(ex.getMessage(), ra, req);
     }
 
     /**
-     * Handles StockDataNotFoundException - domain exception.
-     * Thrown when stock data is not available for the requested ticker.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
+     * Handles StockDataNotFoundException – domain exception.
      */
     @ExceptionHandler(StockDataNotFoundException.class)
-    public String handleStockDataNotFoundException(StockDataNotFoundException ex, Model model) {
-        log.error("Stock data not found: {}", ex.getMessage(), ex);
-        
-        model.addAttribute(ATTR_ERROR_TYPE, "Stock Data Not Found");
-        model.addAttribute(ATTR_ERROR_MESSAGE, "The requested stock data could not be found.");
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
-        return ERROR_VIEW;
+    public String handleStockDataNotFoundException(
+            StockDataNotFoundException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.warn("Stock data not found: {}", ex.getMessage());
+        return redirectWithError(ex.getMessage(), ra, req);
     }
 
+    // -------------------------------------------------------------------------
+    // Integrity errors – redirect with fixed user-friendly message
+    // -------------------------------------------------------------------------
+
     /**
-     * Handles StockException - infrastructure exception.
-     * General exception for stock-related operations.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
+     * Handles EntityInUseException – thrown when deleting an entity that has dependencies.
      */
-    @ExceptionHandler(StockException.class)
-    public String handleStockException(StockException ex, Model model) {
-        log.error("Stock exception occurred: {}", ex.getMessage(), ex);
-        
-        model.addAttribute(ATTR_ERROR_TYPE, "Stock Processing Error");
-        model.addAttribute(ATTR_ERROR_MESSAGE, "An error occurred while processing stock data.");
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
-        return ERROR_VIEW;
+    @ExceptionHandler(EntityInUseException.class)
+    public String handleEntityInUseException(
+            EntityInUseException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.warn("Entity in use, cannot be deleted: {}", ex.getMessage());
+        return redirectWithError(ENTITY_IN_USE_MSG, ra, req);
     }
 
+    // -------------------------------------------------------------------------
+    // External-service errors – redirect with fixed user-friendly message
+    // -------------------------------------------------------------------------
+
     /**
-     * Handles FinnhubException - infrastructure exception.
-     * Thrown when there's an error communicating with the Finnhub API.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
+     * Handles FinnhubException – infrastructure exception for Finnhub API errors.
      */
     @ExceptionHandler(FinnhubException.class)
-    public String handleFinnhubException(FinnhubException ex, Model model) {
+    public String handleFinnhubException(
+            FinnhubException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
         log.error("Finnhub API error: {}", ex.getMessage(), ex);
-        
-        model.addAttribute(ATTR_ERROR_TYPE, "External Service Error");
-        model.addAttribute(ATTR_ERROR_MESSAGE, "Unable to retrieve data from the market data service.");
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
-        return ERROR_VIEW;
+        return redirectWithError(EXTERNAL_SERVICE_MSG, ra, req);
     }
 
     /**
-     * Handles PolygonException - infrastructure exception.
-     * Thrown when there's an error communicating with the Polygon.io API.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
+     * Handles PolygonException – infrastructure exception for Polygon.io API errors.
      */
     @ExceptionHandler(PolygonException.class)
-    public String handlePolygonException(PolygonException ex, Model model) {
+    public String handlePolygonException(
+            PolygonException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
         log.error("Polygon API error: {}", ex.getMessage(), ex);
-        
-        model.addAttribute(ATTR_ERROR_TYPE, "External Service Error");
-        model.addAttribute(ATTR_ERROR_MESSAGE, "Unable to retrieve historical data from the market data service.");
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
-        return ERROR_VIEW;
+        return redirectWithError(EXTERNAL_SERVICE_MSG, ra, req);
     }
 
     /**
-     * Handles PersistenceException - infrastructure exception.
-     * Thrown when there's an error with database operations.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
+     * Handles AIServiceException – infrastructure exception for AI service errors.
+     */
+    @ExceptionHandler(AIServiceException.class)
+    public String handleAIServiceException(
+            AIServiceException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.error("AI Service error: {}", ex.getMessage(), ex);
+        return redirectWithError(EXTERNAL_SERVICE_MSG, ra, req);
+    }
+
+    /**
+     * Handles StockException – general infrastructure exception for stock operations.
+     */
+    @ExceptionHandler(StockException.class)
+    public String handleStockException(
+            StockException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.error("Stock exception occurred: {}", ex.getMessage(), ex);
+        return redirectWithError(EXTERNAL_SERVICE_MSG, ra, req);
+    }
+
+    // -------------------------------------------------------------------------
+    // Critical errors – render error.html with technical details
+    // -------------------------------------------------------------------------
+
+    /**
+     * Handles PersistenceException – infrastructure exception for database errors.
+     * Renders the error view because the application cannot continue normally.
      */
     @ExceptionHandler(PersistenceException.class)
     public String handlePersistenceException(PersistenceException ex, Model model) {
         log.error("Database error: {}", ex.getMessage(), ex);
-        
+
         model.addAttribute(ATTR_ERROR_TYPE, "Database Error");
         model.addAttribute(ATTR_ERROR_MESSAGE, "A database error occurred while processing your request.");
         model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
-        return ERROR_VIEW;
-    }
 
-    /**
-     * Handles AIServiceException - infrastructure exception.
-     * Thrown when there's an error communicating with the AI service.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
-     */
-    @ExceptionHandler(AIServiceException.class)
-    public String handleAIServiceException(AIServiceException ex, Model model) {
-        log.error("AI Service error: {}", ex.getMessage(), ex);
-        
-        model.addAttribute(ATTR_ERROR_TYPE, "AI Service Error");
-        model.addAttribute(ATTR_ERROR_MESSAGE, "Unable to retrieve AI analysis. The service may be temporarily unavailable.");
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
-        return ERROR_VIEW;
-    }
-
-    /**
-     * Handles generic RuntimeException.
-     * Catches any runtime exception not specifically handled above.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public String handleRuntimeException(RuntimeException ex, Model model) {
-        log.error("Runtime exception occurred: {}", ex.getMessage(), ex);
-        
-        model.addAttribute(ATTR_ERROR_TYPE, "Runtime Error");
-        model.addAttribute(ATTR_ERROR_MESSAGE, "An unexpected error occurred while processing your request.");
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
         return ERROR_VIEW;
     }
 
     /**
      * Handles generic Exception.
      * Fallback handler for any exception not caught by more specific handlers.
-     * 
-     * @param ex the exception
-     * @param model the model to add attributes
-     * @return the error view name
+     * Renders the error view because the application cannot continue normally.
      */
     @ExceptionHandler(Exception.class)
     public String handleGenericException(Exception ex, Model model) {
         log.error("Unexpected exception occurred: {}", ex.getMessage(), ex);
-        
+
         model.addAttribute(ATTR_ERROR_TYPE, "System Error");
         model.addAttribute(ATTR_ERROR_MESSAGE, "An unexpected system error occurred. Please try again later.");
         model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
-        
+
         return ERROR_VIEW;
     }
+
+    // -------------------------------------------------------------------------
+    // DRY helper
+    // -------------------------------------------------------------------------
+
+    /**
+     * Centralises redirect-with-error logic: adds the error flash attribute and
+     * builds a redirect back to the HTTP Referer header, falling back to {@code /}.
+     *
+     * @param message the user-facing error message to flash
+     * @param ra      the RedirectAttributes used to pass flash attributes
+     * @param req     the current HTTP request (used to read the Referer header)
+     * @return a Spring MVC redirect string
+     */
+    private String redirectWithError(String message, RedirectAttributes ra, HttpServletRequest req) {
+        ra.addFlashAttribute(ATTR_ERROR_MESSAGE, message);
+        String referer = req.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : DEFAULT_REFERER);
+    }
 }
+

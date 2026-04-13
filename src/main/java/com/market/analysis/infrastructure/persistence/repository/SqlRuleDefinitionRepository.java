@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import com.market.analysis.domain.exception.EntityInUseException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.infrastructure.persistence.entity.RuleDefinitionEntity;
@@ -71,7 +72,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
                     .flatMap(strategy -> strategy.getRules().stream())
                     .anyMatch(rule -> code.equals(rule.getSubjectCode()) || code.equals(rule.getTargetCode()));
             if (usedInStrategy) {
-                throw new IllegalArgumentException(
+                throw new EntityInUseException(
                         "No se puede eliminar la definición de regla '" + code
                                 + "' porque está siendo usada en una o más estrategias.");
             }

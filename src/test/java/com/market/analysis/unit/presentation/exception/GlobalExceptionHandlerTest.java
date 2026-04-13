@@ -1,8 +1,11 @@
 package com.market.analysis.unit.presentation.exception;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,13 +15,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.market.analysis.domain.exception.EntityInUseException;
 import com.market.analysis.domain.exception.RuleDefinitionNotFoundException;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.market.analysis.infrastructure.exception.FinnhubException;
+import com.market.analysis.infrastructure.exception.PersistenceException;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.exception.StockException;
 import com.market.analysis.presentation.exception.GlobalExceptionHandler;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Unit tests for GlobalExceptionHandler.
@@ -31,6 +40,12 @@ class GlobalExceptionHandlerTest {
     @Mock
     private Model model;
 
+    @Mock
+    private RedirectAttributes redirectAttributes;
+
+    @Mock
+    private HttpServletRequest request;
+
     @InjectMocks
     private GlobalExceptionHandler globalExceptionHandler;
 
@@ -38,162 +53,209 @@ class GlobalExceptionHandlerTest {
     private static final String ATTR_ERROR_MESSAGE = "errorMessage";
     private static final String ATTR_ERROR_DETAILS = "errorDetails";
     private static final String ATTR_ERROR_TYPE = "errorType";
+    private static final String EXTERNAL_SERVICE_MSG =
+            "El servicio de datos de mercado no está disponible temporalmente";
+    private static final String ENTITY_IN_USE_MSG =
+            "No se puede eliminar el recurso porque tiene dependencias asociadas";
+
+    private static final String REFERER = "/some-page";
 
     @BeforeEach
     void setUp() {
-        // No additional setup needed
+        // individual tests set up request stubs as needed
     }
 
+    // -------------------------------------------------------------------------
+    // Domain / Navigation errors – redirect with original message
+    // -------------------------------------------------------------------------
+
     @Test
-    @DisplayName("Should handle RuleDefinitionNotFoundException correctly")
+    @DisplayName("Should redirect with original message for RuleDefinitionNotFoundException")
     void testHandleRuleDefinitionNotFoundException() {
-        // Arrange
+        when(request.getHeader("Referer")).thenReturn(REFERER);
         String errorMessage = "Rule definition with id 123 not found";
         RuleDefinitionNotFoundException exception = new RuleDefinitionNotFoundException(errorMessage);
 
-        // Act
-        String viewName = globalExceptionHandler.handleRuleDefinitionNotFoundException(exception, model);
+        String viewName = globalExceptionHandler.handleRuleDefinitionNotFoundException(
+                exception, redirectAttributes, request);
 
-        // Assert
-        assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Rule Definition Not Found");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "The requested rule definition could not be found.");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
     }
 
     @Test
-    @DisplayName("Should handle StockDataNotFoundException correctly")
+    @DisplayName("Should redirect with original message for StockDataNotFoundException")
     void testHandleStockDataNotFoundException() {
-        // Arrange
+        when(request.getHeader("Referer")).thenReturn(REFERER);
         String errorMessage = "Stock data for AAPL not found";
         StockDataNotFoundException exception = new StockDataNotFoundException(errorMessage);
 
-        // Act
-        String viewName = globalExceptionHandler.handleStockDataNotFoundException(exception, model);
+        String viewName = globalExceptionHandler.handleStockDataNotFoundException(
+                exception, redirectAttributes, request);
 
-        // Assert
-        assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Stock Data Not Found");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "The requested stock data could not be found.");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
     }
 
     @Test
-    @DisplayName("Should handle StockException correctly")
-    void testHandleStockException() {
-        // Arrange
-        String errorMessage = "Error processing stock data";
-        StockException exception = new StockException(errorMessage);
+    @DisplayName("Should use Referer header for redirect when present")
+    void testRedirectUsesRefererHeader() {
+        when(request.getHeader("Referer")).thenReturn("/rule-definitions");
+        RuleDefinitionNotFoundException exception = new RuleDefinitionNotFoundException("not found");
 
-        // Act
-        String viewName = globalExceptionHandler.handleStockException(exception, model);
+        String viewName = globalExceptionHandler.handleRuleDefinitionNotFoundException(
+                exception, redirectAttributes, request);
 
-        // Assert
-        assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Stock Processing Error");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "An error occurred while processing stock data.");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
+        assertEquals("redirect:/rule-definitions", viewName);
     }
 
     @Test
-    @DisplayName("Should handle FinnhubException correctly")
+    @DisplayName("Should fall back to '/' when Referer header is absent")
+    void testRedirectFallsBackToRootWhenNoReferer() {
+        when(request.getHeader("Referer")).thenReturn(null);
+        RuleDefinitionNotFoundException exception = new RuleDefinitionNotFoundException("not found");
+
+        String viewName = globalExceptionHandler.handleRuleDefinitionNotFoundException(
+                exception, redirectAttributes, request);
+
+        assertEquals("redirect:/", viewName);
+    }
+
+    // -------------------------------------------------------------------------
+    // Integrity errors
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should redirect with fixed message for EntityInUseException")
+    void testHandleEntityInUseException() {
+        when(request.getHeader("Referer")).thenReturn(REFERER);
+        EntityInUseException exception = new EntityInUseException("rule used in strategy");
+
+        String viewName = globalExceptionHandler.handleEntityInUseException(
+                exception, redirectAttributes, request);
+
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, ENTITY_IN_USE_MSG);
+    }
+
+    // -------------------------------------------------------------------------
+    // External-service errors – redirect with fixed friendly message
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should redirect with friendly message for FinnhubException")
     void testHandleFinnhubException() {
-        // Arrange
-        String errorMessage = "Finnhub API returned 503";
-        FinnhubException exception = new FinnhubException(errorMessage);
+        when(request.getHeader("Referer")).thenReturn(REFERER);
+        FinnhubException exception = new FinnhubException("Finnhub API returned 503");
 
-        // Act
-        String viewName = globalExceptionHandler.handleFinnhubException(exception, model);
+        String viewName = globalExceptionHandler.handleFinnhubException(
+                exception, redirectAttributes, request);
 
-        // Assert
-        assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "External Service Error");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "Unable to retrieve data from the market data service.");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
     }
 
     @Test
-    @DisplayName("Should handle PolygonException correctly")
+    @DisplayName("Should redirect with friendly message for PolygonException")
     void testHandlePolygonException() {
-        // Arrange
-        String errorMessage = "Polygon API rate limit exceeded";
-        PolygonException exception = new PolygonException(errorMessage);
+        when(request.getHeader("Referer")).thenReturn(REFERER);
+        PolygonException exception = new PolygonException("Polygon API rate limit exceeded");
 
-        // Act
-        String viewName = globalExceptionHandler.handlePolygonException(exception, model);
+        String viewName = globalExceptionHandler.handlePolygonException(
+                exception, redirectAttributes, request);
 
-        // Assert
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
+    }
+
+    @Test
+    @DisplayName("Should redirect with friendly message for AIServiceException")
+    void testHandleAIServiceException() {
+        when(request.getHeader("Referer")).thenReturn(REFERER);
+        AIServiceException exception = new AIServiceException("AI service timeout");
+
+        String viewName = globalExceptionHandler.handleAIServiceException(
+                exception, redirectAttributes, request);
+
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
+    }
+
+    @Test
+    @DisplayName("Should redirect with friendly message for StockException")
+    void testHandleStockException() {
+        when(request.getHeader("Referer")).thenReturn(REFERER);
+        StockException exception = new StockException("Error processing stock data");
+
+        String viewName = globalExceptionHandler.handleStockException(
+                exception, redirectAttributes, request);
+
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
+    }
+
+    // -------------------------------------------------------------------------
+    // Critical errors – render error.html
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should render error view for PersistenceException")
+    void testHandlePersistenceException() {
+        String errorMessage = "DB connection refused";
+        PersistenceException exception = new PersistenceException(errorMessage);
+
+        String viewName = globalExceptionHandler.handlePersistenceException(exception, model);
+
         assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "External Service Error");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "Unable to retrieve historical data from the market data service.");
+        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Database Error");
+        verify(model, times(1)).addAttribute(eq(ATTR_ERROR_MESSAGE), eq("A database error occurred while processing your request."));
         verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
     }
 
     @Test
-    @DisplayName("Should handle generic RuntimeException correctly")
-    void testHandleRuntimeException() {
-        // Arrange
-        String errorMessage = "Unexpected runtime error";
-        RuntimeException exception = new RuntimeException(errorMessage);
-
-        // Act
-        String viewName = globalExceptionHandler.handleRuntimeException(exception, model);
-
-        // Assert
-        assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Runtime Error");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "An unexpected error occurred while processing your request.");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
-    }
-
-    @Test
-    @DisplayName("Should handle generic Exception correctly")
+    @DisplayName("Should render error view for generic Exception")
     void testHandleGenericException() {
-        // Arrange
         String errorMessage = "Unexpected system error";
         Exception exception = new Exception(errorMessage);
 
-        // Act
         String viewName = globalExceptionHandler.handleGenericException(exception, model);
 
-        // Assert
         assertEquals(ERROR_VIEW, viewName);
         verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "System Error");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "An unexpected system error occurred. Please try again later.");
+        verify(model, times(1)).addAttribute(eq(ATTR_ERROR_MESSAGE), eq("An unexpected system error occurred. Please try again later."));
         verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
     }
 
+    // -------------------------------------------------------------------------
+    // Edge cases
+    // -------------------------------------------------------------------------
+
     @Test
-    @DisplayName("Should handle exception with cause correctly")
+    @DisplayName("Should handle StockDataNotFoundException with cause correctly")
     void testHandleExceptionWithCause() {
-        // Arrange
+        when(request.getHeader("Referer")).thenReturn(REFERER);
         Throwable cause = new IllegalStateException("Root cause");
         String errorMessage = "Stock data not available";
         StockDataNotFoundException exception = new StockDataNotFoundException(errorMessage, cause);
 
-        // Act
-        String viewName = globalExceptionHandler.handleStockDataNotFoundException(exception, model);
+        String viewName = globalExceptionHandler.handleStockDataNotFoundException(
+                exception, redirectAttributes, request);
 
-        // Assert
-        assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Stock Data Not Found");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "The requested stock data could not be found.");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
     }
 
     @Test
-    @DisplayName("Should handle null message in exception")
+    @DisplayName("Should handle null message in RuleDefinitionNotFoundException")
     void testHandleExceptionWithNullMessage() {
-        // Arrange
+        when(request.getHeader("Referer")).thenReturn(REFERER);
         RuleDefinitionNotFoundException exception = new RuleDefinitionNotFoundException(null);
 
-        // Act
-        String viewName = globalExceptionHandler.handleRuleDefinitionNotFoundException(exception, model);
+        String viewName = globalExceptionHandler.handleRuleDefinitionNotFoundException(
+                exception, redirectAttributes, request);
 
-        // Assert
-        assertEquals(ERROR_VIEW, viewName);
-        verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Rule Definition Not Found");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "The requested rule definition could not be found.");
-        verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, null);
+        assertTrue(viewName.startsWith("redirect:"));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, null);
     }
 }
+

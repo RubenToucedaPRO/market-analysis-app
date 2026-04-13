@@ -153,19 +153,17 @@ class RuleDefinitionControllerTest {
     }
 
     @Test
-    @DisplayName("Should redirect with error message when rule definition is used in a strategy")
+    @DisplayName("Should propagate EntityInUseException to GlobalExceptionHandler when rule is in use")
     void testDeleteRuleDefinitionUsedInStrategy() {
         // Arrange
         String errorMsg = "No se puede eliminar la definición de regla 'SMA' porque está siendo usada en una o más estrategias.";
-        doThrow(new IllegalArgumentException(errorMsg))
+        doThrow(new com.market.analysis.domain.exception.EntityInUseException(errorMsg))
                 .when(manageRuleDefinitionUseCase).deleteRuleDefinition(1L);
 
-        // Act
-        String viewName = ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes);
-
-        // Assert
-        assertEquals("redirect:/rule-definitions", viewName);
-        verify(redirectAttributes, times(1)).addFlashAttribute("errorMessage", errorMsg);
+        // Act & Assert – exception propagates; GlobalExceptionHandler handles the redirect
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.market.analysis.domain.exception.EntityInUseException.class,
+                () -> ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes));
     }
 
     @Test

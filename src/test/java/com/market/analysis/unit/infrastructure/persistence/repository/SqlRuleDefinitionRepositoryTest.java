@@ -205,7 +205,8 @@ class SqlRuleDefinitionRepositoryTest {
         when(strategyRepository.findAll()).thenReturn(List.of(strategyEntity));
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        com.market.analysis.domain.exception.EntityInUseException exception = assertThrows(
+                com.market.analysis.domain.exception.EntityInUseException.class,
                 () -> sqlRepository.deleteById(1L));
         assertTrue(exception.getMessage().contains("SMA"));
         verify(jpaRepository, never()).deleteById(1L);
@@ -226,7 +227,8 @@ class SqlRuleDefinitionRepositoryTest {
         when(strategyRepository.findAll()).thenReturn(List.of(strategyEntity));
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        com.market.analysis.domain.exception.EntityInUseException exception = assertThrows(
+                com.market.analysis.domain.exception.EntityInUseException.class,
                 () -> sqlRepository.deleteById(1L));
         assertTrue(exception.getMessage().contains("SMA"));
         verify(jpaRepository, never()).deleteById(1L);
