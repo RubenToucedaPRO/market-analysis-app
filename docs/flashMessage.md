@@ -120,10 +120,125 @@ Los siguientes errores ya generan mensajes flash de tipo `danger` de forma centr
 
 ---
 
-## Próximos Pasos
+## Plan de Implementación por Fases
 
-1. Añadir `RedirectAttributes` como parámetro en los métodos de controlador que aún no lo tienen.
-2. Llamar a `redirectAttributes.addFlashAttribute("message", "...")` y `redirectAttributes.addFlashAttribute("messageType", "success")` en cada acción exitosa según la tabla anterior.
-3. Corregir el mensaje de `RuleDefinitionController.deleteRuleDefinition()`.
-4. Incluir `<div th:replace="~{fragments/message :: message}"></div>` en todas las plantillas destino que faltan.
-5. Añadir tests unitarios `MockMvc` para verificar la presencia del flash attribute correcto en cada redirect.
+---
+
+### Fase 1 — Corrección del mensaje incorrecto existente
+
+**Alcance:** Corregir el único mensaje de éxito ya implementado, que contiene un texto erróneo.
+
+**Archivos a modificar:**
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/main/java/com/market/analysis/presentation/controller/RuleDefinitionController.java` | Cambiar `"Estrategia eliminada con éxito."` → `"Definición de regla eliminada con éxito."` |
+
+**Tests a actualizar/añadir:**
+
+- `RuleDefinitionControllerTest` — verificar que el flash attribute `message` contiene el texto correcto tras `DELETE /rule-definitions/delete`.
+
+**Criterio de aceptación:** El texto mostrado al usuario al eliminar una definición de regla es correcto y coherente con la entidad afectada.
+
+---
+
+### Fase 2 — Añadir mensajes flash en `RuleDefinitionController`
+
+**Alcance:** Completar los mensajes de éxito en las operaciones de creación y actualización de definiciones de regla.
+
+**Archivos a modificar:**
+
+| Archivo | Cambio |
+|---------|--------|
+| `RuleDefinitionController.java` | Añadir `RedirectAttributes` a `saveRuleDefinition()`; emitir `"Definición de regla creada correctamente."` o `"Definición de regla actualizada correctamente."` según `id == null` |
+| `src/main/resources/templates/rule-definitions/create.html` | Añadir `<div th:replace="~{fragments/message :: message}"></div>` tras el header de la página |
+
+**Tests a añadir:**
+
+- `RuleDefinitionControllerTest` — verificar flash `success` en `POST /rule-definitions` (crear).
+- `RuleDefinitionControllerTest` — verificar flash `success` en `POST /rule-definitions` (actualizar, `id != null`).
+
+**Criterio de aceptación:** Al crear o editar una definición de regla, aparece un banner verde de confirmación en la vista de lista.
+
+---
+
+### Fase 3 — Añadir mensajes flash en `StrategyController`
+
+**Alcance:** Añadir mensajes de éxito para crear, actualizar y eliminar estrategias.
+
+**Archivos a modificar:**
+
+| Archivo | Cambio |
+|---------|--------|
+| `StrategyController.java` | Añadir `RedirectAttributes` a `saveStrategy()`; emitir `"Estrategia creada correctamente."` o `"Estrategia actualizada correctamente."` según `strategyDTO.getId() == null` |
+| `StrategyController.java` | Añadir `RedirectAttributes` a `deleteStrategy()`; emitir `"Estrategia eliminada correctamente."` |
+| `src/main/resources/templates/strategies/detail.html` | Añadir `<div th:replace="~{fragments/message :: message}"></div>` |
+| `src/main/resources/templates/strategies/create.html` | Añadir `<div th:replace="~{fragments/message :: message}"></div>` |
+
+**Tests a añadir:**
+
+- `StrategyControllerTest` — verificar flash `success` en `POST /strategies` (crear).
+- `StrategyControllerTest` — verificar flash `success` en `POST /strategies` (actualizar).
+- `StrategyControllerTest` — verificar flash `success` en `POST /strategies/delete`.
+
+**Criterio de aceptación:** Al crear, editar o eliminar una estrategia, aparece un banner verde de confirmación en la vista de lista.
+
+---
+
+### Fase 4 — Añadir mensajes flash en `ProhibitedTickerController`
+
+**Alcance:** Añadir mensaje de éxito al eliminar un ticker prohibido e incluir el fragmento de mensaje en la plantilla de lista.
+
+**Archivos a modificar:**
+
+| Archivo | Cambio |
+|---------|--------|
+| `ProhibitedTickerController.java` | Añadir `RedirectAttributes` a `deleteProhibitedTicker()`; emitir `"Ticker '{ticker}' desbloqueado y eliminado correctamente."` con el valor del parámetro `ticker` interpolado |
+| `src/main/resources/templates/prohibited-tickers/list.html` | Añadir `<div th:replace="~{fragments/message :: message}"></div>` tras el header de la página |
+
+**Tests a añadir:**
+
+- `ProhibitedTickerControllerTest` — verificar flash `success` en `POST /prohibited-tickers/delete`.
+
+**Criterio de aceptación:** Al eliminar un ticker prohibido, aparece un banner verde con el nombre del ticker en la vista de lista.
+
+---
+
+### Fase 5 — Añadir mensajes flash en `AnalyzeTickerController`
+
+**Alcance:** Añadir mensajes de éxito para todas las operaciones de análisis: añadir ticker, actualizar, eliminar y solicitar valoración IA.
+
+**Archivos a modificar:**
+
+| Archivo | Cambio |
+|---------|--------|
+| `AnalyzeTickerController.java` | Añadir `RedirectAttributes` a `getTickerData()`; emitir `"Ticker(s) añadidos y analizados correctamente."` |
+| `AnalyzeTickerController.java` | Añadir `RedirectAttributes` a `updateTicker()`; emitir `"Datos del ticker actualizados correctamente."` |
+| `AnalyzeTickerController.java` | Añadir `RedirectAttributes` a `updateTickerFromDetail()`; emitir `"Datos del ticker actualizados correctamente."` |
+| `AnalyzeTickerController.java` | Añadir `RedirectAttributes` a `deleteTicker()`; emitir `"Ticker '{ticker}' eliminado correctamente."` con el valor del parámetro `ticker` interpolado |
+| `AnalyzeTickerController.java` | Añadir `RedirectAttributes` a `getValorationIA()`; emitir `"Valoración IA generada y guardada correctamente."` |
+| `src/main/resources/templates/analysis/analysis.html` | Añadir `<div th:replace="~{fragments/message :: message}"></div>` tras el header de la página |
+| `src/main/resources/templates/analysis/ticker-detail.html` | Añadir `<div th:replace="~{fragments/message :: message}"></div>` tras el header de la página |
+| `src/main/resources/templates/analysis/ticker-chart.html` | Añadir `<div th:replace="~{fragments/message :: message}"></div>` tras el header de la página |
+
+**Tests a añadir:**
+
+- `AnalyzeTickerControllerTest` — verificar flash `success` en `POST /analysis/getTickerData`.
+- `AnalyzeTickerControllerTest` — verificar flash `success` en `POST /analysis/update`.
+- `AnalyzeTickerControllerTest` — verificar flash `success` en `POST /analysis/ticker/{id}/update`.
+- `AnalyzeTickerControllerTest` — verificar flash `success` en `POST /analysis/delete`.
+- `AnalyzeTickerControllerTest` — verificar flash `success` en `POST /analysis/getValorationIA`.
+
+**Criterio de aceptación:** Todas las operaciones sobre tickers muestran feedback inmediato al usuario en el banner de la vista de análisis o de detalle según corresponda.
+
+---
+
+### Resumen de Fases
+
+| Fase | Descripción | Controlador(es) | Ficheros Java | Plantillas | Tests |
+|------|-------------|-----------------|---------------|------------|-------|
+| **1** | Corrección mensaje existente | `RuleDefinitionController` | 1 | 0 | 1 |
+| **2** | Flash en operaciones de Definiciones de Regla | `RuleDefinitionController` | 1 | 1 | 2 |
+| **3** | Flash en operaciones de Estrategias | `StrategyController` | 1 | 2 | 3 |
+| **4** | Flash en operaciones de Tickers Prohibidos | `ProhibitedTickerController` | 1 | 1 | 1 |
+| **5** | Flash en operaciones de Análisis de Tickers | `AnalyzeTickerController` | 1 | 3 | 5 |
