@@ -57,6 +57,9 @@
         </div>
       </div>
 
+      <!-- Message Alert -->
+      <div th:replace="~{fragments/message :: message}"></div>
+
       <!-- Empty State -->
       <div th:if="${strategies.isEmpty()}" class="empty-state">
         <div class="empty-state-icon">
