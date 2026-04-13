@@ -13,6 +13,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
+import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.WebConstants;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,9 +26,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/rule-definitions")
 @RequiredArgsConstructor
 public class RuleDefinitionController {
-
-    private static final String MESSAGE_ATTRIBUTE = "message";
-    private static final String MESSAGE_TYPE_ATTRIBUTE = "messageType";
 
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
 
@@ -60,12 +59,13 @@ public class RuleDefinitionController {
 
         if (ruleDefinitionDTO.getId() == null) {
             manageRuleDefinitionUseCase.createRuleDefinition(ruleDefinitionDTO);
-            redirectAttributes.addFlashAttribute(MESSAGE_ATTRIBUTE, "Definición de regla creada correctamente.");
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Definición de regla creada correctamente."));
         } else {
             manageRuleDefinitionUseCase.updateRuleDefinition(ruleDefinitionDTO);
-            redirectAttributes.addFlashAttribute(MESSAGE_ATTRIBUTE, "Definición de regla actualizada correctamente.");
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Definición de regla actualizada correctamente."));
         }
-        redirectAttributes.addFlashAttribute(MESSAGE_TYPE_ATTRIBUTE, "success");
 
         return "redirect:/rule-definitions";
     }
@@ -73,8 +73,8 @@ public class RuleDefinitionController {
     @PostMapping("/delete")
     public String deleteRuleDefinition(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         manageRuleDefinitionUseCase.deleteRuleDefinition(id);
-        redirectAttributes.addFlashAttribute(MESSAGE_ATTRIBUTE, "Definición de regla eliminada con éxito.");
-        redirectAttributes.addFlashAttribute(MESSAGE_TYPE_ATTRIBUTE, "success");
+        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla eliminada con éxito."));
         return "redirect:/rule-definitions";
     }
 }

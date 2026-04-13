@@ -23,6 +23,8 @@ import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.presentation.controller.RuleDefinitionController;
+import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.WebConstants;
 
 /**
  * Unit tests for RuleDefinitionController.
@@ -122,8 +124,9 @@ class RuleDefinitionControllerTest {
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).createRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).updateRuleDefinition(any());
-        verify(redirectAttributes, times(1)).addFlashAttribute("message", "Definición de regla creada correctamente.");
-        verify(redirectAttributes, times(1)).addFlashAttribute("messageType", "success");
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla creada correctamente."));
     }
 
     @Test
@@ -139,8 +142,9 @@ class RuleDefinitionControllerTest {
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).updateRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).createRuleDefinition(any());
-        verify(redirectAttributes, times(1)).addFlashAttribute("message", "Definición de regla actualizada correctamente.");
-        verify(redirectAttributes, times(1)).addFlashAttribute("messageType", "success");
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla actualizada correctamente."));
     }
 
     @Test
@@ -152,8 +156,9 @@ class RuleDefinitionControllerTest {
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).deleteRuleDefinition(1L);
-        verify(redirectAttributes, times(1)).addFlashAttribute("message", "Definición de regla eliminada con éxito.");
-        verify(redirectAttributes, times(1)).addFlashAttribute("messageType", "success");
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla eliminada con éxito."));
     }
 
     @Test
