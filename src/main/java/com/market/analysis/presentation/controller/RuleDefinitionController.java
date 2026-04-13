@@ -52,13 +52,17 @@ public class RuleDefinitionController {
     }
 
     @PostMapping
-    public String saveRuleDefinition(@ModelAttribute RuleDefinitionDTO ruleDefinitionDTO) {
+    public String saveRuleDefinition(@ModelAttribute RuleDefinitionDTO ruleDefinitionDTO,
+            RedirectAttributes redirectAttributes) {
 
         if (ruleDefinitionDTO.getId() == null) {
             manageRuleDefinitionUseCase.createRuleDefinition(ruleDefinitionDTO);
+            redirectAttributes.addFlashAttribute("message", "Definición de regla creada correctamente.");
         } else {
             manageRuleDefinitionUseCase.updateRuleDefinition(ruleDefinitionDTO);
+            redirectAttributes.addFlashAttribute("message", "Definición de regla actualizada correctamente.");
         }
+        redirectAttributes.addFlashAttribute("messageType", "success");
 
         return "redirect:/rule-definitions";
     }
@@ -66,7 +70,7 @@ public class RuleDefinitionController {
     @PostMapping("/delete")
     public String deleteRuleDefinition(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         manageRuleDefinitionUseCase.deleteRuleDefinition(id);
-        redirectAttributes.addFlashAttribute("message", "Estrategia eliminada con éxito.");
+        redirectAttributes.addFlashAttribute("message", "Definición de regla eliminada con éxito.");
         redirectAttributes.addFlashAttribute("messageType", "success");
         return "redirect:/rule-definitions";
     }
