@@ -25,9 +25,7 @@ import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.exception.PersistenceException;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.exception.StockException;
-import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.exception.GlobalExceptionHandler;
-import com.market.analysis.presentation.util.WebConstants;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -61,6 +59,8 @@ class GlobalExceptionHandlerTest {
             "No se puede eliminar el recurso porque tiene dependencias asociadas";
 
     private static final String REFERER = "/some-page";
+
+    @BeforeEach
     void setUp() {
         // individual tests set up request stubs as needed
     }
@@ -80,8 +80,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(errorMessage));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
     }
 
     @Test
@@ -95,8 +94,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(errorMessage));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
     }
 
     @Test
@@ -137,8 +135,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(ENTITY_IN_USE_MSG));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, ENTITY_IN_USE_MSG);
     }
 
     // -------------------------------------------------------------------------
@@ -155,8 +152,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
     }
 
     @Test
@@ -169,8 +165,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
     }
 
     @Test
@@ -183,8 +178,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
     }
 
     @Test
@@ -197,8 +191,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
     }
 
     // -------------------------------------------------------------------------
@@ -249,8 +242,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(errorMessage));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
     }
 
     @Test
@@ -263,8 +255,7 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(null));
+        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, null);
     }
 }
 

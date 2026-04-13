@@ -27,8 +27,6 @@ import com.market.analysis.application.dto.CandleDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.presentation.controller.AnalyzeTickerController;
-import com.market.analysis.presentation.dto.UiNotification;
-import com.market.analysis.presentation.util.WebConstants;
 
 /**
  * Unit tests for AnalyzeTickerController.
@@ -51,9 +49,6 @@ class AnalyzeTickerControllerTest {
 
     @Mock
     private Model model;
-
-    @Mock
-    private org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes;
 
     @InjectMocks
     private AnalyzeTickerController controller;
@@ -134,14 +129,11 @@ class AnalyzeTickerControllerTest {
         Long strategyId = 1L;
 
         // Act
-        String viewName = controller.getTickerData(tickers, strategyId, redirectAttributes);
+        String viewName = controller.getTickerData(tickers, strategyId);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).getStockData(tickers, strategyId);
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker(s) añadidos y analizados correctamente."));
     }
 
     @Test
@@ -152,7 +144,7 @@ class AnalyzeTickerControllerTest {
         Long strategyId = 1L;
 
         // Act
-        String viewName = controller.getTickerData(ticker, strategyId, redirectAttributes);
+        String viewName = controller.getTickerData(ticker, strategyId);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
@@ -166,14 +158,11 @@ class AnalyzeTickerControllerTest {
         Long id = 1L;
 
         // Act
-        String viewName = controller.updateTicker(id, redirectAttributes);
+        String viewName = controller.updateTicker(id);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(id);
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Datos del ticker actualizados correctamente."));
     }
 
     @Test
@@ -183,23 +172,20 @@ class AnalyzeTickerControllerTest {
         Long id = 1L;
 
         // Act
-        String viewName = controller.deleteTicker(id, "AAPL", redirectAttributes);
+        String viewName = controller.deleteTicker(id, "AAPL");
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).deleteById(id, "AAPL");
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker 'AAPL' eliminado correctamente."));
     }
 
     @Test
     @DisplayName("Should handle multiple operations correctly")
     void testMultipleOperations() {
         // Test create, update, and delete in sequence
-        controller.getTickerData("AAPL", 1L, redirectAttributes);
-        controller.updateTicker(1L, redirectAttributes);
-        controller.deleteTicker(1L, "AAPL", redirectAttributes);
+        controller.getTickerData("AAPL", 1L);
+        controller.updateTicker(1L);
+        controller.deleteTicker(1L, "AAPL");
 
         verify(manageAnalyzeTickerUseCase, times(1)).getStockData("AAPL", 1L);
         verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(1L);
@@ -229,14 +215,11 @@ class AnalyzeTickerControllerTest {
         Long id = 1L;
 
         // Act
-        String viewName = controller.getValorationIA(id, redirectAttributes);
+        String viewName = controller.getValorationIA(id);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis");
         verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id);
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Valoración IA generada y guardada correctamente."));
     }
 
     @Test
@@ -247,8 +230,8 @@ class AnalyzeTickerControllerTest {
         Long id2 = 10L;
 
         // Act
-        String viewName1 = controller.getValorationIA(id1, redirectAttributes);
-        String viewName2 = controller.getValorationIA(id2, redirectAttributes);
+        String viewName1 = controller.getValorationIA(id1);
+        String viewName2 = controller.getValorationIA(id2);
 
         // Assert
         assertThat(viewName1).isEqualTo("redirect:/analysis");

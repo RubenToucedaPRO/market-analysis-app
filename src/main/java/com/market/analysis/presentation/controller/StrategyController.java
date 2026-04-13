@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
@@ -19,8 +18,6 @@ import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.StrategyObjectiveDTO;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.presentation.dto.UiNotification;
-import com.market.analysis.presentation.util.WebConstants;
 
 import lombok.RequiredArgsConstructor;
 
@@ -65,7 +62,6 @@ public class StrategyController {
 
         model.addAttribute(ATTR_RULE_DEFINITIONS, ruleDefinitions);
         model.addAttribute(ATTR_STRATEGY, strategy);
-        model.addAttribute("isEdit", false);
 
         return "strategies/create";
     }
@@ -78,30 +74,19 @@ public class StrategyController {
 
         model.addAttribute(ATTR_RULE_DEFINITIONS, ruleDefinitionsDTOs);
         model.addAttribute(ATTR_STRATEGY, strategyDTO);
-        model.addAttribute("isEdit", true);
 
         return "strategies/create";
     }
 
     @PostMapping
-    public String saveStrategy(@ModelAttribute StrategyDTO strategyDTO, RedirectAttributes redirectAttributes) {
-        if (strategyDTO.getId() == null) {
-            manageStrategyUseCase.createStrategy(strategyDTO);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success("Estrategia creada correctamente."));
-        } else {
-            manageStrategyUseCase.createStrategy(strategyDTO);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success("Estrategia actualizada correctamente."));
-        }
+    public String saveStrategy(@ModelAttribute StrategyDTO strategyDTO) {
+        manageStrategyUseCase.createStrategy(strategyDTO);
         return "redirect:/strategies";
     }
 
     @PostMapping("/delete")
-    public String deleteStrategy(@RequestParam("id") long strategyId, RedirectAttributes redirectAttributes) {
+    public String deleteStrategy(@RequestParam("id") long strategyId) {
         manageStrategyUseCase.deleteStrategy(strategyId);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Estrategia eliminada correctamente."));
         return "redirect:/strategies";
     }
 }

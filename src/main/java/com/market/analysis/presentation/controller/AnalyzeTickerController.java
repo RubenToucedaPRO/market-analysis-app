@@ -11,15 +11,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.presentation.dto.UiNotification;
-import com.market.analysis.presentation.util.WebConstants;
 
 import lombok.RequiredArgsConstructor;
 
@@ -44,39 +41,29 @@ public class AnalyzeTickerController {
     }
 
     @PostMapping("/getTickerData")
-    public String getTickerData(@RequestParam String tickers, @RequestParam Long strategyId,
-            RedirectAttributes redirectAttributes) {
+    public String getTickerData(@RequestParam String tickers, @RequestParam Long strategyId) {
         if (strategyId == null) {
             throw new IllegalArgumentException("Strategy selection is required");
         }
         manageAnalyzeTickerUseCase.getStockData(tickers, strategyId);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker(s) añadidos y analizados correctamente."));
         return REDIRECT_ANALYZE;
     }
 
     @PostMapping("/update")
-    public String updateTicker(@RequestParam Long id, RedirectAttributes redirectAttributes) {
+    public String updateTicker(@RequestParam Long id) {
         manageAnalyzeTickerUseCase.updateStockData(id);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Datos del ticker actualizados correctamente."));
         return REDIRECT_ANALYZE;
     }
 
     @PostMapping("/ticker/{id}/update")
-    public String updateTickerFromDetail(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String updateTickerFromDetail(@PathVariable Long id) {
         manageAnalyzeTickerUseCase.updateStockData(id);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Datos del ticker actualizados correctamente."));
         return REDIRECT_ANALYZE + "/ticker/" + id;
     }
 
     @PostMapping("/delete")
-    public String deleteTicker(@RequestParam Long id, @RequestParam String ticker,
-            RedirectAttributes redirectAttributes) {
+    public String deleteTicker(@RequestParam Long id,@RequestParam String ticker) {
         manageAnalyzeTickerUseCase.deleteById(id, ticker);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker '" + ticker + "' eliminado correctamente."));
         return REDIRECT_ANALYZE;
     }
 
@@ -110,10 +97,8 @@ public class AnalyzeTickerController {
     }
 
     @PostMapping("/getValorationIA")
-    public String getValorationIA(@RequestParam Long id, RedirectAttributes redirectAttributes) {
+    public String getValorationIA(@RequestParam Long id) {
         manageAnalyzeTickerUseCase.getValorationIA(id);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Valoración IA generada y guardada correctamente."));
         return REDIRECT_ANALYZE;
     }
 

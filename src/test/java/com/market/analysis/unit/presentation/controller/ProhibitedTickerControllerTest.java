@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,8 +28,6 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.presentation.controller.ProhibitedTickerController;
-import com.market.analysis.presentation.dto.UiNotification;
-import com.market.analysis.presentation.util.WebConstants;
 
 /**
  * Integration tests for ProhibitedTickerController using MockMvc.
@@ -109,15 +106,13 @@ class ProhibitedTickerControllerTest {
     }
 
     @Test
-    @DisplayName("Should delete prohibited ticker and redirect to list with success flash")
+    @DisplayName("Should delete prohibited ticker and redirect to list")
     void testDeleteProhibitedTicker() throws Exception {
         // Act & Assert
         mockMvc.perform(post("/prohibited-tickers/delete")
                 .param("ticker", "AAPL"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/prohibited-tickers"))
-                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
-                        UiNotification.success("Ticker 'AAPL' desbloqueado y eliminado correctamente.")));
+                .andExpect(redirectedUrl("/prohibited-tickers"));
 
         verify(manageProhibitedTickerUseCase, times(1)).removeProhibitedTicker("AAPL");
     }
@@ -129,9 +124,7 @@ class ProhibitedTickerControllerTest {
         mockMvc.perform(post("/prohibited-tickers/delete")
                 .param("ticker", "999"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/prohibited-tickers"))
-                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
-                        UiNotification.success("Ticker '999' desbloqueado y eliminado correctamente.")));
+                .andExpect(redirectedUrl("/prohibited-tickers"));
 
         verify(manageProhibitedTickerUseCase, times(1)).removeProhibitedTicker("999");
     }
