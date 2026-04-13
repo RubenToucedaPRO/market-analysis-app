@@ -25,6 +25,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RuleDefinitionController {
 
+    private static final String MESSAGE_ATTRIBUTE = "message";
+    private static final String MESSAGE_TYPE_ATTRIBUTE = "messageType";
+
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
 
     @GetMapping
@@ -57,12 +60,12 @@ public class RuleDefinitionController {
 
         if (ruleDefinitionDTO.getId() == null) {
             manageRuleDefinitionUseCase.createRuleDefinition(ruleDefinitionDTO);
-            redirectAttributes.addFlashAttribute("message", "Definición de regla creada correctamente.");
+            redirectAttributes.addFlashAttribute(MESSAGE_ATTRIBUTE, "Definición de regla creada correctamente.");
         } else {
             manageRuleDefinitionUseCase.updateRuleDefinition(ruleDefinitionDTO);
-            redirectAttributes.addFlashAttribute("message", "Definición de regla actualizada correctamente.");
+            redirectAttributes.addFlashAttribute(MESSAGE_ATTRIBUTE, "Definición de regla actualizada correctamente.");
         }
-        redirectAttributes.addFlashAttribute("messageType", "success");
+        redirectAttributes.addFlashAttribute(MESSAGE_TYPE_ATTRIBUTE, "success");
 
         return "redirect:/rule-definitions";
     }
@@ -70,8 +73,8 @@ public class RuleDefinitionController {
     @PostMapping("/delete")
     public String deleteRuleDefinition(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         manageRuleDefinitionUseCase.deleteRuleDefinition(id);
-        redirectAttributes.addFlashAttribute("message", "Definición de regla eliminada con éxito.");
-        redirectAttributes.addFlashAttribute("messageType", "success");
+        redirectAttributes.addFlashAttribute(MESSAGE_ATTRIBUTE, "Definición de regla eliminada con éxito.");
+        redirectAttributes.addFlashAttribute(MESSAGE_TYPE_ATTRIBUTE, "success");
         return "redirect:/rule-definitions";
     }
 }
