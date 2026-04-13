@@ -77,18 +77,35 @@
                   <label for="code" class="form-label fw-semibold">
                     Código <span class="text-danger">*</span>
                   </label>
-                  <input
-                    type="text"
-                    class="form-control"
+                  <!-- Select from catalog when creating; read-only text when editing -->
+                  <select
+                    th:if="${!isEdit}"
+                    class="form-select"
                     id="code"
                     th:field="*{code}"
-                    placeholder="ej., SMA, RSI, PRICE"
                     required
-                    th:readonly="${isEdit}"
+                    onchange="syncRequiresParam(this)"
+                  >
+                    <option value="">-- Seleccionar indicador --</option>
+                    <option
+                      th:each="cap : ${capabilities}"
+                      th:value="${cap.code}"
+                      th:text="${cap.code}"
+                      th:attr="data-requires-param=${cap.requiresParam}"
+                      th:selected="*{code} == ${cap.code}"
+                    ></option>
+                  </select>
+
+                  <input
+                    th:if="${isEdit}"
+                    class="form-control"
+                    th:value="*{code}"
+                    readonly
                   />
+                  <input th:if="${isEdit}" type="hidden" th:field="*{code}" />
+
                   <small class="form-text text-muted">
-                    Identificador único usado en el código. No se puede cambiar
-                    después de la creación.
+                    Identificador asociado a indicador declarado en el catálogo.
                   </small>
                 </div>
 
@@ -118,6 +135,7 @@
                       type="checkbox"
                       id="requiresParam"
                       th:field="*{requiresParam}"
+                      th:onclick="${!isEdit} ? 'return false' : ''"
                     />
                     <label
                       class="form-check-label fw-semibold"
@@ -126,8 +144,8 @@
                       Requiere Parámetro
                     </label>
                     <small class="form-text text-muted d-block">
-                      Marca esto si la regla requiere un parámetro numérico
-                      (ej., período para SMA 200).
+                      Se establece automáticamente según el indicador
+                      seleccionado.
                     </small>
                   </div>
                 </div>
@@ -177,5 +195,20 @@
 
     <!-- Bootstrap 5 JS Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      /**
+       * Synchronises the requiresParam checkbox with the selected indicator code.
+       * Called every time the code select changes (create mode only).
+       */
+      function syncRequiresParam(selectEl) {
+        const selectedOption = selectEl.options[selectEl.selectedIndex];
+        const requiresParam = selectedOption.dataset.requiresParam === "true";
+        const checkbox = document.getElementById("requiresParam");
+        if (checkbox) {
+          checkbox.checked = requiresParam;
+        }
+      }
+    </script>
   </body>
 </html>

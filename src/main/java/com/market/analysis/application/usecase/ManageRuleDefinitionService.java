@@ -2,6 +2,7 @@ package com.market.analysis.application.usecase;
 
 import java.util.List;
 
+import com.market.analysis.application.dto.RuleCapabilityDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
@@ -51,13 +52,17 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public List<RuleDefinitionDTO> getAllRuleDefinitions() {
         log.debug("Retrieving all rule definitions");
-        return ruleDefinitionRepository.findAll().stream().map(ruleDefinitionMapper::toDTO).toList();
+        return ruleDefinitionRepository.findAll().stream()
+                .map(ruleDefinitionMapper::toDTO)
+                .map(this::enrichWithCatalog)
+                .toList();
     }
 
     @Override
     public RuleDefinitionDTO getRuleDefinitionById(Long id) {
         return ruleDefinitionRepository.findById(id)
                 .map(ruleDefinitionMapper::toDTO)
+                .map(this::enrichWithCatalog)
                 .orElse(null);
     }
 
@@ -92,6 +97,22 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         log.info("Rule definition deleted successfully: {}", id);
     }
 
+    @Override
+    public List<RuleCapabilityDTO> getCatalogCapabilities() {
+        return RuleCapabilityCatalog.getSupportedCodes().stream()
+                .sorted()
+                .map(code -> {
+                    RuleCapability cap = RuleCapabilityCatalog.getCapability(code).orElseThrow();
+                    return RuleCapabilityDTO.builder()
+                            .code(code)
+                            .requiresParam(cap.isRequiresParam())
+                            .anyParamAllowed(cap.isAnyParamAllowed())
+                            .allowedParams(cap.getAllowedParams())
+                            .build();
+                })
+                .toList();
+    }
+
     /**
      * Validates a RuleDefinitionDTO against the canonical capability catalog.
      * Ensures the code is supported and the requiresParam flag is consistent
@@ -100,6 +121,8 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     private void validateAgainstCatalog(RuleDefinitionDTO dto) {
         String code = dto.getCode();
         if (!RuleCapabilityCatalog.isSupported(code)) {
+            log.warn("Rejected rule definition with unsupported code='{}'. Supported: {}",
+                    code, RuleCapabilityCatalog.getSupportedCodes());
             throw new IllegalArgumentException(
                     "Rule code '" + code + "' is not supported by the rule evaluator. "
                             + "Supported codes: " + RuleCapabilityCatalog.getSupportedCodes());
@@ -109,9 +132,29 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
                 .map(RuleCapability::isRequiresParam)
                 .orElse(false);
         if (dto.isRequiresParam() != catalogRequiresParam) {
+            log.warn("Rejected rule definition code='{}': requiresParam={} conflicts with catalog value={}",
+                    code, dto.isRequiresParam(), catalogRequiresParam);
             throw new IllegalArgumentException(
                     "Rule code '" + code + "' requires requiresParam=" + catalogRequiresParam
                             + " according to the canonical catalog, but got " + dto.isRequiresParam());
         }
+    }
+
+    /**
+     * Enriches a RuleDefinitionDTO with catalog capability data (allowed params).
+     * If the code is unknown in the catalog the DTO is returned unchanged.
+     */
+    private RuleDefinitionDTO enrichWithCatalog(RuleDefinitionDTO dto) {
+        return RuleCapabilityCatalog.getCapability(dto.getCode())
+                .map(cap -> RuleDefinitionDTO.builder()
+                        .id(dto.getId())
+                        .code(dto.getCode())
+                        .name(dto.getName())
+                        .requiresParam(dto.isRequiresParam())
+                        .description(dto.getDescription())
+                        .allowedParams(cap.getAllowedParams())
+                        .anyParamAllowed(cap.isAnyParamAllowed())
+                        .build())
+                .orElse(dto);
     }
 }
