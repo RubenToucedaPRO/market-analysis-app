@@ -66,11 +66,7 @@ public class RuleDefinitionController {
 
     @PostMapping("/delete")
     public String deleteRuleDefinition(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
-        try {
-            manageRuleDefinitionUseCase.deleteRuleDefinition(id);
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-        }
+        manageRuleDefinitionUseCase.deleteRuleDefinition(id);
         return "redirect:/rule-definitions";
     }
 }
