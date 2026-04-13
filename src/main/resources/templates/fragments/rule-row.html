@@ -27,14 +27,14 @@
             th:onchange="|toggleSubjectParameter(this, ${index})|"
             required
           >
-            <option value="" data-requires-param="false">
+            <option value="" data-requires-param="false" data-any-param="false">
               -- Seleccionar Indicador --
             </option>
             <option
               th:each="rd : ${ruleDefinitions}"
               th:value="${rd.code}"
               th:text="${rd.name}"
-              th:attr="data-requires-param=${rd.requiresParam}"
+              th:attr="data-requires-param=${rd.requiresParam},data-any-param=${rd.anyParamAllowed}"
               th:selected="${rule != null && rule.subjectCode == rd.code}"
             ></option>
           </select>
@@ -50,14 +50,33 @@
       >
         <label class="form-label small text-muted">
           Parámetro de Sujeto
+          <!-- Select for indicators with a fixed set of allowed params -->
+          <select
+            th:id="|subject-param-select-${index}|"
+            th:name="|rules[${index}].subjectParam|"
+            class="form-select form-select-sm"
+            th:if="${selectedDef != null && selectedDef.requiresParam && !selectedDef.allowedParams.isEmpty()}"
+            th:required="${selectedDef != null && selectedDef.requiresParam && !selectedDef.allowedParams.isEmpty()}"
+          >
+            <option value="">-- Valor --</option>
+            <option
+              th:each="p : ${selectedDef.allowedParams}"
+              th:value="${p}"
+              th:text="${p}"
+              th:selected="${rule != null && rule.subjectParam == p}"
+            ></option>
+          </select>
+          <!-- Number input for free-param or fallback when no definition matched -->
           <input
+            th:id="|subject-param-input-${index}|"
             type="number"
             step="0.01"
             class="form-control form-control-sm"
             th:name="|rules[${index}].subjectParam|"
             th:value="${rule != null ? rule.subjectParam : ''}"
             placeholder="0.00"
-            th:required="${selectedDef != null && selectedDef.requiresParam}"
+            th:if="${selectedDef == null || !selectedDef.requiresParam || selectedDef.allowedParams.isEmpty()}"
+            th:required="${selectedDef != null && selectedDef.requiresParam && selectedDef.allowedParams.isEmpty()}"
           />
         </label>
       </div>
@@ -102,14 +121,14 @@
             th:onchange="|toggleTargetParameter(this, ${index})|"
             required
           >
-            <option value="" data-requires-param="false">
+            <option value="" data-requires-param="false" data-any-param="false">
               -- Seleccionar Indicador --
             </option>
             <option
               th:each="rd : ${ruleDefinitions}"
               th:value="${rd.code}"
               th:text="${rd.name}"
-              th:attr="data-requires-param=${rd.requiresParam}"
+              th:attr="data-requires-param=${rd.requiresParam},data-any-param=${rd.anyParamAllowed}"
               th:selected="${rule != null && rule.targetCode == rd.code}"
             ></option>
           </select>
@@ -125,14 +144,33 @@
       >
         <label class="form-label small text-muted">
           Valor de Objetivo
+          <!-- Select for indicators with a fixed set of allowed params -->
+          <select
+            th:id="|target-param-select-${index}|"
+            th:name="|rules[${index}].targetParam|"
+            class="form-select form-select-sm"
+            th:if="${selectedTargetDef != null && selectedTargetDef.requiresParam && !selectedTargetDef.allowedParams.isEmpty()}"
+            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam && !selectedTargetDef.allowedParams.isEmpty()}"
+          >
+            <option value="">-- Valor --</option>
+            <option
+              th:each="p : ${selectedTargetDef.allowedParams}"
+              th:value="${p}"
+              th:text="${p}"
+              th:selected="${rule != null && rule.targetParam == p}"
+            ></option>
+          </select>
+          <!-- Number input for free-param or fallback -->
           <input
+            th:id="|target-param-input-${index}|"
             type="number"
             step="0.01"
             class="form-control form-control-sm"
             th:name="|rules[${index}].targetParam|"
             th:value="${rule != null ? rule.targetParam : ''}"
             placeholder="0.00"
-            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam}"
+            th:if="${selectedTargetDef == null || !selectedTargetDef.requiresParam || selectedTargetDef.allowedParams.isEmpty()}"
+            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam && selectedTargetDef.allowedParams.isEmpty()}"
           />
         </label>
       </div>

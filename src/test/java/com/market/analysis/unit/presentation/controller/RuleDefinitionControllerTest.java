@@ -2,6 +2,8 @@ package com.market.analysis.unit.presentation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
@@ -37,6 +40,9 @@ class RuleDefinitionControllerTest {
 
     @Mock
     private Model model;
+
+    @Mock
+    private RedirectAttributes redirectAttributes;
 
     @InjectMocks
     private RuleDefinitionController ruleDefinitionController;
@@ -138,11 +144,28 @@ class RuleDefinitionControllerTest {
     @DisplayName("Should delete rule definition and redirect")
     void testDeleteRuleDefinition() {
         // Act
-        String viewName = ruleDefinitionController.deleteRuleDefinition(1L);
+        String viewName = ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).deleteRuleDefinition(1L);
+        verify(redirectAttributes, never()).addFlashAttribute(any(String.class), any());
+    }
+
+    @Test
+    @DisplayName("Should redirect with error message when rule definition is used in a strategy")
+    void testDeleteRuleDefinitionUsedInStrategy() {
+        // Arrange
+        String errorMsg = "No se puede eliminar la definición de regla 'SMA' porque está siendo usada en una o más estrategias.";
+        doThrow(new IllegalArgumentException(errorMsg))
+                .when(manageRuleDefinitionUseCase).deleteRuleDefinition(1L);
+
+        // Act
+        String viewName = ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes);
+
+        // Assert
+        assertEquals("redirect:/rule-definitions", viewName);
+        verify(redirectAttributes, times(1)).addFlashAttribute("errorMessage", errorMsg);
     }
 
     @Test

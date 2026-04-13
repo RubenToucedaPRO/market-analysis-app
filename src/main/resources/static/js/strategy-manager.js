@@ -129,18 +129,24 @@ function reindexRules() {
       }
     });
 
-    // Update the ID of the parameter container
-    const paramContainer = rule.querySelector('[id^="rule-container-"]');
-    if (paramContainer) {
-      paramContainer.id = `rule-container-${ruleIndex}`;
-    }
+    // Update the IDs of the parameter containers and sub-elements
+    rule.querySelectorAll('[id]').forEach((el) => {
+      el.id = el.id.replace(/(-\d+)$/, `-${ruleIndex}`);
+    });
 
-    // Update the onchange attribute of the select
-    const select = rule.querySelector('select[name*="subjectCode"]');
-    if (select) {
-      select.setAttribute(
+    // Update the onchange attribute of the subject and target selects
+    const subjectSelect = rule.querySelector('select[name*="subjectCode"]');
+    if (subjectSelect) {
+      subjectSelect.setAttribute(
         "onchange",
         `toggleSubjectParameter(this, ${ruleIndex})`,
+      );
+    }
+    const targetSelect = rule.querySelector('select[name*="targetCode"]');
+    if (targetSelect) {
+      targetSelect.setAttribute(
+        "onchange",
+        `toggleTargetParameter(this, ${ruleIndex})`,
       );
     }
 
@@ -149,36 +155,87 @@ function reindexRules() {
   });
 }
 
-function toggleParameter(selectElement, containerId) {
+function toggleParameter(selectElement, containerId, paramSelectId, paramInputId) {
   const selectedOption = selectElement.options[selectElement.selectedIndex];
   // Convertir explícitamente a string para comparar, manejando undefined
   const requiresParam = String(selectedOption.dataset.requiresParam) === "true";
   const paramContainer = document.getElementById(containerId);
 
-  if (paramContainer) {
-    paramContainer.style.setProperty(
-      "display",
-      requiresParam ? "block" : "none",
-      "important",
-    );
+  if (!paramContainer) return;
 
-    const input = paramContainer.querySelector("input");
-    if (input) {
-      if (requiresParam) {
-        input.setAttribute("required", "required");
-      } else {
-        input.removeAttribute("required");
-        input.value = ""; // Limpiar valor si se oculta para evitar basura en el POST
-      }
+  if (!requiresParam) {
+    paramContainer.style.setProperty("display", "none", "important");
+    // Disable and clear both controls so they are not submitted
+    const sel = document.getElementById(paramSelectId);
+    const inp = document.getElementById(paramInputId);
+    if (sel) { sel.disabled = true; sel.removeAttribute("required"); }
+    if (inp) { inp.disabled = true; inp.removeAttribute("required"); inp.value = ""; }
+    return;
+  }
+
+  paramContainer.style.setProperty("display", "block", "important");
+
+  // Determine whether to show a constrained-value select or a free number input.
+  // allowedParams comes from the JSON-serialised ruleDefinitions array injected by
+  // Thymeleaf – this avoids fragile Set.toString() parsing of data attributes.
+  const code = selectedOption.value;
+  const rdEntry = (globalThis.ruleDefinitions || []).find((d) => d.code === code);
+  const allowedValues = rdEntry && Array.isArray(rdEntry.allowedParams)
+    ? rdEntry.allowedParams
+    : [];
+
+  const sel = document.getElementById(paramSelectId);
+  const inp = document.getElementById(paramInputId);
+
+  if (allowedValues.length > 0) {
+    // Populate the select with the allowed values and show it
+    if (sel) {
+      sel.innerHTML =
+        '<option value="">-- Valor --</option>' +
+        [...allowedValues]
+          .sort((a, b) => a - b)
+          .map((v) => `<option value="${v}">${v}</option>`)
+          .join("");
+      sel.style.display = "";
+      sel.disabled = false;
+      sel.setAttribute("required", "required");
+    }
+    if (inp) {
+      inp.style.display = "none";
+      inp.disabled = true;
+      inp.removeAttribute("required");
+      inp.value = "";
+    }
+  } else {
+    // Free-value number input (anyParamAllowed indicators like CONSTANT/VALUE)
+    if (inp) {
+      inp.style.display = "";
+      inp.disabled = false;
+      inp.setAttribute("required", "required");
+    }
+    if (sel) {
+      sel.style.display = "none";
+      sel.disabled = true;
+      sel.removeAttribute("required");
     }
   }
 }
 
 // Simplificación de tus funciones:
 function toggleSubjectParameter(selectElement, index) {
-  toggleParameter(selectElement, `subject-container-${index}`);
+  toggleParameter(
+    selectElement,
+    `subject-container-${index}`,
+    `subject-param-select-${index}`,
+    `subject-param-input-${index}`,
+  );
 }
 
 function toggleTargetParameter(selectElement, index) {
-  toggleParameter(selectElement, `target-container-${index}`);
+  toggleParameter(
+    selectElement,
+    `target-container-${index}`,
+    `target-param-select-${index}`,
+    `target-param-input-${index}`,
+  );
 }
