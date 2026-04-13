@@ -177,6 +177,23 @@ class AnalyzeTickerControllerTest {
     }
 
     @Test
+    @DisplayName("Should update ticker from detail and redirect to ticker detail page")
+    void testUpdateTickerFromDetail() {
+        // Arrange
+        Long id = 1L;
+
+        // Act
+        String viewName = controller.updateTickerFromDetail(id, redirectAttributes);
+
+        // Assert
+        assertThat(viewName).isEqualTo("redirect:/analysis/ticker/1");
+        verify(manageAnalyzeTickerUseCase, times(1)).updateStockData(id);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Datos del ticker actualizados correctamente."));
+    }
+
+    @Test
     @DisplayName("Should delete ticker and redirect to analysis")
     void testDeleteTicker() {
         // Arrange
