@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 
@@ -63,8 +65,12 @@ public class RuleDefinitionController {
     }
 
     @PostMapping("/delete")
-    public String deleteRuleDefinition(@RequestParam("id") Long id) {
-        manageRuleDefinitionUseCase.deleteRuleDefinition(id);
+    public String deleteRuleDefinition(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
+        try {
+            manageRuleDefinitionUseCase.deleteRuleDefinition(id);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/rule-definitions";
     }
 }

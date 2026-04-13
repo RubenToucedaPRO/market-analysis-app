@@ -63,10 +63,18 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     @Transactional
     public void deleteById(Long id) {
         log.debug("Deleting rule definition with ID: {}", id);
-        if (strategyRepository.findAll().stream()
-                .anyMatch(strategy -> strategy.getRules().stream()
-                        .anyMatch(rule -> rule.getId() != null && rule.getId().equals(id)))) {
-            throw new IllegalArgumentException("No se puede eliminar la definición de regla porque está asociada a una estrategia.");
+        String code = jpaRepository.findById(id)
+                .map(RuleDefinitionEntity::getCode)
+                .orElse(null);
+        if (code != null) {
+            boolean usedInStrategy = strategyRepository.findAll().stream()
+                    .flatMap(strategy -> strategy.getRules().stream())
+                    .anyMatch(rule -> code.equals(rule.getSubjectCode()) || code.equals(rule.getTargetCode()));
+            if (usedInStrategy) {
+                throw new IllegalArgumentException(
+                        "No se puede eliminar la definición de regla '" + code
+                                + "' porque está siendo usada en una o más estrategias.");
+            }
         }
         jpaRepository.deleteById(id);
         log.debug("Rule definition deleted successfully with ID: {}", id);
