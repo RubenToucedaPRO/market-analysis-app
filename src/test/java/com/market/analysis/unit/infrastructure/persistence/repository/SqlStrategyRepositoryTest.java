@@ -3,9 +3,11 @@ package com.market.analysis.unit.infrastructure.persistence.repository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,9 +26,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import com.market.analysis.domain.exception.EntityInUseException;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.infrastructure.persistence.entity.RuleEntity;
+import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEntity;
 import com.market.analysis.infrastructure.persistence.mapper.StrategyMapper;
 import com.market.analysis.infrastructure.persistence.repository.JpaStrategyRepository;
@@ -217,6 +221,21 @@ class SqlStrategyRepositoryTest {
 
         // Assert
         verify(jpaRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("Should throw EntityInUseException when strategy has associated stocks")
+    void testDeleteByIdStrategyHasStocks() {
+        // Arrange
+        StockEntity stockEntity = new StockEntity();
+        stockEntity.setStrategyId(1L);
+        when(stockDataRepository.findAll()).thenReturn(List.of(stockEntity));
+
+        // Act & Assert
+        EntityInUseException exception = assertThrows(EntityInUseException.class,
+                () -> sqlStrategyRepository.deleteById(1L));
+        assertTrue(exception.getMessage().contains("stocks asociados"));
+        verify(jpaRepository, never()).deleteById(1L);
     }
 
     @Test
