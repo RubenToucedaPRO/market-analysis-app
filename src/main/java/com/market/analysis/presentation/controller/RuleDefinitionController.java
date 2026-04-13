@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
@@ -67,6 +66,8 @@ public class RuleDefinitionController {
     @PostMapping("/delete")
     public String deleteRuleDefinition(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         manageRuleDefinitionUseCase.deleteRuleDefinition(id);
+        redirectAttributes.addFlashAttribute("message", "Estrategia eliminada con éxito.");
+        redirectAttributes.addFlashAttribute("messageType", "success");
         return "redirect:/rule-definitions";
     }
 }

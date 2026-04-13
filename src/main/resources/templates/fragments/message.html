@@ -1,12 +1,17 @@
-<!-- Error Alert -->
 <div
   th:fragment="message"
-  th:if="${errorMessage}"
-  class="alert alert-danger alert-dismissible fade show"
+  th:if="${message}"
+  th:classappend="'alert-' + ${messageType}"
+  class="alert alert-dismissible fade show"
   role="alert"
 >
-  <i class="bi bi-exclamation-triangle-fill me-2"></i>
-  <span th:text="${errorMessage}"></span>
+  <i
+    th:class="${messageType == 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"
+    class="bi me-2"
+  ></i>
+
+  <span th:text="${message}"></span>
+
   <button
     type="button"
     class="btn-close"

@@ -192,7 +192,8 @@ public class GlobalExceptionHandler {
      * @return a Spring MVC redirect string
      */
     private String redirectWithError(String message, RedirectAttributes ra, HttpServletRequest req) {
-        ra.addFlashAttribute(ATTR_ERROR_MESSAGE, message);
+        ra.addFlashAttribute("message", message);
+        ra.addFlashAttribute("messageType", "danger");
         String referer = req.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : DEFAULT_REFERER);
     }

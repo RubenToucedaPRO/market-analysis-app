@@ -62,6 +62,7 @@ public class StrategyController {
 
         model.addAttribute(ATTR_RULE_DEFINITIONS, ruleDefinitions);
         model.addAttribute(ATTR_STRATEGY, strategy);
+        model.addAttribute("isEdit", false);
 
         return "strategies/create";
     }
@@ -74,6 +75,7 @@ public class StrategyController {
 
         model.addAttribute(ATTR_RULE_DEFINITIONS, ruleDefinitionsDTOs);
         model.addAttribute(ATTR_STRATEGY, strategyDTO);
+        model.addAttribute("isEdit", true);
 
         return "strategies/create";
     }
