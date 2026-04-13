@@ -13,6 +13,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
+import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.WebConstants;
 
 import lombok.RequiredArgsConstructor;
 
@@ -52,12 +54,17 @@ public class RuleDefinitionController {
     }
 
     @PostMapping
-    public String saveRuleDefinition(@ModelAttribute RuleDefinitionDTO ruleDefinitionDTO) {
+    public String saveRuleDefinition(@ModelAttribute RuleDefinitionDTO ruleDefinitionDTO,
+            RedirectAttributes redirectAttributes) {
 
         if (ruleDefinitionDTO.getId() == null) {
             manageRuleDefinitionUseCase.createRuleDefinition(ruleDefinitionDTO);
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Definición de regla creada correctamente."));
         } else {
             manageRuleDefinitionUseCase.updateRuleDefinition(ruleDefinitionDTO);
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Definición de regla actualizada correctamente."));
         }
 
         return "redirect:/rule-definitions";
@@ -66,8 +73,8 @@ public class RuleDefinitionController {
     @PostMapping("/delete")
     public String deleteRuleDefinition(@RequestParam("id") Long id, RedirectAttributes redirectAttributes) {
         manageRuleDefinitionUseCase.deleteRuleDefinition(id);
-        redirectAttributes.addFlashAttribute("message", "Estrategia eliminada con éxito.");
-        redirectAttributes.addFlashAttribute("messageType", "success");
+        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla eliminada con éxito."));
         return "redirect:/rule-definitions";
     }
 }

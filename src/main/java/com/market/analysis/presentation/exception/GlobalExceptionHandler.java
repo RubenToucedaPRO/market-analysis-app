@@ -15,6 +15,8 @@ import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.exception.PersistenceException;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.exception.StockException;
+import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.WebConstants;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -192,8 +194,7 @@ public class GlobalExceptionHandler {
      * @return a Spring MVC redirect string
      */
     private String redirectWithError(String message, RedirectAttributes ra, HttpServletRequest req) {
-        ra.addFlashAttribute("message", message);
-        ra.addFlashAttribute("messageType", "danger");
+        ra.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(message));
         String referer = req.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : DEFAULT_REFERER);
     }
