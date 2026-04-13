@@ -95,9 +95,17 @@
                       th:selected="*{code} == ${cap.code}"
                     ></option>
                   </select>
+
+                  <input
+                    th:if="${isEdit}"
+                    class="form-control"
+                    th:value="*{code}"
+                    readonly
+                  />
+                  <input th:if="${isEdit}" type="hidden" th:field="*{code}" />
+
                   <small class="form-text text-muted">
-                    Identificador único usado en el código. No se puede cambiar
-                    después de la creación.
+                    Identificador asociado a indicador declarado en el catálogo.
                   </small>
                 </div>
 
