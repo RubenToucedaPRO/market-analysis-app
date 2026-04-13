@@ -24,6 +24,8 @@ import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
+import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.WebConstants;
 
 /**
  * Unit tests for StrategyController.
@@ -46,6 +48,9 @@ class StrategyControllerTest {
 
     @Mock
     private Model model;
+
+    @Mock
+    private org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes;
 
     @InjectMocks
     private StrategyController strategyController;
@@ -98,7 +103,7 @@ class StrategyControllerTest {
         // Assert
         assertEquals("strategies/create", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).getAllRuleDefinitions();
-        verify(model, times(2)).addAttribute(any(String.class), any());
+        verify(model, times(3)).addAttribute(any(String.class), any());
     }
 
     @Test
@@ -117,9 +122,30 @@ class StrategyControllerTest {
     }
 
     @Test
-    @DisplayName("Should save strategy and redirect")
+    @DisplayName("Should save strategy and redirect with success flash")
     void testSaveStrategy() {
         // Arrange
+        StrategyDTO strategyDTO = StrategyDTO.builder()
+                .name("Test Strategy")
+                .description("Test Description")
+                .rules(List.of())
+                .build();
+
+        // Act
+        String viewName = strategyController.saveStrategy(strategyDTO, redirectAttributes);
+
+        // Assert
+        assertEquals("redirect:/strategies", viewName);
+        verify(manageStrategyUseCase, times(1)).createStrategy(any(StrategyDTO.class));
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Estrategia creada correctamente."));
+    }
+
+    @Test
+    @DisplayName("Should save existing strategy and redirect with update flash")
+    void testSaveStrategyUpdate() {
+        // Arrange – id != null triggers update message
         StrategyDTO strategyDTO = StrategyDTO.builder()
                 .id(1L)
                 .name("Test Strategy")
@@ -128,22 +154,28 @@ class StrategyControllerTest {
                 .build();
 
         // Act
-        String viewName = strategyController.saveStrategy(strategyDTO);
+        String viewName = strategyController.saveStrategy(strategyDTO, redirectAttributes);
 
         // Assert
         assertEquals("redirect:/strategies", viewName);
         verify(manageStrategyUseCase, times(1)).createStrategy(any(StrategyDTO.class));
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Estrategia actualizada correctamente."));
     }
 
     @Test
-    @DisplayName("Should delete strategy and redirect")
+    @DisplayName("Should delete strategy and redirect with success flash")
     void testDeleteStrategy() {
         // Act
-        String viewName = strategyController.deleteStrategy(1L);
+        String viewName = strategyController.deleteStrategy(1L, redirectAttributes);
 
         // Assert
         assertEquals("redirect:/strategies", viewName);
         verify(manageStrategyUseCase, times(1)).deleteStrategy(1L);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Estrategia eliminada correctamente."));
     }
 
     @Test
