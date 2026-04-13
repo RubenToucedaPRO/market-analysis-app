@@ -3,6 +3,7 @@ package com.market.analysis.unit.presentation.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,8 +24,6 @@ import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.presentation.controller.RuleDefinitionController;
-import com.market.analysis.presentation.dto.UiNotification;
-import com.market.analysis.presentation.util.WebConstants;
 
 /**
  * Unit tests for RuleDefinitionController.
@@ -118,15 +117,12 @@ class RuleDefinitionControllerTest {
                 .build();
 
         // Act
-        String viewName = ruleDefinitionController.saveRuleDefinition(dtoWithoutId, redirectAttributes);
+        String viewName = ruleDefinitionController.saveRuleDefinition(dtoWithoutId);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).createRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).updateRuleDefinition(any());
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Definición de regla creada correctamente."));
     }
 
     @Test
@@ -136,19 +132,16 @@ class RuleDefinitionControllerTest {
         // testRuleDefinitionDTO has id = 1L
 
         // Act
-        String viewName = ruleDefinitionController.saveRuleDefinition(testRuleDefinitionDTO, redirectAttributes);
+        String viewName = ruleDefinitionController.saveRuleDefinition(testRuleDefinitionDTO);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).updateRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).createRuleDefinition(any());
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Definición de regla actualizada correctamente."));
     }
 
     @Test
-    @DisplayName("Should delete rule definition and redirect with success flash message")
+    @DisplayName("Should delete rule definition and redirect")
     void testDeleteRuleDefinition() {
         // Act
         String viewName = ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes);
@@ -156,9 +149,7 @@ class RuleDefinitionControllerTest {
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).deleteRuleDefinition(1L);
-        verify(redirectAttributes, times(1)).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Definición de regla eliminada con éxito."));
+        verify(redirectAttributes, never()).addFlashAttribute(any(String.class), any());
     }
 
     @Test

@@ -247,20 +247,6 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         targetStock.setVolume(cachedStock.getVolume());
         targetStock.setAverageVolume(cachedStock.getAverageVolume());
         targetStock.setLastUpdated(cachedStock.getLastUpdated());
-        targetStock.setEma9(cachedStock.getEma9());
-        targetStock.setEma12(cachedStock.getEma12());
-        targetStock.setEma20(cachedStock.getEma20());
-        targetStock.setEma26(cachedStock.getEma26());
-        targetStock.setEma50(cachedStock.getEma50());
-        targetStock.setEma200(cachedStock.getEma200());
-        targetStock.setRsi14(cachedStock.getRsi14());
-        targetStock.setRsi30(cachedStock.getRsi30());
-        targetStock.setMacdLine(cachedStock.getMacdLine());
-        targetStock.setMacdSignal(cachedStock.getMacdSignal());
-        targetStock.setMacdHistogram(cachedStock.getMacdHistogram());
-        targetStock.setBbUpper20(cachedStock.getBbUpper20());
-        targetStock.setBbLower20(cachedStock.getBbLower20());
-        targetStock.setAtr14(cachedStock.getAtr14());
     }
 
     private void enrichWithFreshHistoricalIndicators(String ticker, Stock stock) {
