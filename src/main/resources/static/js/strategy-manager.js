@@ -143,6 +143,9 @@ function reindexRules() {
     ruleIndex++;
   });
 }
+/*
+ * Toggle the visibility and required status of parameter inputs based on the selected rule code
+ */
 
 function toggleParameter(
   selectElement,
@@ -216,7 +219,7 @@ function showAllowedValuesSelect(sel, inp, allowedValues, currentValue) {
     sel.style.display = "";
     sel.disabled = false;
     sel.setAttribute("required", "required");
-    sel.value = currentValue;
+    sel.value = normalizeParameterValue(currentValue);
   }
 
   if (inp) {
@@ -225,6 +228,15 @@ function showAllowedValuesSelect(sel, inp, allowedValues, currentValue) {
     inp.removeAttribute("required");
     inp.value = "";
   }
+}
+
+function normalizeParameterValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  const numericValue = Number(value);
+  return Number.isNaN(numericValue) ? String(value) : String(numericValue);
 }
 
 function showFreeValueInput(inp, sel, currentValue) {
@@ -242,7 +254,7 @@ function showFreeValueInput(inp, sel, currentValue) {
   }
 }
 
-// Simplificación de tus funciones:
+// These functions are called when the subject or target select changes
 function toggleSubjectParameter(selectElement, index) {
   toggleParameter(
     selectElement,
