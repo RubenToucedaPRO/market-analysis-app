@@ -30,7 +30,6 @@
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
-
       <div
         class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-1"
       >
@@ -123,32 +122,7 @@
                     id="objectiveTargetType"
                     name="objective.targetType"
                     required
-                  >
-                    <option
-                      value=""
-                      th:selected="${strategy.objective == null or strategy.objective.targetType == null}"
-                    >
-                      Selecciona tipo...
-                    </option>
-                    <option
-                      value="SMA"
-                      th:selected="${strategy.objective != null and strategy.objective.targetType == 'SMA'}"
-                    >
-                      SMA
-                    </option>
-                    <option
-                      value="PERCENTAGE"
-                      th:selected="${strategy.objective != null and strategy.objective.targetType == 'PERCENTAGE'}"
-                    >
-                      PERCENTAGE
-                    </option>
-                    <option
-                      value="FIXED_PRICE"
-                      th:selected="${strategy.objective != null and strategy.objective.targetType == 'FIXED_PRICE'}"
-                    >
-                      FIXED_PRICE
-                    </option>
-                  </select>
+                  ></select>
                 </div>
 
                 <!-- Target Value -->
