@@ -45,7 +45,7 @@
       <div
         th:id="|subject-container-${index}|"
         class="col-md-2"
-        th:with="selectedDef=${rule != null ? ruleDefinitions.?[code == #root.rule.subjectCode].^[true] : null}"
+        th:with="selectedDef=${rule != null ? ruleDefinitions.?[code == #root.rule.subjectCode].^[true] : null}, selectedAllowedParams=${selectedDef != null ? selectedDef.allowedParams : null}"
         th:style="${selectedDef == null || !selectedDef.requiresParam} ? 'display: none;' : ''"
       >
         <label class="form-label small text-muted">
@@ -55,12 +55,13 @@
             th:id="|subject-param-select-${index}|"
             th:name="|rules[${index}].subjectParam|"
             class="form-select form-select-sm"
-            th:if="${selectedDef != null && selectedDef.requiresParam && !selectedDef.allowedParams.isEmpty()}"
-            th:required="${selectedDef != null && selectedDef.requiresParam && !selectedDef.allowedParams.isEmpty()}"
+            th:style="${selectedAllowedParams != null && !selectedAllowedParams.isEmpty()} ? '' : 'display: none;'"
+            th:disabled="${selectedAllowedParams == null || selectedAllowedParams.isEmpty()}"
+            th:required="${selectedAllowedParams != null && !selectedAllowedParams.isEmpty()}"
           >
             <option value="">-- Valor --</option>
             <option
-              th:each="p : ${selectedDef.allowedParams}"
+              th:each="p : ${selectedAllowedParams}"
               th:value="${p}"
               th:text="${p}"
               th:selected="${rule != null && rule.subjectParam == p}"
@@ -75,8 +76,9 @@
             th:name="|rules[${index}].subjectParam|"
             th:value="${rule != null ? rule.subjectParam : ''}"
             placeholder="0.00"
-            th:if="${selectedDef == null || !selectedDef.requiresParam || selectedDef.allowedParams.isEmpty()}"
-            th:required="${selectedDef != null && selectedDef.requiresParam && selectedDef.allowedParams.isEmpty()}"
+            th:style="${selectedDef != null && selectedDef.requiresParam && (selectedAllowedParams == null || selectedAllowedParams.isEmpty())} ? '' : 'display: none;'"
+            th:disabled="${selectedDef == null || !selectedDef.requiresParam || (selectedAllowedParams != null && !selectedAllowedParams.isEmpty())}"
+            th:required="${selectedDef != null && selectedDef.requiresParam && (selectedAllowedParams == null || selectedAllowedParams.isEmpty())}"
           />
         </label>
       </div>
@@ -139,7 +141,7 @@
       <div
         th:id="|target-container-${index}|"
         class="col-md-2"
-        th:with="selectedTargetDef=${rule != null ? ruleDefinitions.?[code == #root.rule.targetCode].^[true] : null}"
+        th:with="selectedTargetDef=${rule != null ? ruleDefinitions.?[code == #root.rule.targetCode].^[true] : null}, selectedTargetAllowedParams=${selectedTargetDef != null ? selectedTargetDef.allowedParams : null}"
         th:style="${selectedTargetDef == null || !selectedTargetDef.requiresParam} ? 'display: none;' : ''"
       >
         <label class="form-label small text-muted">
@@ -149,12 +151,13 @@
             th:id="|target-param-select-${index}|"
             th:name="|rules[${index}].targetParam|"
             class="form-select form-select-sm"
-            th:if="${selectedTargetDef != null && selectedTargetDef.requiresParam && !selectedTargetDef.allowedParams.isEmpty()}"
-            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam && !selectedTargetDef.allowedParams.isEmpty()}"
+            th:style="${selectedTargetAllowedParams != null && !selectedTargetAllowedParams.isEmpty()} ? '' : 'display: none;'"
+            th:disabled="${selectedTargetAllowedParams == null || selectedTargetAllowedParams.isEmpty()}"
+            th:required="${selectedTargetAllowedParams != null && !selectedTargetAllowedParams.isEmpty()}"
           >
             <option value="">-- Valor --</option>
             <option
-              th:each="p : ${selectedTargetDef.allowedParams}"
+              th:each="p : ${selectedTargetAllowedParams}"
               th:value="${p}"
               th:text="${p}"
               th:selected="${rule != null && rule.targetParam == p}"
@@ -169,8 +172,9 @@
             th:name="|rules[${index}].targetParam|"
             th:value="${rule != null ? rule.targetParam : ''}"
             placeholder="0.00"
-            th:if="${selectedTargetDef == null || !selectedTargetDef.requiresParam || selectedTargetDef.allowedParams.isEmpty()}"
-            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam && selectedTargetDef.allowedParams.isEmpty()}"
+            th:style="${selectedTargetDef != null && selectedTargetDef.requiresParam && (selectedTargetAllowedParams == null || selectedTargetAllowedParams.isEmpty())} ? '' : 'display: none;'"
+            th:disabled="${selectedTargetDef == null || !selectedTargetDef.requiresParam || (selectedTargetAllowedParams != null && !selectedTargetAllowedParams.isEmpty())}"
+            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam && (selectedTargetAllowedParams == null || selectedTargetAllowedParams.isEmpty())}"
           />
         </label>
       </div>
