@@ -90,7 +90,7 @@ public class StrategyController {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.success("Estrategia creada correctamente."));
         } else {
-            manageStrategyUseCase.createStrategy(strategyDTO);
+            manageStrategyUseCase.updateStrategy(strategyDTO);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.success("Estrategia actualizada correctamente."));
         }

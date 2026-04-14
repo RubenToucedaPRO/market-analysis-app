@@ -158,7 +158,7 @@ class StrategyControllerTest {
 
         // Assert
         assertEquals("redirect:/strategies", viewName);
-        verify(manageStrategyUseCase, times(1)).createStrategy(any(StrategyDTO.class));
+        verify(manageStrategyUseCase, times(1)).updateStrategy(any(StrategyDTO.class));
         verify(redirectAttributes, times(1)).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Estrategia actualizada correctamente."));

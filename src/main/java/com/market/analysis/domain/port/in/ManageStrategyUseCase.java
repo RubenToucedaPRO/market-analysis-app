@@ -8,6 +8,8 @@ import com.market.analysis.application.dto.StrategyDTO;
 public interface ManageStrategyUseCase {
     StrategyDTO createStrategy(StrategyDTO strategy);
 
+    StrategyDTO updateStrategy(StrategyDTO strategy);
+
     List<StrategyDTO> getAllStrategies();
 
     StrategyDTO getStrategyById(Long strategyId);
