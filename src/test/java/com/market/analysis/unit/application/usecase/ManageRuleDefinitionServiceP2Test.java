@@ -83,10 +83,8 @@ class ManageRuleDefinitionServiceP2Test {
 
         List<RuleCapabilityDTO> capabilities = service.getCatalogCapabilities();
 
-        assertThat(capabilities).extracting(RuleCapabilityDTO::getCode)
-                .doesNotContain("SMA", "RSI");
-        assertThat(capabilities).extracting(RuleCapabilityDTO::getCode)
-                .contains("EMA", "PRICE", "CONSTANT");
+        List<String> codes = capabilities.stream().map(RuleCapabilityDTO::getCode).toList();
+        assertThat(codes).doesNotContain("SMA", "RSI").contains("EMA", "PRICE", "CONSTANT");
     }
 
     @Test
