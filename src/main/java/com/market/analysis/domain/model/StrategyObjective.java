@@ -114,10 +114,17 @@ public class StrategyObjective {
      * @throws IllegalArgumentException if the type is SMA and the value is not 20, 50, or 200
      */
     private void validateSmaValue(ObjectiveType type, BigDecimal value, String fieldName) {
-        if (type == ObjectiveType.SMA && !ALLOWED_SMA_PERIODS.contains(value.intValue())) {
-            throw new IllegalArgumentException(
-                    String.format("%s must be one of %s when type is SMA, but was %s",
-                            fieldName, ALLOWED_SMA_PERIODS, value));
+        if (type == ObjectiveType.SMA) {
+            if (value.stripTrailingZeros().scale() > 0) {
+                throw new IllegalArgumentException(
+                        String.format("%s must be a whole number when type is SMA, but was %s",
+                                fieldName, value));
+            }
+            if (!ALLOWED_SMA_PERIODS.contains(value.intValue())) {
+                throw new IllegalArgumentException(
+                        String.format("%s must be one of %s when type is SMA, but was %s",
+                                fieldName, ALLOWED_SMA_PERIODS, value));
+            }
         }
     }
 }

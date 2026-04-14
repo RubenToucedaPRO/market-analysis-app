@@ -505,6 +505,24 @@ class StrategyObjectiveTest {
     }
 
     @Test
+    @DisplayName("Should reject SMA targetValue with decimal (20.5)")
+    void shouldRejectSmaTargetValueWithDecimal() {
+        // Arrange
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(20.5))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Decimal SMA period")
+                .build();
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
+        assertTrue(exception.getMessage().contains("whole number"));
+    }
+
+    @Test
     @DisplayName("Should accept very small positive BigDecimal values")
     void shouldAcceptVerySmallPositiveBigDecimalValues() {
         // Arrange & Act

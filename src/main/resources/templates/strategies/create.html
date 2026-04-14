@@ -170,19 +170,19 @@
                     <option value="">Selecciona período SMA...</option>
                     <option
                       value="20"
-                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue == 20}"
+                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue.intValue() == 20}"
                     >
                       SMA 20
                     </option>
                     <option
                       value="50"
-                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue == 50}"
+                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue.intValue() == 50}"
                     >
                       SMA 50
                     </option>
                     <option
                       value="200"
-                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue == 200}"
+                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue.intValue() == 200}"
                     >
                       SMA 200
                     </option>
@@ -260,19 +260,19 @@
                     <option value="">Selecciona período SMA...</option>
                     <option
                       value="20"
-                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue == 20}"
+                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue.intValue() == 20}"
                     >
                       SMA 20
                     </option>
                     <option
                       value="50"
-                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue == 50}"
+                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue.intValue() == 50}"
                     >
                       SMA 50
                     </option>
                     <option
                       value="200"
-                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue == 200}"
+                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue.intValue() == 200}"
                     >
                       SMA 200
                     </option>
