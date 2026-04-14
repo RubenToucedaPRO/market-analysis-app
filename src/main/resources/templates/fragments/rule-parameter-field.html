@@ -1,0 +1,29 @@
+<!-- templates/fragments/rule-parameter-field.html -->
+<div
+  th:fragment="parameterField(containerId, selectId, inputId, fieldName, label, value)"
+  th:id="${containerId}"
+  class="col-md-2"
+  style="display: none"
+>
+  <label class="form-label small text-muted">
+    <span th:text="${label}">Parámetro</span>
+    <select
+      th:id="${selectId}"
+      th:name="${fieldName}"
+      class="form-select form-select-sm"
+      disabled
+    >
+      <option value="">-- Valor --</option>
+    </select>
+    <input
+      th:id="${inputId}"
+      type="number"
+      step="0.01"
+      class="form-control form-control-sm"
+      th:name="${fieldName}"
+      th:value="${value}"
+      placeholder="0.00"
+      disabled
+    />
+  </label>
+</div>

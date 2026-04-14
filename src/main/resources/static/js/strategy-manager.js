@@ -153,6 +153,8 @@ function toggleParameter(
   const selectedOption = selectElement.options[selectElement.selectedIndex];
   const requiresParam = String(selectedOption.dataset.requiresParam) === "true";
   const paramContainer = document.getElementById(containerId);
+  const sel = document.getElementById(paramSelectId);
+  const inp = document.getElementById(paramInputId);
 
   if (!paramContainer) return;
 
@@ -163,14 +165,13 @@ function toggleParameter(
 
   showParameterContainer(paramContainer);
 
-  const sel = document.getElementById(paramSelectId);
-  const inp = document.getElementById(paramInputId);
+  const currentValue = sel?.value || inp?.value || "";
   const allowedValues = getAllowedValues(selectedOption.value);
 
   if (allowedValues.length > 0) {
-    showAllowedValuesSelect(sel, inp, allowedValues);
+    showAllowedValuesSelect(sel, inp, allowedValues, currentValue);
   } else {
-    showFreeValueInput(inp, sel);
+    showFreeValueInput(inp, sel, currentValue);
   }
 }
 
@@ -204,7 +205,7 @@ function getAllowedValues(code) {
     : [];
 }
 
-function showAllowedValuesSelect(sel, inp, allowedValues) {
+function showAllowedValuesSelect(sel, inp, allowedValues, currentValue) {
   if (sel) {
     sel.innerHTML =
       '<option value="">-- Valor --</option>' +
@@ -215,6 +216,7 @@ function showAllowedValuesSelect(sel, inp, allowedValues) {
     sel.style.display = "";
     sel.disabled = false;
     sel.setAttribute("required", "required");
+    sel.value = currentValue;
   }
 
   if (inp) {
@@ -225,11 +227,12 @@ function showAllowedValuesSelect(sel, inp, allowedValues) {
   }
 }
 
-function showFreeValueInput(inp, sel) {
+function showFreeValueInput(inp, sel, currentValue) {
   if (inp) {
     inp.style.display = "";
     inp.disabled = false;
     inp.setAttribute("required", "required");
+    inp.value = currentValue;
   }
 
   if (sel) {
