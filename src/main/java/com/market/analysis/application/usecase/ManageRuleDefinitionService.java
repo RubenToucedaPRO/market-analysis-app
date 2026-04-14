@@ -1,13 +1,16 @@
 package com.market.analysis.application.usecase;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.market.analysis.application.dto.RuleCapabilityDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
-import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.RuleCapability;
+import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
@@ -99,7 +102,13 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
 
     @Override
     public List<RuleCapabilityDTO> getCatalogCapabilities() {
+        Set<String> usedCodes = ruleDefinitionRepository.findAll().stream()
+            .map(RuleDefinition::getCode)
+            .filter(Objects::nonNull)
+            .map(String::toUpperCase)
+            .collect(Collectors.toSet());
         return RuleCapabilityCatalog.getSupportedCodes().stream()
+                .filter(code-> !usedCodes.contains(code.toUpperCase()))
                 .sorted()
                 .map(code -> {
                     RuleCapability cap = RuleCapabilityCatalog.getCapability(code).orElseThrow();
