@@ -394,7 +394,7 @@
     <script th:src="@{/js/mini-chart.js}"></script>
     <script>
       // Inicializar tooltips
-      var tooltipTriggerList = [].slice.call(
+      var tooltipTriggerList = Array.prototype.slice.call(
         document.querySelectorAll('[data-bs-toggle="tooltip"]'),
       );
       var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

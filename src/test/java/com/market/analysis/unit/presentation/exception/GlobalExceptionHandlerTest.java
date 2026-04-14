@@ -2,12 +2,10 @@ package com.market.analysis.unit.presentation.exception;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,9 +59,6 @@ class GlobalExceptionHandlerTest {
             "No se puede eliminar el recurso porque tiene dependencias asociadas";
 
     private static final String REFERER = "/some-page";
-    void setUp() {
-        // individual tests set up request stubs as needed
-    }
 
     // -------------------------------------------------------------------------
     // Domain / Navigation errors – redirect with original message
@@ -215,7 +210,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(ERROR_VIEW, viewName);
         verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Database Error");
-        verify(model, times(1)).addAttribute(eq(ATTR_ERROR_MESSAGE), eq("A database error occurred while processing your request."));
+        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "A database error occurred while processing your request.");
         verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
     }
 
@@ -229,7 +224,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(ERROR_VIEW, viewName);
         verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "System Error");
-        verify(model, times(1)).addAttribute(eq(ATTR_ERROR_MESSAGE), eq("An unexpected system error occurred. Please try again later."));
+        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "An unexpected system error occurred. Please try again later.");
         verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
     }
 
