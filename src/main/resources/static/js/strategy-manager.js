@@ -34,6 +34,10 @@ document.addEventListener("DOMContentLoaded", function () {
   if (ruleIndex === 0) {
     addRuleRow();
   }
+
+  // Initialize objective value fields based on current type selection
+  toggleObjectiveValueField("target");
+  toggleObjectiveValueField("stopLoss");
 });
 
 /**
@@ -271,4 +275,56 @@ function toggleTargetParameter(selectElement, index) {
     `target-param-select-${index}`,
     `target-param-input-${index}`,
   );
+}
+
+/**
+ * Toggle between SMA dropdown and free numeric input for objective value fields.
+ * When the objective type is SMA, shows a dropdown with periods 20, 50, 200.
+ * Otherwise, shows a free numeric input.
+ *
+ * @param {string} field - Either 'target' or 'stopLoss'
+ */
+function toggleObjectiveValueField(field) {
+  const typeSelectId =
+    field === "target" ? "objectiveTargetType" : "objectiveStopLossType";
+  const inputId =
+    field === "target" ? "objectiveTargetValue" : "objectiveStopLossValue";
+  const selectId =
+    field === "target"
+      ? "objectiveTargetValueSelect"
+      : "objectiveStopLossValueSelect";
+
+  const typeSelect = document.getElementById(typeSelectId);
+  const freeInput = document.getElementById(inputId);
+  const smaSelect = document.getElementById(selectId);
+
+  if (!typeSelect || !freeInput || !smaSelect) return;
+
+  const isSma = typeSelect.value === "SMA";
+  const formFieldName =
+    field === "target" ? "objective.targetValue" : "objective.stopLossValue";
+
+  if (isSma) {
+    // Show SMA dropdown, hide free input
+    smaSelect.style.display = "";
+    smaSelect.disabled = false;
+    smaSelect.setAttribute("required", "required");
+    smaSelect.name = formFieldName;
+
+    freeInput.style.display = "none";
+    freeInput.disabled = true;
+    freeInput.removeAttribute("required");
+    freeInput.removeAttribute("name");
+  } else {
+    // Show free input, hide SMA dropdown
+    freeInput.style.display = "";
+    freeInput.disabled = false;
+    freeInput.setAttribute("required", "required");
+    freeInput.name = formFieldName;
+
+    smaSelect.style.display = "none";
+    smaSelect.disabled = true;
+    smaSelect.removeAttribute("required");
+    smaSelect.removeAttribute("name");
+  }
 }

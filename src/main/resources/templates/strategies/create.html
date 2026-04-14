@@ -123,6 +123,7 @@
                     id="objectiveTargetType"
                     name="objective.targetType"
                     required
+                    onchange="toggleObjectiveValueField('target')"
                   >
                     <option
                       value=""
@@ -158,6 +159,35 @@
                     class="form-label fw-semibold"
                     >Valor Objetivo</label
                   >
+                  <!-- Dropdown for SMA type (only 20, 50, 200) -->
+                  <select
+                    class="form-select"
+                    id="objectiveTargetValueSelect"
+                    name="objective.targetValue"
+                    style="display: none;"
+                    disabled
+                  >
+                    <option value="">Selecciona período SMA...</option>
+                    <option
+                      value="20"
+                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue == 20}"
+                    >
+                      SMA 20
+                    </option>
+                    <option
+                      value="50"
+                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue == 50}"
+                    >
+                      SMA 50
+                    </option>
+                    <option
+                      value="200"
+                      th:selected="${strategy.objective != null and strategy.objective.targetValue != null and strategy.objective.targetValue == 200}"
+                    >
+                      SMA 200
+                    </option>
+                  </select>
+                  <!-- Free input for PERCENTAGE / FIXED_PRICE types -->
                   <input
                     type="number"
                     class="form-control"
@@ -183,6 +213,7 @@
                     id="objectiveStopLossType"
                     name="objective.stopLossType"
                     required
+                    onchange="toggleObjectiveValueField('stopLoss')"
                   >
                     <option
                       value=""
@@ -218,6 +249,35 @@
                     class="form-label fw-semibold"
                     >Valor Stop Loss</label
                   >
+                  <!-- Dropdown for SMA type (only 20, 50, 200) -->
+                  <select
+                    class="form-select"
+                    id="objectiveStopLossValueSelect"
+                    name="objective.stopLossValue"
+                    style="display: none;"
+                    disabled
+                  >
+                    <option value="">Selecciona período SMA...</option>
+                    <option
+                      value="20"
+                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue == 20}"
+                    >
+                      SMA 20
+                    </option>
+                    <option
+                      value="50"
+                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue == 50}"
+                    >
+                      SMA 50
+                    </option>
+                    <option
+                      value="200"
+                      th:selected="${strategy.objective != null and strategy.objective.stopLossValue != null and strategy.objective.stopLossValue == 200}"
+                    >
+                      SMA 200
+                    </option>
+                  </select>
+                  <!-- Free input for PERCENTAGE / FIXED_PRICE types -->
                   <input
                     type="number"
                     class="form-control"

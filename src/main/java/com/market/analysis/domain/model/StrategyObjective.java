@@ -1,6 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +16,12 @@ import lombok.ToString;
 @Builder
 @ToString
 public class StrategyObjective {
+
+    /**
+     * Set of allowed SMA periods for target and stop-loss values.
+     * Only SMA20, SMA50, and SMA200 are supported in the system.
+     */
+    private static final Set<Integer> ALLOWED_SMA_PERIODS = Set.of(20, 50, 200);
 
     /**
      * Type of calculation method for the target level (e.g., SMA, PERCENTAGE, FIXED_PRICE).
@@ -91,6 +98,26 @@ public class StrategyObjective {
         }
         if (capitalToRisk.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("capitalToRisk must be greater than zero");
+        }
+
+        validateSmaValue(targetType, targetValue, "targetValue");
+        validateSmaValue(stopLossType, stopLossValue, "stopLossValue");
+    }
+
+    /**
+     * Validates that the given value is an allowed SMA period when the type is SMA.
+     * Allowed periods are: 20, 50, and 200.
+     *
+     * @param type      the objective type
+     * @param value     the value to validate
+     * @param fieldName the field name for error messages
+     * @throws IllegalArgumentException if the type is SMA and the value is not 20, 50, or 200
+     */
+    private void validateSmaValue(ObjectiveType type, BigDecimal value, String fieldName) {
+        if (type == ObjectiveType.SMA && !ALLOWED_SMA_PERIODS.contains(value.intValue())) {
+            throw new IllegalArgumentException(
+                    String.format("%s must be one of %s when type is SMA, but was %s",
+                            fieldName, ALLOWED_SMA_PERIODS, value));
         }
     }
 }
