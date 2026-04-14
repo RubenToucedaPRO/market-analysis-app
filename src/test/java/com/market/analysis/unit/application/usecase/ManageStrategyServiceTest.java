@@ -246,4 +246,80 @@ class ManageStrategyServiceTest {
         assertThrows(IllegalStateException.class,
                 () -> manageStrategyService.createStrategy(invalidStrategy));
     }
+
+    @Test
+    @DisplayName("Should update strategy successfully")
+    void testUpdateStrategy() {
+        // Arrange
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of());
+        when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
+        when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
+
+        // Act
+        StrategyDTO result = manageStrategyService.updateStrategy(testStrategyDTO);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(testStrategyDTO.getId(), result.getId());
+        assertEquals(testStrategyDTO.getName(), result.getName());
+        verify(strategyRepository, times(1)).save(any(Strategy.class));
+    }
+
+    @Test
+    @DisplayName("Should re-evaluate stocks after updating strategy")
+    void testUpdateStrategyReEvaluatesStocks() {
+        // Arrange
+        com.market.analysis.domain.model.Stock stock = com.market.analysis.domain.model.Stock.builder()
+                .id(1L)
+                .ticker("AAPL")
+                .strategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder()
+                        .id(10L)
+                        .build())
+                .build();
+        com.market.analysis.domain.model.StrategyEvaluation evaluation =
+                com.market.analysis.domain.model.StrategyEvaluation.builder()
+                        .id(10L)
+                        .evaluatedAt(java.time.Instant.now())
+                        .build();
+
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of(stock));
+        when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
+        when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
+        when(evaluateStrategyService.evaluateStrategy(any(), any())).thenReturn(evaluation);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
+
+        // Act
+        StrategyDTO result = manageStrategyService.updateStrategy(testStrategyDTO);
+
+        // Assert
+        assertNotNull(result);
+        verify(evaluateStrategyService, times(1)).evaluateStrategy(any(), any());
+        verify(stockDataRepository, times(1)).updateStockData(stock);
+    }
+
+    @Test
+    @DisplayName("Should fail validation when updating strategy with no rules")
+    void testUpdateStrategyValidation() {
+        // Arrange
+        StrategyDTO invalidStrategy = StrategyDTO.builder()
+                .id(2L)
+                .name("Invalid Strategy")
+                .description("No rules")
+                .rules(List.of())
+                .build();
+
+        Strategy invalidStrategyDomain = Strategy.builder()
+                .id(2L)
+                .name("Invalid Strategy")
+                .description("No rules")
+                .rules(List.of())
+                .build();
+
+        when(strategyDTOMapper.toDomain(invalidStrategy)).thenReturn(invalidStrategyDomain);
+
+        // Act & Assert
+        assertThrows(IllegalStateException.class,
+                () -> manageStrategyService.updateStrategy(invalidStrategy));
+    }
 }

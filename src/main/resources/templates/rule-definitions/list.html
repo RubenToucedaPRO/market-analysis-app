@@ -23,6 +23,8 @@
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
     <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Message Alert -->
+    <div th:replace="~{fragments/notification :: notification}"></div>
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
@@ -51,9 +53,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Message Alert -->
-      <div th:replace="~{fragments/message :: message}"></div>
 
       <!-- Empty State -->
       <div th:if="${ruleDefinitions.isEmpty()}" class="text-center py-5">

@@ -23,6 +23,8 @@
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
     <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Message Alert -->
+    <div th:replace="~{fragments/notification :: notification}"></div>
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
@@ -133,16 +135,16 @@
 
                   <!-- Target Indicator -->
                   <div class="col-md-3">
-                    <label class="form-label small text-muted fw-semibold"
-                      >Indicador de Objetivo</label
+                    <span class="form-label small text-muted fw-semibold"
+                      >Indicador de Objetivo</span
                     >
                     <p class="mb-0" th:text="${rule.targetCode}">CONSTANT</p>
                   </div>
 
                   <!-- Target Parameter -->
                   <div class="col-md-2" th:if="${rule.targetParam != null}">
-                    <label class="form-label small text-muted fw-semibold"
-                      >Valor de Objetivo</label
+                    <span class="form-label small text-muted fw-semibold"
+                      >Valor de Objetivo</span
                     >
                     <p class="mb-0" th:text="${rule.targetParam}">100.0</p>
                   </div>
@@ -153,8 +155,8 @@
                   th:if="${rule.description != null and !rule.description.isEmpty()}"
                   class="mt-3"
                 >
-                  <label class="form-label small text-muted fw-semibold"
-                    >Descripción</label
+                  <span class="form-label small text-muted fw-semibold"
+                    >Descripción</span
                   >
                   <p
                     class="mb-0 text-muted small"

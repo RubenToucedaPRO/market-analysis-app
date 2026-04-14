@@ -23,6 +23,8 @@
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
     <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Message Alert -->
+    <div th:replace="~{fragments/notification :: notification}"></div>
 
     <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
@@ -220,7 +222,7 @@
                     <div class="col-lg-5 col-md-5 col-12 mb-3 mb-lg-0">
                       <div class="row g-3">
                         <div class="col-4">
-                          <div class="data-label">Precio Entrada</div>
+                          <div class="data-label">Precio actual</div>
                           <div
                             class="data-value text-primary"
                             th:text="${#numbers.formatDecimal(ticker.currentPrice, 1, 2)}"

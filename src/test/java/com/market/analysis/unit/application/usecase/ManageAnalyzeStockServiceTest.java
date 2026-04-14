@@ -576,6 +576,121 @@ class ManageAnalyzeStockServiceTest {
     }
 
     // -------------------------------------------------------------------------
+    // getStockData – strategy validation
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when strategyId is null")
+    void getStockData_nullStrategyId_throwsIllegalArgumentException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.getStockData("AAPL", null));
+
+        assertThat(ex.getMessage()).contains("Strategy ID is required");
+        verify(strategyRepository, never()).findById(any());
+        verify(stockProviderPort, never()).getQuote(anyString());
+        verify(stockDataRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw IllegalArgumentException when strategy is not found")
+    void getStockData_strategyNotFound_throwsIllegalArgumentException() {
+        when(strategyRepository.findById(99L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.getStockData("AAPL", 99L));
+
+        assertThat(ex.getMessage()).contains("99");
+        verify(strategyRepository, times(1)).findById(99L);
+        verify(stockProviderPort, never()).getQuote(anyString());
+        verify(stockDataRepository, never()).save(any());
+    }
+
+    // -------------------------------------------------------------------------
+    // updateStockData – not found path
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should throw StockDataNotFoundException when stock not found for update")
+    void updateStockData_stockNotFound_throwsStockDataNotFoundException() {
+        when(stockDataRepository.findById(999L)).thenReturn(Optional.empty());
+
+        StockDataNotFoundException ex = assertThrows(StockDataNotFoundException.class,
+                () -> service.updateStockData(999L));
+
+        assertThat(ex.getMessage()).contains("999");
+        verify(stockDataRepository, times(1)).findById(999L);
+        verify(stockProviderPort, never()).getQuote(anyString());
+        verify(stockDataRepository, never()).save(any());
+    }
+
+    // -------------------------------------------------------------------------
+    // getDataFromProvider – cached daily metrics path
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should use cached daily metrics when stock already exists for today and not call historical provider")
+    void getDataFromProvider_stockExistsForToday_usesCachedMetricsAndSkipsHistoricalProvider() {
+        // Arrange: simulate a stock already persisted today
+        Stock cachedStock = Stock.builder()
+                .ticker("AAPL")
+                .sma20(BigDecimal.valueOf(148.00))
+                .sma50(BigDecimal.valueOf(145.00))
+                .sma200(BigDecimal.valueOf(140.00))
+                .volume(1_000_000L)
+                .averageVolume(900_000L)
+                .lastUpdated(Instant.now())
+                .ema9(BigDecimal.valueOf(149.00))
+                .ema12(BigDecimal.valueOf(148.50))
+                .ema20(BigDecimal.valueOf(148.00))
+                .ema26(BigDecimal.valueOf(147.00))
+                .ema50(BigDecimal.valueOf(145.00))
+                .ema200(BigDecimal.valueOf(140.00))
+                .rsi14(BigDecimal.valueOf(60.0))
+                .rsi30(BigDecimal.valueOf(55.0))
+                .macdLine(BigDecimal.valueOf(1.5))
+                .macdSignal(BigDecimal.valueOf(1.2))
+                .macdHistogram(BigDecimal.valueOf(0.3))
+                .bbUpper20(BigDecimal.valueOf(155.00))
+                .bbLower20(BigDecimal.valueOf(145.00))
+                .atr14(BigDecimal.valueOf(2.5))
+                .build();
+
+        when(stockDataRepository.findByTickerAndLastUpdateBetween(eq("AAPL"), any(Instant.class), any(Instant.class)))
+                .thenReturn(cachedStock);
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+
+        // Act
+        service.getStockData("AAPL", 1L);
+
+        // Assert – historical provider must NOT be called when a cached entry exists
+        verify(historicalProviderPort, never()).fetchHistoricalData(anyString());
+        verify(stockDataRepository, times(1)).save(any());
+    }
+
+    // -------------------------------------------------------------------------
+    // enrichWithFreshHistoricalIndicators – null technical indicators
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should save stock without indicators when calculateIndicators returns null")
+    void enrichWithFreshHistoricalIndicators_nullIndicators_stockSavedWithoutIndicators() {
+        // Arrange
+        when(stockHistoricalService.calculateIndicators(any(), anyInt())).thenReturn(null);
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+
+        // Act
+        service.getStockData("AAPL", 1L);
+
+        // Assert – stock is still saved even when indicators are null
+        verify(stockHistoricalService, times(1)).calculateIndicators(any(), anyInt());
+        verify(stockDataRepository, times(1)).save(any());
+    }
+
+    // -------------------------------------------------------------------------
     // F1.9 – Candle persistence orchestration (Use Case responsibility)
     // -------------------------------------------------------------------------
 
@@ -610,6 +725,29 @@ class ManageAnalyzeStockServiceTest {
 
         // Assert
         verify(candleHistoryPort, times(1)).saveCandlesForTicker(eq("AAPL"), anyList());
+    }
+
+    @Test
+    @DisplayName("Should not call saveCandlesForTicker when historical data candles list is null")
+    void shouldNotPersistCandlesWhenHistoricalDataCandlesIsNull() {
+        // Arrange — historical data with explicitly null candles list
+        com.market.analysis.domain.model.HistoricalData historicalDataNullCandles =
+                com.market.analysis.domain.model.HistoricalData.builder()
+                        .ticker("AAPL")
+                        .lastUpdate(Instant.now())
+                        .candles(null)
+                        .build();
+
+        when(historicalProviderPort.fetchHistoricalData("AAPL")).thenReturn(historicalDataNullCandles);
+        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+
+        // Act
+        service.getStockData("AAPL", 1L);
+
+        // Assert
+        verify(candleHistoryPort, never()).saveCandlesForTicker(anyString(), anyList());
     }
 
     @Test

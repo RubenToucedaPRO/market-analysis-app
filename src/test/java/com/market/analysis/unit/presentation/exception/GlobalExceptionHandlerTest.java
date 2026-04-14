@@ -2,12 +2,10 @@ package com.market.analysis.unit.presentation.exception;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +23,9 @@ import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.exception.PersistenceException;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.exception.StockException;
+import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.exception.GlobalExceptionHandler;
+import com.market.analysis.presentation.util.WebConstants;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -60,11 +60,6 @@ class GlobalExceptionHandlerTest {
 
     private static final String REFERER = "/some-page";
 
-    @BeforeEach
-    void setUp() {
-        // individual tests set up request stubs as needed
-    }
-
     // -------------------------------------------------------------------------
     // Domain / Navigation errors – redirect with original message
     // -------------------------------------------------------------------------
@@ -80,7 +75,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(errorMessage));
     }
 
     @Test
@@ -94,7 +90,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(errorMessage));
     }
 
     @Test
@@ -135,7 +132,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, ENTITY_IN_USE_MSG);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(ENTITY_IN_USE_MSG));
     }
 
     // -------------------------------------------------------------------------
@@ -152,7 +150,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
     }
 
     @Test
@@ -165,7 +164,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
     }
 
     @Test
@@ -178,7 +178,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
     }
 
     @Test
@@ -191,7 +192,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, EXTERNAL_SERVICE_MSG);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(EXTERNAL_SERVICE_MSG));
     }
 
     // -------------------------------------------------------------------------
@@ -208,7 +210,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(ERROR_VIEW, viewName);
         verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "Database Error");
-        verify(model, times(1)).addAttribute(eq(ATTR_ERROR_MESSAGE), eq("A database error occurred while processing your request."));
+        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "A database error occurred while processing your request.");
         verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
     }
 
@@ -222,7 +224,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(ERROR_VIEW, viewName);
         verify(model, times(1)).addAttribute(ATTR_ERROR_TYPE, "System Error");
-        verify(model, times(1)).addAttribute(eq(ATTR_ERROR_MESSAGE), eq("An unexpected system error occurred. Please try again later."));
+        verify(model, times(1)).addAttribute(ATTR_ERROR_MESSAGE, "An unexpected system error occurred. Please try again later.");
         verify(model, times(1)).addAttribute(ATTR_ERROR_DETAILS, errorMessage);
     }
 
@@ -242,7 +244,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, errorMessage);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(errorMessage));
     }
 
     @Test
@@ -255,7 +258,8 @@ class GlobalExceptionHandlerTest {
                 exception, redirectAttributes, request);
 
         assertTrue(viewName.startsWith("redirect:"));
-        verify(redirectAttributes, times(1)).addFlashAttribute(ATTR_ERROR_MESSAGE, null);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(null));
     }
 }
 

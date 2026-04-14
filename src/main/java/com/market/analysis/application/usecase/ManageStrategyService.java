@@ -51,6 +51,28 @@ public class ManageStrategyService implements ManageStrategyUseCase {
     }
 
     @Override
+    public StrategyDTO updateStrategy(StrategyDTO strategy) {
+        log.info("Updating strategy with ID: {}", strategy.getId());
+        Strategy strategyDomain = strategyMapper.toDomain(strategy);
+        strategyDomain.validateConsistency();
+        Strategy savedStrategy = strategyRepository.save(strategyDomain);
+        log.info("Strategy updated successfully with ID: {}", savedStrategy.getId());
+
+        List<Stock> stockDataList = stockDataRepository.findAllByStrategyId(savedStrategy.getId());
+        for (Stock stock : stockDataList) {
+            var evaluation = evaluateStrategyService.evaluateStrategy(savedStrategy, stock);
+            var evaluationWithId = evaluation.toBuilder()
+                    .id(stock.getStrategyEvaluation().getId())
+                    .build();
+            stock.setStrategyEvaluation(evaluationWithId);
+            stock.setLastUpdated(evaluationWithId.getEvaluatedAt());
+            stockDataRepository.updateStockData(stock);
+        }
+
+        return strategyMapper.toDTO(savedStrategy);
+    }
+
+    @Override
     public List<StrategyDTO> getAllStrategies() {
         log.debug("Retrieving all strategies");
         return strategyRepository.findAll().stream().map(strategyMapper::toDTO).toList();
