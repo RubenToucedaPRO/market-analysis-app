@@ -16,6 +16,8 @@
       rel="stylesheet"
     />
     <link th:href="@{/css/styles.css}" rel="stylesheet" />
+    <!-- Message Alert -->
+    <div th:replace="~{fragments/notification :: notification}"></div>
   </head>
   <body class="d-flex flex-column min-vh-100 bg-light">
     <div th:replace="~{fragments/navbar :: navbar}"></div>
@@ -84,9 +86,6 @@
           ></div>
         </div>
       </div>
-
-      <!-- Message Alert -->
-      <div th:replace="~{fragments/message :: message}"></div>
 
       <div class="row g-4 mb-4">
         <div class="col-lg-4">

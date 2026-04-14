@@ -19,6 +19,8 @@
 
     <!-- Custom CSS -->
     <link th:href="@{/css/styles.css}" rel="stylesheet" />
+    <!-- Message Alert -->
+    <div th:replace="~{fragments/notification :: notification}"></div>
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Navigation Bar -->
@@ -97,9 +99,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Message Alert -->
-      <div th:replace="~{fragments/message :: message}"></div>
 
       <!-- Tickers Grid -->
       <div id="tickersGridContainer">

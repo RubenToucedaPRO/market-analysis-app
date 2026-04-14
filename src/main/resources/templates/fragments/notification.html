@@ -1,0 +1,47 @@
+<div
+  th:fragment="notification"
+  th:if="${uiNotification}"
+  class="position-fixed top-0 end-0 p-3"
+  style="z-index: 1060; min-width: 350px"
+>
+  <div
+    th:classappend="'alert-' + ${uiNotification.type}"
+    class="alert alert-dismissible fade show shadow-lg border-0 js-notification-alert"
+    role="alert"
+  >
+    <div class="d-flex align-items-center">
+      <i
+        th:class="${uiNotification.type == 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"
+        class="bi fs-5 me-3"
+      ></i>
+      <div>
+        <strong
+          th:text="${uiNotification.type == 'success' ? '¡Éxito!' : 'Aviso'}"
+        ></strong>
+        <div th:text="${uiNotification.text}" class="small"></div>
+      </div>
+      <button
+        type="button"
+        class="btn-close ms-auto"
+        data-bs-dismiss="alert"
+        aria-label="Cerrar"
+      ></button>
+    </div>
+
+    <div
+      class="progress mt-2"
+      style="
+        height: 3px;
+        background-color: rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      "
+    >
+      <div
+        class="progress-bar js-notification-progress"
+        th:classappend="${uiNotification.type == 'success' ? 'bg-success' : 'bg-danger'}"
+        style="width: 100%"
+      ></div>
+    </div>
+  </div>
+  <script th:src="@{/js/notification-alert.js}"></script>
+</div>
