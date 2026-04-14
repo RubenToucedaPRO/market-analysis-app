@@ -19,25 +19,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize visibility for existing rules
   existingRules.forEach((rule, index) => {
-    const select = rule.querySelector('select[name*="subjectCode"]');
-    if (select) {
-      const selectedOption = select.options[select.selectedIndex];
-      const requiresParam = selectedOption.dataset.requiresParam === "true";
-      const paramContainer = rule.querySelector(`[id^="rule-container-"]`);
+    const subjectSelect = rule.querySelector('select[name*="subjectCode"]');
+    if (subjectSelect) {
+      toggleSubjectParameter(subjectSelect, index);
+    }
 
-      if (paramContainer) {
-        paramContainer.style.display = requiresParam ? "" : "none";
-
-        // Set required attribute correctly on initialization
-        const input = paramContainer.querySelector("input");
-        if (input) {
-          if (requiresParam) {
-            input.setAttribute("required", "required");
-          } else {
-            input.removeAttribute("required");
-          }
-        }
-      }
+    const targetSelect = rule.querySelector('select[name*="targetCode"]');
+    if (targetSelect) {
+      toggleTargetParameter(targetSelect, index);
     }
   });
 
@@ -130,7 +119,7 @@ function reindexRules() {
     });
 
     // Update the IDs of the parameter containers and sub-elements
-    rule.querySelectorAll('[id]').forEach((el) => {
+    rule.querySelectorAll("[id]").forEach((el) => {
       el.id = el.id.replace(/(-\d+)$/, `-${ruleIndex}`);
     });
 
@@ -154,74 +143,118 @@ function reindexRules() {
     ruleIndex++;
   });
 }
+/*
+ * Toggle the visibility and required status of parameter inputs based on the selected rule code
+ */
 
-function toggleParameter(selectElement, containerId, paramSelectId, paramInputId) {
+function toggleParameter(
+  selectElement,
+  containerId,
+  paramSelectId,
+  paramInputId,
+) {
   const selectedOption = selectElement.options[selectElement.selectedIndex];
-  // Convertir explícitamente a string para comparar, manejando undefined
   const requiresParam = String(selectedOption.dataset.requiresParam) === "true";
   const paramContainer = document.getElementById(containerId);
+  const sel = document.getElementById(paramSelectId);
+  const inp = document.getElementById(paramInputId);
 
   if (!paramContainer) return;
 
   if (!requiresParam) {
-    paramContainer.style.setProperty("display", "none", "important");
-    // Disable and clear both controls so they are not submitted
-    const sel = document.getElementById(paramSelectId);
-    const inp = document.getElementById(paramInputId);
-    if (sel) { sel.disabled = true; sel.removeAttribute("required"); }
-    if (inp) { inp.disabled = true; inp.removeAttribute("required"); inp.value = ""; }
+    hideParameterControls(paramContainer, paramSelectId, paramInputId);
     return;
   }
 
-  paramContainer.style.setProperty("display", "block", "important");
+  showParameterContainer(paramContainer);
 
-  // Determine whether to show a constrained-value select or a free number input.
-  // allowedParams comes from the JSON-serialised ruleDefinitions array injected by
-  // Thymeleaf – this avoids fragile Set.toString() parsing of data attributes.
-  const code = selectedOption.value;
-  const rdEntry = (globalThis.ruleDefinitions || []).find((d) => d.code === code);
-  const allowedValues = rdEntry && Array.isArray(rdEntry.allowedParams)
-    ? rdEntry.allowedParams
-    : [];
-
-  const sel = document.getElementById(paramSelectId);
-  const inp = document.getElementById(paramInputId);
+  const currentValue = sel?.value || inp?.value || "";
+  const allowedValues = getAllowedValues(selectedOption.value);
 
   if (allowedValues.length > 0) {
-    // Populate the select with the allowed values and show it
-    if (sel) {
-      sel.innerHTML =
-        '<option value="">-- Valor --</option>' +
-        [...allowedValues]
-          .sort((a, b) => a - b)
-          .map((v) => `<option value="${v}">${v}</option>`)
-          .join("");
-      sel.style.display = "";
-      sel.disabled = false;
-      sel.setAttribute("required", "required");
-    }
-    if (inp) {
-      inp.style.display = "none";
-      inp.disabled = true;
-      inp.removeAttribute("required");
-      inp.value = "";
-    }
+    showAllowedValuesSelect(sel, inp, allowedValues, currentValue);
   } else {
-    // Free-value number input (anyParamAllowed indicators like CONSTANT/VALUE)
-    if (inp) {
-      inp.style.display = "";
-      inp.disabled = false;
-      inp.setAttribute("required", "required");
-    }
-    if (sel) {
-      sel.style.display = "none";
-      sel.disabled = true;
-      sel.removeAttribute("required");
-    }
+    showFreeValueInput(inp, sel, currentValue);
   }
 }
 
-// Simplificación de tus funciones:
+function hideParameterControls(paramContainer, paramSelectId, paramInputId) {
+  paramContainer.style.setProperty("display", "none", "important");
+  const sel = document.getElementById(paramSelectId);
+  const inp = document.getElementById(paramInputId);
+
+  if (sel) {
+    sel.disabled = true;
+    sel.removeAttribute("required");
+  }
+
+  if (inp) {
+    inp.disabled = true;
+    inp.removeAttribute("required");
+    inp.value = "";
+  }
+}
+
+function showParameterContainer(paramContainer) {
+  paramContainer.style.setProperty("display", "block", "important");
+}
+
+function getAllowedValues(code) {
+  const rdEntry = (globalThis.ruleDefinitions || []).find(
+    (d) => d.code === code,
+  );
+  return rdEntry && Array.isArray(rdEntry.allowedParams)
+    ? rdEntry.allowedParams
+    : [];
+}
+
+function showAllowedValuesSelect(sel, inp, allowedValues, currentValue) {
+  if (sel) {
+    sel.innerHTML =
+      '<option value="">-- Valor --</option>' +
+      [...allowedValues]
+        .sort((a, b) => a - b)
+        .map((value) => `<option value="${value}">${value}</option>`)
+        .join("");
+    sel.style.display = "";
+    sel.disabled = false;
+    sel.setAttribute("required", "required");
+    sel.value = normalizeParameterValue(currentValue);
+  }
+
+  if (inp) {
+    inp.style.display = "none";
+    inp.disabled = true;
+    inp.removeAttribute("required");
+    inp.value = "";
+  }
+}
+
+function normalizeParameterValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+
+  const numericValue = Number(value);
+  return Number.isNaN(numericValue) ? String(value) : String(numericValue);
+}
+
+function showFreeValueInput(inp, sel, currentValue) {
+  if (inp) {
+    inp.style.display = "";
+    inp.disabled = false;
+    inp.setAttribute("required", "required");
+    inp.value = currentValue;
+  }
+
+  if (sel) {
+    sel.style.display = "none";
+    sel.disabled = true;
+    sel.removeAttribute("required");
+  }
+}
+
+// These functions are called when the subject or target select changes
 function toggleSubjectParameter(selectElement, index) {
   toggleParameter(
     selectElement,

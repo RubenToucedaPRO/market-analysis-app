@@ -46,8 +46,10 @@ class ManageRuleDefinitionServiceP2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("getCatalogCapabilities returns an entry for every supported code")
+    @DisplayName("getCatalogCapabilities returns an entry for every supported code when none are in use")
     void testGetCatalogCapabilitiesReturnsAllCodes() {
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of());
+
         List<RuleCapabilityDTO> capabilities = service.getCatalogCapabilities();
 
         assertThat(capabilities).isNotEmpty();
@@ -59,6 +61,8 @@ class ManageRuleDefinitionServiceP2Test {
     @Test
     @DisplayName("getCatalogCapabilities is sorted alphabetically")
     void testGetCatalogCapabilitiesIsSorted() {
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of());
+
         List<RuleCapabilityDTO> capabilities = service.getCatalogCapabilities();
 
         List<String> codes = capabilities.stream().map(RuleCapabilityDTO::getCode).toList();
@@ -68,8 +72,40 @@ class ManageRuleDefinitionServiceP2Test {
     }
 
     @Test
+    @DisplayName("getCatalogCapabilities filters out codes already in use")
+    void testGetCatalogCapabilitiesFiltersOutUsedCodes() {
+        RuleDefinition usedSma = RuleDefinition.builder()
+                .id(1L).code("SMA").name("Simple Moving Average").requiresParam(true).build();
+        RuleDefinition usedRsi = RuleDefinition.builder()
+                .id(2L).code("RSI").name("Relative Strength Index").requiresParam(true).build();
+
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of(usedSma, usedRsi));
+
+        List<RuleCapabilityDTO> capabilities = service.getCatalogCapabilities();
+
+        List<String> codes = capabilities.stream().map(RuleCapabilityDTO::getCode).toList();
+        assertThat(codes).doesNotContain("SMA", "RSI").contains("EMA", "PRICE", "CONSTANT");
+    }
+
+    @Test
+    @DisplayName("getCatalogCapabilities comparison is case-insensitive for used codes")
+    void testGetCatalogCapabilitiesFiltersOutUsedCodesCaseInsensitive() {
+        RuleDefinition usedEma = RuleDefinition.builder()
+                .id(1L).code("ema").name("Exponential Moving Average").requiresParam(true).build();
+
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of(usedEma));
+
+        List<RuleCapabilityDTO> capabilities = service.getCatalogCapabilities();
+
+        assertThat(capabilities).extracting(RuleCapabilityDTO::getCode)
+                .doesNotContain("EMA");
+    }
+
+    @Test
     @DisplayName("SMA capability has requiresParam=true and allowedParams {20,50,200}")
     void testSmaCapabilityConstraints() {
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of());
+
         RuleCapabilityDTO sma = service.getCatalogCapabilities().stream()
                 .filter(c -> "SMA".equals(c.getCode()))
                 .findFirst()
@@ -83,6 +119,8 @@ class ManageRuleDefinitionServiceP2Test {
     @Test
     @DisplayName("PRICE capability has requiresParam=false and empty allowedParams")
     void testPriceCapabilityConstraints() {
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of());
+
         RuleCapabilityDTO price = service.getCatalogCapabilities().stream()
                 .filter(c -> "PRICE".equals(c.getCode()))
                 .findFirst()
@@ -96,6 +134,8 @@ class ManageRuleDefinitionServiceP2Test {
     @Test
     @DisplayName("CONSTANT capability has requiresParam=true and anyParamAllowed=true")
     void testConstantCapabilityConstraints() {
+        when(ruleDefinitionRepository.findAll()).thenReturn(List.of());
+
         RuleCapabilityDTO constant = service.getCatalogCapabilities().stream()
                 .filter(c -> "CONSTANT".equals(c.getCode()))
                 .findFirst()

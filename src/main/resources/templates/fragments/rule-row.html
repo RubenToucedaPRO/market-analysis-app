@@ -41,45 +41,9 @@
         </label>
       </div>
 
-      <!-- Subject Parameter -->
       <div
-        th:id="|subject-container-${index}|"
-        class="col-md-2"
-        th:with="selectedDef=${rule != null ? ruleDefinitions.?[code == #root.rule.subjectCode].^[true] : null}"
-        th:style="${selectedDef == null || !selectedDef.requiresParam} ? 'display: none;' : ''"
-      >
-        <label class="form-label small text-muted">
-          Parámetro de Sujeto
-          <!-- Select for indicators with a fixed set of allowed params -->
-          <select
-            th:id="|subject-param-select-${index}|"
-            th:name="|rules[${index}].subjectParam|"
-            class="form-select form-select-sm"
-            th:if="${selectedDef != null && selectedDef.requiresParam && !selectedDef.allowedParams.isEmpty()}"
-            th:required="${selectedDef != null && selectedDef.requiresParam && !selectedDef.allowedParams.isEmpty()}"
-          >
-            <option value="">-- Valor --</option>
-            <option
-              th:each="p : ${selectedDef.allowedParams}"
-              th:value="${p}"
-              th:text="${p}"
-              th:selected="${rule != null && rule.subjectParam == p}"
-            ></option>
-          </select>
-          <!-- Number input for free-param or fallback when no definition matched -->
-          <input
-            th:id="|subject-param-input-${index}|"
-            type="number"
-            step="0.01"
-            class="form-control form-control-sm"
-            th:name="|rules[${index}].subjectParam|"
-            th:value="${rule != null ? rule.subjectParam : ''}"
-            placeholder="0.00"
-            th:if="${selectedDef == null || !selectedDef.requiresParam || selectedDef.allowedParams.isEmpty()}"
-            th:required="${selectedDef != null && selectedDef.requiresParam && selectedDef.allowedParams.isEmpty()}"
-          />
-        </label>
-      </div>
+        th:replace="~{fragments/rule-parameter-field :: parameterField(containerId=|subject-container-${index}|, selectId=|subject-param-select-${index}|, inputId=|subject-param-input-${index}|, fieldName=|rules[${index}].subjectParam|, label='Parámetro de Sujeto', value=${rule != null ? rule.subjectParam : ''})}"
+      ></div>
 
       <!-- Operator -->
       <div class="col-md-1">
@@ -135,45 +99,9 @@
         </label>
       </div>
 
-      <!-- Target Value -->
       <div
-        th:id="|target-container-${index}|"
-        class="col-md-2"
-        th:with="selectedTargetDef=${rule != null ? ruleDefinitions.?[code == #root.rule.targetCode].^[true] : null}"
-        th:style="${selectedTargetDef == null || !selectedTargetDef.requiresParam} ? 'display: none;' : ''"
-      >
-        <label class="form-label small text-muted">
-          Valor de Objetivo
-          <!-- Select for indicators with a fixed set of allowed params -->
-          <select
-            th:id="|target-param-select-${index}|"
-            th:name="|rules[${index}].targetParam|"
-            class="form-select form-select-sm"
-            th:if="${selectedTargetDef != null && selectedTargetDef.requiresParam && !selectedTargetDef.allowedParams.isEmpty()}"
-            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam && !selectedTargetDef.allowedParams.isEmpty()}"
-          >
-            <option value="">-- Valor --</option>
-            <option
-              th:each="p : ${selectedTargetDef.allowedParams}"
-              th:value="${p}"
-              th:text="${p}"
-              th:selected="${rule != null && rule.targetParam == p}"
-            ></option>
-          </select>
-          <!-- Number input for free-param or fallback -->
-          <input
-            th:id="|target-param-input-${index}|"
-            type="number"
-            step="0.01"
-            class="form-control form-control-sm"
-            th:name="|rules[${index}].targetParam|"
-            th:value="${rule != null ? rule.targetParam : ''}"
-            placeholder="0.00"
-            th:if="${selectedTargetDef == null || !selectedTargetDef.requiresParam || selectedTargetDef.allowedParams.isEmpty()}"
-            th:required="${selectedTargetDef != null && selectedTargetDef.requiresParam && selectedTargetDef.allowedParams.isEmpty()}"
-          />
-        </label>
-      </div>
+        th:replace="~{fragments/rule-parameter-field :: parameterField(containerId=|target-container-${index}|, selectId=|target-param-select-${index}|, inputId=|target-param-input-${index}|, fieldName=|rules[${index}].targetParam|, label='Valor de Objetivo', value=${rule != null ? rule.targetParam : ''})}"
+      ></div>
 
       <!-- Remove Button -->
       <div class="col-md-1 text-end">
