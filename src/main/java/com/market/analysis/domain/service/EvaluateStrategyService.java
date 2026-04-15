@@ -109,8 +109,8 @@ public class EvaluateStrategyService {
                 // Warn when risk-reward ratio is below the minimum recommended threshold
                 if (riskRewardRatio.compareTo(MIN_RECOMMENDED_RATIO) < 0) {
                     String ratioWarning = String.format(
-                            "Risk-reward ratio (%.4f) is below the minimum recommended threshold of %s",
-                            riskRewardRatio.doubleValue(),
+                            "Risk-reward ratio (%s) is below the minimum recommended threshold of %s",
+                            riskRewardRatio.stripTrailingZeros().toPlainString(),
                             MIN_RECOMMENDED_RATIO.stripTrailingZeros().toPlainString());
                     log.warn("Strategy '{}' [{}]: {}", strategy.getName(), stock.getTicker(), ratioWarning);
                     riskWarnings.add(ratioWarning);
