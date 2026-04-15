@@ -83,9 +83,7 @@ public class BeanConfig {
             PromptBuilder promptBuilder) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
                 prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
-                candleHistoryRepository, strategyRepository, stockProviderPort,
-                historicalProviderPort,
-                apiIAPort,
+                candleHistoryRepository, strategyRepository, stockProviderPort, historicalProviderPort, apiIAPort,
                 stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder);
     }
 

@@ -2,7 +2,7 @@
 
 ## Resumen de la tarea
 
-Se extrajo la construcción del prompt de IA desde `ManageAnalyzeStockService` hacia un servicio de dominio dedicado `PromptBuilder`, para desacoplar el caso de uso de texto inline de prompt.
+Se extrajo la construcción del prompt de IA desde `ManageAnalyzeStockService` hacia un servicio de dominio dedicado `PromptBuilder`, para desacoplar el caso de uso de la construcción inline del prompt.
 
 ## Código generado
 
