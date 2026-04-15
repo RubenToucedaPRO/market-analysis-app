@@ -2,6 +2,7 @@ package com.market.analysis.application.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -85,4 +86,7 @@ public class StockDataDTO {
 
     /** Recommended number of shares based on capital at risk */
     private Integer recommendedShares;
+
+    /** Non-blocking risk warnings about the strategy configuration */
+    private List<String> riskWarnings;
 }

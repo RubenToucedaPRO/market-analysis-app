@@ -306,6 +306,18 @@
                             </div>
                           </div>
                         </th:block>
+
+                        <th:block th:if="${ticker.riskWarnings != null and !ticker.riskWarnings.isEmpty()}">
+                          <div class="col-12">
+                            <div class="alert alert-warning p-1 mb-0 border-0">
+                              <small th:each="warning, iterStat : ${ticker.riskWarnings}">
+                                <i class="bi bi-exclamation-triangle me-1" th:if="${iterStat.first}"></i>
+                                <span th:text="${warning}"></span>
+                                <br th:if="${!iterStat.last}" />
+                              </small>
+                            </div>
+                          </div>
+                        </th:block>
                       </div>
                     </div>
 

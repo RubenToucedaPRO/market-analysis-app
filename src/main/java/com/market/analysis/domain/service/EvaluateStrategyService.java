@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.Rule;
@@ -27,8 +30,11 @@ import com.market.analysis.domain.model.StrategyEvaluation;
 
 public class EvaluateStrategyService {
 
+    private static final Logger log = LoggerFactory.getLogger(EvaluateStrategyService.class);
+
     private static final String PASSED = "PASSED";
     private static final String FAILED = "FAILED";
+    private static final BigDecimal MIN_RECOMMENDED_RATIO = BigDecimal.ONE;
 
     private final RuleEvaluator ruleEvaluator;
     private final RiskRewardCalculator riskRewardCalculator;
@@ -79,6 +85,16 @@ public class EvaluateStrategyService {
         BigDecimal stopLossPrice = null;
         BigDecimal riskRewardRatio = null;
         Integer recommendedShares = null;
+        List<String> riskWarnings = new ArrayList<>();
+
+        // Collect objective coherence warnings (non-blocking)
+        if (strategy.getObjective() != null) {
+            List<String> objectiveWarnings = strategy.getObjective().collectWarnings();
+            for (String warning : objectiveWarnings) {
+                log.warn("Strategy '{}' [{}]: {}", strategy.getName(), stock.getTicker(), warning);
+            }
+            riskWarnings.addAll(objectiveWarnings);
+        }
 
         if (overallPassed) {
             try {
@@ -89,6 +105,16 @@ public class EvaluateStrategyService {
                 recommendedShares = riskRewardCalculator
                         .calculatePositionSize(entryPrice, stopLossPrice, strategy.getObjective().getCapitalToRisk())
                         .intValue();
+
+                // Warn when risk-reward ratio is below the minimum recommended threshold
+                if (riskRewardRatio.compareTo(MIN_RECOMMENDED_RATIO) < 0) {
+                    String ratioWarning = String.format(
+                            "Risk-reward ratio (%.4f) is below the minimum recommended threshold of %s",
+                            riskRewardRatio.doubleValue(),
+                            MIN_RECOMMENDED_RATIO.stripTrailingZeros().toPlainString());
+                    log.warn("Strategy '{}' [{}]: {}", strategy.getName(), stock.getTicker(), ratioWarning);
+                    riskWarnings.add(ratioWarning);
+                }
             } catch (MissingIndicatorException | IllegalArgumentException e) {
                 targetPrice = null;
                 stopLossPrice = null;
@@ -112,6 +138,7 @@ public class EvaluateStrategyService {
                 .stopLossPrice(stopLossPrice)
                 .riskRewardRatio(riskRewardRatio)
                 .recommendedShares(recommendedShares)
+                .riskWarnings(riskWarnings)
                 .build();
     }
 

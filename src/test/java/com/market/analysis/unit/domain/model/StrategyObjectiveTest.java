@@ -561,4 +561,201 @@ class StrategyObjectiveTest {
 
         assertDoesNotThrow(objective::validate);
     }
+
+    // ---- Phase 5: Advanced coherence warnings ----
+
+    @Test
+    @DisplayName("Should return no warnings for valid percentage strategy")
+    void shouldReturnNoWarningsForValidPercentageStrategy() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(10.0))
+                .stopLossValue(BigDecimal.valueOf(5.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Normal percentage strategy")
+                .build();
+
+        assertTrue(objective.collectWarnings().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should warn when stop-loss percentage exceeds 20%")
+    void shouldWarnWhenStopLossPercentageExceeds20() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(10.0))
+                .stopLossValue(BigDecimal.valueOf(25.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("High stop-loss strategy")
+                .build();
+
+        var warnings = objective.collectWarnings();
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("Stop-loss percentage"));
+        assertTrue(warnings.get(0).contains("25.00%"));
+        assertTrue(warnings.get(0).contains("20%"));
+    }
+
+    @Test
+    @DisplayName("Should not warn when stop-loss percentage is exactly 20%")
+    void shouldNotWarnWhenStopLossPercentageIsExactly20() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(10.0))
+                .stopLossValue(BigDecimal.valueOf(20.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Boundary stop-loss strategy")
+                .build();
+
+        assertTrue(objective.collectWarnings().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not warn about stop-loss when type is not PERCENTAGE")
+    void shouldNotWarnAboutStopLossWhenTypeIsNotPercentage() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.FIXED_PRICE)
+                .targetValue(BigDecimal.valueOf(10.0))
+                .stopLossValue(BigDecimal.valueOf(25.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Fixed price stop-loss")
+                .build();
+
+        assertTrue(objective.collectWarnings().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should warn when target percentage exceeds 100%")
+    void shouldWarnWhenTargetPercentageExceeds100() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(150.0))
+                .stopLossValue(BigDecimal.valueOf(5.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Long-term target strategy")
+                .build();
+
+        var warnings = objective.collectWarnings();
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("Target percentage"));
+        assertTrue(warnings.get(0).contains("150.00%"));
+        assertTrue(warnings.get(0).contains("100%"));
+    }
+
+    @Test
+    @DisplayName("Should not warn when target percentage is exactly 100%")
+    void shouldNotWarnWhenTargetPercentageIsExactly100() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(100.0))
+                .stopLossValue(BigDecimal.valueOf(5.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("100% target strategy")
+                .build();
+
+        assertTrue(objective.collectWarnings().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not warn about target when type is not PERCENTAGE")
+    void shouldNotWarnAboutTargetWhenTypeIsNotPercentage() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.FIXED_PRICE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(150.0))
+                .stopLossValue(BigDecimal.valueOf(5.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Fixed price target")
+                .build();
+
+        assertTrue(objective.collectWarnings().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should warn when both SMA types use the same period")
+    void shouldWarnWhenBothSmaTypesUseSamePeriod() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.SMA)
+                .targetValue(BigDecimal.valueOf(50))
+                .stopLossValue(BigDecimal.valueOf(50))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Same SMA period strategy")
+                .build();
+
+        var warnings = objective.collectWarnings();
+        assertEquals(1, warnings.size());
+        assertTrue(warnings.get(0).contains("same SMA period"));
+        assertTrue(warnings.get(0).contains("50"));
+    }
+
+    @Test
+    @DisplayName("Should not warn when SMA types use different periods")
+    void shouldNotWarnWhenSmaTypesUseDifferentPeriods() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.SMA)
+                .targetValue(BigDecimal.valueOf(20))
+                .stopLossValue(BigDecimal.valueOf(50))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Different SMA periods strategy")
+                .build();
+
+        assertTrue(objective.collectWarnings().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not warn about same SMA when only one type is SMA")
+    void shouldNotWarnAboutSameSmaWhenOnlyOneTypeIsSma() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(50))
+                .stopLossValue(BigDecimal.valueOf(5.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Mixed types same value")
+                .build();
+
+        assertTrue(objective.collectWarnings().isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return multiple warnings when multiple conditions are met")
+    void shouldReturnMultipleWarningsWhenMultipleConditionsMet() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(150.0))
+                .stopLossValue(BigDecimal.valueOf(25.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Multiple warnings strategy")
+                .build();
+
+        var warnings = objective.collectWarnings();
+        assertEquals(2, warnings.size());
+        assertTrue(warnings.get(0).contains("Stop-loss percentage"));
+        assertTrue(warnings.get(1).contains("Target percentage"));
+    }
+
+    @Test
+    @DisplayName("Should return unmodifiable list from collectWarnings")
+    void shouldReturnUnmodifiableListFromCollectWarnings() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(150.0))
+                .stopLossValue(BigDecimal.valueOf(25.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Unmodifiable test")
+                .build();
+
+        var warnings = objective.collectWarnings();
+        assertThrows(UnsupportedOperationException.class, () -> warnings.add("illegal"));
+    }
 }

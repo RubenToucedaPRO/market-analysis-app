@@ -732,4 +732,166 @@ class EvaluateStrategyServiceTest {
                         assertThat(result.getSummary()).contains("SMA period 99");
                 }
         }
+
+        @Nested
+        @DisplayName("Risk Warning Tests")
+        class RiskWarningTests {
+
+                @Test
+                @DisplayName("Should populate riskWarnings when objective has high stop-loss percentage")
+                void shouldPopulateRiskWarningsForHighStopLossPercentage() {
+                        // Arrange — strategy with 25% stop-loss (above 20% threshold)
+                        Strategy highRiskStrategy = Strategy.builder()
+                                        .id(2L)
+                                        .name("High Risk Strategy")
+                                        .description("High stop-loss percentage")
+                                        .rules(List.of(rule1, rule2))
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.PERCENTAGE)
+                                                        .stopLossType(ObjectiveType.PERCENTAGE)
+                                                        .targetValue(BigDecimal.valueOf(5.0))
+                                                        .stopLossValue(BigDecimal.valueOf(25.0))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("High risk objective")
+                                                        .build())
+                                        .build();
+
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1).passed(true).justification("PASSED").build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2).passed(true).justification("PASSED").build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(highRiskStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.getRiskWarnings()).isNotEmpty();
+                        assertThat(result.getRiskWarnings())
+                                        .anyMatch(w -> w.contains("Stop-loss percentage"));
+                }
+
+                @Test
+                @DisplayName("Should populate riskWarnings when objective has high target percentage")
+                void shouldPopulateRiskWarningsForHighTargetPercentage() {
+                        // Arrange — strategy with 150% target (above 100% threshold)
+                        Strategy longTermStrategy = Strategy.builder()
+                                        .id(3L)
+                                        .name("Long Term Strategy")
+                                        .description("Very high target percentage")
+                                        .rules(List.of(rule1, rule2))
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.PERCENTAGE)
+                                                        .stopLossType(ObjectiveType.PERCENTAGE)
+                                                        .targetValue(BigDecimal.valueOf(150.0))
+                                                        .stopLossValue(BigDecimal.valueOf(5.0))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("Long term objective")
+                                                        .build())
+                                        .build();
+
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1).passed(true).justification("PASSED").build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2).passed(true).justification("PASSED").build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(longTermStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.getRiskWarnings()).isNotEmpty();
+                        assertThat(result.getRiskWarnings())
+                                        .anyMatch(w -> w.contains("Target percentage"));
+                }
+
+                @Test
+                @DisplayName("Should add riskWarning when R:R ratio is below 1.0")
+                void shouldAddRiskWarningWhenRatioIsBelowOne() {
+                        // Arrange — mock a ratio below 1.0
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1).passed(true).justification("PASSED").build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2).passed(true).justification("PASSED").build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenReturn(BigDecimal.valueOf(152.00));
+                        when(riskRewardCalculator.calculateStopLossPrice(any(), any(), any()))
+                                        .thenReturn(BigDecimal.valueOf(145.00));
+                        when(riskRewardCalculator.calculateRiskRewardRatio(any(), any(), any()))
+                                        .thenReturn(BigDecimal.valueOf(0.40));
+                        when(riskRewardCalculator.calculatePositionSize(any(), any(), any()))
+                                        .thenReturn(BigDecimal.valueOf(200));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.getRiskWarnings()).isNotEmpty();
+                        assertThat(result.getRiskWarnings())
+                                        .anyMatch(w -> w.contains("Risk-reward ratio") && w.contains("below"));
+                }
+
+                @Test
+                @DisplayName("Should have empty riskWarnings when strategy has no warning conditions")
+                void shouldHaveEmptyRiskWarningsForNormalStrategy() {
+                        // Arrange — standard strategy with normal values
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1).passed(true).justification("PASSED").build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2).passed(true).justification("PASSED").build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.getRiskWarnings()).isEmpty();
+                }
+
+                @Test
+                @DisplayName("Should still collect objective warnings even when strategy is non-compliant")
+                void shouldCollectObjectiveWarningsEvenWhenNonCompliant() {
+                        // Arrange — strategy with high stop-loss but fails evaluation
+                        Strategy highRiskStrategy = Strategy.builder()
+                                        .id(4L)
+                                        .name("Non-Compliant High Risk")
+                                        .description("Fails rules but has warning conditions")
+                                        .rules(List.of(rule1, rule2))
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.PERCENTAGE)
+                                                        .stopLossType(ObjectiveType.PERCENTAGE)
+                                                        .targetValue(BigDecimal.valueOf(5.0))
+                                                        .stopLossValue(BigDecimal.valueOf(25.0))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("High risk objective")
+                                                        .build())
+                                        .build();
+
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1).passed(false).justification("FAILED").build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2).passed(true).justification("PASSED").build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(highRiskStrategy, testStock);
+
+                        // Assert — warnings should be collected regardless of compliance
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getRiskWarnings()).isNotEmpty();
+                        assertThat(result.getRiskWarnings())
+                                        .anyMatch(w -> w.contains("Stop-loss percentage"));
+                }
+        }
 }

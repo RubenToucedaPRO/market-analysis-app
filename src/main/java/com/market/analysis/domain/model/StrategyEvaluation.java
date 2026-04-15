@@ -2,6 +2,7 @@ package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -97,4 +98,12 @@ public class StrategyEvaluation {
      * Null if the strategy was not compliant or if a required indicator was missing.
      */
     private Integer recommendedShares;
+
+    /**
+     * Transient list of non-blocking warnings about the risk plan.
+     * Not persisted; populated during evaluation to inform the user
+     * about configurations that are technically valid but potentially risky.
+     */
+    @Builder.Default
+    private List<String> riskWarnings = List.of();
 }

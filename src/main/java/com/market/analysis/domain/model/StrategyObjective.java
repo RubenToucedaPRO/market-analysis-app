@@ -1,6 +1,9 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import lombok.Builder;
@@ -96,6 +99,61 @@ public class StrategyObjective {
 
         validateSmaPeriod(targetType, targetValue, "targetValue");
         validateSmaPeriod(stopLossType, stopLossValue, "stopLossValue");
+    }
+
+    /**
+     * Indicative threshold for high-risk stop-loss percentage.
+     * Configurable in the future; used only for warnings, not blocking.
+     */
+    private static final BigDecimal STOP_LOSS_WARNING_THRESHOLD = BigDecimal.valueOf(20);
+
+    /**
+     * Indicative threshold for long-term target percentage.
+     * Configurable in the future; used only for warnings, not blocking.
+     */
+    private static final BigDecimal TARGET_WARNING_THRESHOLD = BigDecimal.valueOf(100);
+
+    /**
+     * Collects non-blocking warnings about configurations that are technically valid
+     * but logically improbable or risky. These warnings are informational and do not
+     * prevent saving the strategy.
+     *
+     * @return an unmodifiable list of warning messages; empty if no warnings apply
+     */
+    public List<String> collectWarnings() {
+        List<String> warnings = new ArrayList<>();
+
+        if (stopLossType == ObjectiveType.PERCENTAGE
+                && stopLossValue != null
+                && stopLossValue.compareTo(STOP_LOSS_WARNING_THRESHOLD) > 0) {
+            warnings.add(String.format(
+                    "Stop-loss percentage (%.2f%%) exceeds the %s%% indicative threshold for elevated risk",
+                    stopLossValue.doubleValue(),
+                    STOP_LOSS_WARNING_THRESHOLD.stripTrailingZeros().toPlainString()));
+        }
+
+        if (targetType == ObjectiveType.PERCENTAGE
+                && targetValue != null
+                && targetValue.compareTo(TARGET_WARNING_THRESHOLD) > 0) {
+            warnings.add(String.format(
+                    "Target percentage (%.2f%%) exceeds the %s%% indicative threshold; "
+                            + "this may be valid for multi-month strategies",
+                    targetValue.doubleValue(),
+                    TARGET_WARNING_THRESHOLD.stripTrailingZeros().toPlainString()));
+        }
+
+        if (targetType == ObjectiveType.SMA
+                && stopLossType == ObjectiveType.SMA
+                && targetValue != null
+                && stopLossValue != null
+                && targetValue.compareTo(stopLossValue) == 0) {
+            warnings.add(String.format(
+                    "Target and stop-loss use the same SMA period (%s); "
+                            + "this configuration is unlikely to produce a valid risk plan",
+                    targetValue.stripTrailingZeros().toPlainString()));
+        }
+
+        return Collections.unmodifiableList(warnings);
     }
 
     /**

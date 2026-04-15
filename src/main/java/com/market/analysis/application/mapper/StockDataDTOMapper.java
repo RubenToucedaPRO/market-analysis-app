@@ -65,6 +65,10 @@ public class StockDataDTOMapper {
                                                 stock.getStrategyEvaluation() != null
                                                                 ? stock.getStrategyEvaluation().getRecommendedShares()
                                                                 : null)
+                                .riskWarnings(
+                                                stock.getStrategyEvaluation() != null
+                                                                ? stock.getStrategyEvaluation().getRiskWarnings()
+                                                                : null)
                                 .build();
         }
 
