@@ -94,8 +94,8 @@ public class StrategyObjective {
             throw new IllegalArgumentException("capitalToRisk must be greater than zero");
         }
 
-        validateSmaperiod(targetType, targetValue, "targetValue");
-        validateSmaperiod(stopLossType, stopLossValue, "stopLossValue");
+        validateSmaPeriod(targetType, targetValue, "targetValue");
+        validateSmaPeriod(stopLossType, stopLossValue, "stopLossValue");
     }
 
     /**
@@ -107,7 +107,7 @@ public class StrategyObjective {
      * @param fieldName the field name for error messages
      * @throws IllegalArgumentException if the SMA period is not supported
      */
-    private void validateSmaperiod(ObjectiveType type, BigDecimal value, String fieldName) {
+    private void validateSmaPeriod(ObjectiveType type, BigDecimal value, String fieldName) {
         if (type != ObjectiveType.SMA) {
             return;
         }
