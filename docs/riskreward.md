@@ -275,7 +275,7 @@ La lógica JavaScript debe:
 
 ---
 
-### Fase 4: Selector Dinámico de SMA en Formulario reutilizando `ruleDefinitions` (Prioridad Media — Frontend)
+### Fase 4: Selector Dinámico de SMA en Formulario reutilizando `ruleDefinitions` (Prioridad Media — Frontend) ✅ IMPLEMENTADO
 
 **Objetivo:** Mejorar la UX del formulario de gestión de riesgo para evitar entradas inválidas, reutilizando los `ruleDefinitions` que ya están disponibles en el modelo.
 
