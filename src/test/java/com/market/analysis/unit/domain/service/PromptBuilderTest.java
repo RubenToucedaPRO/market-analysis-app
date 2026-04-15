@@ -1,6 +1,7 @@
 package com.market.analysis.unit.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 
@@ -62,5 +63,13 @@ class PromptBuilderTest {
         assertThat(prompt).contains("Risk/Reward Ratio: N/A");
         assertThat(prompt).contains("Target Price: N/A");
         assertThat(prompt).contains("Stop Loss Price: N/A");
+    }
+
+    @Test
+    @DisplayName("Should throw exception when stock is null")
+    void shouldThrowExceptionWhenStockIsNull() {
+        assertThatThrownBy(() -> promptBuilder.buildAnalysisPrompt(null, null))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Stock cannot be null");
     }
 }

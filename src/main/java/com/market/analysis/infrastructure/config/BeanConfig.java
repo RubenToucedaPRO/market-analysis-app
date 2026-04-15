@@ -79,12 +79,11 @@ public class BeanConfig {
             StrategyRepository strategyRepository,
             StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
             ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
-            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService,
-            PromptBuilder promptBuilder) {
+            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
                 prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
                 candleHistoryRepository, strategyRepository, stockProviderPort, historicalProviderPort, apiIAPort,
-                stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder);
+                stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder());
     }
 
     @Bean

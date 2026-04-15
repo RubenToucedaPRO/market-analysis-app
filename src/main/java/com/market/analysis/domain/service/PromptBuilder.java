@@ -1,6 +1,7 @@
 package com.market.analysis.domain.service;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyEvaluation;
@@ -10,7 +11,8 @@ public class PromptBuilder {
     private static final String NOT_AVAILABLE = "N/A";
 
     public String buildAnalysisPrompt(Stock stock, StrategyEvaluation evaluation) {
-        String ticker = stock == null ? NOT_AVAILABLE : safe(stock.getTicker());
+        Stock safeStock = Objects.requireNonNull(stock, "Stock cannot be null");
+        String ticker = safe(safeStock.getTicker());
 
         return """
                 You are an expert financial analyst.
@@ -34,12 +36,12 @@ public class PromptBuilder {
                 Provide one concise sentence with strengths, weaknesses, and overall outlook.
                 """.formatted(
                 ticker,
-                decimal(stock == null ? null : stock.getCurrentPrice()),
-                decimal(stock == null ? null : stock.getSma20()),
-                decimal(stock == null ? null : stock.getSma50()),
-                decimal(stock == null ? null : stock.getSma200()),
-                whole(stock == null ? null : stock.getVolume()),
-                whole(stock == null ? null : stock.getAverageVolume()),
+                decimal(safeStock.getCurrentPrice()),
+                decimal(safeStock.getSma20()),
+                decimal(safeStock.getSma50()),
+                decimal(safeStock.getSma200()),
+                whole(safeStock.getVolume()),
+                whole(safeStock.getAverageVolume()),
                 safe(evaluation == null ? null : evaluation.getStrategyName()),
                 decimal(evaluation == null ? null : evaluation.getComplianceRate()),
                 safe(evaluation == null ? null : evaluation.getSummary()),
