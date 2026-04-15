@@ -135,7 +135,7 @@
           </div>
         </div>
 
-        <div class="col-lg-8" th:if="${ticker.evaluationPassed}">
+        <div class="col-lg-8" th:if="${ticker.evaluationPassed and ticker.riskRewardRatio != null}">
           <div class="card h-100 border-0 shadow-sm overflow-hidden">
             <div class="card-body p-4">
               <h6 class="text-info text-uppercase fw-bold mb-4">
@@ -198,6 +198,24 @@
                   th:classappend="${ticker.riskRewardRatio >= 2.0 ? 'bg-success' : (ticker.riskRewardRatio >= 1.0 ? 'bg-warning' : 'bg-danger')}"
                   >2.5</span
                 >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-8" th:if="${ticker.evaluationPassed and ticker.riskRewardRatio == null}">
+          <div class="card h-100 border-0 shadow-sm">
+            <div class="card-body p-4 d-flex flex-column h-100">
+              <h6 class="text-warning text-uppercase fw-bold mb-3">
+                <i class="bi bi-exclamation-triangle me-2"></i>Plan de Riesgo No Disponible
+              </h6>
+              <div
+                class="p-4 bg-light rounded-3 flex-grow-1 d-flex align-items-center"
+              >
+                <p class="text-muted mb-0">
+                  La estrategia cumple las reglas pero el plan de riesgo no se pudo calcular
+                  por incongruencia en los parámetros de RiskReward con los datos actuales del ticker.
+                </p>
               </div>
             </div>
           </div>
