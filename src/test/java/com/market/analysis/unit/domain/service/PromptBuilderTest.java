@@ -46,6 +46,12 @@ class PromptBuilderTest {
         assertThat(prompt).contains("Compliance Rate: 80.50");
         assertThat(prompt).contains("Risk/Reward Ratio: 1.80");
         assertThat(prompt).contains("respond in Spanish");
+        assertThat(prompt).contains("Resumen técnico:");
+        assertThat(prompt).contains("Fortalezas:");
+        assertThat(prompt).contains("Riesgos:");
+        assertThat(prompt).contains("Conclusión interpretativa:");
+        assertThat(prompt).contains("Example response 1:");
+        assertThat(prompt).contains("Example response 2:");
     }
 
     @Test
@@ -63,6 +69,7 @@ class PromptBuilderTest {
         assertThat(prompt).contains("Risk/Reward Ratio: N/A");
         assertThat(prompt).contains("Target Price: N/A");
         assertThat(prompt).contains("Stop Loss Price: N/A");
+        assertThat(prompt).contains("brief and verifiable justification");
     }
 
     @Test
