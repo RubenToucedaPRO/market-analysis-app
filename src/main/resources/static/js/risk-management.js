@@ -41,7 +41,7 @@ function populateSmaPeriodSelect(selectEl, periods, currentValue) {
       })
       .join("");
 
-  if (currentValue !== null && currentValue !== undefined && currentValue !== "") {
+  if (currentValue != null && currentValue !== "") {
     const normalized = String(Math.round(Number(currentValue)));
     selectEl.value = normalized;
   }
@@ -71,19 +71,19 @@ function handleObjectiveTypeChange(typeSelectId, inputId, selectId) {
     const periods = getSmaAllowedPeriods();
     populateSmaPeriodSelect(select, periods, currentInputValue || currentSelectValue);
 
-    select.style.display = "";
+    select.classList.remove("d-none");
     select.disabled = false;
     select.setAttribute("required", "required");
 
-    input.style.display = "none";
+    input.classList.add("d-none");
     input.disabled = true;
     input.removeAttribute("required");
   } else {
-    select.style.display = "none";
+    select.classList.add("d-none");
     select.disabled = true;
     select.removeAttribute("required");
 
-    input.style.display = "";
+    input.classList.remove("d-none");
     input.disabled = false;
     input.setAttribute("required", "required");
 
@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
   );
 
   // Wire change events on type selectors
-  var targetTypeEl = document.getElementById("objectiveTargetType");
+  const targetTypeEl = document.getElementById("objectiveTargetType");
   if (targetTypeEl) {
     targetTypeEl.addEventListener("change", function () {
       handleObjectiveTypeChange(
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  var stopLossTypeEl = document.getElementById("objectiveStopLossType");
+  const stopLossTypeEl = document.getElementById("objectiveStopLossType");
   if (stopLossTypeEl) {
     stopLossTypeEl.addEventListener("change", function () {
       handleObjectiveTypeChange(
@@ -149,7 +149,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Sync select values to hidden inputs before form submit
-  var form = document.getElementById("strategyForm");
+  const form = document.getElementById("strategyForm");
   if (form) {
     form.addEventListener("submit", function () {
       syncSelectToInput("objectiveTargetSmaSelect", "objectiveTargetValue");
