@@ -285,7 +285,7 @@
                 <!-- Existing rules will be rendered here -->
                 <th:block th:each="rule, stat : *{rules}">
                   <div
-                    th:replace="~{fragments/rule-row :: ruleRow(index=${stat.index}, rule=${rule})}"
+                    th:replace="~{fragments/rule-row :: ruleRow(index=${stat.index}, rule=${rule}, ruleDefinitions=${ruleDefinitions})}"
                   ></div>
                 </th:block>
               </div>
@@ -316,7 +316,7 @@
 
     <template id="rule-template">
       <div
-        th:replace="~{fragments/rule-row :: ruleRow(index=999, rule=${null})}"
+        th:replace="~{fragments/rule-row :: ruleRow(index=999, rule=${null}, ruleDefinitions=${ruleDefinitions})}"
       ></div>
     </template>
 
