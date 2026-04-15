@@ -1,0 +1,25 @@
+<div
+  th:fragment="indicatorField(fieldName, label, onchangeFunction, index, value, ruleDefinitions)"
+  class="col-md-2"
+>
+  <label class="form-label small text-muted">
+    <span th:text="${label}"></span>
+    <select
+      class="form-select form-select-sm"
+      th:name="${fieldName}"
+      th:attr="onchange=${onchangeFunction}"
+      required
+    >
+      <option value="" data-requires-param="false" data-any-param="false">
+        -- Seleccionar Indicador --
+      </option>
+      <option
+        th:each="rd : ${ruleDefinitions}"
+        th:value="${rd.code}"
+        th:text="${rd.name}"
+        th:attr="data-requires-param=${rd.requiresParam},data-any-param=${rd.anyParamAllowed}"
+        th:selected="${rd.code == value}"
+      ></option>
+    </select>
+  </label>
+</div>

@@ -1,5 +1,8 @@
 <!-- templates/fragments/rule-row.html -->
-<div th:fragment="ruleRow" class="rule-row card mb-2">
+<div
+  th:fragment="ruleRow(index, rule, ruleDefinitions)"
+  class="rule-row card mb-2"
+>
   <div class="card-body">
     <div class="row g-1 align-items-end">
       <!-- Rule Name -->
@@ -18,87 +21,26 @@
       </div>
 
       <!-- Subject Indicator -->
-      <div class="col-md-2">
-        <label class="form-label small text-muted">
-          Indicador de Sujeto
-          <select
-            class="form-select form-select-sm"
-            th:name="|rules[${index}].subjectCode|"
-            th:onchange="|toggleSubjectParameter(this, ${index})|"
-            required
-          >
-            <option value="" data-requires-param="false" data-any-param="false">
-              -- Seleccionar Indicador --
-            </option>
-            <option
-              th:each="rd : ${ruleDefinitions}"
-              th:value="${rd.code}"
-              th:text="${rd.name}"
-              th:attr="data-requires-param=${rd.requiresParam},data-any-param=${rd.anyParamAllowed}"
-              th:selected="${rule != null && rule.subjectCode == rd.code}"
-            ></option>
-          </select>
-        </label>
-      </div>
+      <div
+        th:replace="~{fragments/rule-indicator-field :: indicatorField(fieldName=|rules[${index}].subjectCode|, label='Indicador de Sujeto', onchangeFunction=|toggleSubjectParameter(this, ${index})|, index=${index}, value=${rule != null ? rule.subjectCode : ''}, ruleDefinitions=${ruleDefinitions})}"
+      ></div>
 
+      <!-- Subject Parameter -->
       <div
         th:replace="~{fragments/rule-parameter-field :: parameterField(containerId=|subject-container-${index}|, selectId=|subject-param-select-${index}|, inputId=|subject-param-input-${index}|, fieldName=|rules[${index}].subjectParam|, label='Parámetro de Sujeto', value=${rule != null ? rule.subjectParam : ''})}"
       ></div>
 
       <!-- Operator -->
-      <div class="col-md-1">
-        <label class="form-label small text-muted">
-          Operador
-          <select
-            class="form-select form-select-sm"
-            th:name="|rules[${index}].operator|"
-          >
-            <option
-              value=">"
-              th:selected="${rule != null && rule.operator == '>'}"
-            >
-              >&gt;
-            </option>
-            <option
-              value="<"
-              th:selected="${rule != null && rule.operator == '<'}"
-            >
-              &lt;
-            </option>
-            <option
-              value="="
-              th:selected="${rule != null && rule.operator == '='}"
-            >
-              >=
-            </option>
-          </select>
-        </label>
-      </div>
+      <div
+        th:replace="~{fragments/rule-operator-field :: operatorField(fieldName=|rules[${index}].operator|, value=${rule != null ? rule.operator : ''})}"
+      ></div>
 
       <!-- Target Indicator -->
-      <div class="col-md-2">
-        <label class="form-label small text-muted">
-          Indicador de Objetivo
-          <select
-            class="form-select form-select-sm"
-            th:name="|rules[${index}].targetCode|"
-            th:onchange="|toggleTargetParameter(this, ${index})|"
-            required
-          >
-            <option value="" data-requires-param="false" data-any-param="false">
-              -- Seleccionar Indicador --
-            </option>
-            <option
-              th:each="rd : ${ruleDefinitions}"
-              th:value="${rd.code}"
-              th:text="${rd.name}"
-              th:attr="data-requires-param=${rd.requiresParam},data-any-param=${rd.anyParamAllowed}"
-              th:selected="${rule != null && rule.targetCode == rd.code}"
-            ></option>
-          </select>
-        </label>
-      </div>
+      <div
+        th:replace="~{fragments/rule-indicator-field :: indicatorField(fieldName=|rules[${index}].targetCode|, label='Indicador de Objetivo', onchangeFunction=|toggleTargetParameter(this, ${index})|, index=${index}, value=${rule != null ? rule.targetCode : ''}, ruleDefinitions=${ruleDefinitions})}"
+      ></div>
 
+      <!-- Target Parameter -->
       <div
         th:replace="~{fragments/rule-parameter-field :: parameterField(containerId=|target-container-${index}|, selectId=|target-param-select-${index}|, inputId=|target-param-input-${index}|, fieldName=|rules[${index}].targetParam|, label='Valor de Objetivo', value=${rule != null ? rule.targetParam : ''})}"
       ></div>
