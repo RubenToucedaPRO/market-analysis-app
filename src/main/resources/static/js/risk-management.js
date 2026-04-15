@@ -69,7 +69,11 @@ function handleObjectiveTypeChange(typeSelectId, inputId, selectId) {
 
   if (selectedType === "SMA") {
     const periods = getSmaAllowedPeriods();
-    populateSmaPeriodSelect(select, periods, currentInputValue || currentSelectValue);
+    populateSmaPeriodSelect(
+      select,
+      periods,
+      currentInputValue || currentSelectValue,
+    );
 
     select.classList.remove("d-none");
     select.disabled = false;
@@ -98,14 +102,17 @@ function handleObjectiveTypeChange(typeSelectId, inputId, selectId) {
 }
 
 /**
- * Synchronises the hidden <input> value from the active <select> before
- * the form is submitted, so that Thymeleaf binding works correctly.
+ * Syncs the value from a <select> to a hidden <input> before form submission, if the select is enabled.
+ *
+ * @param {string} selectId id of the <select> element
+ * @param {string} inputId  id of the hidden <input> element
  */
 function syncSelectToInput(selectId, inputId) {
   const select = document.getElementById(selectId);
   const input = document.getElementById(inputId);
   if (select && input && !select.disabled) {
     input.value = select.value;
+    input.disabled = false;
   }
 }
 
