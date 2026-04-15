@@ -21,11 +21,13 @@ El bloque `try-catch` del método `evaluateStrategy()` solo captura `MissingIndi
 
 **Ejemplo concreto:** Si una estrategia usa SMA200 como stop-loss y el precio actual del ticker cae por debajo de la SMA200, entonces `stopLossPrice > entryPrice`, lo que es lógicamente incongruente y lanza excepción en vez de informar al usuario.
 
-### 1.2 Periodos SMA hardcodeados en `RiskRewardCalculator`
+### 1.2 Periodos SMA hardcodeados y duplicados entre `RiskRewardCalculator` y `RuleCapabilityCatalog`
 
-**Archivo:** `src/main/java/com/market/analysis/domain/service/RiskRewardCalculator.java` (líneas 172-178)
+**Archivos:**
+- `src/main/java/com/market/analysis/domain/service/RiskRewardCalculator.java` (líneas 172-178)
+- `src/main/java/com/market/analysis/domain/model/RuleCapabilityCatalog.java` (líneas 40-44, 184-194)
 
-El método `resolveSmaValue()` usa un `switch` con valores fijos (20, 50, 200):
+El método `resolveSmaValue()` de `RiskRewardCalculator` usa un `switch` con valores fijos (20, 50, 200):
 
 ```java
 BigDecimal smaValue = switch (period) {
@@ -36,13 +38,17 @@ BigDecimal smaValue = switch (period) {
 };
 ```
 
-**Impacto:** Si en el futuro se añaden nuevas SMAs (ej. SMA10, SMA100), hay que modificar este switch manualmente. No existe una constante compartida que defina los periodos válidos, provocando duplicación de lógica con `RuleCapabilityCatalog.resolveSma()`.
+Sin embargo, `RuleCapabilityCatalog` ya es la **fuente única de verdad** para los periodos SMA válidos (línea 42: `Set.of(20.0, 50.0, 200.0)`) y tiene su propio resolver `resolveSma()` (línea 184). Esto genera **duplicación de lógica**: si se añade una nueva SMA (ej. SMA100), hay que modificar ambos ficheros manualmente, con riesgo de divergencia.
+
+**Impacto:** Cualquier nueva SMA requiere cambios en al menos dos puntos del dominio, violando el principio DRY y aumentando el riesgo de inconsistencias.
 
 ### 1.3 Falta de validación de periodos SMA en `StrategyObjective.validate()`
 
 **Archivo:** `src/main/java/com/market/analysis/domain/model/StrategyObjective.java` (líneas 66-95)
 
-El método `validate()` verifica que los valores sean positivos y no nulos, pero **no valida** que cuando `targetType` o `stopLossType` es `SMA`, el valor correspondiente sea un periodo SMA válido (20, 50 o 200). Un usuario puede configurar `stopLossType = SMA` con `stopLossValue = 99`, lo que solo fallará en tiempo de evaluación con una excepción no controlada.
+El método `validate()` verifica que los valores sean positivos y no nulos, pero **no valida** que cuando `targetType` o `stopLossType` es `SMA`, el valor correspondiente sea un periodo SMA válido. Un usuario puede configurar `stopLossType = SMA` con `stopLossValue = 99`, lo que solo fallará en tiempo de evaluación con una excepción no controlada.
+
+**Nota:** La validación debería delegar en `RuleCapabilityCatalog.getCapability("SMA")` para obtener los periodos válidos dinámicamente, en vez de mantener una lista de valores hardcodeados en `StrategyObjective`. Así, al añadir una nueva SMA al catálogo, la validación se actualizaría automáticamente.
 
 ### 1.4 Vista `analysis.html`: Acceso a campos de riesgo potencialmente nulos
 
@@ -67,10 +73,12 @@ Misma situación que `analysis.html`. El bloque `th:if="${ticker.evaluationPasse
 **Archivo:** `src/main/resources/templates/fragments/risk-management-fields.html` (líneas 41-57, 97-112)
 
 Cuando el usuario selecciona tipo SMA para target o stop-loss, el campo de valor es un `<input type="number">` libre que permite cualquier valor numérico. No hay lógica JavaScript que:
-1. Transforme el input en un `<select>` con las opciones válidas (20, 50, 200) al seleccionar SMA.
+1. Transforme el input en un `<select>` con las opciones válidas (obtenidas dinámicamente desde `ruleDefinitions`) al seleccionar SMA.
 2. Restaure el `<input>` libre al seleccionar PERCENTAGE o FIXED_PRICE.
 
 **Impacto:** El usuario puede introducir un periodo SMA inválido (ej. 15, 100, 300) que solo fallará en tiempo de evaluación.
+
+**Nota:** Los `ruleDefinitions` ya están disponibles en el modelo del formulario de estrategia (inyectados por `StrategyController`) y contienen los `allowedParams` de cada indicador. La misma infraestructura que se usa en `strategy-manager.js` para los parámetros de reglas puede reutilizarse para los selectores de target/stop-loss.
 
 ### 1.7 Sin validación de coherencia lógica en la entrada
 
@@ -90,8 +98,8 @@ No existe validación que evite configuraciones lógicamente inválidas como:
 | Capa | Archivo | Cambio |
 |------|---------|--------|
 | **Dominio** | `EvaluateStrategyService.java` | Ampliar catch para capturar `IllegalArgumentException` además de `MissingIndicatorException` |
-| **Dominio** | `RiskRewardCalculator.java` | Extraer constante `ALLOWED_SMA_PERIODS` compartida |
-| **Dominio** | `StrategyObjective.java` | Añadir validación de periodos SMA válidos en `validate()` |
+| **Dominio** | `RiskRewardCalculator.java` | Delegar resolución SMA a `RuleCapabilityCatalog` (eliminar switch duplicado) |
+| **Dominio** | `StrategyObjective.java` | Validar periodos SMA consultando `RuleCapabilityCatalog` |
 | **Vista** | `analysis.html` | Añadir null-checks para campos de riesgo, mostrar aviso cuando son nulos |
 | **Vista** | `ticker-detail.html` | Añadir null-checks para campos de riesgo, mostrar aviso cuando son nulos |
 | **Vista** | `risk-management-fields.html` | Cambiar input a select dinámico para SMA |
@@ -116,27 +124,60 @@ No existe validación que evite configuraciones lógicamente inválidas como:
 
 Con este cambio, si el stop-loss SMA está por encima del precio actual, la evaluación permanece `compliant = true` pero los campos de riesgo quedan `null` y el summary incluye la explicación de por qué no se pudo calcular el plan de riesgo.
 
-#### B. Constante compartida para periodos SMA
+#### B. Reutilizar `RuleCapabilityCatalog` como fuente única de verdad para SMA
 
-Crear una constante `ALLOWED_SMA_PERIODS` en el dominio (por ejemplo en `StrategyObjective` o en una clase de constantes) que sea reutilizada por:
-- `RiskRewardCalculator.resolveSmaValue()`
-- `StrategyObjective.validate()`
-- La vista (para generar las opciones del selector)
+En lugar de crear una constante `ALLOWED_SMA_PERIODS` duplicada, **reutilizar la infraestructura existente** del catálogo de capacidades:
 
+- `RuleCapabilityCatalog` ya define los periodos SMA válidos: `Set.of(20.0, 50.0, 200.0)` (línea 42) y su resolver `resolveSma()` (línea 184).
+- `RuleCapabilityCatalog.getCapability("SMA").getAllowedParams()` devuelve el conjunto de periodos válidos.
+- `RuleCapabilityCatalog.getCapability("SMA").resolve(param, stock)` resuelve el valor SMA del stock.
+
+**Beneficio:** Al añadir una nueva SMA (ej. SMA100), basta con:
+1. Añadir el campo en el modelo `Stock` (ej. `sma100`).
+2. Actualizar el entry `"SMA"` en `RuleCapabilityCatalog` (añadir `100.0` al set y el case al resolver).
+3. Todo lo demás (`RiskRewardCalculator`, `StrategyObjective.validate()`, la vista) se actualiza automáticamente.
+
+Para `RiskRewardCalculator.resolveSmaValue()`:
 ```java
-public static final Set<Integer> ALLOWED_SMA_PERIODS = Set.of(20, 50, 200);
+// ANTES (switch duplicado con valores fijos):
+BigDecimal smaValue = switch (period) {
+    case 20 -> stock.getSma20();
+    case 50 -> stock.getSma50();
+    case 200 -> stock.getSma200();
+    default -> throw new IllegalArgumentException(...);
+};
+
+// DESPUÉS (delegar al catálogo):
+RuleCapability smaCapability = RuleCapabilityCatalog.getCapability("SMA")
+    .orElseThrow(() -> new IllegalStateException("SMA not found in catalog"));
+if (!smaCapability.isParamAllowed((double) period)) {
+    throw new IllegalArgumentException("SMA period " + period + " is not supported");
+}
+BigDecimal smaValue = smaCapability.resolve((double) period, stock);
 ```
 
-#### C. Validación de periodos SMA en `StrategyObjective.validate()`
+#### C. Validación de periodos SMA en `StrategyObjective.validate()` vía catálogo
+
+En lugar de mantener una lista de valores hardcodeados, consultar el catálogo dinámicamente:
 
 ```java
-if (targetType == ObjectiveType.SMA && !ALLOWED_SMA_PERIODS.contains(targetValue.intValue())) {
-    throw new IllegalArgumentException(
-        "targetValue must be a valid SMA period: " + ALLOWED_SMA_PERIODS);
+if (targetType == ObjectiveType.SMA) {
+    Set<Double> allowedSmaPeriods = RuleCapabilityCatalog.getCapability("SMA")
+        .map(RuleCapability::getAllowedParams)
+        .orElse(Set.of());
+    if (!allowedSmaPeriods.contains(targetValue.doubleValue())) {
+        throw new IllegalArgumentException(
+            "targetValue must be a valid SMA period: " + allowedSmaPeriods);
+    }
 }
-if (stopLossType == ObjectiveType.SMA && !ALLOWED_SMA_PERIODS.contains(stopLossValue.intValue())) {
-    throw new IllegalArgumentException(
-        "stopLossValue must be a valid SMA period: " + ALLOWED_SMA_PERIODS);
+if (stopLossType == ObjectiveType.SMA) {
+    Set<Double> allowedSmaPeriods = RuleCapabilityCatalog.getCapability("SMA")
+        .map(RuleCapability::getAllowedParams)
+        .orElse(Set.of());
+    if (!allowedSmaPeriods.contains(stopLossValue.doubleValue())) {
+        throw new IllegalArgumentException(
+            "stopLossValue must be a valid SMA period: " + allowedSmaPeriods);
+    }
 }
 ```
 
@@ -160,16 +201,17 @@ En `analysis.html` y `ticker-detail.html`, el bloque de métricas de riesgo debe
 </th:block>
 ```
 
-#### E. Selector dinámico de SMA en formulario
+#### E. Selector dinámico de SMA en formulario reutilizando `ruleDefinitions`
 
 En `risk-management-fields.html`, reemplazar los `<input type="number">` de target y stop-loss por una estructura dual input/select (similar a como se hace en `rule-row.html` para los parámetros de reglas):
 
-1. Cuando el tipo seleccionado es **SMA**: mostrar un `<select>` con opciones 20, 50, 200.
+1. Cuando el tipo seleccionado es **SMA**: mostrar un `<select>` cuyas opciones se generan dinámicamente desde `globalThis.ruleDefinitions` (entrada con `code === "SMA"` → `allowedParams`).
 2. Cuando el tipo es **PERCENTAGE** o **FIXED_PRICE**: mostrar un `<input type="number">` libre.
 
 La lógica JavaScript debe:
 - Escuchar el cambio en el `<select>` de tipo (targetType, stopLossType).
-- Alternar entre `<select>` y `<input>` según el tipo seleccionado.
+- Buscar en `globalThis.ruleDefinitions` la entrada SMA para obtener `allowedParams`.
+- Alternar entre `<select>` (poblado dinámicamente) y `<input>` según el tipo seleccionado.
 - Desabilitar/ocultar el control no activo para evitar envío de datos duplicados.
 
 ---
@@ -211,16 +253,17 @@ La lógica JavaScript debe:
 
 ---
 
-### Fase 3: Validación de Periodos SMA en Dominio (Prioridad Media — Backend)
+### Fase 3: Validación de Periodos SMA mediante `RuleCapabilityCatalog` (Prioridad Media — Backend)
 
-**Objetivo:** Rechazar configuraciones inválidas de SMA antes de que lleguen al cálculo.
+**Objetivo:** Rechazar configuraciones inválidas de SMA antes de que lleguen al cálculo, reutilizando el catálogo existente como fuente única de verdad.
+
+**Principio clave:** `RuleCapabilityCatalog` ya es la fuente canónica de los periodos SMA válidos y sus resolvers. En vez de crear constantes duplicadas, `StrategyObjective` y `RiskRewardCalculator` deben **consultar el catálogo** para validar y resolver periodos SMA. De este modo, añadir una nueva SMA solo requiere actualizar `RuleCapabilityCatalog` (y el modelo `Stock`).
 
 **Tareas:**
-1. Definir constante `ALLOWED_SMA_PERIODS = Set.of(20, 50, 200)` en `StrategyObjective`.
-2. Añadir validación en `StrategyObjective.validate()` para verificar que los valores SMA sean periodos válidos.
-3. Refactorizar `RiskRewardCalculator.resolveSmaValue()` para usar la constante compartida.
-4. Actualizar tests de `StrategyObjectiveTest` para cubrir la validación de periodos SMA.
-5. Actualizar tests de `RiskRewardCalculatorTest` si se modifica `resolveSmaValue()`.
+1. Modificar `StrategyObjective.validate()` para que cuando `targetType` o `stopLossType` sea `SMA`, consulte `RuleCapabilityCatalog.getCapability("SMA").getAllowedParams()` para validar el periodo.
+2. Refactorizar `RiskRewardCalculator.resolveSmaValue()` para delegar la resolución al catálogo (`RuleCapabilityCatalog.getCapability("SMA").resolve(param, stock)`) eliminando el switch duplicado.
+3. Actualizar tests de `StrategyObjectiveTest` para cubrir la validación de periodos SMA via catálogo.
+4. Actualizar tests de `RiskRewardCalculatorTest` para reflejar la delegación al catálogo.
 
 **Archivos afectados:**
 - `src/main/java/com/market/analysis/domain/model/StrategyObjective.java`
@@ -232,22 +275,26 @@ La lógica JavaScript debe:
 
 ---
 
-### Fase 4: Selector Dinámico de SMA en Formulario (Prioridad Media — Frontend)
+### Fase 4: Selector Dinámico de SMA en Formulario reutilizando `ruleDefinitions` (Prioridad Media — Frontend)
 
-**Objetivo:** Mejorar la UX del formulario de gestión de riesgo para evitar entradas inválidas.
+**Objetivo:** Mejorar la UX del formulario de gestión de riesgo para evitar entradas inválidas, reutilizando los `ruleDefinitions` que ya están disponibles en el modelo.
+
+**Principio clave:** El `StrategyController` ya pasa `ruleDefinitions` al modelo (lista de `RuleDefinitionDTO` enriquecidos con `allowedParams` desde `RuleCapabilityCatalog`). El JavaScript ya usa `globalThis.ruleDefinitions` en `strategy-manager.js` para los parámetros de reglas. La misma infraestructura puede reutilizarse para los selectores de target/stop-loss tipo SMA, eliminando cualquier valor hardcodeado en la vista.
 
 **Tareas:**
-1. Modificar `risk-management-fields.html` para incluir un `<select>` oculto con opciones SMA (20, 50, 200) junto al `<input>` existente para target y stop-loss.
-2. Crear o extender JavaScript (en `strategy-manager.js` o fichero nuevo `risk-management.js`) para:
-   - Detectar cambio en `objectiveTargetType` y `objectiveStopLossType`.
-   - Si tipo = SMA: ocultar `<input>`, mostrar `<select>` con opciones SMA, habilitar required.
-   - Si tipo ≠ SMA: ocultar `<select>`, mostrar `<input>`, habilitar required.
+1. Modificar `risk-management-fields.html` para incluir un `<select>` oculto (sin opciones hardcodeadas) junto al `<input>` existente para target y stop-loss.
+2. Extender JavaScript (en `strategy-manager.js` o fichero nuevo `risk-management.js`) para:
+   - Al cambiar `objectiveTargetType` o `objectiveStopLossType`:
+     - Si tipo = SMA: buscar en `globalThis.ruleDefinitions` la entrada con `code === "SMA"`, extraer `allowedParams`, poblar dinámicamente el `<select>` con esos valores, ocultar el `<input>`.
+     - Si tipo ≠ SMA: ocultar `<select>`, mostrar `<input>`, habilitar required.
    - Al cargar la página (edición), aplicar la lógica según el valor actual del tipo.
 3. Asegurar que el `name` del campo activo es el correcto (`objective.targetValue`, `objective.stopLossValue`) para que el bind con Thymeleaf funcione.
 4. Actualizar placeholders para cada tipo: 
-   - SMA: "(período)"
+   - SMA: "(período)" — opciones generadas dinámicamente desde el catálogo
    - PERCENTAGE: "ej., 5.00 (%)"
    - FIXED_PRICE: "ej., 150.00 ($)"
+
+**Beneficio:** Si se añade una nueva SMA al catálogo, las opciones del selector se actualizan automáticamente sin tocar la vista ni el JavaScript.
 
 **Archivos afectados:**
 - `src/main/resources/templates/fragments/risk-management-fields.html`
@@ -284,9 +331,9 @@ La lógica JavaScript debe:
 Fase 1 (Backend exceptions) ──┐
                                ├──► Fase 2 (Vista null-safety) 
                                │      depende de Fase 1 para tener sentido completo
-Fase 3 (SMA validation)  ─────┤
-                               ├──► Fase 4 (Frontend selector) 
-                               │      depende de Fase 3 para compartir constantes
+Fase 3 (SMA via catálogo)  ───┤
+                               ├──► Fase 4 (Frontend selector via ruleDefinitions) 
+                               │      depende de Fase 3 para garantizar coherencia
 Fase 5 (Validaciones avanzadas) ──► Independiente, puede ir en paralelo
 ```
 
@@ -299,16 +346,18 @@ Fase 5 (Validaciones avanzadas) ──► Independiente, puede ir en paralelo
 | Aspecto | Estado Actual | Estado Deseado |
 |---------|--------------|----------------|
 | Error en cálculo incongruente | Excepción 500 | Aviso informativo en ticker |
-| Periodos SMA válidos | Sin validación al crear | Validación en dominio + selector en UI |
+| Periodos SMA válidos | Sin validación al crear; duplicación entre RiskRewardCalculator y RuleCapabilityCatalog | Validación vía catálogo en dominio + selector dinámico en UI desde `ruleDefinitions` |
 | Vista con evaluación passed + risk null | NPE / error Thymeleaf | Mensaje de aviso UX-friendly |
-| Entrada de valor SMA | Input libre (cualquier número) | Select con opciones 20, 50, 200 |
-| Constantes SMA | Duplicadas (RiskRewardCalculator + RuleCapabilityCatalog) | Constante compartida en dominio |
+| Entrada de valor SMA | Input libre (cualquier número) | Select con opciones dinámicas desde `ruleDefinitions` (catálogo) |
+| Resolución SMA | Duplicada (RiskRewardCalculator.resolveSmaValue switch + RuleCapabilityCatalog.resolveSma) | Delegación única a `RuleCapabilityCatalog` |
 
 ---
 
 ## 6. Notas Técnicas
 
-- **Arquitectura:** Todos los cambios respetan la Arquitectura Hexagonal y Clean Architecture. La lógica de validación permanece en el dominio, la presentación de errores en las vistas.
+- **Arquitectura:** Todos los cambios respetan la Arquitectura Hexagonal y Clean Architecture. La lógica de validación permanece en el dominio, la presentación de errores en las vistas. `RuleCapabilityCatalog` se consolida como la **fuente única de verdad** para los indicadores técnicos válidos, sus parámetros y resolvers, tanto para reglas como para objetivos de estrategia.
+- **Reutilización:** Los `ruleDefinitions` (DTOs enriquecidos desde el catálogo) ya se pasan al formulario de estrategia. El JavaScript existente en `strategy-manager.js` ya usa `globalThis.ruleDefinitions` para los parámetros de reglas. La misma infraestructura se reutiliza para los selectores de target/stop-loss.
+- **Extensibilidad:** Para añadir una nueva SMA (ej. SMA100), basta con: (1) añadir el campo en `Stock`, (2) actualizar el entry `"SMA"` en `RuleCapabilityCatalog` (ampliar `allowedParams` y resolver). Todo lo demás se actualiza automáticamente.
 - **Tests:** Cada fase incluye tests unitarios. La Fase 1 y 3 requieren tests de dominio, la Fase 2 puede verificarse visualmente o con tests de integración MockMvc.
 - **Compatibilidad:** Los cambios son retrocompatibles. Las estrategias existentes con valores SMA válidos no se ven afectadas. Las que tengan valores inválidos simplemente mostrarán el aviso en vez de causar error.
-- **SonarQube:** Los cambios reducen code smells (magic numbers, duplicación de constantes) y eliminan potenciales bugs (NPE en vistas).
+- **SonarQube:** Los cambios reducen code smells (duplicación de resolvers, magic numbers) y eliminan potenciales bugs (NPE en vistas).
