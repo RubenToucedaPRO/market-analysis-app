@@ -89,7 +89,11 @@ public class EvaluateStrategyService {
                 recommendedShares = riskRewardCalculator
                         .calculatePositionSize(entryPrice, stopLossPrice, strategy.getObjective().getCapitalToRisk())
                         .intValue();
-            } catch (MissingIndicatorException e) {
+            } catch (MissingIndicatorException | IllegalArgumentException e) {
+                targetPrice = null;
+                stopLossPrice = null;
+                riskRewardRatio = null;
+                recommendedShares = null;
                 summary = summary + " Risk plan could not be calculated: " + e.getMessage();
             }
         }
