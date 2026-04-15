@@ -128,11 +128,10 @@ class RiskRewardCalculatorTest {
                     .description("Test objective")
                     .build();
 
-            // Act & Assert
+            // Act & Assert — message now references catalog-derived allowed periods
             assertThatThrownBy(() -> calculator.calculateTargetPrice(entryPrice, objective, testStock))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("SMA period 100 is not supported")
-                    .hasMessageContaining("Only periods 20, 50, and 200 are allowed");
+                    .hasMessageContaining("SMA period 100 is not supported");
         }
 
         @Test
@@ -677,6 +676,124 @@ class RiskRewardCalculatorTest {
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(entryPrice, targetPrice, stopLossPrice))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Target price must be greater than entry price");
+        }
+    }
+
+    @Nested
+    @DisplayName("SMA Resolution via RuleCapabilityCatalog Tests")
+    class SmaCatalogDelegationTests {
+
+        @Test
+        @DisplayName("Should resolve SMA20 target via catalog delegation")
+        void shouldResolveSma20TargetViaCatalog() {
+            // Arrange
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.SMA)
+                    .targetValue(BigDecimal.valueOf(20))
+                    .stopLossType(ObjectiveType.PERCENTAGE)
+                    .stopLossValue(BigDecimal.valueOf(2.0))
+                    .capitalToRisk(BigDecimal.valueOf(1000))
+                    .description("Catalog SMA20 target test")
+                    .build();
+
+            // Act
+            BigDecimal targetPrice = calculator.calculateTargetPrice(entryPrice, objective, testStock);
+
+            // Assert — resolved via catalog, same result as direct access
+            assertThat(targetPrice).isEqualByComparingTo(testStock.getSma20());
+        }
+
+        @Test
+        @DisplayName("Should resolve SMA50 stop-loss via catalog delegation")
+        void shouldResolveSma50StopLossViaCatalog() {
+            // Arrange
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.PERCENTAGE)
+                    .targetValue(BigDecimal.valueOf(5.0))
+                    .stopLossType(ObjectiveType.SMA)
+                    .stopLossValue(BigDecimal.valueOf(50))
+                    .capitalToRisk(BigDecimal.valueOf(1000))
+                    .description("Catalog SMA50 stop-loss test")
+                    .build();
+
+            // Act
+            BigDecimal stopLossPrice = calculator.calculateStopLossPrice(entryPrice, objective, testStock);
+
+            // Assert
+            assertThat(stopLossPrice).isEqualByComparingTo(testStock.getSma50());
+        }
+
+        @Test
+        @DisplayName("Should resolve SMA200 target via catalog delegation")
+        void shouldResolveSma200TargetViaCatalog() {
+            // Arrange
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.SMA)
+                    .targetValue(BigDecimal.valueOf(200))
+                    .stopLossType(ObjectiveType.PERCENTAGE)
+                    .stopLossValue(BigDecimal.valueOf(2.0))
+                    .capitalToRisk(BigDecimal.valueOf(1000))
+                    .description("Catalog SMA200 target test")
+                    .build();
+
+            // Act
+            BigDecimal targetPrice = calculator.calculateTargetPrice(entryPrice, objective, testStock);
+
+            // Assert
+            assertThat(targetPrice).isEqualByComparingTo(testStock.getSma200());
+        }
+
+        @Test
+        @DisplayName("Should throw IllegalArgumentException for SMA period not in catalog")
+        void shouldThrowForSmaPeriodNotInCatalog() {
+            // Arrange
+            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.SMA)
+                    .targetValue(BigDecimal.valueOf(75))
+                    .stopLossType(ObjectiveType.PERCENTAGE)
+                    .stopLossValue(BigDecimal.valueOf(2.0))
+                    .capitalToRisk(BigDecimal.valueOf(1000))
+                    .description("Unsupported SMA test")
+                    .build();
+
+            // Act & Assert
+            assertThatThrownBy(() -> calculator.calculateTargetPrice(entryPrice, objective, testStock))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("SMA period 75 is not supported");
+        }
+
+        @Test
+        @DisplayName("Should throw MissingIndicatorException when catalog-resolved SMA is null")
+        void shouldThrowMissingIndicatorWhenCatalogResolvedSmaIsNull() {
+            // Arrange — stock has null SMA200
+            Stock stockWithNullSma200 = Stock.builder()
+                    .ticker("TSLA")
+                    .currentPrice(BigDecimal.valueOf(250.00))
+                    .sma20(BigDecimal.valueOf(240.00))
+                    .sma50(BigDecimal.valueOf(230.00))
+                    .sma200(null)
+                    .build();
+
+            BigDecimal entryPrice = BigDecimal.valueOf(250.00);
+            StrategyObjective objective = StrategyObjective.builder()
+                    .targetType(ObjectiveType.SMA)
+                    .targetValue(BigDecimal.valueOf(200))
+                    .stopLossType(ObjectiveType.PERCENTAGE)
+                    .stopLossValue(BigDecimal.valueOf(2.0))
+                    .capitalToRisk(BigDecimal.valueOf(1000))
+                    .description("Missing SMA200 test")
+                    .build();
+
+            // Act & Assert
+            assertThatThrownBy(() -> calculator.calculateTargetPrice(entryPrice, objective, stockWithNullSma200))
+                    .isInstanceOf(MissingIndicatorException.class)
+                    .hasMessageContaining("SMA200")
+                    .hasMessageContaining("target")
+                    .hasMessageContaining("TSLA");
         }
     }
 }

@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.Objects;
 
 import com.market.analysis.domain.exception.MissingIndicatorException;
+import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyObjective;
 
@@ -153,14 +154,15 @@ public class RiskRewardCalculator {
 
     /**
      * Resolves the SMA value from stock data based on the period parameter.
-     * Only supports periods 20, 50, and 200.
+     * Delegates resolution to {@link RuleCapabilityCatalog} as the single source of truth
+     * for supported SMA periods and their resolvers.
      * 
-     * @param periodValue the SMA period (must be 20, 50, or 200)
+     * @param periodValue the SMA period (must be a period supported by the catalog)
      * @param stock       the stock data containing SMA values
      * @param context     context description for error messages (e.g., "target",
      *                    "stop-loss")
      * @return the SMA value with proper scaling
-     * @throws IllegalArgumentException  if period is not 20, 50, or 200
+     * @throws IllegalArgumentException  if period is not supported by the catalog
      * @throws MissingIndicatorException if the required SMA value is null in stock
      *                                   data
      */
@@ -169,15 +171,24 @@ public class RiskRewardCalculator {
 
         int period = periodValue.intValue();
 
-        BigDecimal smaValue = switch (period) {
-            case 20 -> stock.getSma20();
-            case 50 -> stock.getSma50();
-            case 200 -> stock.getSma200();
-            default -> throw new IllegalArgumentException(
-                    String.format("SMA period %d is not supported. Only periods 20, 50, and 200 are allowed.", period));
-        };
+        BigDecimal smaValue = RuleCapabilityCatalog.getCapability("SMA")
+                .map(cap -> cap.resolve((double) period, stock))
+                .orElse(null);
 
         if (smaValue == null) {
+            // Distinguish between unsupported period and missing data
+            boolean isPeriodSupported = RuleCapabilityCatalog.getCapability("SMA")
+                    .map(cap -> cap.isParamAllowed((double) period))
+                    .orElse(false);
+
+            if (!isPeriodSupported) {
+                throw new IllegalArgumentException(
+                        String.format("SMA period %d is not supported. Only periods %s are allowed.",
+                                period, RuleCapabilityCatalog.getCapability("SMA")
+                                        .map(cap -> cap.getAllowedParams().toString())
+                                        .orElse("[]")));
+            }
+
             throw new MissingIndicatorException(
                     String.format("SMA%d value is required for %s calculation but is missing in stock data for %s",
                             period, context, stock.getTicker()));
