@@ -92,6 +92,9 @@ class ManageAnalyzeStockServiceTest {
     @Mock
     private com.market.analysis.domain.service.EvaluateStrategyService evaluateStrategyService;
 
+    @Mock
+    private com.market.analysis.domain.service.PromptBuilder promptBuilder;
+
     @InjectMocks
     private ManageAnalyzeStockService service;
 
@@ -508,6 +511,7 @@ class ManageAnalyzeStockServiceTest {
                 .build();
 
         when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn("prompt");
         when(apiIAPort.getValoration(anyString())).thenReturn(expectedValoration);
         when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
 
@@ -516,6 +520,7 @@ class ManageAnalyzeStockServiceTest {
 
         // Assert
         verify(stockDataRepository, times(1)).findById(stockId);
+        verify(promptBuilder, times(1)).buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class));
         verify(apiIAPort, times(1)).getValoration(anyString());
         verify(stockDataRepository, times(1)).save(any(Stock.class));
     }
@@ -563,6 +568,7 @@ class ManageAnalyzeStockServiceTest {
                 .build();
 
         when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn("prompt");
         when(apiIAPort.getValoration(anyString())).thenReturn(null);
         when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
 
@@ -571,6 +577,7 @@ class ManageAnalyzeStockServiceTest {
 
         // Assert
         verify(stockDataRepository, times(1)).findById(stockId);
+        verify(promptBuilder, times(1)).buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class));
         verify(apiIAPort, times(1)).getValoration(anyString());
         verify(stockDataRepository, times(1)).save(any(Stock.class));
     }

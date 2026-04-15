@@ -32,6 +32,7 @@ import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
+import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.StockHistoricalService;
 
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private final StockHistoricalService stockHistoricalService;
     private final EvaluateStrategyService evaluateStrategyService;
+    private final PromptBuilder promptBuilder;
 
     @Override
     public void getStockData(String tickers, Long strategyId) {
@@ -340,20 +342,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         Stock stock = stockDataRepository.findById(id)
                 .orElseThrow(() -> new StockDataNotFoundException(TICKER_DATA_NOT_FOUND + id));
         String ticker = stock.getTicker();
-        String datosAccion = String.format(
-                "Ticker: %s, Price: %.2f, SMA20: %.2f, SMA50: %.2f, SMA200: %.2f, Volume: %d, Average Volume: %d, Strategy: %s, Compliance Rate: %.2f, Summary: %s",
-                ticker, stock.getCurrentPrice(), stock.getSma20(), stock.getSma50(), stock.getSma200(),
-                stock.getVolume(),
-                stock.getAverageVolume(), stock.getStrategyEvaluation().getStrategyName(),
-                stock.getStrategyEvaluation().getComplianceRate(), stock.getStrategyEvaluation().getSummary());
-
-        String prompt = "You are an expert financial analyst."
-                + "This is a placeholder valuation based on the stock data: " + datosAccion
-                + ". I want you to analyze this stock data and provide a valuation of the stock. "
-                + " Please consider the current price, technical indicators (SMA20, SMA50, SMA200), volume, average volume, and the strategy evaluation results (compliance rate and summary)."
-                + " Based on this information, provide a concise valuation of the stock's potential performance in the market."
-                + " You answer in a single sentence and be as specific as possible, providing insights on the stock's strengths, weaknesses, and overall outlook."
-                + " Remember answer in spanish.";
+        String prompt = promptBuilder.buildAnalysisPrompt(stock, stock.getStrategyEvaluation());
 
         String valoration = apiIAPort.getValoration(prompt);
         log.info("Valuation for ticker {}: {}", ticker, valoration);

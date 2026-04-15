@@ -34,6 +34,7 @@ import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
+import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.RiskRewardCalculator;
 import com.market.analysis.domain.service.RuleEvaluator;
 import com.market.analysis.domain.service.StockHistoricalService;
@@ -80,10 +81,9 @@ public class BeanConfig {
             ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
             StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,candleHistoryRepository, strategyRepository,stockProviderPort,
-                historicalProviderPort,
-                apiIAPort,
-                stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService);
+                prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
+                candleHistoryRepository, strategyRepository, stockProviderPort, historicalProviderPort, apiIAPort,
+                stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder());
     }
 
     @Bean
@@ -94,6 +94,11 @@ public class BeanConfig {
     @Bean
     public StockHistoricalService stockHistoricalService() {
         return new StockHistoricalService();
+    }
+
+    @Bean
+    public PromptBuilder promptBuilder() {
+        return new PromptBuilder();
     }
 
     @Bean
