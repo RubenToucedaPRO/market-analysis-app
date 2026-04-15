@@ -1,6 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -91,6 +92,33 @@ public class StrategyObjective {
         }
         if (capitalToRisk.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("capitalToRisk must be greater than zero");
+        }
+
+        validateSmaPeriod(targetType, targetValue, "targetValue");
+        validateSmaPeriod(stopLossType, stopLossValue, "stopLossValue");
+    }
+
+    /**
+     * Validates that when the objective type is SMA, the value corresponds to
+     * a valid SMA period as defined in {@link RuleCapabilityCatalog}.
+     *
+     * @param type      the objective type
+     * @param value     the numeric value to validate as an SMA period
+     * @param fieldName the field name for error messages
+     * @throws IllegalArgumentException if the SMA period is not supported
+     */
+    private void validateSmaPeriod(ObjectiveType type, BigDecimal value, String fieldName) {
+        if (type != ObjectiveType.SMA) {
+            return;
+        }
+        Set<Double> allowedPeriods = RuleCapabilityCatalog.getCapability("SMA")
+                .map(RuleCapability::getAllowedParams)
+                .orElse(Set.of());
+        double period = value.doubleValue();
+        if (!allowedPeriods.contains(period)) {
+            throw new IllegalArgumentException(
+                    String.format("%s %s is not a valid SMA period. Allowed periods: %s",
+                            fieldName, value.stripTrailingZeros().toPlainString(), allowedPeriods));
         }
     }
 }
