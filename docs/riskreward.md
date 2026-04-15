@@ -79,6 +79,8 @@ No existe validación que evite configuraciones lógicamente inválidas como:
 - Target tipo `PERCENTAGE` con un porcentaje negativo o extremo (ej. 500%).
 - Stop-loss SMA con periodo mayor que el target SMA (ej. stop=SMA200, target=SMA20), lo cual en muchos escenarios es incongruente.
 
+> **Nota:** Estas validaciones se plantean como advertencias informativas (warnings), no como restricciones duras (hard constraints), ya que diferentes perfiles de trading pueden tener umbrales de riesgo distintos.
+
 ---
 
 ## 2. Plan de Mejora
@@ -258,11 +260,13 @@ La lógica JavaScript debe:
 
 ### Fase 5: Validaciones Avanzadas de Coherencia (Prioridad Baja — Backend)
 
-**Objetivo:** Detectar y advertir sobre configuraciones que, si bien son técnicamente válidas, son lógicamente improbables o riesgosas.
+**Objetivo:** Detectar y advertir (no bloquear) sobre configuraciones que, si bien son técnicamente válidas, son lógicamente improbables o riesgosas.
+
+> **Estrategia de validación:** Estas validaciones se implementan como **warnings** (avisos informativos) que se registran en logs y se muestran al usuario, pero **no impiden** guardar la estrategia. Esto permite flexibilidad para traders con perfiles de riesgo distintos. Los umbrales sugeridos a continuación son orientativos y deberían ser configurables en el futuro.
 
 **Tareas (opcionales, a evaluar):**
-1. Advertencia cuando porcentaje de stop-loss > 20% (riesgo extremo).
-2. Advertencia cuando porcentaje de target > 100% (objetivo irrealista para corto plazo).
+1. Advertencia cuando porcentaje de stop-loss > 20% (umbral orientativo para riesgo elevado; configurable según perfil de trader).
+2. Advertencia cuando porcentaje de target > 100% (umbral orientativo para objetivos de largo plazo; podría ser válido en estrategias multi-meses).
 3. Validación en `StrategyObjective.validate()` para que cuando ambos son SMA, el periodo del target no sea igual al del stop-loss.
 4. Logging de warnings en `EvaluateStrategyService` cuando los parámetros producen planes de riesgo con ratio < 1.0.
 
