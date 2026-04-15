@@ -5,7 +5,7 @@
 Tras revisar la implementación actual:
 
 - La construcción del prompt está **acoplada** en `ManageAnalyzeStockService#getValorationIA`.
-- El prompt se arma con `String` inline (texto fijo en inglés + “Remember answer in spanish.”).
+- El prompt se arma con `String` inline (texto fijo en inglés + “Remember answer in Spanish.”).
 - Se envía un único `user message` a OpenRouter (`OpenrouterAdapter`), sin `system prompt` dedicado.
 - No hay configuración explícita de parámetros de generación (`temperature`, `top_p`, `max_tokens`, `frequency_penalty`).
 - No hay validación estructural de la respuesta ni estrategia de retry/fallback controlada.
@@ -71,10 +71,10 @@ Separar, estandarizar y robustecer la capa de análisis interpretativo por IA pa
 Añadir propiedades en `config/application.properties` y bindearlas en el adaptador:
 
 - `openrouter.model=google/gemma-3-4b-it:free` (o modelo objetivo)
-- `openrouter.temperature=0.7`
-- `openrouter.max-tokens=500`
-- `openrouter.top-p=0.9`
-- `openrouter.frequency-penalty=0.5`
+- `openrouter.temperature=0.7` (rango típico: 0.0–2.0; menor = más determinista)
+- `openrouter.max-tokens=500` (límite de longitud de salida para mantener concisión y coste)
+- `openrouter.top-p=0.9` (rango: 0.0–1.0; controla muestreo por núcleo)
+- `openrouter.frequency-penalty=0.5` (rango típico: -2.0–2.0; reduce repetición)
 
 Objetivo: ajuste fino sin tocar código.
 
@@ -146,4 +146,3 @@ Al finalizar estas fases, la integración IA quedará:
 - Más robusta ante respuestas inconsistentes.
 - Más controlable vía configuración.
 - Totalmente alineada con la regla del proyecto: la IA es **complemento interpretativo**, no motor de decisión.
-
