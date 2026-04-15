@@ -43,11 +43,7 @@
     <label for="objectiveTargetValue" class="form-label fw-semibold"
       >Valor Objetivo</label
     >
-    <select
-      class="form-select d-none"
-      id="objectiveTargetSmaSelect"
-      disabled
-    >
+    <select class="form-select d-none" id="objectiveTargetSmaSelect" disabled>
       <option value="">-- Período --</option>
     </select>
     <input
@@ -57,7 +53,7 @@
       name="objective.targetValue"
       th:value="${strategy.objective != null ? strategy.objective.targetValue : ''}"
       placeholder="ej., 5.00"
-      step="0.01"
+      step="0.0001"
       min="0"
       required
     />
@@ -106,11 +102,7 @@
     <label for="objectiveStopLossValue" class="form-label fw-semibold"
       >Valor Stop Loss</label
     >
-    <select
-      class="form-select d-none"
-      id="objectiveStopLossSmaSelect"
-      disabled
-    >
+    <select class="form-select d-none" id="objectiveStopLossSmaSelect" disabled>
       <option value="">-- Período --</option>
     </select>
     <input
@@ -120,7 +112,7 @@
       name="objective.stopLossValue"
       th:value="${strategy.objective != null ? strategy.objective.stopLossValue : ''}"
       placeholder="ej., 2.00"
-      step="0.01"
+      step="0.0001"
       min="0"
       required
     />
@@ -138,7 +130,7 @@
       name="objective.capitalToRisk"
       th:value="${strategy.objective != null ? strategy.objective.capitalToRisk : ''}"
       placeholder="ej., 1000.00"
-      step="0.01"
+      step="0.0001"
       min="0"
       required
     />
