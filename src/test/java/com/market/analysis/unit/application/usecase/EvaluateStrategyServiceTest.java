@@ -627,5 +627,109 @@ class EvaluateStrategyServiceTest {
                         assertThat(result.getRecommendedShares()).isNull();
                         assertThat(result.getSummary()).contains("Risk plan could not be calculated");
                 }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when stop-loss is above entry price")
+                void shouldLeaveRiskFieldsNullOnStopLossAboveEntry() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenReturn(BigDecimal.valueOf(160.00));
+                        when(riskRewardCalculator.calculateStopLossPrice(any(), any(), any()))
+                                        .thenThrow(new IllegalArgumentException(
+                                                        "Stop-loss price (155.00) must be less than entry price (150.00) for long positions"));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                        assertThat(result.getSummary()).contains("Stop-loss price");
+                }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when target price is below entry")
+                void shouldLeaveRiskFieldsNullOnTargetBelowEntry() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenThrow(new IllegalArgumentException(
+                                                        "Target price must be greater than entry price for long positions"));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                        assertThat(result.getSummary()).contains("Target price");
+                }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when SMA period is unsupported")
+                void shouldLeaveRiskFieldsNullOnUnsupportedSmaPeriod() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenThrow(new IllegalArgumentException(
+                                                        "SMA period 99 is not supported. Only periods 20, 50, and 200 are allowed."));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                        assertThat(result.getSummary()).contains("SMA period 99");
+                }
         }
 }
