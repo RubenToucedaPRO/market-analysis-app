@@ -414,4 +414,151 @@ class StrategyObjectiveTest {
         // Assert
         assertDoesNotThrow(objective::validate);
     }
+
+    // ---- Phase 3: SMA period validation via RuleCapabilityCatalog ----
+
+    @Test
+    @DisplayName("Should validate SMA target with valid period 20")
+    void shouldValidateSmaTargetWithValidPeriod20() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(20))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("SMA20 target strategy")
+                .build();
+
+        assertDoesNotThrow(objective::validate);
+    }
+
+    @Test
+    @DisplayName("Should validate SMA target with valid period 50")
+    void shouldValidateSmaTargetWithValidPeriod50() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(50))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("SMA50 target strategy")
+                .build();
+
+        assertDoesNotThrow(objective::validate);
+    }
+
+    @Test
+    @DisplayName("Should validate SMA target with valid period 200")
+    void shouldValidateSmaTargetWithValidPeriod200() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(200))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("SMA200 target strategy")
+                .build();
+
+        assertDoesNotThrow(objective::validate);
+    }
+
+    @Test
+    @DisplayName("Should validate SMA stop-loss with valid period 200")
+    void shouldValidateSmaStopLossWithValidPeriod200() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.SMA)
+                .targetValue(BigDecimal.valueOf(5.0))
+                .stopLossValue(BigDecimal.valueOf(200))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("SMA200 stop-loss strategy")
+                .build();
+
+        assertDoesNotThrow(objective::validate);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when SMA target period is invalid")
+    void shouldThrowExceptionWhenSmaTargetPeriodIsInvalid() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(100))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Invalid SMA target")
+                .build();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
+        assertTrue(exception.getMessage().contains("targetValue"));
+        assertTrue(exception.getMessage().contains("100"));
+        assertTrue(exception.getMessage().contains("not a valid SMA period"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when SMA stop-loss period is invalid")
+    void shouldThrowExceptionWhenSmaStopLossPeriodIsInvalid() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.SMA)
+                .targetValue(BigDecimal.valueOf(5.0))
+                .stopLossValue(BigDecimal.valueOf(15))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Invalid SMA stop-loss")
+                .build();
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
+        assertTrue(exception.getMessage().contains("stopLossValue"));
+        assertTrue(exception.getMessage().contains("15"));
+        assertTrue(exception.getMessage().contains("not a valid SMA period"));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when both SMA target and stop-loss periods are invalid")
+    void shouldThrowExceptionWhenBothSmaPeriodAreInvalid() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.SMA)
+                .targetValue(BigDecimal.valueOf(99))
+                .stopLossValue(BigDecimal.valueOf(300))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Both invalid SMA")
+                .build();
+
+        // Should fail on targetValue first
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
+        assertTrue(exception.getMessage().contains("targetValue"));
+        assertTrue(exception.getMessage().contains("99"));
+    }
+
+    @Test
+    @DisplayName("Should not validate SMA period for non-SMA types")
+    void shouldNotValidateSmaPeriodForNonSmaTypes() {
+        // PERCENTAGE type with value 100 should be valid (not treated as SMA period)
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.FIXED_PRICE)
+                .targetValue(BigDecimal.valueOf(100))
+                .stopLossValue(BigDecimal.valueOf(95))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Non-SMA strategy with value 100")
+                .build();
+
+        assertDoesNotThrow(objective::validate);
+    }
+
+    @Test
+    @DisplayName("Should validate mixed SMA and non-SMA types correctly")
+    void shouldValidateMixedSmaAndNonSmaTypes() {
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.SMA)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(50))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(0.02))
+                .description("Mixed valid strategy")
+                .build();
+
+        assertDoesNotThrow(objective::validate);
+    }
 }
