@@ -33,7 +33,23 @@ public class PromptBuilder {
                 Target Price: %s
                 Stop Loss Price: %s
 
-                Provide one concise sentence with strengths, weaknesses, and overall outlook.
+                Respond using exactly these sections, each with a brief and verifiable justification:
+                Resumen técnico:
+                Fortalezas:
+                Riesgos:
+                Conclusión interpretativa:
+
+                Example response 1:
+                Resumen técnico: Tendencia moderadamente alcista con precio por encima de SMA20 y SMA50.
+                Fortalezas: La relación R:R superior a 1.5 apoya una expectativa de beneficio razonable.
+                Riesgos: El volumen solo ligeramente por encima de la media reduce la convicción del movimiento.
+                Conclusión interpretativa: El contexto técnico es favorable, pero requiere confirmación adicional de volumen.
+
+                Example response 2:
+                Resumen técnico: Señales mixtas con precio cerca de SMA50 y por debajo de SMA20.
+                Fortalezas: El cumplimiento parcial de la estrategia sugiere que aún existe estructura técnica útil.
+                Riesgos: R:R ajustado y proximidad al stop-loss elevan el riesgo de invalidación temprana.
+                Conclusión interpretativa: Escenario neutral a prudente hasta observar una ruptura con mayor confirmación.
                 """.formatted(
                 ticker,
                 decimal(safeStock.getCurrentPrice()),
