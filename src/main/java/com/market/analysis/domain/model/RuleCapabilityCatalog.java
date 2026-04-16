@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Canonical catalog of supported rule capabilities.
@@ -31,6 +32,12 @@ public final class RuleCapabilityCatalog {
             "LESS_THAN", "LESS_THAN_OR_EQUAL",
             "EQUALS", "NOT_EQUALS"
     );
+
+    /**
+     * Indicator codes kept for backwards compatibility but not intended to be
+     * offered as user-facing rule definitions in the UI.
+     */
+    private static final Set<String> INTERNAL_OR_DERIVED_CODES = Set.of("VALUE");
 
     private static final Map<String, RuleCapability> CAPABILITIES = Map.ofEntries(
             Map.entry("PRICE",
@@ -113,6 +120,10 @@ public final class RuleCapabilityCatalog {
                             VALID_OPERATORS, true, true))
     );
 
+    private static final Set<String> USER_CONFIGURABLE_CODES = CAPABILITIES.keySet().stream()
+            .filter(code -> !INTERNAL_OR_DERIVED_CODES.contains(code))
+            .collect(Collectors.toUnmodifiableSet());
+
     private RuleCapabilityCatalog() {
     }
 
@@ -175,6 +186,27 @@ public final class RuleCapabilityCatalog {
      */
     public static Set<String> getSupportedCodes() {
         return CAPABILITIES.keySet();
+    }
+
+    /**
+     * Returns whether the indicator code is user-configurable.
+     *
+     * <p>Some capabilities may remain evaluator-supported for backwards
+     * compatibility while being hidden from authoring flows.</p>
+     */
+    public static boolean isUserConfigurable(String code) {
+        if (code == null) {
+            return false;
+        }
+        return USER_CONFIGURABLE_CODES.contains(code.toUpperCase());
+    }
+
+    /**
+     * Returns the set of indicator codes that should be offered in user-facing
+     * rule-definition authoring flows.
+     */
+    public static Set<String> getUserConfigurableCodes() {
+        return USER_CONFIGURABLE_CODES;
     }
 
     // -------------------------------------------------------------------------

@@ -107,7 +107,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
             .filter(Objects::nonNull)
             .map(String::toUpperCase)
             .collect(Collectors.toSet());
-        return RuleCapabilityCatalog.getSupportedCodes().stream()
+        return RuleCapabilityCatalog.getUserConfigurableCodes().stream()
                 .filter(code-> !usedCodes.contains(code.toUpperCase()))
                 .sorted()
                 .map(code -> {

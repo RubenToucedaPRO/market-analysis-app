@@ -46,7 +46,7 @@ class ManageRuleDefinitionServiceP2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @DisplayName("getCatalogCapabilities returns an entry for every supported code when none are in use")
+    @DisplayName("getCatalogCapabilities returns an entry for every user-configurable code when none are in use")
     void testGetCatalogCapabilitiesReturnsAllCodes() {
         when(ruleDefinitionRepository.findAll()).thenReturn(List.of());
 
@@ -56,6 +56,8 @@ class ManageRuleDefinitionServiceP2Test {
         // Must include well-known codes
         assertThat(capabilities).extracting(RuleCapabilityDTO::getCode)
                 .contains("SMA", "EMA", "RSI", "PRICE", "CONSTANT", "MACD_LINE");
+        assertThat(capabilities).extracting(RuleCapabilityDTO::getCode)
+                .doesNotContain("VALUE");
     }
 
     @Test

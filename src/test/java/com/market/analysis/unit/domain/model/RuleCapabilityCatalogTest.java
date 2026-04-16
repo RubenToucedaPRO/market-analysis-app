@@ -190,4 +190,18 @@ class RuleCapabilityCatalogTest {
         assertFalse(codes.isEmpty());
         assertEquals(18, codes.size());
     }
+
+    @Test
+    @DisplayName("User-configurable codes should exclude internal alias VALUE")
+    void testUserConfigurableCodesExcludeInternalAliases() {
+        Set<String> configurable = RuleCapabilityCatalog.getUserConfigurableCodes();
+
+        assertNotNull(configurable);
+        assertFalse(configurable.isEmpty());
+        assertEquals(17, configurable.size());
+        assertFalse(configurable.contains("VALUE"));
+        assertTrue(configurable.contains("CONSTANT"));
+        assertTrue(RuleCapabilityCatalog.isUserConfigurable("constant"));
+        assertFalse(RuleCapabilityCatalog.isUserConfigurable("value"));
+    }
 }
