@@ -15,41 +15,22 @@ public class PromptBuilder {
         String ticker = safe(safeStock.getTicker());
 
         return """
-                You are an expert financial analyst.
-                This analysis is interpretative and not personalized financial advice.
-                Analyze the following technical snapshot and respond in Spanish.
+                Actúa como experto analista financiero. Análisis interpretativo, no consejo financiero. 
+                Analiza este snapshot y responde en español.
 
-                Ticker: %s
-                Current Price: %s
-                SMA20: %s
-                SMA50: %s
-                SMA200: %s
-                Volume: %s
-                Average Volume: %s
-                Strategy Name: %s
-                Compliance Rate: %s
-                Strategy Summary: %s
-                Risk/Reward Ratio: %s
-                Target Price: %s
-                Stop Loss Price: %s
+                DATOS:
+                Ticker: %s | Precio: %s
+                Medias: SMA20:%s, SMA50:%s, SMA200:%s
+                Volumen: %s (Media: %s)
+                Estrategia: %s (Cumplimiento: %s%%)
+                Resumen Estrategia: %s
+                R:R: %s | Target: %s | Stop: %s
 
-                Respond using exactly these sections, each with a brief and verifiable justification:
-                Resumen técnico:
-                Fortalezas:
-                Riesgos:
-                Conclusión interpretativa:
-
-                Example response 1:
-                Resumen técnico: Tendencia moderadamente alcista con precio por encima de SMA20 y SMA50.
-                Fortalezas: La relación R:R superior a 1.5 apoya una expectativa de beneficio razonable.
-                Riesgos: El volumen solo ligeramente por encima de la media reduce la convicción del movimiento.
-                Conclusión interpretativa: El contexto técnico es favorable, pero requiere confirmación adicional de volumen.
-
-                Example response 2:
-                Resumen técnico: Señales mixtas con precio cerca de SMA50 y por debajo de SMA20.
-                Fortalezas: El cumplimiento parcial de la estrategia sugiere que aún existe estructura técnica útil.
-                Riesgos: R:R ajustado y proximidad al stop-loss elevan el riesgo de invalidación temprana.
-                Conclusión interpretativa: Escenario neutral a prudente hasta observar una ruptura con mayor confirmación.
+                REGLAS DE RESPUESTA:
+                1. Usa exactamente las secciones: "Resumen técnico:", "Fortalezas:", "Riesgos:" y "Conclusión interpretativa:".
+                2. Sé breve (máximo 2 frases por sección).
+                3. Justifica cada punto con los datos numéricos provistos.
+                4. No añadas introducciones ni despedidas.
                 """.formatted(
                 ticker,
                 decimal(safeStock.getCurrentPrice()),
