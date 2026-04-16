@@ -49,7 +49,14 @@ public class OpenrouterAdapter implements ApiIAPort {
 
     @Override
     public String getValoration(String datosAccion) {
-        log.debug("Requesting AI valoration for: {}", datosAccion);
+        log.debug(
+                "Requesting AI valoration model={} promptLength={} temperature={} maxTokens={} topP={} frequencyPenalty={}",
+                model,
+                datosAccion == null ? 0 : datosAccion.length(),
+                temperature,
+                maxTokens,
+                topP,
+                frequencyPenalty);
 
         try {
             ChatCompletionCreateParams params = ChatCompletionCreateParams.builder()
@@ -64,7 +71,7 @@ public class OpenrouterAdapter implements ApiIAPort {
             ChatCompletion chatCompletion = client.chat().completions().create(params);
 
             String content = chatCompletion.choices().get(0).message().content().orElse(null);
-            log.debug("AI response received: {}", content);
+            log.debug("AI response received model={} contentLength={}", model, content == null ? 0 : content.length());
 
             return content;
 

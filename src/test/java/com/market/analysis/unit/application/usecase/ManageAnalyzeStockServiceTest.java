@@ -669,8 +669,43 @@ class ManageAnalyzeStockServiceTest {
         ArgumentCaptor<Stock> stockCaptor = ArgumentCaptor.forClass(Stock.class);
         verify(stockDataRepository).save(stockCaptor.capture());
         assertThat(stockCaptor.getValue().getValorationIA())
-                .isEqualTo("No se pudo generar una valoración interpretativa válida en este momento.");
+                .isEqualTo("No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.");
         verify(apiIAPort, times(2)).getValoration(anyString());
+    }
+
+    @Test
+    @DisplayName("Should truncate oversized prompt before requesting AI valoration")
+    void shouldTruncateOversizedPromptBeforeRequestingAIValoration() {
+        Long stockId = 1L;
+        String longPrompt = "A".repeat(4500);
+        String validResponse = """
+                Resumen técnico: Tendencia alcista.
+                Fortalezas: Precio sobre SMA20.
+                Riesgos: Volumen bajo.
+                Conclusión interpretativa: Contexto positivo con cautela.
+                """;
+
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder()
+                .strategyName("Test Strategy")
+                .build();
+
+        Stock stockWithEvaluation = Stock.builder()
+                .id(stockId)
+                .ticker("AAPL")
+                .strategyEvaluation(strategyEvaluation)
+                .build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn(longPrompt);
+        when(apiIAPort.getValoration(anyString())).thenReturn(validResponse);
+        when(promptResponseValidator.isValid(validResponse)).thenReturn(true);
+
+        service.getValorationIA(stockId);
+
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(apiIAPort).getValoration(promptCaptor.capture());
+        assertThat(promptCaptor.getValue()).hasSize(4000);
+        assertThat(promptCaptor.getValue()).isEqualTo(longPrompt.substring(0, 4000));
     }
 
     // -------------------------------------------------------------------------
