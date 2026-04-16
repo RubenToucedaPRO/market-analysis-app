@@ -26,6 +26,11 @@ import com.openai.client.OpenAIClient;
 class OpenrouterAdapterTest {
 
     private static final String TEST_API_KEY = "test-api-key";
+    private static final String TEST_MODEL = "google/gemma-3-4b-it:free";
+    private static final double TEST_TEMPERATURE = 0.7d;
+    private static final long TEST_MAX_TOKENS = 500L;
+    private static final double TEST_TOP_P = 0.9d;
+    private static final double TEST_FREQUENCY_PENALTY = 0.5d;
 
     @Mock
     private OpenAIClient mockClient;
@@ -34,7 +39,13 @@ class OpenrouterAdapterTest {
     @DisplayName("Should create adapter instance with API key")
     void shouldCreateAdapterInstance() {
         // Act
-        OpenrouterAdapter adapter = new OpenrouterAdapter(TEST_API_KEY);
+        OpenrouterAdapter adapter = new OpenrouterAdapter(
+                TEST_API_KEY,
+                TEST_MODEL,
+                TEST_TEMPERATURE,
+                TEST_MAX_TOKENS,
+                TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY);
 
         // Assert
         assertNotNull(adapter);
@@ -44,9 +55,12 @@ class OpenrouterAdapterTest {
     @DisplayName("Should handle API key initialization")
     void shouldHandleApiKeyInitialization() {
         // Arrange & Act
-        OpenrouterAdapter adapter1 = new OpenrouterAdapter("key1");
-        OpenrouterAdapter adapter2 = new OpenrouterAdapter("key2");
-        OpenrouterAdapter adapter3 = new OpenrouterAdapter("");
+        OpenrouterAdapter adapter1 = new OpenrouterAdapter("key1", TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY);
+        OpenrouterAdapter adapter2 = new OpenrouterAdapter("key2", TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY);
+        OpenrouterAdapter adapter3 = new OpenrouterAdapter("", TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY);
 
         // Assert
         assertNotNull(adapter1);
@@ -58,7 +72,13 @@ class OpenrouterAdapterTest {
     @DisplayName("Should throw AIServiceException on empty stock data input")
     void shouldHandleEmptyStockDataInput() {
         // Arrange
-        OpenrouterAdapter adapter = new OpenrouterAdapter(TEST_API_KEY);
+        OpenrouterAdapter adapter = new OpenrouterAdapter(
+                TEST_API_KEY,
+                TEST_MODEL,
+                TEST_TEMPERATURE,
+                TEST_MAX_TOKENS,
+                TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY);
         String emptyData = "";
 
         // Act & Assert
@@ -70,7 +90,13 @@ class OpenrouterAdapterTest {
     @DisplayName("Should verify adapter implements ApiIAPort interface")
     void shouldImplementApiIAPortInterface() {
         // Arrange
-        OpenrouterAdapter adapter = new OpenrouterAdapter(TEST_API_KEY);
+        OpenrouterAdapter adapter = new OpenrouterAdapter(
+                TEST_API_KEY,
+                TEST_MODEL,
+                TEST_TEMPERATURE,
+                TEST_MAX_TOKENS,
+                TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY);
 
         // Assert
         assertNotNull(adapter);

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -91,6 +92,12 @@ class ManageAnalyzeStockServiceTest {
 
     @Mock
     private com.market.analysis.domain.service.EvaluateStrategyService evaluateStrategyService;
+
+    @Mock
+    private com.market.analysis.domain.service.PromptBuilder promptBuilder;
+
+    @Mock
+    private com.market.analysis.domain.service.PromptResponseValidator promptResponseValidator;
 
     @InjectMocks
     private ManageAnalyzeStockService service;
@@ -508,15 +515,20 @@ class ManageAnalyzeStockServiceTest {
                 .build();
 
         when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn("prompt");
         when(apiIAPort.getValoration(anyString())).thenReturn(expectedValoration);
+        when(promptResponseValidator.isValid(expectedValoration)).thenReturn(true);
         when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
 
         // Act
-        service.getValorationIA(stockId);
+        boolean generated = service.getValorationIA(stockId);
 
         // Assert
+        assertThat(generated).isTrue();
         verify(stockDataRepository, times(1)).findById(stockId);
+        verify(promptBuilder, times(1)).buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class));
         verify(apiIAPort, times(1)).getValoration(anyString());
+        verify(promptResponseValidator, times(1)).isValid(expectedValoration);
         verify(stockDataRepository, times(1)).save(any(Stock.class));
     }
 
@@ -528,9 +540,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockDataRepository.findById(stockId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(StockDataNotFoundException.class, () -> {
-            service.getValorationIA(stockId);
-        });
+        assertThrows(StockDataNotFoundException.class, () -> service.getValorationIA(stockId));
 
         verify(stockDataRepository, times(1)).findById(stockId);
         verify(apiIAPort, never()).getValoration(anyString());
@@ -563,16 +573,142 @@ class ManageAnalyzeStockServiceTest {
                 .build();
 
         when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn("prompt");
+
+        // Primera respuesta + validación
         when(apiIAPort.getValoration(anyString())).thenReturn(null);
+        when(promptResponseValidator.isValid(null)).thenReturn(false);
+
+        // Prompt de reintento + segunda respuesta + validación
+        when(promptResponseValidator.buildRetryPrompt("prompt")).thenReturn("retry-prompt");
+        when(apiIAPort.getValoration("retry-prompt")).thenReturn("No válido");
+        when(promptResponseValidator.isValid("No válido")).thenReturn(false);
         when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
 
         // Act
-        service.getValorationIA(stockId);
+        boolean generated = service.getValorationIA(stockId);
 
         // Assert
+        assertThat(generated).isFalse();
         verify(stockDataRepository, times(1)).findById(stockId);
-        verify(apiIAPort, times(1)).getValoration(anyString());
+        verify(promptBuilder, times(1)).buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class));
+        verify(apiIAPort, times(2)).getValoration(anyString());
+        verify(promptResponseValidator, times(1)).buildRetryPrompt("prompt");
         verify(stockDataRepository, times(1)).save(any(Stock.class));
+    }
+
+    @Test
+    @DisplayName("Should retry AI valoration when first response format is invalid and save retry response")
+    void shouldRetryAIValorationWhenFirstResponseFormatIsInvalidAndSaveRetryResponse() {
+        Long stockId = 1L;
+        String invalidResponse = "Respuesta sin secciones";
+        String validRetryResponse = """
+                Resumen técnico: Tendencia alcista.
+                Fortalezas: Precio sobre SMA20.
+                Riesgos: Volumen bajo.
+                Conclusión interpretativa: Contexto positivo con cautela.
+                """;
+
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder()
+                .strategyName("Test Strategy")
+                .complianceRate(BigDecimal.valueOf(85.5))
+                .summary("Strategy evaluation passed")
+                .build();
+
+        Stock stockWithEvaluation = Stock.builder()
+                .id(stockId)
+                .ticker("AAPL")
+                .strategyEvaluation(strategyEvaluation)
+                .build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn(invalidResponse);
+        when(promptResponseValidator.isValid(invalidResponse)).thenReturn(false);
+        when(promptResponseValidator.buildRetryPrompt("prompt")).thenReturn("retry-prompt");
+        when(apiIAPort.getValoration("retry-prompt")).thenReturn(validRetryResponse);
+        when(promptResponseValidator.isValid(validRetryResponse)).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        ArgumentCaptor<Stock> stockCaptor = ArgumentCaptor.forClass(Stock.class);
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        assertThat(generated).isTrue();
+        verify(stockDataRepository).save(stockCaptor.capture());
+        verify(apiIAPort, times(2)).getValoration(promptCaptor.capture());
+        assertThat(promptCaptor.getAllValues()).containsExactly("prompt", "retry-prompt");
+        assertThat(stockCaptor.getValue().getValorationIA()).isEqualTo(validRetryResponse);
+    }
+
+    @Test
+    @DisplayName("Should save fallback valoration when both AI responses are invalid")
+    void shouldSaveFallbackValorationWhenBothAIResponsesAreInvalid() {
+        Long stockId = 1L;
+        String firstInvalid = "Sin formato";
+        String secondInvalid = "Todavía sin formato";
+
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder()
+                .strategyName("Test Strategy")
+                .build();
+
+        Stock stockWithEvaluation = Stock.builder()
+                .id(stockId)
+                .ticker("AAPL")
+                .strategyEvaluation(strategyEvaluation)
+                .build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn(firstInvalid);
+        when(promptResponseValidator.isValid(firstInvalid)).thenReturn(false);
+        when(promptResponseValidator.buildRetryPrompt("prompt")).thenReturn("retry-prompt");
+        when(apiIAPort.getValoration("retry-prompt")).thenReturn(secondInvalid);
+        when(promptResponseValidator.isValid(secondInvalid)).thenReturn(false);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        ArgumentCaptor<Stock> stockCaptor = ArgumentCaptor.forClass(Stock.class);
+        assertThat(generated).isFalse();
+        verify(stockDataRepository).save(stockCaptor.capture());
+        assertThat(stockCaptor.getValue().getValorationIA())
+                .isEqualTo("No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.");
+        verify(apiIAPort, times(2)).getValoration(anyString());
+    }
+
+    @Test
+    @DisplayName("Should truncate oversized prompt before requesting AI valoration")
+    void shouldTruncateOversizedPromptBeforeRequestingAIValoration() {
+        Long stockId = 1L;
+        String longPrompt = "A".repeat(4500);
+        String validResponse = """
+                Resumen técnico: Tendencia alcista.
+                Fortalezas: Precio sobre SMA20.
+                Riesgos: Volumen bajo.
+                Conclusión interpretativa: Contexto positivo con cautela.
+                """;
+
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder()
+                .strategyName("Test Strategy")
+                .build();
+
+        Stock stockWithEvaluation = Stock.builder()
+                .id(stockId)
+                .ticker("AAPL")
+                .strategyEvaluation(strategyEvaluation)
+                .build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
+        when(promptBuilder.buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class))).thenReturn(longPrompt);
+        when(apiIAPort.getValoration(anyString())).thenReturn(validResponse);
+        when(promptResponseValidator.isValid(validResponse)).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        assertThat(generated).isTrue();
+        verify(apiIAPort).getValoration(promptCaptor.capture());
+        assertThat(promptCaptor.getValue()).hasSize(4000);
+        assertThat(promptCaptor.getValue()).isEqualTo(longPrompt.substring(0, 4000));
     }
 
     // -------------------------------------------------------------------------

@@ -111,10 +111,16 @@ public class AnalyzeTickerController {
 
     @PostMapping("/getValorationIA")
     public String getValorationIA(@RequestParam Long id, RedirectAttributes redirectAttributes) {
-        manageAnalyzeTickerUseCase.getValorationIA(id);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+        boolean generated = manageAnalyzeTickerUseCase.getValorationIA(id);
+        if (generated) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Valoración IA generada y guardada correctamente."));
-        return REDIRECT_ANALYZE;
+        } else {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error(
+                    "No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback."));
+        }
+        return REDIRECT_ANALYZE + "/ticker/" + id;
     }
 
 }

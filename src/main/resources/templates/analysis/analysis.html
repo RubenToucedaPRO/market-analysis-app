@@ -240,7 +240,9 @@
                           </div>
                         </div>
 
-                        <th:block th:if="${ticker.evaluationPassed and ticker.riskRewardRatio != null}">
+                        <th:block
+                          th:if="${ticker.evaluationPassed and ticker.riskRewardRatio != null}"
+                        >
                           <div class="col-4">
                             <div class="data-label">Ratio R:R</div>
                             <span
@@ -283,7 +285,9 @@
                           </div>
                         </th:block>
 
-                        <th:block th:if="${ticker.evaluationPassed and ticker.riskRewardRatio == null}">
+                        <th:block
+                          th:if="${ticker.evaluationPassed and ticker.riskRewardRatio == null}"
+                        >
                           <div class="col-8">
                             <div class="alert alert-warning p-1 mb-0 border-0">
                               <small>
@@ -351,7 +355,7 @@
                             class="btn btn-sm btn-outline-primary w-100 btn-ai"
                           >
                             <span class="btn-content">
-                              <i class="bi bi-stars me-1"></i> Analizar IA
+                              <i class="bi bi-stars me-1"></i> Generar análisis
                             </span>
                             <output
                               class="spinner-border spinner-border-sm d-none"
