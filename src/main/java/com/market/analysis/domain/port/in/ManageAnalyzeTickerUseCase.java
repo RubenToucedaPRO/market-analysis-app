@@ -17,7 +17,7 @@ public interface ManageAnalyzeTickerUseCase {
 
         public void deleteById(Long id, String ticker);
 
-        public void getValorationIA(Long id);
+        public boolean getValorationIA(Long id);
 
         public CandleChartDTO findCandlesByStockId(Long id);
 
