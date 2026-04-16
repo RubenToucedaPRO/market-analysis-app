@@ -135,7 +135,10 @@
           </div>
         </div>
 
-        <div class="col-lg-8" th:if="${ticker.evaluationPassed and ticker.riskRewardRatio != null}">
+        <div
+          class="col-lg-8"
+          th:if="${ticker.evaluationPassed and ticker.riskRewardRatio != null}"
+        >
           <div class="card h-100 border-0 shadow-sm overflow-hidden">
             <div class="card-body p-4">
               <h6 class="text-info text-uppercase fw-bold mb-4">
@@ -203,18 +206,23 @@
           </div>
         </div>
 
-        <div class="col-lg-8" th:if="${ticker.evaluationPassed and ticker.riskRewardRatio == null}">
+        <div
+          class="col-lg-8"
+          th:if="${ticker.evaluationPassed and ticker.riskRewardRatio == null}"
+        >
           <div class="card h-100 border-0 shadow-sm">
             <div class="card-body p-4 d-flex flex-column h-100">
               <h6 class="text-warning text-uppercase fw-bold mb-3">
-                <i class="bi bi-exclamation-triangle me-2"></i>Plan de Riesgo No Disponible
+                <i class="bi bi-exclamation-triangle me-2"></i>Plan de Riesgo No
+                Disponible
               </h6>
               <div
                 class="p-4 bg-light rounded-3 flex-grow-1 d-flex align-items-center"
               >
                 <p class="text-muted mb-0">
-                  La estrategia cumple las reglas pero el plan de riesgo no se pudo calcular
-                  por incongruencia en los parámetros de RiskReward con los datos actuales del ticker.
+                  La estrategia cumple las reglas pero el plan de riesgo no se
+                  pudo calcular por incongruencia en los parámetros de
+                  RiskReward con los datos actuales del ticker.
                 </p>
               </div>
             </div>
@@ -348,23 +356,8 @@
       </div>
 
       <div
-        class="card border-0 shadow-sm mb-5"
-        th:if="${ticker.valorationIA != null}"
-      >
-        <div
-          class="card-header bg-white border-0 py-3 d-flex align-items-center gap-2"
-        >
-          <i class="bi bi-stars text-info"></i>
-          <h6 class="mb-0 fw-bold">
-            Análisis Profundo con Inteligencia Artificial
-          </h6>
-        </div>
-        <div class="card-body bg-light bg-opacity-50 p-4">
-          <p class="mb-0 lh-lg" th:text="${ticker.valorationIA}">
-            Valoración IA
-          </p>
-        </div>
-      </div>
+        th:replace="~{fragments/ai-valoration :: aiValoration(valorationIA=${ticker.valorationIA})}"
+      ></div>
 
       <div
         class="d-flex justify-content-between align-items-center flex-wrap gap-3"
