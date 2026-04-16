@@ -428,8 +428,12 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 valid,
                 retries,
                 fallbacks,
-                String.format(Locale.ROOT, "%.2f", validRatio),
-                String.format(Locale.ROOT, "%.2f", retryRatio),
-                String.format(Locale.ROOT, "%.2f", fallbackRatio));
+                formatRatio(validRatio),
+                formatRatio(retryRatio),
+                formatRatio(fallbackRatio));
+    }
+
+    private String formatRatio(double ratio) {
+        return String.format(Locale.ROOT, "%.2f", ratio);
     }
 }
