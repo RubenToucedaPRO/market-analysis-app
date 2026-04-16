@@ -108,7 +108,7 @@ No se generan cambios de código funcional en esta tarea. El entregable es de an
 
 ## Cobertura de tests y pruebas añadidas
 - En esta tarea no se añade código productivo; no se crean tests nuevos.
-- Validación ejecutada del estado base del repositorio: `mvn test` (986 tests en verde).
+- Validación ejecutada del estado base del repositorio: `mvn test` con **suite completa en verde** (snapshot de esta fecha: 2026-04-16).
 
 ## Advertencias de SonarQube o arquitectura
 - No se detectan riesgos SonarQube por cambios de código, al tratarse de documentación.
