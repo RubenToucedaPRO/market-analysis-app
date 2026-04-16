@@ -32,7 +32,7 @@ No se generan cambios de código funcional en esta tarea. El entregable es de an
 ### Fase 1 — Diccionario de mapeo (Dominio)
 **Objetivo**: traducir reglas internas a filtros Finviz.
 
-- Crear `FinvizFilterMapper` (servicio de dominio puro o componente de dominio) con tabla de correspondencias `indicator + operator (+param)` → `finvizCode`.
+- Crear `FinvizFilterMapper` como **servicio de dominio puro** en capa Domain, con tabla de correspondencias `indicator + operator (+param)` → `finvizCode`.
 - Definir estrategia de incompatibilidades:
   - regla no soportada ⇒ se reporta como `UNMAPPABLE` (no rompe ejecución).
   - combinación inválida ⇒ se omite y se notifica en resultado de traducción.
