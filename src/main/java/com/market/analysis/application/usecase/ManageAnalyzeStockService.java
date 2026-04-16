@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private static final String TICKER_DATA_NOT_FOUND = "Ticker data not found for: ";
-    private static final String IA_FALLBACK_VALORATION = "No se pudo generar una valoración interpretativa válida en este momento.";
+    private static final String IA_FALLBACK_VALORATION = "No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.";
     private static final ZoneId NEW_YORK_ZONE = ZoneId.of("America/New_York");
     private static final int DEFAULT_INDICATOR_PERIOD = 20;
 
