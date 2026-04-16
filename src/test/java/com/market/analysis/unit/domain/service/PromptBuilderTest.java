@@ -41,17 +41,18 @@ class PromptBuilderTest {
 
         String prompt = promptBuilder.buildAnalysisPrompt(stock, evaluation);
 
-        assertThat(prompt).contains("Ticker: AAPL");
-        assertThat(prompt).contains("Strategy Name: Momentum");
-        assertThat(prompt).contains("Compliance Rate: 80.50");
-        assertThat(prompt).contains("Risk/Reward Ratio: 1.80");
-        assertThat(prompt).contains("respond in Spanish");
-        assertThat(prompt).contains("Resumen técnico:");
-        assertThat(prompt).contains("Fortalezas:");
-        assertThat(prompt).contains("Riesgos:");
-        assertThat(prompt).contains("Conclusión interpretativa:");
-        assertThat(prompt).contains("Example response 1:");
-        assertThat(prompt).contains("Example response 2:");
+        assertThat(prompt)
+                .contains("Ticker: AAPL")
+                .contains("Strategy Name: Momentum")
+                .contains("Compliance Rate: 80.50")
+                .contains("Risk/Reward Ratio: 1.80")
+                .contains("respond in Spanish")
+                .contains("Resumen técnico:")
+                .contains("Fortalezas:")
+                .contains("Riesgos:")
+                .contains("Conclusión interpretativa:")
+                .contains("Example response 1:")
+                .contains("Example response 2:");
     }
 
     @Test
@@ -63,13 +64,14 @@ class PromptBuilderTest {
 
         String prompt = promptBuilder.buildAnalysisPrompt(stock, null);
 
-        assertThat(prompt).contains("Ticker: AAPL");
-        assertThat(prompt).contains("Strategy Name: N/A");
-        assertThat(prompt).contains("Compliance Rate: N/A");
-        assertThat(prompt).contains("Risk/Reward Ratio: N/A");
-        assertThat(prompt).contains("Target Price: N/A");
-        assertThat(prompt).contains("Stop Loss Price: N/A");
-        assertThat(prompt).contains("brief and verifiable justification");
+        assertThat(prompt)
+                .contains("Ticker: AAPL")
+                .contains("Strategy Name: N/A")
+                .contains("Compliance Rate: N/A")
+                .contains("Risk/Reward Ratio: N/A")
+                .contains("Target Price: N/A")
+                .contains("Stop Loss Price: N/A")
+                .contains("brief and verifiable justification");
     }
 
     @Test
