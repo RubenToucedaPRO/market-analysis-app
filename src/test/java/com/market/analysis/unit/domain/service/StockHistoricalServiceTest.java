@@ -938,6 +938,22 @@ class StockHistoricalServiceTest {
         }
 
         @Test
+        @DisplayName("Should return non-null MACD with exactly 35 prices")
+        void calculateIndicators_shouldReturnNonNullMacdForExactly35Prices() {
+            List<Double> prices = new ArrayList<>();
+            for (int i = 0; i < 35; i++) {
+                prices.add(100.0 + i);
+            }
+            HistoricalData data = buildData(prices);
+
+            TechnicalIndicators indicators = service.calculateIndicators(data, 20);
+
+            assertThat(indicators.getMacdLine()).isNotNull();
+            assertThat(indicators.getMacdSignal()).isNotNull();
+            assertThat(indicators.getMacdHistogram()).isNotNull();
+        }
+
+        @Test
         @DisplayName("Should return MACD values with scale 4")
         void calculateIndicators_shouldReturnMacdValuesWithScaleFour() {
             List<Double> prices = new ArrayList<>();

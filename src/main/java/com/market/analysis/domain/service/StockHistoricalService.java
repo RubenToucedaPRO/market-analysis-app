@@ -184,14 +184,16 @@ public class StockHistoricalService {
         List<Double> emaFast = calculateEmaAsDoubles(asc, fast);
         List<Double> emaSlow = calculateEmaAsDoubles(asc, slow);
 
-        // MACD series starts at index (slow - 1) where emaSlow first has a value
-        int macdStart = slow - 1;
         List<Double> macdSeries = new ArrayList<>();
-        for (int i = macdStart; i < emaFast.size(); i++) {
-            macdSeries.add(emaFast.get(i) - emaSlow.get(i - macdStart));
+        int fastToSlowOffset = slow - fast;
+        for (int i = 0; i < emaSlow.size(); i++) {
+            macdSeries.add(emaFast.get(i + fastToSlowOffset) - emaSlow.get(i));
         }
 
         List<Double> signalSeries = calculateEmaAsDoubles(macdSeries, signal);
+        if (signalSeries.isEmpty()) {
+            return new BigDecimal[0];
+        }
 
         double lastMacdLine = macdSeries.get(macdSeries.size() - 1);
         double lastSignal = signalSeries.get(signalSeries.size() - 1);
@@ -217,6 +219,10 @@ public class StockHistoricalService {
      * @return full EMA series as doubles
      */
     private List<Double> calculateEmaAsDoubles(List<Double> ascPrices, int period) {
+        if (ascPrices == null || ascPrices.size() < period) {
+            return List.of();
+        }
+
         double seed = ascPrices.stream()
                 .limit(period)
                 .mapToDouble(Double::doubleValue)
