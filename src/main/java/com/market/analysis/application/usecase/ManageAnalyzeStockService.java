@@ -33,6 +33,7 @@ import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.PromptBuilder;
+import com.market.analysis.domain.service.PromptResponseValidator;
 import com.market.analysis.domain.service.StockHistoricalService;
 
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private static final String TICKER_DATA_NOT_FOUND = "Ticker data not found for: ";
+    private static final String IA_FALLBACK_VALORATION = "No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.";
     private static final ZoneId NEW_YORK_ZONE = ZoneId.of("America/New_York");
     private static final int DEFAULT_INDICATOR_PERIOD = 20;
 
@@ -62,6 +64,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockHistoricalService stockHistoricalService;
     private final EvaluateStrategyService evaluateStrategyService;
     private final PromptBuilder promptBuilder;
+    private final PromptResponseValidator promptResponseValidator;
 
     @Override
     public void getStockData(String tickers, Long strategyId) {
@@ -344,9 +347,30 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         String ticker = stock.getTicker();
         String prompt = promptBuilder.buildAnalysisPrompt(stock, stock.getStrategyEvaluation());
 
-        String valoration = apiIAPort.getValoration(prompt);
+        String valoration = resolveValorationWithValidation(prompt, ticker);
         log.info("Valuation for ticker {}: {}", ticker, valoration);
         stock.setValorationIA(valoration);
         stockDataRepository.save(stock);
+    }
+
+    private String resolveValorationWithValidation(String prompt, String ticker) {
+        try {
+            String valoration = apiIAPort.getValoration(prompt);
+            if (promptResponseValidator.isValid(valoration)) {
+                return valoration;
+            }
+
+            log.warn("Invalid AI valoration format for ticker {}, retrying with strict prompt", ticker);
+            String retryValoration = apiIAPort.getValoration(promptResponseValidator.buildRetryPrompt(prompt));
+            if (promptResponseValidator.isValid(retryValoration)) {
+                return retryValoration;
+            }
+
+            log.warn("Invalid AI valoration format for ticker {} after retry, using fallback", ticker);
+            return IA_FALLBACK_VALORATION;
+        } catch (RuntimeException ex) {
+            log.error("Error getting AI valoration for ticker {}, using fallback", ticker, ex);
+            return IA_FALLBACK_VALORATION;
+        }
     }
 }
