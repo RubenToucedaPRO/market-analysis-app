@@ -5,6 +5,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import com.market.analysis.application.dto.CandleChartDTO;
@@ -47,6 +50,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private static final String IA_FALLBACK_VALORATION = "No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.";
     private static final ZoneId NEW_YORK_ZONE = ZoneId.of("America/New_York");
     private static final int DEFAULT_INDICATOR_PERIOD = 20;
+    private static final int MAX_PROMPT_CHARS = 4000;
 
     private final StockDataRepository stockDataRepository;
     private final CompanyProfileRepository companyProfileRepository;
@@ -65,6 +69,10 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final EvaluateStrategyService evaluateStrategyService;
     private final PromptBuilder promptBuilder;
     private final PromptResponseValidator promptResponseValidator;
+    private final AtomicLong aiRequests = new AtomicLong(0);
+    private final AtomicLong aiValidResponses = new AtomicLong(0);
+    private final AtomicLong aiRetries = new AtomicLong(0);
+    private final AtomicLong aiFallbacks = new AtomicLong(0);
 
     @Override
     public void getStockData(String tickers, Long strategyId) {
@@ -345,32 +353,83 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         Stock stock = stockDataRepository.findById(id)
                 .orElseThrow(() -> new StockDataNotFoundException(TICKER_DATA_NOT_FOUND + id));
         String ticker = stock.getTicker();
-        String prompt = promptBuilder.buildAnalysisPrompt(stock, stock.getStrategyEvaluation());
+        String prompt = enforcePromptSize(
+                promptBuilder.buildAnalysisPrompt(stock, stock.getStrategyEvaluation()),
+                ticker,
+                "initial");
 
         String valoration = resolveValorationWithValidation(prompt, ticker);
-        log.info("Valuation for ticker {}: {}", ticker, valoration);
+        log.info("AI valoration stored for ticker={} responseLength={} fallbackUsed={}",
+                ticker,
+                valoration == null ? 0 : valoration.length(),
+                IA_FALLBACK_VALORATION.equals(valoration));
         stock.setValorationIA(valoration);
         stockDataRepository.save(stock);
     }
 
     private String resolveValorationWithValidation(String prompt, String ticker) {
+        aiRequests.incrementAndGet();
         try {
             String valoration = apiIAPort.getValoration(prompt);
             if (promptResponseValidator.isValid(valoration)) {
+                aiValidResponses.incrementAndGet();
+                logAiMetrics();
                 return valoration;
             }
 
             log.warn("Invalid AI valoration format for ticker {}, retrying with strict prompt", ticker);
-            String retryValoration = apiIAPort.getValoration(promptResponseValidator.buildRetryPrompt(prompt));
+            aiRetries.incrementAndGet();
+            String retryPrompt = enforcePromptSize(
+                    promptResponseValidator.buildRetryPrompt(prompt),
+                    ticker,
+                    "retry");
+            String retryValoration = apiIAPort.getValoration(retryPrompt);
             if (promptResponseValidator.isValid(retryValoration)) {
+                aiValidResponses.incrementAndGet();
+                logAiMetrics();
                 return retryValoration;
             }
 
             log.warn("Invalid AI valoration format for ticker {} after retry, using fallback", ticker);
+            aiFallbacks.incrementAndGet();
+            logAiMetrics();
             return IA_FALLBACK_VALORATION;
         } catch (RuntimeException ex) {
+            aiFallbacks.incrementAndGet();
             log.error("Error getting AI valoration for ticker {}, using fallback", ticker, ex);
+            logAiMetrics();
             return IA_FALLBACK_VALORATION;
         }
+    }
+
+    private String enforcePromptSize(String prompt, String ticker, String stage) {
+        String safePrompt = Objects.requireNonNull(prompt, "Prompt cannot be null");
+        if (safePrompt.length() <= MAX_PROMPT_CHARS) {
+            return safePrompt;
+        }
+        log.warn("AI prompt truncated for ticker={} stage={} originalLength={} truncatedLength={}",
+                ticker, stage, safePrompt.length(), MAX_PROMPT_CHARS);
+        return safePrompt.substring(0, MAX_PROMPT_CHARS);
+    }
+
+    private void logAiMetrics() {
+        long requests = aiRequests.get();
+        long valid = aiValidResponses.get();
+        long retries = aiRetries.get();
+        long fallbacks = aiFallbacks.get();
+
+        double validRatio = requests == 0 ? 0.0d : (double) valid / requests;
+        double retryRatio = requests == 0 ? 0.0d : (double) retries / requests;
+        double fallbackRatio = requests == 0 ? 0.0d : (double) fallbacks / requests;
+
+        log.info(
+                "ai_valoration_metrics requests={} valid={} retries={} fallbacks={} validRatio={} retryRatio={} fallbackRatio={}",
+                requests,
+                valid,
+                retries,
+                fallbacks,
+                String.format(Locale.ROOT, "%.2f", validRatio),
+                String.format(Locale.ROOT, "%.2f", retryRatio),
+                String.format(Locale.ROOT, "%.2f", fallbackRatio));
     }
 }
