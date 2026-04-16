@@ -1,5 +1,8 @@
 package com.market.analysis.infrastructure.external.openrouter;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.openai.client.OpenAIClient;
@@ -8,9 +11,6 @@ import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -63,7 +63,7 @@ public class OpenrouterAdapter implements ApiIAPort {
                     .addUserMessage(datosAccion)
                     .model(model)
                     .temperature(temperature)
-                    .maxTokens(maxTokens)
+                    .maxCompletionTokens(maxTokens)
                     .topP(topP)
                     .frequencyPenalty(frequencyPenalty)
                     .build();

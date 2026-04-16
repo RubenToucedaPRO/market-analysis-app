@@ -386,6 +386,25 @@
               <i class="bi bi-trash me-2"></i>Eliminar
             </button>
           </form>
+          <form
+            th:action="@{/analysis/getValorationIA}"
+            method="post"
+            class="ai-form"
+          >
+            <input type="hidden" name="id" th:value="${ticker.id}" />
+            <button
+              type="submit"
+              class="btn btn-none btn-outline-primary w-100 btn-ai"
+            >
+              <span class="btn-content">
+                <i class="bi bi-stars me-1"></i> Generar análisis
+              </span>
+              <output
+                class="spinner-border spinner-border-sm d-none"
+                aria-hidden="true"
+              ></output>
+            </button>
+          </form>
         </div>
       </div>
     </main>
@@ -402,6 +421,8 @@
     <!-- TradingView Lightweight Charts v4 (Apache 2.0) -->
     <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
     <script th:src="@{/js/mini-chart.js}"></script>
+    <script th:src="@{/js/validation-ia.js}"></script>
+
     <script>
       // Inicializar tooltips
       var tooltipTriggerList = Array.prototype.slice.call(

@@ -17,13 +17,14 @@
           fortalezasLabel='Fortalezas:',
           riesgosLabel='Riesgos:',
           conclusionLabel='Conclusión interpretativa:',
+          structured=${#strings.contains(raw, resumenLabel) and #strings.contains(raw, fortalezasLabel) and #strings.contains(raw, riesgosLabel) and #strings.contains(raw, conclusionLabel)},
           resumen=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, resumenLabel), fortalezasLabel))},
           fortalezas=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, fortalezasLabel), riesgosLabel))},
           riesgos=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, riesgosLabel), conclusionLabel))},
           conclusion=${#strings.trim(#strings.substringAfter(raw, conclusionLabel))}
         "
   >
-    <div class="row g-3">
+    <div class="row g-3" th:if="${structured}">
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
           <h6 class="text-primary text-uppercase fw-bold mb-2">

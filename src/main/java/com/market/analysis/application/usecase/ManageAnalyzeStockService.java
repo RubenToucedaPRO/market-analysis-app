@@ -349,7 +349,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     }
 
     @Override
-    public void getValorationIA(Long id) {
+    public boolean getValorationIA(Long id) {
         Stock stock = stockDataRepository.findById(id)
                 .orElseThrow(() -> new StockDataNotFoundException(TICKER_DATA_NOT_FOUND + id));
         String ticker = stock.getTicker();
@@ -365,6 +365,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 IA_FALLBACK_VALORATION.equals(valoration));
         stock.setValorationIA(valoration);
         stockDataRepository.save(stock);
+        return !IA_FALLBACK_VALORATION.equals(valoration);
     }
 
     private String resolveValorationWithValidation(String prompt, String ticker) {

@@ -21,9 +21,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
-import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.CandleDTO;
+import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.presentation.controller.AnalyzeTickerController;
@@ -244,12 +244,13 @@ class AnalyzeTickerControllerTest {
     void testGetValorationIA() {
         // Arrange
         Long id = 1L;
+        when(manageAnalyzeTickerUseCase.getValorationIA(id)).thenReturn(true);
 
         // Act
         String viewName = controller.getValorationIA(id, redirectAttributes);
 
         // Assert
-        assertThat(viewName).isEqualTo("redirect:/analysis");
+        assertThat(viewName).isEqualTo("redirect:/analysis/ticker/1");
         verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id);
         verify(redirectAttributes, times(1)).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
@@ -262,16 +263,33 @@ class AnalyzeTickerControllerTest {
         // Arrange
         Long id1 = 5L;
         Long id2 = 10L;
+        when(manageAnalyzeTickerUseCase.getValorationIA(id1)).thenReturn(true);
+        when(manageAnalyzeTickerUseCase.getValorationIA(id2)).thenReturn(true);
 
         // Act
         String viewName1 = controller.getValorationIA(id1, redirectAttributes);
         String viewName2 = controller.getValorationIA(id2, redirectAttributes);
 
         // Assert
-        assertThat(viewName1).isEqualTo("redirect:/analysis");
-        assertThat(viewName2).isEqualTo("redirect:/analysis");
+        assertThat(viewName1).isEqualTo("redirect:/analysis/ticker/5");
+        assertThat(viewName2).isEqualTo("redirect:/analysis/ticker/10");
         verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id1);
         verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id2);
+    }
+
+    @Test
+    @DisplayName("Should show error notification when AI valoration falls back")
+    void testGetValorationIAFallbackShowsErrorNotification() {
+        Long id = 7L;
+        when(manageAnalyzeTickerUseCase.getValorationIA(id)).thenReturn(false);
+
+        String viewName = controller.getValorationIA(id, redirectAttributes);
+
+        assertThat(viewName).isEqualTo("redirect:/analysis/ticker/7");
+        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback."));
     }
 
     // -------------------------------------------------------------------------

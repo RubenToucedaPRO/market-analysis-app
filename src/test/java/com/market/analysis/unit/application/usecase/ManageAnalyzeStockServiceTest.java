@@ -521,9 +521,10 @@ class ManageAnalyzeStockServiceTest {
         when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
 
         // Act
-        service.getValorationIA(stockId);
+        boolean generated = service.getValorationIA(stockId);
 
         // Assert
+        assertThat(generated).isTrue();
         verify(stockDataRepository, times(1)).findById(stockId);
         verify(promptBuilder, times(1)).buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class));
         verify(apiIAPort, times(1)).getValoration(anyString());
@@ -539,9 +540,7 @@ class ManageAnalyzeStockServiceTest {
         when(stockDataRepository.findById(stockId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(StockDataNotFoundException.class, () -> {
-            service.getValorationIA(stockId);
-        });
+        assertThrows(StockDataNotFoundException.class, () -> service.getValorationIA(stockId));
 
         verify(stockDataRepository, times(1)).findById(stockId);
         verify(apiIAPort, never()).getValoration(anyString());
@@ -587,9 +586,10 @@ class ManageAnalyzeStockServiceTest {
         when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
 
         // Act
-        service.getValorationIA(stockId);
+        boolean generated = service.getValorationIA(stockId);
 
         // Assert
+        assertThat(generated).isFalse();
         verify(stockDataRepository, times(1)).findById(stockId);
         verify(promptBuilder, times(1)).buildAnalysisPrompt(any(Stock.class), any(StrategyEvaluation.class));
         verify(apiIAPort, times(2)).getValoration(anyString());
@@ -629,10 +629,11 @@ class ManageAnalyzeStockServiceTest {
         when(apiIAPort.getValoration("retry-prompt")).thenReturn(validRetryResponse);
         when(promptResponseValidator.isValid(validRetryResponse)).thenReturn(true);
 
-        service.getValorationIA(stockId);
+        boolean generated = service.getValorationIA(stockId);
 
         ArgumentCaptor<Stock> stockCaptor = ArgumentCaptor.forClass(Stock.class);
         ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        assertThat(generated).isTrue();
         verify(stockDataRepository).save(stockCaptor.capture());
         verify(apiIAPort, times(2)).getValoration(promptCaptor.capture());
         assertThat(promptCaptor.getAllValues()).containsExactly("prompt", "retry-prompt");
@@ -664,9 +665,10 @@ class ManageAnalyzeStockServiceTest {
         when(apiIAPort.getValoration("retry-prompt")).thenReturn(secondInvalid);
         when(promptResponseValidator.isValid(secondInvalid)).thenReturn(false);
 
-        service.getValorationIA(stockId);
+        boolean generated = service.getValorationIA(stockId);
 
         ArgumentCaptor<Stock> stockCaptor = ArgumentCaptor.forClass(Stock.class);
+        assertThat(generated).isFalse();
         verify(stockDataRepository).save(stockCaptor.capture());
         assertThat(stockCaptor.getValue().getValorationIA())
                 .isEqualTo("No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.");
@@ -700,9 +702,10 @@ class ManageAnalyzeStockServiceTest {
         when(apiIAPort.getValoration(anyString())).thenReturn(validResponse);
         when(promptResponseValidator.isValid(validResponse)).thenReturn(true);
 
-        service.getValorationIA(stockId);
+        boolean generated = service.getValorationIA(stockId);
 
         ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        assertThat(generated).isTrue();
         verify(apiIAPort).getValoration(promptCaptor.capture());
         assertThat(promptCaptor.getValue()).hasSize(4000);
         assertThat(promptCaptor.getValue()).isEqualTo(longPrompt.substring(0, 4000));
