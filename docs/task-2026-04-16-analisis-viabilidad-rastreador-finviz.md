@@ -27,73 +27,185 @@ No se generan cambios de código funcional en esta tarea. El entregable es de an
 - Dependencia externa (Finviz) sin API oficial para esta modalidad.
 - Necesario control de frecuencia y fallback cuando Finviz no responda o cambie estructura.
 
-## Plan de implementación por fases (numeradas)
+## Plan de implementación para desarrollo en paralelo (agentes IA)
 
-### Fase 1 — Diccionario de mapeo (Dominio)
-**Objetivo**: traducir reglas internas a filtros Finviz.
+Se redefine el plan en **frentes paralelos** para permitir ejecución simultánea con bajo acoplamiento y puntos de integración explícitos.
 
-- Crear `FinvizFilterMapper` como **servicio de dominio puro** en capa Domain, con tabla de correspondencias `indicator + operator (+param)` → `finvizCode`.
-- Definir estrategia de incompatibilidades:
-  - regla no soportada ⇒ se reporta como `UNMAPPABLE` (no rompe ejecución).
-  - combinación inválida ⇒ se omite y se notifica en resultado de traducción.
-- Entregable: método `map(List<Rule>) -> FinvizFilterMappingResult` con:
-  - `filters` concatenados (`ta_sma20_pa,...`)
-  - `unmappableRules`
-  - `warnings`
+## Fase 0 — Contratos y baseline común (secuencial, corta)
+**Objetivo**: fijar interfaces y convenciones mínimas para desbloquear trabajo paralelo seguro.
 
-**Criterio de salida**: 100% de tests unitarios del mapper para casos soportados/no soportados.
+- Definir contratos base: `FinvizFilterMappingResult`, `FinvizScreenerPort`, `SuggestTickersUseCase` (firma y DTOs).
+- Acordar políticas globales:
+  - regla no soportada => `UNMAPPABLE` con warning.
+  - modo de ejecución por defecto => tolerante.
+- Congelar nomenclatura de estados funcionales (`APTO`, `NO_APTO`) y campos de trazabilidad.
 
-### Fase 2 — Puerto y construcción de URL (Aplicación)
-**Objetivo**: definir contrato de consulta desacoplado.
+**Criterio de salida**: PR corto de contratos + tests mínimos de compilación/instanciación. A partir de aquí se habilita paralelismo.
 
-- Crear puerto `FinvizScreenerPort` (Application/Domain port out).
-- Crear caso de uso/servicio de aplicación que:
-  1. recibe estrategia,
-  2. usa `FinvizFilterMapper`,
-  3. construye URL base `https://finviz.com/screener.ashx?v=111&f=` + filtros.
-- Añadir política para filtros no combinables:
-  - modo estricto (falla controlada),
-  - modo tolerante (continúa con subset válido).
+## Fase 1 — Desarrollo paralelo por streams
 
-**Criterio de salida**: tests unitarios de construcción de URL y política de tolerancia.
+### Stream A (Dominio) — Mapper de reglas a filtros Finviz
+**Agente recomendado**: Agente A.
 
-### Fase 3 — Adaptador de scraping (Infraestructura)
-**Objetivo**: obtener tickers desde Finviz.
+- Implementar `FinvizFilterMapper` en Domain.
+- Construir matriz `indicator + operator (+param)` => `finvizCode`.
+- Soportar salida estructurada:
+  - `filters` concatenados,
+  - `unmappableRules`,
+  - `warnings`.
+- Incluir tests unitarios exhaustivos de mapeo soportado/no soportado.
 
-- Implementar `JsoupFinvizAdapter` como implementación de `FinvizScreenerPort`.
-- Requisitos técnicos:
-  - `User-Agent` configurable,
-  - timeout y manejo de errores de red,
-  - paginación (`&r=21`, `&r=41`, ...),
-  - deduplicación de símbolos.
-- Devolver `List<String>` de tickers limpios.
+**Dependencias de entrada**: Fase 0.
+**Artefactos de salida**: servicio de dominio + tests.
 
-**Criterio de salida**: tests del adapter con fixtures HTML y paginación simulada.
+### Stream B (Infraestructura) — Adapter de scraping Finviz
+**Agente recomendado**: Agente B.
 
-### Fase 4 — Orquestación en caso de uso
-**Objetivo**: integrar sugerencias de mercado con análisis determinista existente.
+- Implementar `JsoupFinvizAdapter` como `FinvizScreenerPort`.
+- Incorporar `User-Agent` configurable, timeout, manejo de error de red.
+- Añadir paginación (`&r=21`, `&r=41`, ...) y deduplicación.
+- Tests con fixtures HTML y simulación de paginado/cambios de estructura.
 
-- Crear `SuggestTickersUseCase` en Application.
-- Flujo:
-  1. traducir estrategia → filtros,
-  2. consultar screener,
-  3. por cada ticker, ejecutar pipeline actual de análisis,
-  4. marcar estado final (`APTO` / `NO_APTO`) usando reglas y R:R.
-- Registrar razones de descarte para trazabilidad.
+**Dependencias de entrada**: Fase 0.
+**Artefactos de salida**: adapter + tests de robustez.
 
-**Criterio de salida**: test de servicio con mocks del puerto y validación de clasificación final.
+### Stream C (Aplicación) — Orquestador y políticas de ejecución
+**Agente recomendado**: Agente C.
 
-### Fase 5 — UI y feedback de usuario (Presentation)
-**Objetivo**: exponer la funcionalidad al usuario final.
+- Implementar servicio de aplicación que:
+  1. reciba estrategia,
+  2. obtenga filtros desde mapper,
+  3. consulte screener por puerto,
+  4. ejecute pipeline determinista por ticker,
+  5. clasifique `APTO` / `NO_APTO` y razones.
+- Implementar política estricto/tolerante para filtros incompatibles.
+- Tests de caso de uso con mocks para mapper, puerto y evaluador actual.
 
-- En detalle de estrategia, añadir acción: **“Sugerir tickers desde mercado”**.
-- Reusar `UiNotification` para feedback:
-  - éxito: cantidad de sugeridos y estrategia aplicada,
-  - parcial: sugeridos + no mapeables,
-  - error: fallo de consulta externa.
-- Mostrar resultados en la vista de análisis sin introducir lógica de negocio en Thymeleaf.
+**Dependencias de entrada**: Fase 0.
+**Dependencias blandas**: puede arrancar con stubs de Stream A y B.
+**Artefactos de salida**: caso de uso orquestador + tests de integración de aplicación.
 
-**Criterio de salida**: prueba de controlador (MockMvc) y verificación manual del flujo UI.
+### Stream D (Presentation) — UI y feedback
+**Agente recomendado**: Agente D.
+
+- Añadir acción “Sugerir tickers desde mercado” en detalle de estrategia.
+- Reusar `UiNotification` para éxito/parcial/error.
+- Mostrar resultados y trazabilidad sin lógica de negocio en Thymeleaf.
+- Añadir tests `MockMvc` de controlador y render mínimo de vista.
+
+**Dependencias de entrada**: Fase 0.
+**Dependencias blandas**: puede iniciar con DTOs mock de Stream C.
+**Artefactos de salida**: endpoint/controlador/vista + tests web.
+
+## Fase 2 — Integración cruzada (secuencial de convergencia)
+**Objetivo**: unir streams sin regresiones.
+
+- Rebase/merge ordenado de A + B + C + D.
+- Sustituir stubs por implementaciones reales.
+- Ejecutar batería completa: unit + integración + MockMvc.
+- Revisar contract tests en fronteras:
+  - Domain -> Application,
+  - Application -> Port,
+  - Infrastructure -> HTML parsing,
+  - Presentation -> Application.
+
+**Criterio de salida**: `mvn test` en verde + validación funcional end-to-end.
+
+## Fase 3 — Hardening y operación
+**Objetivo**: dejar lista la capacidad para uso real controlado.
+
+- Logging estructurado de filtros aplicados/no mapeables y causa de descarte.
+- Controles operativos: timeout, retry acotado, degradación con mensaje de usuario.
+- Revisión SonarQube (hotspots y code smells relevantes).
+- Documentación final de comportamiento y límites.
+
+**Criterio de salida**: checklist de operación completado + documentación de límites de Finviz.
+
+## Matriz rápida de paralelización
+
+1. **Arranque común**: Fase 0 (1 PR).
+2. **Paralelo real**: Streams A, B, C y D en ramas separadas (4 PRs).
+3. **Convergencia**: Fase 2 (1 PR integradora).
+4. **Estabilización**: Fase 3 (1 PR de hardening).
+
+## Reglas de coordinación entre agentes
+
+1. Cada stream mantiene su capa (sin invadir Domain/Application/Infrastructure/Presentation ajenas).
+2. Cambios de contrato solo vía PR de Fase 0 o mini-PR de alineación aprobado por todos.
+3. Ningún stream mergea sin tests propios en verde.
+4. La decisión final de aptitud permanece determinista; Finviz solo propone candidatos.
+
+## Ejecución operativa en paralelo (lista para lanzar)
+
+### Preparación de ramas
+
+1. Crear rama base de contratos: `feature/finviz-phase0-contracts`.
+2. Tras merge de Fase 0, crear ramas de trabajo:
+  - `feature/finviz-stream-a-mapper`
+  - `feature/finviz-stream-b-adapter`
+  - `feature/finviz-stream-c-orchestrator`
+  - `feature/finviz-stream-d-ui`
+
+### Prompt sugerido para Agente A (Dominio)
+
+"Implementa Stream A en Arquitectura Hexagonal estricta:
+1) crear `FinvizFilterMapper` en Domain,
+2) mapear `indicator + operator (+param)` a código Finviz,
+3) devolver `FinvizFilterMappingResult` con `filters`, `unmappableRules` y `warnings`,
+4) no usar dependencias de infraestructura,
+5) añadir tests unitarios completos para casos soportados/no soportados,
+6) mantener compatibilidad con el evaluador determinista actual.
+Entregable: PR pequeño, enfocado y con tests en verde." 
+
+### Prompt sugerido para Agente B (Infraestructura)
+
+"Implementa Stream B en Infrastructure:
+1) crear `JsoupFinvizAdapter` como implementación de `FinvizScreenerPort`,
+2) configurar `User-Agent`, timeout y gestión de errores de red,
+3) soportar paginación con `&r=21`, `&r=41`, etc.,
+4) deduplicar símbolos,
+5) añadir tests con fixtures HTML y escenarios de cambios de estructura,
+6) no introducir lógica de negocio fuera de Infrastructure.
+Entregable: PR de adapter + tests de robustez." 
+
+### Prompt sugerido para Agente C (Aplicación)
+
+"Implementa Stream C en Application:
+1) orquestar estrategia -> mapper -> screener -> pipeline determinista,
+2) crear/usar `SuggestTickersUseCase` para clasificar `APTO`/`NO_APTO`,
+3) incluir razones de descarte y trazabilidad,
+4) soportar modo estricto y tolerante para incompatibilidades,
+5) testear con mocks de mapper, puerto y evaluador interno,
+6) no acoplar Application a parsing HTML ni detalles de infraestructura.
+Entregable: PR del caso de uso + tests de servicio." 
+
+### Prompt sugerido para Agente D (Presentation)
+
+"Implementa Stream D en Presentation:
+1) añadir acción 'Sugerir tickers desde mercado' en detalle de estrategia,
+2) conectar con caso de uso sin mover lógica de negocio a Thymeleaf,
+3) usar `UiNotification` para éxito/parcial/error,
+4) mostrar trazabilidad mínima (sugeridos, descartes, no mapeables),
+5) añadir tests `MockMvc` y validación de render.
+Entregable: PR web con controlador, vista y tests." 
+
+### Orden recomendado de integración (merge)
+
+1. Merge PR Fase 0 (contratos compartidos).
+2. Merge Stream A (Domain mapper).
+3. Merge Stream B (Infrastructure adapter).
+4. Merge Stream C (Application orchestrator) con reemplazo de stubs.
+5. Merge Stream D (Presentation) ajustando wiring final.
+6. Abrir PR de convergencia (Fase 2) para validación end-to-end.
+7. Abrir PR de hardening (Fase 3) con observabilidad y resiliencia.
+
+### Criterios de aceptación por PR (checklist corto)
+
+1. Respeta capa y dependencias de Arquitectura Hexagonal.
+2. Tests de la capa modificada en verde.
+3. Sin uso de lógica determinista fuera del núcleo existente.
+4. Mensajería de errores controlada y sin filtrar detalles internos.
+5. Documentación breve de decisiones en el propio PR.
 
 ## Dependencias, riesgos y controles
 1. **Cobertura de mapeo**: priorizar indicadores ya presentes en `RuleCapabilityCatalog`.
@@ -115,7 +227,11 @@ No se generan cambios de código funcional en esta tarea. El entregable es de an
 - Riesgo arquitectónico a vigilar en implementación futura: evitar que scraping/HTML parsing contamine capa Application o Domain.
 
 ## Próximos pasos sugeridos
-1. Abrir PR de implementación de **Fase 1** exclusivamente (mapper + tests).
-2. Definir matriz inicial de equivalencias `RuleCapabilityCatalog` ↔ filtros Finviz.
-3. Acordar política oficial de tratamiento de reglas no soportadas (estricto vs tolerante).
-4. Ejecutar implementación incremental fase a fase con validación por PR corto.
+1. Abrir PR de **Fase 0** para fijar contratos compartidos (bloqueante corto).
+2. Lanzar en paralelo 4 agentes con ramas separadas para Streams A, B, C y D.
+3. Ejecutar PR de convergencia (Fase 2) con sustitución de stubs y validación end-to-end.
+4. Cerrar con PR de hardening operacional (Fase 3) y revisión SonarQube.
+
+## Referencia operativa
+
+- Runbook de ejecución paralelo: `docs/task-2026-04-16-runbook-paralelizacion-agentes-finviz.md`.
