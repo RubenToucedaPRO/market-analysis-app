@@ -3,16 +3,23 @@ package com.market.analysis.unit.infrastructure.external.openrouter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.market.analysis.infrastructure.external.openrouter.OpenrouterAdapter;
 import com.openai.client.OpenAIClient;
+import com.openai.models.chat.completions.ChatCompletion;
+import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
 /**
  * Unit tests for OpenrouterAdapter.
@@ -31,7 +38,7 @@ class OpenrouterAdapterTest {
     private static final double TEST_TOP_P = 0.9d;
     private static final double TEST_FREQUENCY_PENALTY = 0.5d;
 
-    @Mock
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private OpenAIClient mockClient;
 
     @Test
@@ -49,49 +56,50 @@ class OpenrouterAdapterTest {
     }
 
     @Test
-    @DisplayName("Should handle API key initialization")
-    void shouldHandleApiKeyInitialization() {
-        // Arrange & Act
-        OpenrouterAdapter adapter1 = new OpenrouterAdapter(TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY, mockClient);
-        OpenrouterAdapter adapter2 = new OpenrouterAdapter(TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY, mockClient);
-        OpenrouterAdapter adapter3 = new OpenrouterAdapter(TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY, mockClient);
+    @DisplayName("Should return the AI response content when the client succeeds")
+    void shouldReturnValorationWhenClientResponds() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion chatCompletion = mockClient.chat().completions().create((ChatCompletionCreateParams) any());
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.of("Bullish outlook"));
+
+        // Act
+        String result = adapter.getValoration("Price is above the moving averages");
 
         // Assert
-        assertNotNull(adapter1);
-        assertNotNull(adapter2);
-        assertNotNull(adapter3);
+        assertEquals("Bullish outlook", result);
     }
 
     @Test
-    @DisplayName("Should throw AIServiceException on empty stock data input")
-    void shouldHandleEmptyStockDataInput() {
+    @DisplayName("Should return null when the AI response has no content")
+    void shouldReturnNullWhenClientResponseHasEmptyContent() {
         // Arrange
-        OpenrouterAdapter adapter = new OpenrouterAdapter(
-                TEST_MODEL,
-                TEST_TEMPERATURE,
-                TEST_MAX_TOKENS,
-                TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY, mockClient);
-        String emptyData = "";
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion chatCompletion = mockClient.chat().completions().create((ChatCompletionCreateParams) any());
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.empty());
+
+        // Act
+        String result = adapter.getValoration("Neutral technical snapshot");
+
+        // Assert
+        assertEquals(null, result);
+    }
+
+    @Test
+    @DisplayName("Should throw AIServiceException on null stock data input")
+    void shouldHandleNullStockDataInput() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
 
         // Act & Assert
-        // The method should throw AIServiceException when API call fails
-        assertThrows(AIServiceException.class, () -> adapter.getValoration(emptyData));
+        assertThrows(AIServiceException.class, () -> adapter.getValoration(null));
     }
 
     @Test
     @DisplayName("Should verify adapter implements ApiIAPort interface")
     void shouldImplementApiIAPortInterface() {
         // Arrange
-        OpenrouterAdapter adapter = new OpenrouterAdapter(
-                TEST_MODEL,
-                TEST_TEMPERATURE,
-                TEST_MAX_TOKENS,
-                TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY, mockClient);
+        OpenrouterAdapter adapter = createAdapter();
 
         // Assert
         assertNotNull(adapter);
@@ -99,5 +107,15 @@ class OpenrouterAdapterTest {
         assertNotNull(adapter.getClass().getInterfaces());
         assertEquals(1, adapter.getClass().getInterfaces().length);
         assertEquals("ApiIAPort", adapter.getClass().getInterfaces()[0].getSimpleName());
+    }
+
+    private OpenrouterAdapter createAdapter() {
+        return new OpenrouterAdapter(
+                TEST_MODEL,
+                TEST_TEMPERATURE,
+                TEST_MAX_TOKENS,
+                TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY,
+                mockClient);
     }
 }
