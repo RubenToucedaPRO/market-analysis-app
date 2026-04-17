@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -146,12 +147,25 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
     }
 
     private List<String> extractTickers(Document page) {
-        return page.select("a[href*=quote.ashx?t=]")
+        return page.select("tbody tr")
                 .stream()
-                .map(element -> element.text().trim().toUpperCase(Locale.ROOT))
+                .map(this::extractTickerFromRow)
+                .filter(symbol -> symbol != null)
                 .filter(symbol -> !symbol.isBlank())
                 .filter(symbol -> TICKER_PATTERN.matcher(symbol).matches())
                 .toList();
+    }
+
+    private String extractTickerFromRow(Element row) {
+        List<Element> columns = row.select("td");
+        if (columns.size() < 2) {
+            return null;
+        }
+        Element tickerLink = columns.get(1).selectFirst("a[href*=quote.ashx?t=]");
+        if (tickerLink == null) {
+            return null;
+        }
+        return tickerLink.text().trim().toUpperCase(Locale.ROOT);
     }
 
     private boolean hasNextPage(Document page, int nextStart) {
