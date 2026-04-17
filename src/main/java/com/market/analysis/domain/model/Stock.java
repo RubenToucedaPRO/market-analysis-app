@@ -100,6 +100,12 @@ public class Stock {
     // ATR
     private BigDecimal atr14;
 
+    /**
+     * Applies technical indicators to this stock snapshot.
+     *
+     * @param indicators technical indicators calculated for the same ticker; if
+     *                   null, the stock remains unchanged.
+     */
     public void applyTechnicalIndicators(TechnicalIndicators indicators) {
         if (indicators == null) {
             return;

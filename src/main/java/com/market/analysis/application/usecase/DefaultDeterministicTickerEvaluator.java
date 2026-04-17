@@ -55,10 +55,13 @@ public class DefaultDeterministicTickerEvaluator implements DeterministicTickerE
 
             stock.applyTechnicalIndicators(indicators);
             StrategyEvaluation evaluation = evaluateStrategyService.evaluateStrategy(strategy, stock);
+            String summary = evaluation != null
+                    ? evaluation.getSummary()
+                    : TRACE_EVALUATION_ERROR_PREFIX + "sin resultado";
 
             return DeterministicTickerEvaluation.builder()
                     .suitable(evaluation != null && evaluation.isCompliant())
-                    .traceability(List.of(evaluation != null ? evaluation.getSummary() : TRACE_EVALUATION_ERROR_PREFIX + "sin resultado"))
+                    .traceability(List.of(summary))
                     .build();
         } catch (RuntimeException ex) {
             return notSuitable(TRACE_EVALUATION_ERROR_PREFIX + ex.getMessage());
