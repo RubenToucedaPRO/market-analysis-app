@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.openai.client.OpenAIClient;
-import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
@@ -16,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class OpenrouterAdapter implements ApiIAPort {
 
-    private final String apiKey;
     private final String model;
     private final double temperature;
     private final long maxTokens;
@@ -25,26 +23,18 @@ public class OpenrouterAdapter implements ApiIAPort {
 
     private final OpenAIClient client;
 
-    private static final String BASE_URL = "https://openrouter.ai/api/v1";
-
     public OpenrouterAdapter(
-            @Value("${openrouter.api.key}") String apiKey,
             @Value("${openrouter.model:google/gemma-3-4b-it:free}") String model,
             @Value("${openrouter.temperature:0.7}") double temperature,
             @Value("${openrouter.max-tokens:500}") long maxTokens,
             @Value("${openrouter.top-p:0.9}") double topP,
-            @Value("${openrouter.frequency-penalty:0.5}") double frequencyPenalty) {
-        this.apiKey = apiKey;
+            @Value("${openrouter.frequency-penalty:0.5}") double frequencyPenalty,OpenAIClient client) {
         this.model = model;
         this.temperature = temperature;
         this.maxTokens = maxTokens;
         this.topP = topP;
         this.frequencyPenalty = frequencyPenalty;
-        this.client = OpenAIOkHttpClient.builder()
-                .baseUrl(BASE_URL)
-                .apiKey(this.apiKey)
-                .putHeader("HTTP-Referer", "http://localhost:8080")
-                .build();
+        this.client = client;
     }
 
     @Override

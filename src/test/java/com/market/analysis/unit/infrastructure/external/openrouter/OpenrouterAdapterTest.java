@@ -25,7 +25,6 @@ import com.openai.client.OpenAIClient;
 @ExtendWith(MockitoExtension.class)
 class OpenrouterAdapterTest {
 
-    private static final String TEST_API_KEY = "test-api-key";
     private static final String TEST_MODEL = "google/gemma-3-4b-it:free";
     private static final double TEST_TEMPERATURE = 0.7d;
     private static final long TEST_MAX_TOKENS = 500L;
@@ -40,13 +39,11 @@ class OpenrouterAdapterTest {
     void shouldCreateAdapterInstance() {
         // Act
         OpenrouterAdapter adapter = new OpenrouterAdapter(
-                TEST_API_KEY,
                 TEST_MODEL,
                 TEST_TEMPERATURE,
                 TEST_MAX_TOKENS,
                 TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY);
-
+                TEST_FREQUENCY_PENALTY, mockClient);
         // Assert
         assertNotNull(adapter);
     }
@@ -55,12 +52,12 @@ class OpenrouterAdapterTest {
     @DisplayName("Should handle API key initialization")
     void shouldHandleApiKeyInitialization() {
         // Arrange & Act
-        OpenrouterAdapter adapter1 = new OpenrouterAdapter("key1", TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY);
-        OpenrouterAdapter adapter2 = new OpenrouterAdapter("key2", TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY);
-        OpenrouterAdapter adapter3 = new OpenrouterAdapter("", TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY);
+        OpenrouterAdapter adapter1 = new OpenrouterAdapter(TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY, mockClient);
+        OpenrouterAdapter adapter2 = new OpenrouterAdapter(TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY, mockClient);
+        OpenrouterAdapter adapter3 = new OpenrouterAdapter(TEST_MODEL, TEST_TEMPERATURE, TEST_MAX_TOKENS, TEST_TOP_P,
+                TEST_FREQUENCY_PENALTY, mockClient);
 
         // Assert
         assertNotNull(adapter1);
@@ -73,12 +70,11 @@ class OpenrouterAdapterTest {
     void shouldHandleEmptyStockDataInput() {
         // Arrange
         OpenrouterAdapter adapter = new OpenrouterAdapter(
-                TEST_API_KEY,
                 TEST_MODEL,
                 TEST_TEMPERATURE,
                 TEST_MAX_TOKENS,
                 TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY);
+                TEST_FREQUENCY_PENALTY, mockClient);
         String emptyData = "";
 
         // Act & Assert
@@ -91,12 +87,11 @@ class OpenrouterAdapterTest {
     void shouldImplementApiIAPortInterface() {
         // Arrange
         OpenrouterAdapter adapter = new OpenrouterAdapter(
-                TEST_API_KEY,
                 TEST_MODEL,
                 TEST_TEMPERATURE,
                 TEST_MAX_TOKENS,
                 TEST_TOP_P,
-                TEST_FREQUENCY_PENALTY);
+                TEST_FREQUENCY_PENALTY, mockClient);
 
         // Assert
         assertNotNull(adapter);
