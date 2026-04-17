@@ -108,6 +108,8 @@ Se redefine el plan en **frentes paralelos** para permitir ejecución simultáne
 ## Fase 2 — Integración cruzada (secuencial de convergencia)
 **Objetivo**: unir streams sin regresiones.
 
+**Estado:** ✅ Implementada en esta rama con wiring real mapper/screener/evaluador determinista y validación completa de tests.
+
 - Rebase/merge ordenado de A + B + C + D.
 - Sustituir stubs por implementaciones reales.
 - Ejecutar batería completa: unit + integración + MockMvc.

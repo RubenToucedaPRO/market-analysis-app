@@ -14,18 +14,23 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
+import com.market.analysis.application.usecase.DefaultDeterministicTickerEvaluator;
+import com.market.analysis.application.usecase.DeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
+import com.market.analysis.application.usecase.SuggestTickersService;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
+import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
@@ -34,6 +39,8 @@ import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
+import com.market.analysis.domain.service.FinvizFilterMapper;
+import com.market.analysis.domain.service.FinvizFilterMapperImpl;
 import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.PromptResponseValidator;
 import com.market.analysis.domain.service.RiskRewardCalculator;
@@ -118,6 +125,37 @@ public class BeanConfig {
     @Bean
     public EvaluateStrategyService evaluateStrategyService(RuleEvaluator ruleEvaluator, RiskRewardCalculator riskRewardCalculator) {
         return new EvaluateStrategyService(ruleEvaluator, riskRewardCalculator);
+    }
+
+    @Bean
+    public FinvizFilterMapper finvizFilterMapper() {
+        return new FinvizFilterMapperImpl();
+    }
+
+    @Bean
+    public DeterministicTickerEvaluator deterministicTickerEvaluator(
+            StockProviderPort stockProviderPort,
+            HistoricalProviderPort historicalProviderPort,
+            StockHistoricalService stockHistoricalService,
+            EvaluateStrategyService evaluateStrategyService) {
+        return new DefaultDeterministicTickerEvaluator(
+                stockProviderPort,
+                historicalProviderPort,
+                stockHistoricalService,
+                evaluateStrategyService);
+    }
+
+    @Bean
+    public SuggestTickersUseCase suggestTickersUseCase(
+            StrategyRepository strategyRepository,
+            FinvizFilterMapper finvizFilterMapper,
+            FinvizScreenerPort finvizScreenerPort,
+            DeterministicTickerEvaluator deterministicTickerEvaluator) {
+        return new SuggestTickersService(
+                strategyRepository,
+                finvizFilterMapper,
+                finvizScreenerPort,
+                deterministicTickerEvaluator);
     }
 
     @Bean

@@ -10,12 +10,27 @@ import org.junit.jupiter.api.Test;
 
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
 import com.market.analysis.domain.model.Rule;
+import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.service.FinvizFilterMapperImpl;
 
 @DisplayName("FinvizFilterMapper Domain Service Tests")
 class FinvizFilterMapperTest {
 
     private final FinvizFilterMapperImpl mapper = new FinvizFilterMapperImpl();
+
+    @Test
+    @DisplayName("Should map strategy rules through FinvizFilterMapper interface contract")
+    void shouldMapStrategyRulesFromInterfaceMethod() {
+        Strategy strategy = Strategy.builder()
+                .rules(List.of(rule("PRICE", null, ">", "SMA", 20.0)))
+                .build();
+
+        FinvizFilterMappingResult result = mapper.map(strategy);
+
+        assertThat(result.getFilters()).isEqualTo("ta_sma20_pa");
+        assertThat(result.getUnmappableRules()).isEmpty();
+        assertThat(result.getWarnings()).isEmpty();
+    }
 
     @Test
     @DisplayName("Should map supported rules to Finviz filters")
@@ -83,7 +98,7 @@ class FinvizFilterMapperTest {
     @Test
     @DisplayName("Should handle null and empty rule lists")
     void shouldHandleNullAndEmptyRuleLists() {
-        FinvizFilterMappingResult nullResult = mapper.map(null);
+        FinvizFilterMappingResult nullResult = mapper.map((List<Rule>) null);
         FinvizFilterMappingResult emptyResult = mapper.map(List.of());
 
         assertThat(nullResult.getFilters()).isEmpty();

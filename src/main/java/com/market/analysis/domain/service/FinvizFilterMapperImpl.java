@@ -9,12 +9,13 @@ import java.util.Set;
 
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
 import com.market.analysis.domain.model.Rule;
+import com.market.analysis.domain.model.Strategy;
 
 /**
  * Pure domain mapper that translates internal deterministic rules to Finviz
  * filter codes when an equivalent filter exists.
  */
-public class FinvizFilterMapperImpl {
+public class FinvizFilterMapperImpl implements FinvizFilterMapper {
 
     private static final Map<String, String> OPERATOR_ALIASES = Map.of(
             ">", ">",
@@ -35,6 +36,14 @@ public class FinvizFilterMapperImpl {
             Map.entry(RulePattern.of("SMA", 50.0, "<", "SMA", 200.0), "ta_sma50_sb200"),
             Map.entry(RulePattern.of("VOLUME", null, ">", "AVG_VOLUME", null), "sh_relvol_o1"),
             Map.entry(RulePattern.of("VOLUME", null, "<", "AVG_VOLUME", null), "sh_relvol_u1"));
+
+    @Override
+    public FinvizFilterMappingResult map(Strategy strategy) {
+        if (strategy == null) {
+            return map(List.of());
+        }
+        return map(strategy.getRules());
+    }
 
     public FinvizFilterMappingResult map(List<Rule> rules) {
         if (rules == null || rules.isEmpty()) {
