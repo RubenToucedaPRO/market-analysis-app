@@ -49,6 +49,22 @@ class FinvizFilterMapperTest {
     }
 
     @Test
+    @DisplayName("Should map PRICE and AVG_VOLUME rules against static values")
+    void shouldMapPriceAndAverageVolumeAgainstStaticValues() {
+        List<Rule> rules = List.of(
+                rule("PRICE", null, ">", "CONSTANT", 100.0),
+                rule("PRICE", null, "<", "VALUE", 80.0),
+                rule("AVG_VOLUME", null, ">", "CONSTANT", 500000.0),
+                rule("AVG_VOLUME", null, "<", "VALUE", 250000.0));
+
+        FinvizFilterMappingResult result = mapper.map(rules);
+
+        assertThat(result.getFilters()).isEqualTo("sh_price_o100,sh_price_u80,sh_avgvol_o500000,sh_avgvol_u250000");
+        assertThat(result.getUnmappableRules()).isEmpty();
+        assertThat(result.getWarnings()).isEmpty();
+    }
+
+    @Test
     @DisplayName("Should support evaluator operator aliases")
     void shouldSupportEvaluatorOperatorAliases() {
         List<Rule> rules = List.of(

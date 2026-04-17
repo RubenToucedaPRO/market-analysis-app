@@ -30,12 +30,20 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
             Map.entry(RulePattern.of("PRICE", null, "<", "SMA", 50.0), "ta_sma50_pb"),
             Map.entry(RulePattern.of("PRICE", null, ">", "SMA", 200.0), "ta_sma200_pa"),
             Map.entry(RulePattern.of("PRICE", null, "<", "SMA", 200.0), "ta_sma200_pb"),
+            Map.entry(RulePattern.of("PRICE", null, ">", "CONSTANT", null, true), "sh_price_o"),
+            Map.entry(RulePattern.of("PRICE", null, ">", "VALUE", null, true), "sh_price_o"),
+            Map.entry(RulePattern.of("PRICE", null, "<", "CONSTANT", null, true), "sh_price_u"),
+            Map.entry(RulePattern.of("PRICE", null, "<", "VALUE", null, true), "sh_price_u"),
             Map.entry(RulePattern.of("SMA", 20.0, ">", "SMA", 50.0), "ta_sma20_sa50"),
             Map.entry(RulePattern.of("SMA", 20.0, "<", "SMA", 50.0), "ta_sma20_sb50"),
             Map.entry(RulePattern.of("SMA", 50.0, ">", "SMA", 200.0), "ta_sma50_sa200"),
             Map.entry(RulePattern.of("SMA", 50.0, "<", "SMA", 200.0), "ta_sma50_sb200"),
             Map.entry(RulePattern.of("VOLUME", null, ">", "AVG_VOLUME", null), "sh_relvol_o1"),
-            Map.entry(RulePattern.of("VOLUME", null, "<", "AVG_VOLUME", null), "sh_relvol_u1"));
+            Map.entry(RulePattern.of("VOLUME", null, "<", "AVG_VOLUME", null), "sh_relvol_u1"),
+            Map.entry(RulePattern.of("AVG_VOLUME", null, ">", "CONSTANT", null, true), "sh_avgvol_o"),
+            Map.entry(RulePattern.of("AVG_VOLUME", null, ">", "VALUE", null, true), "sh_avgvol_o"),
+            Map.entry(RulePattern.of("AVG_VOLUME", null, "<", "CONSTANT", null, true), "sh_avgvol_u"),
+            Map.entry(RulePattern.of("AVG_VOLUME", null, "<", "VALUE", null, true), "sh_avgvol_u"));
 
     @Override
     public FinvizFilterMappingResult map(Strategy strategy) {
@@ -65,7 +73,7 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
                 continue;
             }
 
-            String mappedFilter = MAPPINGS.get(toPattern(rule));
+            String mappedFilter = resolveMappedFilter(rule);
             if (mappedFilter == null) {
                 String ruleDescriptor = describe(rule);
                 unmappableRules.add(ruleDescriptor);
@@ -81,6 +89,16 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
                 .unmappableRules(unmappableRules)
                 .warnings(warnings)
                 .build();
+    }
+
+    private String resolveMappedFilter(Rule rule) {
+        RulePattern candidate = toPattern(rule);
+        for (Map.Entry<RulePattern, String> entry : MAPPINGS.entrySet()) {
+            if (entry.getKey().matches(candidate)) {
+                return entry.getKey().appendTargetParam ? entry.getValue() + formatParam(candidate.targetParam()) : entry.getValue();
+            }
+        }
+        return null;
     }
 
     private RulePattern toPattern(Rule rule) {
@@ -134,10 +152,32 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
         return Math.floor(param) == param ? Integer.toString(param.intValue()) : param.toString();
     }
 
-    private record RulePattern(String subjectCode, Double subjectParam, String operator, String targetCode, Double targetParam) {
+    private record RulePattern(String subjectCode, Double subjectParam, String operator, String targetCode,
+            Double targetParam, boolean appendTargetParam) {
         private static RulePattern of(String subjectCode, Double subjectParam, String operator, String targetCode,
                 Double targetParam) {
-            return new RulePattern(subjectCode, subjectParam, operator, targetCode, targetParam);
+            return new RulePattern(subjectCode, subjectParam, operator, targetCode, targetParam, false);
+        }
+
+        private static RulePattern of(String subjectCode, Double subjectParam, String operator, String targetCode,
+                Double targetParam, boolean appendTargetParam) {
+            return new RulePattern(subjectCode, subjectParam, operator, targetCode, targetParam, appendTargetParam);
+        }
+
+        private boolean matches(RulePattern candidate) {
+            return equalsNormalized(subjectCode, candidate.subjectCode)
+                    && equalsNormalized(subjectParam, candidate.subjectParam)
+                    && equalsNormalized(operator, candidate.operator)
+                    && equalsNormalized(targetCode, candidate.targetCode)
+                    && (appendTargetParam ? candidate.targetParam != null : equalsNormalized(targetParam, candidate.targetParam));
+        }
+
+        private boolean equalsNormalized(String expected, String actual) {
+            return expected == null ? actual == null : expected.equals(actual);
+        }
+
+        private boolean equalsNormalized(Double expected, Double actual) {
+            return expected == null ? actual == null : expected.equals(actual);
         }
     }
 }
