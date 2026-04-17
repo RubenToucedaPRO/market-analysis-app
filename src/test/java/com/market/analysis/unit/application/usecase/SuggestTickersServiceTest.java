@@ -100,7 +100,7 @@ class SuggestTickersServiceTest {
                 .unmappableRules(List.of("EMA_200"))
                 .warnings(List.of("Unsupported rule detected"))
                 .build());
-        when(finvizScreenerPort.findTickers("ta_sma20_pa", 25)).thenReturn(List.of("MSFT"));
+        when(finvizScreenerPort.findTickers("ta_sma20_pa", 20)).thenReturn(List.of("MSFT"));
         when(deterministicTickerEvaluator.evaluate("MSFT", strategy)).thenReturn(DeterministicTickerEvaluation.builder()
                 .suitable(true)
                 .traceability(List.of("Compliant"))
@@ -113,7 +113,7 @@ class SuggestTickersServiceTest {
         assertThat(result.getWarnings())
                 .contains("Unsupported rule detected")
                 .doesNotContain("Strict mode enabled: execution blocked due to unmappable strategy rules.");
-        verify(finvizScreenerPort).findTickers("ta_sma20_pa", 25);
+        verify(finvizScreenerPort).findTickers("ta_sma20_pa", 20);
         verify(deterministicTickerEvaluator).evaluate("MSFT", strategy);
     }
 
@@ -130,7 +130,7 @@ class SuggestTickersServiceTest {
         when(finvizFilterMapper.map(strategy)).thenReturn(FinvizFilterMappingResult.builder()
                 .filters("ta_rsi_os30")
                 .build());
-        when(finvizScreenerPort.findTickers("ta_rsi_os30", 25)).thenReturn(List.of("NFLX"));
+        when(finvizScreenerPort.findTickers("ta_rsi_os30", 20)).thenReturn(List.of("NFLX"));
         when(deterministicTickerEvaluator.evaluate("NFLX", strategy)).thenReturn(DeterministicTickerEvaluation.builder()
                 .suitable(true)
                 .traceability(List.of("Compliant"))
@@ -166,7 +166,7 @@ class SuggestTickersServiceTest {
         when(finvizFilterMapper.map(strategy)).thenReturn(FinvizFilterMappingResult.builder()
                 .filters("ta_sma20_pa")
                 .build());
-        when(finvizScreenerPort.findTickers("ta_sma20_pa", 25)).thenThrow(new RuntimeException("timeout"));
+        when(finvizScreenerPort.findTickers("ta_sma20_pa", 20)).thenThrow(new RuntimeException("timeout"));
 
         SuggestTickersResponseDTO result = suggestTickersService.suggestTickers(request);
 
