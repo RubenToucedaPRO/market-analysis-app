@@ -1,5 +1,5 @@
 <div
-  th:fragment="strategyTraceability(suggestedTickers, discardedTickers, unmappableRules)"
+  th:fragment="strategyTraceability(strategyId, suggestedTickers, discardedTickers, unmappableRules)"
   class="card mt-4"
   th:if="${suggestedTickers != null or discardedTickers != null or unmappableRules != null}"
 >
@@ -15,6 +15,7 @@
       <div
         id="suggested-tickers-traceability"
         th:if="${suggestedTickers != null and !suggestedTickers.isEmpty()}"
+        class="d-flex flex-wrap gap-2"
       >
         <span
           class="badge text-bg-success me-1"
@@ -23,6 +24,27 @@
           >AAPL</span
         >
       </div>
+      <form
+        th:if="${suggestedTickers != null and !suggestedTickers.isEmpty()}"
+        th:action="@{/analysis/getTickerData}"
+        method="post"
+        class="mt-2"
+      >
+        <input
+          type="hidden"
+          name="tickers"
+          th:value="${#strings.listJoin(suggestedTickers.![ticker], ',')}"
+        />
+        <input type="hidden" name="strategyId" th:value="${strategyId}" />
+        <button
+          type="submit"
+          class="btn btn-sm btn-outline-primary"
+          aria-label="Añadir todos los tickers sugeridos a analizados"
+        >
+          <i class="bi bi-plus-circle me-1"></i>
+          Añadir sugeridos a análisis
+        </button>
+      </form>
       <p
         class="text-muted small mb-0"
         th:if="${suggestedTickers == null or suggestedTickers.isEmpty()}"

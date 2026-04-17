@@ -6,8 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -25,9 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
-import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
@@ -185,6 +185,10 @@ class StrategyControllerViewTest {
                 .andExpect(content().string(containsString("suggested-tickers-traceability")))
                 .andExpect(content().string(containsString("discarded-tickers-traceability")))
                 .andExpect(content().string(containsString("unmappable-rules-traceability")))
+                .andExpect(content().string(containsString("/analysis/getTickerData")))
+                .andExpect(content().string(containsString("name=\"tickers\"")))
+                .andExpect(content().string(containsString("name=\"strategyId\"")))
+                .andExpect(content().string(containsString("A\u00f1adir sugeridos a an\u00e1lisis")))
                 .andExpect(content().string(containsString("AAPL")))
                 .andExpect(content().string(containsString("TSLA")))
                 .andExpect(content().string(containsString("ATR(14)")));

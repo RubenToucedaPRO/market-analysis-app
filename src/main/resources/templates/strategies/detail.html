@@ -306,7 +306,7 @@
           </div>
 
           <div
-            th:replace="~{fragments/strategy-traceability :: strategyTraceability(suggestedTickers=${suggestedTickers}, discardedTickers=${discardedTickers}, unmappableRules=${unmappableRules})}"
+            th:replace="~{fragments/strategy-traceability :: strategyTraceability(strategyId=${strategy.id}, suggestedTickers=${suggestedTickers}, discardedTickers=${discardedTickers}, unmappableRules=${unmappableRules})}"
           ></div>
         </div>
       </div>
