@@ -149,6 +149,7 @@ Se redefine el plan en **frentes paralelos** para permitir ejecución simultáne
 ### Prompt sugerido para Agente A (Dominio)
 
 "Implementa Stream A en Arquitectura Hexagonal estricta:
+0) Crea una rama `feature/finviz-stream-a-mapper` y su correspondiente PR.
 1) crear `FinvizFilterMapper` en Domain,
 2) mapear `indicator + operator (+param)` a código Finviz,
 3) devolver `FinvizFilterMappingResult` con `filters`, `unmappableRules` y `warnings`,
@@ -160,6 +161,7 @@ Entregable: PR pequeño, enfocado y con tests en verde."
 ### Prompt sugerido para Agente B (Infraestructura)
 
 "Implementa Stream B en Infrastructure:
+0) Crea una rama `feature/finviz-stream-b-adapter` y su correspondiente PR.
 1) crear `JsoupFinvizAdapter` como implementación de `FinvizScreenerPort`,
 2) configurar `User-Agent`, timeout y gestión de errores de red,
 3) soportar paginación con `&r=21`, `&r=41`, etc.,
@@ -171,6 +173,7 @@ Entregable: PR de adapter + tests de robustez."
 ### Prompt sugerido para Agente C (Aplicación)
 
 "Implementa Stream C en Application:
+0) Crea una rama `feature/finviz-stream-c-orchestrator` y su correspondiente PR.
 1) orquestar estrategia -> mapper -> screener -> pipeline determinista,
 2) crear/usar `SuggestTickersUseCase` para clasificar `APTO`/`NO_APTO`,
 3) incluir razones de descarte y trazabilidad,
@@ -182,6 +185,7 @@ Entregable: PR del caso de uso + tests de servicio."
 ### Prompt sugerido para Agente D (Presentation)
 
 "Implementa Stream D en Presentation:
+0) Crea una rama `feature/finviz-stream-d-ui` y su correspondiente PR.
 1) añadir acción 'Sugerir tickers desde mercado' en detalle de estrategia,
 2) conectar con caso de uso sin mover lógica de negocio a Thymeleaf,
 3) usar `UiNotification` para éxito/parcial/error,
