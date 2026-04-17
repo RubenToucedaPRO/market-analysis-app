@@ -34,6 +34,14 @@ Se redefine el plan en **frentes paralelos** para permitir ejecución simultáne
 ## Fase 0 — Contratos y baseline común (secuencial, corta)
 **Objetivo**: fijar interfaces y convenciones mínimas para desbloquear trabajo paralelo seguro.
 
+**Estado:** ✅ Implementada en esta rama con contratos base y tests mínimos de compilación/instanciación.
+
+- Contratos creados:
+  - `domain/model/FinvizFilterMappingResult`
+  - `domain/port/out/FinvizScreenerPort`
+  - `domain/port/in/SuggestTickersUseCase`
+  - DTOs de soporte en `application/dto` para request/response, modo de ejecución y estado funcional.
+
 - Definir contratos base: `FinvizFilterMappingResult`, `FinvizScreenerPort`, `SuggestTickersUseCase` (firma y DTOs).
 - Acordar políticas globales:
   - regla no soportada => `UNMAPPABLE` con warning.
