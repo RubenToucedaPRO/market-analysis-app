@@ -54,12 +54,14 @@ class FinvizFilterMapperTest {
         List<Rule> rules = List.of(
                 rule("PRICE", null, ">", "CONSTANT", 100.0),
                 rule("PRICE", null, "<", "VALUE", 80.0),
+                rule("VOLUME", null, ">", "CONSTANT", 2_000_000.0),
+                rule("VOLUME", null, "<", "VALUE", 1_000_000.0),
                 rule("AVG_VOLUME", null, ">", "CONSTANT", 500000.0),
                 rule("AVG_VOLUME", null, "<", "VALUE", 250000.0));
 
         FinvizFilterMappingResult result = mapper.map(rules);
 
-        assertThat(result.getFilters()).isEqualTo("sh_price_o100,sh_price_u80,sh_avgvol_o500000,sh_avgvol_u250000");
+        assertThat(result.getFilters()).isEqualTo("sh_price_o100,sh_price_u80,sh_curvol_o2000,sh_curvol_u1000,sh_avgvol_o500,sh_avgvol_u250");
         assertThat(result.getUnmappableRules()).isEmpty();
         assertThat(result.getWarnings()).isEmpty();
     }

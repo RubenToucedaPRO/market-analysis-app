@@ -17,6 +17,9 @@ import com.market.analysis.domain.model.Strategy;
  */
 public class FinvizFilterMapperImpl implements FinvizFilterMapper {
 
+    private static final Set<String> THOUSAND_SCALED_SUBJECTS = Set.of("VOLUME", "AVG_VOLUME");
+    private static final Set<String> STATIC_VALUE_TARGETS = Set.of("CONSTANT", "VALUE");
+
     private static final Map<String, String> OPERATOR_ALIASES = Map.of(
             ">", ">",
             "<", "<",
@@ -40,6 +43,10 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
             Map.entry(RulePattern.of("SMA", 50.0, "<", "SMA", 200.0), "ta_sma50_sb200"),
             Map.entry(RulePattern.of("VOLUME", null, ">", "AVG_VOLUME", null), "sh_relvol_o1"),
             Map.entry(RulePattern.of("VOLUME", null, "<", "AVG_VOLUME", null), "sh_relvol_u1"),
+            Map.entry(RulePattern.of("VOLUME", null, ">", "CONSTANT", null, true), "sh_curvol_o"),
+            Map.entry(RulePattern.of("VOLUME", null, ">", "VALUE", null, true), "sh_curvol_o"),
+            Map.entry(RulePattern.of("VOLUME", null, "<", "CONSTANT", null, true), "sh_curvol_u"),
+            Map.entry(RulePattern.of("VOLUME", null, "<", "VALUE", null, true), "sh_curvol_u"),
             Map.entry(RulePattern.of("AVG_VOLUME", null, ">", "CONSTANT", null, true), "sh_avgvol_o"),
             Map.entry(RulePattern.of("AVG_VOLUME", null, ">", "VALUE", null, true), "sh_avgvol_o"),
             Map.entry(RulePattern.of("AVG_VOLUME", null, "<", "CONSTANT", null, true), "sh_avgvol_u"),
@@ -95,10 +102,25 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
         RulePattern candidate = toPattern(rule);
         for (Map.Entry<RulePattern, String> entry : MAPPINGS.entrySet()) {
             if (entry.getKey().matches(candidate)) {
-                return entry.getKey().appendTargetParam ? entry.getValue() + formatParam(candidate.targetParam()) : entry.getValue();
+                if (!entry.getKey().appendTargetParam) {
+                    return entry.getValue();
+                }
+                return entry.getValue() + formatParam(resolveTargetParamForFilter(candidate));
             }
         }
         return null;
+    }
+
+    private Double resolveTargetParamForFilter(RulePattern candidate) {
+        if (candidate.targetParam() == null) {
+            return null;
+        }
+
+        if (THOUSAND_SCALED_SUBJECTS.contains(candidate.subjectCode())
+                && STATIC_VALUE_TARGETS.contains(candidate.targetCode())) {
+            return candidate.targetParam() / 1000.0;
+        }
+        return candidate.targetParam();
     }
 
     private RulePattern toPattern(Rule rule) {
