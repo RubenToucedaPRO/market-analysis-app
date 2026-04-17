@@ -284,6 +284,24 @@ class StrategyControllerTest {
     }
 
     @Test
+    @DisplayName("Should suggest tickers with partial notification when there are warnings")
+    void testSuggestTickersFromMarketPartialWithWarnings() {
+        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
+                .suggestedTickers(List.of())
+                .unmappableRules(List.of())
+                .warnings(List.of("finviz degraded"))
+                .build();
+        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
+
+        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
+    }
+
+    @Test
     @DisplayName("Should return error notification when suggest use case fails")
     void testSuggestTickersFromMarketError() {
         when(suggestTickersUseCase.suggestTickers(any())).thenThrow(new RuntimeException("boom"));

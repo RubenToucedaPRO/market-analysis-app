@@ -18,8 +18,10 @@ import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
+@Slf4j
 public class SuggestTickersService implements SuggestTickersUseCase {
 
     private static final int DEFAULT_MAX_CANDIDATES = 25;
@@ -29,6 +31,8 @@ public class SuggestTickersService implements SuggestTickersUseCase {
             "No Finviz filters could be generated for this strategy.";
     private static final String EVALUATOR_EMPTY_TRACE_WARNING =
             "Deterministic evaluation did not return traceability details.";
+    private static final String FINVIZ_DEGRADED_WARNING =
+            "Finviz no está disponible temporalmente; la sugerencia se ha degradado sin resultados.";
 
     private final StrategyRepository strategyRepository;
     private final FinvizFilterMapper finvizFilterMapper;
@@ -48,18 +52,41 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         List<String> unmappableRules = mappingResult != null ? mappingResult.getUnmappableRules() : List.of();
         List<String> warnings = new ArrayList<>(mappingResult != null ? mappingResult.getWarnings() : List.of());
         String appliedFilters = mappingResult != null ? mappingResult.getFilters() : null;
+        log.info(
+                "suggest_tickers_mapping strategyId={} mode={} appliedFilters={} unmappableRulesCount={} warningsCount={}",
+                request.getStrategyId(),
+                executionMode,
+                appliedFilters,
+                unmappableRules.size(),
+                warnings.size());
 
         if (executionMode == FinvizExecutionMode.STRICT && !unmappableRules.isEmpty()) {
             warnings.add(STRICT_MODE_BLOCKED_WARNING);
+            log.info("suggest_tickers_strict_blocked strategyId={} unmappableRules={}", request.getStrategyId(), unmappableRules);
             return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, List.of());
         }
 
         if (appliedFilters == null || appliedFilters.isBlank()) {
             warnings.add(EMPTY_FILTERS_WARNING);
+            log.info("suggest_tickers_empty_filters strategyId={} mode={}", request.getStrategyId(), executionMode);
             return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, List.of());
         }
 
-        List<String> candidates = finvizScreenerPort.findTickers(appliedFilters, maxCandidates);
+        List<String> candidates;
+        try {
+            candidates = finvizScreenerPort.findTickers(appliedFilters, maxCandidates);
+        } catch (RuntimeException ex) {
+            warnings.add(FINVIZ_DEGRADED_WARNING);
+            log.warn("suggest_tickers_finviz_degraded strategyId={} appliedFilters={} message={}",
+                    request.getStrategyId(),
+                    appliedFilters,
+                    ex.getMessage());
+            return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, List.of());
+        }
+
+        log.info("suggest_tickers_candidates strategyId={} candidatesCount={}",
+                request.getStrategyId(),
+                Optional.ofNullable(candidates).orElse(List.of()).size());
         List<SuggestedTickerDTO> suggestedTickers = Optional.ofNullable(candidates).orElse(List.of()).stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
@@ -78,6 +105,9 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 : new ArrayList<>(List.of(EVALUATOR_EMPTY_TRACE_WARNING));
 
         boolean suitable = evaluation != null && evaluation.isSuitable();
+        if (!suitable) {
+            log.info("suggest_ticker_discarded ticker={} traceability={}", ticker, traceability);
+        }
         return SuggestedTickerDTO.builder()
                 .ticker(ticker)
                 .suitabilityStatus(suitable ? TickerSuitabilityStatus.APTO : TickerSuitabilityStatus.NO_APTO)

@@ -140,12 +140,15 @@ public class StrategyController {
         List<String> unmappableRules = response == null || response.getUnmappableRules() == null
                 ? List.of()
                 : response.getUnmappableRules();
+        List<String> responseWarnings = response == null || response.getWarnings() == null
+                ? List.of()
+                : response.getWarnings();
 
         redirectAttributes.addFlashAttribute(ATTR_SUGGESTED_TICKERS, suggested);
         redirectAttributes.addFlashAttribute(ATTR_DISCARDED_TICKERS, discarded);
         redirectAttributes.addFlashAttribute(ATTR_UNMAPPABLE_RULES, unmappableRules);
 
-        if (!unmappableRules.isEmpty() || !discarded.isEmpty()) {
+        if (!unmappableRules.isEmpty() || !discarded.isEmpty() || !responseWarnings.isEmpty()) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
         } else {

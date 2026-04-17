@@ -71,6 +71,29 @@ class JsoupFinvizAdapterTest {
     }
 
     @Test
+    @DisplayName("Should retry once and recover results after transient network error")
+    void shouldRetryOnceAfterTransientFailure() {
+        int[] calls = { 0 };
+        JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
+                "https://finviz.com/screener.ashx",
+                "test-agent",
+                5000,
+                1,
+                (url, userAgent, timeoutMs) -> {
+                    calls[0]++;
+                    if (calls[0] == 1) {
+                        throw new IOException("Temporary network issue");
+                    }
+                    return parseFixture("fixtures/finviz/screener-page-1.html");
+                });
+
+        List<String> tickers = adapter.findTickers("ta_sma20_pa", 2);
+
+        assertThat(tickers).containsExactly("AAPL", "MSFT");
+        assertThat(calls[0]).isEqualTo(2);
+    }
+
+    @Test
     @DisplayName("Should return empty list when structure changes and symbols cannot be extracted")
     void shouldReturnEmptyWhenStructureChanges() {
         JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(

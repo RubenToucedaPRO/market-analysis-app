@@ -124,12 +124,14 @@ Se redefine el plan en **frentes paralelos** para permitir ejecución simultáne
 ## Fase 3 — Hardening y operación
 **Objetivo**: dejar lista la capacidad para uso real controlado.
 
-- Logging estructurado de filtros aplicados/no mapeables y causa de descarte.
-- Controles operativos: timeout, retry acotado, degradación con mensaje de usuario.
-- Revisión SonarQube (hotspots y code smells relevantes).
-- Documentación final de comportamiento y límites.
+**Estado:** ✅ Implementada en esta rama con hardening operativo y cobertura de tests.
 
-**Criterio de salida**: checklist de operación completado + documentación de límites de Finviz.
+- Logging estructurado de filtros aplicados/no mapeables y causa de descarte. ✅
+- Controles operativos: timeout, retry acotado, degradación con mensaje de usuario. ✅
+- Revisión SonarQube (hotspots y code smells relevantes). ✅ (sin hallazgos bloqueantes en cambios de esta fase)
+- Documentación final de comportamiento y límites. ✅
+
+**Criterio de salida**: ✅ checklist de operación completado + documentación de límites de Finviz.
 
 ## Matriz rápida de paralelización
 

@@ -156,6 +156,29 @@ class SuggestTickersServiceTest {
                 .hasMessage("Strategy ID is required");
     }
 
+    @Test
+    @DisplayName("Should degrade gracefully when Finviz screener fails")
+    void shouldDegradeWhenFinvizFails() {
+        Strategy strategy = buildStrategy(13L);
+        SuggestTickersRequestDTO request = SuggestTickersRequestDTO.builder()
+                .strategyId(13L)
+                .build();
+
+        when(strategyRepository.findById(13L)).thenReturn(Optional.of(strategy));
+        when(finvizFilterMapper.map(strategy)).thenReturn(FinvizFilterMappingResult.builder()
+                .filters("ta_sma20_pa")
+                .build());
+        when(finvizScreenerPort.findTickers("ta_sma20_pa", 25)).thenThrow(new RuntimeException("timeout"));
+
+        SuggestTickersResponseDTO result = suggestTickersService.suggestTickers(request);
+
+        assertThat(result.getSuggestedTickers()).isEmpty();
+        assertThat(result.getWarnings())
+                .contains("Finviz no está disponible temporalmente; la sugerencia se ha degradado sin resultados.");
+        verify(deterministicTickerEvaluator, never()).evaluate(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.any());
+    }
+
     private Strategy buildStrategy(Long id) {
         return Strategy.builder()
                 .id(id)

@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -27,22 +28,33 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
     private final String baseUrl;
     private final String userAgent;
     private final int timeoutMs;
+    private final int maxRetries;
     private final FinvizPageFetcher pageFetcher;
 
+    @Autowired
     public JsoupFinvizAdapter(
             @Value("${finviz.base.url:https://finviz.com/screener.ashx}") String baseUrl,
             @Value("${finviz.user-agent:Mozilla/5.0}") String userAgent,
-            @Value("${finviz.timeout-ms:8000}") int timeoutMs) {
-        this(baseUrl, userAgent, timeoutMs, (url, configuredUserAgent, configuredTimeout) -> Jsoup.connect(url)
+            @Value("${finviz.timeout-ms:8000}") int timeoutMs,
+            @Value("${finviz.max-retries:1}") int maxRetries) {
+        this(baseUrl, userAgent, timeoutMs, maxRetries, (url, configuredUserAgent, configuredTimeout) -> Jsoup.connect(url)
                 .userAgent(configuredUserAgent)
                 .timeout(configuredTimeout)
                 .get());
     }
 
     public JsoupFinvizAdapter(String baseUrl, String userAgent, int timeoutMs, FinvizPageFetcher pageFetcher) {
+        this(baseUrl, userAgent, timeoutMs, 1, pageFetcher);
+    }
+
+    public JsoupFinvizAdapter(String baseUrl, String userAgent, int timeoutMs, int maxRetries, FinvizPageFetcher pageFetcher) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeoutMs = timeoutMs;
+        if (maxRetries < 0) {
+            log.warn("finviz_invalid_retry_config providedMaxRetries={} effectiveMaxRetries=0", maxRetries);
+        }
+        this.maxRetries = Math.max(0, maxRetries);
         this.pageFetcher = pageFetcher;
     }
 
@@ -56,16 +68,15 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
         int rowStart = 1;
 
         while (uniqueTickers.size() < maxResults) {
-            Document page;
-            try {
-                page = pageFetcher.fetch(buildUrl(filters, rowStart), userAgent, timeoutMs);
-            } catch (IOException ex) {
-                log.warn("Finviz request failed at row {}: {}", rowStart, ex.getMessage());
+            String requestUrl = buildUrl(filters, rowStart);
+            Document page = fetchPageWithRetry(requestUrl, rowStart);
+            if (page == null) {
                 break;
             }
 
             List<String> pageTickers = extractTickers(page);
             if (pageTickers.isEmpty()) {
+                log.info("finviz_screener_empty_page rowStart={} url={}", rowStart, requestUrl);
                 break;
             }
 
@@ -92,6 +103,24 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
         return uniqueTickers.stream()
                 .limit(maxResults)
                 .toList();
+    }
+
+    private Document fetchPageWithRetry(String requestUrl, int rowStart) {
+        int totalAttempts = maxRetries + 1;
+        for (int attempt = 1; attempt <= totalAttempts; attempt++) {
+            try {
+                return pageFetcher.fetch(requestUrl, userAgent, timeoutMs);
+            } catch (IOException ex) {
+                log.warn(
+                        "finviz_request_failed rowStart={} attempt={} totalAttempts={} timeoutMs={} message={}",
+                        rowStart,
+                        attempt,
+                        totalAttempts,
+                        timeoutMs,
+                        ex.getMessage());
+            }
+        }
+        return null;
     }
 
     private String buildUrl(String filters, int rowStart) {
