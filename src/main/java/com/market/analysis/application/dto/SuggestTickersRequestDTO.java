@@ -16,7 +16,4 @@ public class SuggestTickersRequestDTO {
 
     private Long strategyId;
     private Integer maxCandidates;
-
-    @Builder.Default
-    private FinvizExecutionMode executionMode = FinvizExecutionMode.TOLERANT;
 }

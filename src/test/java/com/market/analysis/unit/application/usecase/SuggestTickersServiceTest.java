@@ -17,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.application.dto.FinvizExecutionMode;
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
@@ -53,13 +52,12 @@ class SuggestTickersServiceTest {
     private SuggestTickersService suggestTickersService;
 
     @Test
-    @DisplayName("Should classify APTO and NO_APTO in tolerant mode with traceability")
+        @DisplayName("Should classify APTO and NO_APTO with traceability")
     void shouldClassifyTickersInTolerantMode() {
         Strategy strategy = buildStrategy(10L);
         SuggestTickersRequestDTO request = SuggestTickersRequestDTO.builder()
                 .strategyId(10L)
                 .maxCandidates(5)
-                .executionMode(FinvizExecutionMode.TOLERANT)
                 .build();
 
         when(strategyRepository.findById(10L)).thenReturn(Optional.of(strategy));
@@ -80,7 +78,6 @@ class SuggestTickersServiceTest {
 
         SuggestTickersResponseDTO result = suggestTickersService.suggestTickers(request);
 
-        assertThat(result.getExecutionMode()).isEqualTo(FinvizExecutionMode.TOLERANT);
         assertThat(result.getUnmappableRules()).containsExactly("MACD");
         assertThat(result.getWarnings()).containsExactly("Partial mapping used");
         assertThat(result.getSuggestedTickers()).hasSize(2);
@@ -90,12 +87,11 @@ class SuggestTickersServiceTest {
     }
 
     @Test
-    @DisplayName("Should stop in strict mode when mapper reports unmappable rules")
-    void shouldStopWhenStrictModeAndUnmappableRules() {
+    @DisplayName("Should continue even when mapper reports unmappable rules")
+    void shouldContinueWhenMapperReportsUnmappableRules() {
         Strategy strategy = buildStrategy(11L);
         SuggestTickersRequestDTO request = SuggestTickersRequestDTO.builder()
                 .strategyId(11L)
-                .executionMode(FinvizExecutionMode.STRICT)
                 .build();
 
         when(strategyRepository.findById(11L)).thenReturn(Optional.of(strategy));
@@ -104,26 +100,29 @@ class SuggestTickersServiceTest {
                 .unmappableRules(List.of("EMA_200"))
                 .warnings(List.of("Unsupported rule detected"))
                 .build());
+        when(finvizScreenerPort.findTickers("ta_sma20_pa", 25)).thenReturn(List.of("MSFT"));
+        when(deterministicTickerEvaluator.evaluate("MSFT", strategy)).thenReturn(DeterministicTickerEvaluation.builder()
+                .suitable(true)
+                .traceability(List.of("Compliant"))
+                .build());
 
         SuggestTickersResponseDTO result = suggestTickersService.suggestTickers(request);
 
-        assertThat(result.getSuggestedTickers()).isEmpty();
+        assertThat(result.getSuggestedTickers()).hasSize(1);
+        assertThat(result.getSuggestedTickers().get(0).getTicker()).isEqualTo("MSFT");
         assertThat(result.getWarnings())
                 .contains("Unsupported rule detected")
-                .contains("Strict mode enabled: execution blocked due to unmappable strategy rules.");
-        verify(finvizScreenerPort, never()).findTickers(org.mockito.ArgumentMatchers.anyString(),
-                org.mockito.ArgumentMatchers.anyInt());
-        verify(deterministicTickerEvaluator, never()).evaluate(org.mockito.ArgumentMatchers.anyString(),
-                org.mockito.ArgumentMatchers.any());
+                .doesNotContain("Strict mode enabled: execution blocked due to unmappable strategy rules.");
+        verify(finvizScreenerPort).findTickers("ta_sma20_pa", 25);
+        verify(deterministicTickerEvaluator).evaluate("MSFT", strategy);
     }
 
     @Test
-    @DisplayName("Should use tolerant mode and default max candidates when request values are null")
+    @DisplayName("Should use default max candidates when request values are null")
     void shouldApplyDefaultExecutionValues() {
         Strategy strategy = buildStrategy(12L);
         SuggestTickersRequestDTO request = SuggestTickersRequestDTO.builder()
                 .strategyId(12L)
-                .executionMode(null)
                 .maxCandidates(null)
                 .build();
 
@@ -139,7 +138,6 @@ class SuggestTickersServiceTest {
 
         SuggestTickersResponseDTO result = suggestTickersService.suggestTickers(request);
 
-        assertThat(result.getExecutionMode()).isEqualTo(FinvizExecutionMode.TOLERANT);
         assertThat(result.getSuggestedTickers()).hasSize(1);
         assertThat(result.getSuggestedTickers().get(0).getSuitabilityStatus()).isEqualTo(TickerSuitabilityStatus.APTO);
     }

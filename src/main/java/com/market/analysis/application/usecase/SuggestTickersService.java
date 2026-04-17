@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.market.analysis.application.dto.FinvizExecutionMode;
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
@@ -25,8 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SuggestTickersService implements SuggestTickersUseCase {
 
     private static final int DEFAULT_MAX_CANDIDATES = 25;
-    private static final String STRICT_MODE_BLOCKED_WARNING =
-            "Strict mode enabled: execution blocked due to unmappable strategy rules.";
     private static final String EMPTY_FILTERS_WARNING =
             "No Finviz filters could be generated for this strategy.";
     private static final String EVALUATOR_EMPTY_TRACE_WARNING =
@@ -43,7 +40,6 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     public SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request) {
         validateRequest(request);
 
-        FinvizExecutionMode executionMode = resolveExecutionMode(request.getExecutionMode());
         int maxCandidates = resolveMaxCandidates(request.getMaxCandidates());
         Strategy strategy = strategyRepository.findById(request.getStrategyId())
                 .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + request.getStrategyId()));
@@ -53,23 +49,16 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         List<String> warnings = new ArrayList<>(mappingResult != null ? mappingResult.getWarnings() : List.of());
         String appliedFilters = mappingResult != null ? mappingResult.getFilters() : null;
         log.info(
-                "suggest_tickers_mapping strategyId={} mode={} appliedFilters={} unmappableRulesCount={} warningsCount={}",
+                "suggest_tickers_mapping strategyId={} appliedFilters={} unmappableRulesCount={} warningsCount={}",
                 request.getStrategyId(),
-                executionMode,
                 appliedFilters,
                 unmappableRules.size(),
                 warnings.size());
 
-        if (executionMode == FinvizExecutionMode.STRICT && !unmappableRules.isEmpty()) {
-            warnings.add(STRICT_MODE_BLOCKED_WARNING);
-            log.info("suggest_tickers_strict_blocked strategyId={} unmappableRules={}", request.getStrategyId(), unmappableRules);
-            return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, List.of());
-        }
-
         if (appliedFilters == null || appliedFilters.isBlank()) {
             warnings.add(EMPTY_FILTERS_WARNING);
-            log.info("suggest_tickers_empty_filters strategyId={} mode={}", request.getStrategyId(), executionMode);
-            return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, List.of());
+            log.info("suggest_tickers_empty_filters strategyId={}", request.getStrategyId());
+            return buildResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
         }
 
         List<String> candidates;
@@ -81,7 +70,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                     request.getStrategyId(),
                     appliedFilters,
                     ex.getMessage());
-            return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, List.of());
+            return buildResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
         }
 
         log.info("suggest_tickers_candidates strategyId={} candidatesCount={}",
@@ -95,7 +84,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 .map(ticker -> classifyTicker(ticker, strategy))
                 .toList();
 
-        return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, suggestedTickers);
+        return buildResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, suggestedTickers);
     }
 
     private SuggestedTickerDTO classifyTicker(String ticker, Strategy strategy) {
@@ -115,12 +104,11 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 .build();
     }
 
-    private SuggestTickersResponseDTO buildResponse(Long strategyId, String appliedFilters, FinvizExecutionMode executionMode,
+        private SuggestTickersResponseDTO buildResponse(Long strategyId, String appliedFilters,
             List<String> unmappableRules, List<String> warnings, List<SuggestedTickerDTO> suggestedTickers) {
         return SuggestTickersResponseDTO.builder()
                 .strategyId(strategyId)
                 .appliedFilters(appliedFilters)
-                .executionMode(executionMode)
                 .unmappableRules(unmappableRules)
                 .warnings(warnings)
                 .suggestedTickers(suggestedTickers)
@@ -134,10 +122,6 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         if (request.getStrategyId() == null) {
             throw new IllegalArgumentException("Strategy ID is required");
         }
-    }
-
-    private FinvizExecutionMode resolveExecutionMode(FinvizExecutionMode mode) {
-        return mode != null ? mode : FinvizExecutionMode.TOLERANT;
     }
 
     private int resolveMaxCandidates(Integer maxCandidates) {

@@ -18,7 +18,6 @@ public class SuggestTickersResponseDTO {
 
     private Long strategyId;
     private String appliedFilters;
-    private FinvizExecutionMode executionMode;
     private List<String> unmappableRules;
     private List<String> warnings;
     private List<SuggestedTickerDTO> suggestedTickers;

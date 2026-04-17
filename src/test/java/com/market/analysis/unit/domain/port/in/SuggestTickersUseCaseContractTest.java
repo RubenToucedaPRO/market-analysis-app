@@ -7,7 +7,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.market.analysis.application.dto.FinvizExecutionMode;
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
@@ -22,7 +21,6 @@ class SuggestTickersUseCaseContractTest {
     void shouldKeepAptoAndNoAptoStates() {
         SuggestTickersUseCase useCase = request -> SuggestTickersResponseDTO.builder()
                 .strategyId(request.getStrategyId())
-                .executionMode(request.getExecutionMode())
                 .appliedFilters("ta_sma20_pa")
                 .suggestedTickers(List.of(
                         SuggestedTickerDTO.builder()
@@ -41,7 +39,6 @@ class SuggestTickersUseCaseContractTest {
 
         SuggestTickersResponseDTO response = useCase.suggestTickers(SuggestTickersRequestDTO.builder()
                 .strategyId(5L)
-                .executionMode(FinvizExecutionMode.TOLERANT)
                 .build());
 
         assertThat(response.getSuggestedTickers())
