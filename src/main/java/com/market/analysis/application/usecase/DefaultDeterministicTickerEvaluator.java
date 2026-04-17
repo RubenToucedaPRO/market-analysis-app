@@ -53,7 +53,7 @@ public class DefaultDeterministicTickerEvaluator implements DeterministicTickerE
                 return notSuitable(TRACE_INDICATORS_NOT_AVAILABLE);
             }
 
-            applyIndicators(stock, indicators);
+            stock.applyTechnicalIndicators(indicators);
             StrategyEvaluation evaluation = evaluateStrategyService.evaluateStrategy(strategy, stock);
 
             return DeterministicTickerEvaluation.builder()
@@ -72,26 +72,4 @@ public class DefaultDeterministicTickerEvaluator implements DeterministicTickerE
                 .build();
     }
 
-    private void applyIndicators(Stock stock, TechnicalIndicators indicators) {
-        stock.setSma20(indicators.getSma20());
-        stock.setSma50(indicators.getSma50());
-        stock.setSma200(indicators.getSma200());
-        stock.setVolume(indicators.getCurrentVolume());
-        stock.setAverageVolume(indicators.getAverageVolume());
-        stock.setLastUpdated(indicators.getLastUpdated());
-        stock.setEma9(indicators.getEma9());
-        stock.setEma12(indicators.getEma12());
-        stock.setEma20(indicators.getEma20());
-        stock.setEma26(indicators.getEma26());
-        stock.setEma50(indicators.getEma50());
-        stock.setEma200(indicators.getEma200());
-        stock.setRsi14(indicators.getRsi14());
-        stock.setRsi30(indicators.getRsi30());
-        stock.setMacdLine(indicators.getMacdLine());
-        stock.setMacdSignal(indicators.getMacdSignal());
-        stock.setMacdHistogram(indicators.getMacdHistogram());
-        stock.setBbUpper20(indicators.getBbUpper20());
-        stock.setBbLower20(indicators.getBbLower20());
-        stock.setAtr14(indicators.getAtr14());
-    }
 }
