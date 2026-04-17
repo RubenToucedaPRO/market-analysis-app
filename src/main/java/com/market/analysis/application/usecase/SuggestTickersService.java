@@ -3,6 +3,7 @@ package com.market.analysis.application.usecase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.market.analysis.application.dto.FinvizExecutionMode;
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
@@ -59,7 +60,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         }
 
         List<String> candidates = finvizScreenerPort.findTickers(appliedFilters, maxCandidates);
-        List<SuggestedTickerDTO> suggestedTickers = (candidates == null ? List.<String>of() : candidates).stream()
+        List<SuggestedTickerDTO> suggestedTickers = Optional.ofNullable(candidates).orElse(List.of()).stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(ticker -> !ticker.isEmpty())
@@ -72,15 +73,9 @@ public class SuggestTickersService implements SuggestTickersUseCase {
 
     private SuggestedTickerDTO classifyTicker(String ticker, Strategy strategy) {
         DeterministicTickerEvaluation evaluation = deterministicTickerEvaluator.evaluate(ticker, strategy);
-        List<String> traceability = new ArrayList<>();
-
-        if (evaluation != null) {
-            traceability.addAll(evaluation.getTraceability());
-        }
-
-        if (traceability.isEmpty()) {
-            traceability.add(EVALUATOR_EMPTY_TRACE_WARNING);
-        }
+        List<String> traceability = (evaluation != null && !evaluation.getTraceability().isEmpty())
+                ? new ArrayList<>(evaluation.getTraceability())
+                : new ArrayList<>(List.of(EVALUATOR_EMPTY_TRACE_WARNING));
 
         boolean suitable = evaluation != null && evaluation.isSuitable();
         return SuggestedTickerDTO.builder()

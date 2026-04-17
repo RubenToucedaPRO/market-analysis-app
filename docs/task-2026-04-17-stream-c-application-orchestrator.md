@@ -25,7 +25,7 @@ Tests añadidos en `SuggestTickersServiceTest` cubriendo:
 - Validación de entrada (strategyId obligatorio).
 
 Comando de validación ejecutado:
-- `mvn -Dtest=SuggestTickersServiceTest,SuggestTickersUseCaseContractTest test`
+- `mvn -Dtest=SuggestTickersServiceTest,SuggestTickersUseCaseContractTest test` (incluye test de contrato ya existente en el repositorio)
 
 ## Advertencias de SonarQube o arquitectura
 - No se detecta acoplamiento de Application con adapter HTML/JSoup.
