@@ -1,0 +1,74 @@
+<div
+  th:fragment="strategyTraceability(suggestedTickers, discardedTickers, unmappableRules)"
+  class="card mt-4"
+  th:if="${suggestedTickers != null or discardedTickers != null or unmappableRules != null}"
+>
+  <div class="card-header bg-light">
+    <h6 class="mb-0">
+      <i class="bi bi-diagram-3 me-2 text-primary"></i>
+      Trazabilidad de sugerencias
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="mb-3">
+      <p class="form-label fw-semibold small text-muted mb-1">Sugeridos</p>
+      <div
+        id="suggested-tickers-traceability"
+        th:if="${suggestedTickers != null and !suggestedTickers.isEmpty()}"
+      >
+        <span
+          class="badge text-bg-success me-1"
+          th:each="item : ${suggestedTickers}"
+          th:text="${item.ticker}"
+          >AAPL</span
+        >
+      </div>
+      <p
+        class="text-muted small mb-0"
+        th:if="${suggestedTickers == null or suggestedTickers.isEmpty()}"
+      >
+        Sin sugerencias aptas.
+      </p>
+    </div>
+
+    <div class="mb-3">
+      <p class="form-label fw-semibold small text-muted mb-1">Descartes</p>
+      <div
+        id="discarded-tickers-traceability"
+        th:if="${discardedTickers != null and !discardedTickers.isEmpty()}"
+      >
+        <span
+          class="badge text-bg-secondary me-1"
+          th:each="item : ${discardedTickers}"
+          th:text="${item.ticker}"
+          >TSLA</span
+        >
+      </div>
+      <p
+        class="text-muted small mb-0"
+        th:if="${discardedTickers == null or discardedTickers.isEmpty()}"
+      >
+        Sin descartes.
+      </p>
+    </div>
+
+    <div>
+      <p class="form-label fw-semibold small text-muted mb-1">
+        Reglas no mapeables
+      </p>
+      <ul
+        id="unmappable-rules-traceability"
+        class="mb-0"
+        th:if="${unmappableRules != null and !unmappableRules.isEmpty()}"
+      >
+        <li th:each="rule : ${unmappableRules}" th:text="${rule}">ATR(14)</li>
+      </ul>
+      <p
+        class="text-muted small mb-0"
+        th:if="${unmappableRules == null or unmappableRules.isEmpty()}"
+      >
+        Sin reglas no mapeables.
+      </p>
+    </div>
+  </div>
+</div>
