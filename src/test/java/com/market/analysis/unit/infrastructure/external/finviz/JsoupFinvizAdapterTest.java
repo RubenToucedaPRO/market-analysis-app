@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -68,6 +69,28 @@ class JsoupFinvizAdapterTest {
         List<String> tickers = adapter.findTickers("ta_sma20_pa", 10);
 
         assertThat(tickers).containsExactly("AAPL", "MSFT");
+    }
+
+    @Test
+    @DisplayName("Should retry once and recover results after transient network error")
+    void shouldRetryOnceAfterTransientFailure() {
+        AtomicInteger calls = new AtomicInteger();
+        JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
+                "https://finviz.com/screener.ashx",
+                "test-agent",
+                5000,
+                1,
+                (url, userAgent, timeoutMs) -> {
+                    if (calls.incrementAndGet() == 1) {
+                        throw new IOException("Temporary network issue");
+                    }
+                    return parseFixture("fixtures/finviz/screener-page-1.html");
+                });
+
+        List<String> tickers = adapter.findTickers("ta_sma20_pa", 2);
+
+        assertThat(tickers).containsExactly("AAPL", "MSFT");
+        assertThat(calls.get()).isEqualTo(2);
     }
 
     @Test
