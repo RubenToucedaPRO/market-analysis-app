@@ -84,8 +84,9 @@ public class SuggestTickersService implements SuggestTickersUseCase {
             return buildResponse(request.getStrategyId(), appliedFilters, executionMode, unmappableRules, warnings, List.of());
         }
 
-        log.info("suggest_tickers_candidates strategyId={} candidatesCount={}", request.getStrategyId(),
-                candidates == null ? 0 : candidates.size());
+        log.info("suggest_tickers_candidates strategyId={} candidatesCount={}",
+                request.getStrategyId(),
+                Optional.ofNullable(candidates).orElse(List.of()).size());
         List<SuggestedTickerDTO> suggestedTickers = Optional.ofNullable(candidates).orElse(List.of()).stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)

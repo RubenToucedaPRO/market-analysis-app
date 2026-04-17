@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -74,14 +73,15 @@ class JsoupFinvizAdapterTest {
     @Test
     @DisplayName("Should retry once and recover results after transient network error")
     void shouldRetryOnceAfterTransientFailure() {
-        AtomicInteger calls = new AtomicInteger();
+        int[] calls = { 0 };
         JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
                 "https://finviz.com/screener.ashx",
                 "test-agent",
                 5000,
                 1,
                 (url, userAgent, timeoutMs) -> {
-                    if (calls.incrementAndGet() == 1) {
+                    calls[0]++;
+                    if (calls[0] == 1) {
                         throw new IOException("Temporary network issue");
                     }
                     return parseFixture("fixtures/finviz/screener-page-1.html");
@@ -90,7 +90,7 @@ class JsoupFinvizAdapterTest {
         List<String> tickers = adapter.findTickers("ta_sma20_pa", 2);
 
         assertThat(tickers).containsExactly("AAPL", "MSFT");
-        assertThat(calls.get()).isEqualTo(2);
+        assertThat(calls[0]).isEqualTo(2);
     }
 
     @Test

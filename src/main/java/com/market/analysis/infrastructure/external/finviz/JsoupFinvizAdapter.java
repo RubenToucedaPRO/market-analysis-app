@@ -49,6 +49,9 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeoutMs = timeoutMs;
+        if (maxRetries < 0) {
+            log.warn("finviz_invalid_retry_config providedMaxRetries={} effectiveMaxRetries=0", maxRetries);
+        }
         this.maxRetries = Math.max(0, maxRetries);
         this.pageFetcher = pageFetcher;
     }
