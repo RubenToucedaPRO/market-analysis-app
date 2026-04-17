@@ -28,6 +28,9 @@ class JsoupFinvizAdapterTest {
                 "https://finviz.com/screener.ashx",
                 "test-agent",
                 5000,
+            1,
+            "geo_usa",
+            "ind_stocksonly",
                 (url, userAgent, timeoutMs) -> {
                     requestedUrls.add(url);
                     usedUserAgents.add(userAgent);
@@ -46,7 +49,7 @@ class JsoupFinvizAdapterTest {
         assertThat(tickers).containsExactly("AAPL", "MSFT", "GOOGL", "NVDA", "AMZN");
         assertThat(requestedUrls).anyMatch(url -> url.contains("&r=21"));
         assertThat(requestedUrls).anyMatch(url -> url.contains("&r=41"));
-        assertThat(requestedUrls).allMatch(url -> url.contains("f=ta_sma20_pa"));
+        assertThat(requestedUrls).allMatch(url -> url.contains("f=geo_usa,ind_stocksonly,ta_sma20_pa"));
         assertThat(usedUserAgents).containsOnly("test-agent");
         assertThat(usedTimeouts).containsOnly(5000);
     }
@@ -58,6 +61,9 @@ class JsoupFinvizAdapterTest {
                 "https://finviz.com/screener.ashx",
                 "test-agent",
                 5000,
+                1,
+                "geo_usa",
+                "ind_stocksonly",
                 (url, userAgent, timeoutMs) -> {
                     if (url.contains("r=1")) {
                         return parseFixture("fixtures/finviz/screener-page-1.html");
@@ -79,6 +85,8 @@ class JsoupFinvizAdapterTest {
                 "test-agent",
                 5000,
                 1,
+                "geo_usa",
+                "ind_stocksonly",
                 (url, userAgent, timeoutMs) -> {
                     calls[0]++;
                     if (calls[0] == 1) {
@@ -100,6 +108,9 @@ class JsoupFinvizAdapterTest {
                 "https://finviz.com/screener.ashx",
                 "test-agent",
                 5000,
+            1,
+            "geo_usa",
+            "ind_stocksonly",
                 (url, userAgent, timeoutMs) -> parseFixture("fixtures/finviz/screener-structure-changed.html"));
 
         List<String> tickers = adapter.findTickers("ta_sma20_pa", 5);
@@ -114,11 +125,36 @@ class JsoupFinvizAdapterTest {
                 "https://finviz.com/screener.ashx",
                 "test-agent",
                 5000,
+            1,
+            "geo_usa",
+            "ind_stocksonly",
                 (url, userAgent, timeoutMs) -> parseFixture("fixtures/finviz/screener-page-1.html"));
 
         List<String> tickers = adapter.findTickers("ta_sma20_pa", 0);
 
         assertThat(tickers).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should prepend mandatory geo and industry filters even when the request already has filters")
+    void shouldAlwaysPrependMandatoryFilters() {
+        List<String> requestedUrls = new ArrayList<>();
+        JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
+                "https://finviz.com/screener.ashx",
+                "test-agent",
+                5000,
+                1,
+                "geo_usa",
+                "ind_stocksonly",
+                (url, userAgent, timeoutMs) -> {
+                    requestedUrls.add(url);
+                    return parseFixture("fixtures/finviz/screener-page-1.html");
+                });
+
+        adapter.findTickers("ta_sma50_pa", 1);
+
+        assertThat(requestedUrls).hasSize(1);
+        assertThat(requestedUrls.get(0)).contains("f=geo_usa,ind_stocksonly,ta_sma50_pa");
     }
 
     private static Document parseFixture(String resourcePath) throws IOException {

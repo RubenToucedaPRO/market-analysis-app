@@ -29,6 +29,8 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
     private final String userAgent;
     private final int timeoutMs;
     private final int maxRetries;
+    private final String defaultCountryFilter;
+    private final String defaultIndustryFilter;
     private final FinvizPageFetcher pageFetcher;
 
     @Autowired
@@ -36,21 +38,22 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
             @Value("${finviz.base.url:https://finviz.com/screener.ashx}") String baseUrl,
             @Value("${finviz.user-agent:Mozilla/5.0}") String userAgent,
             @Value("${finviz.timeout-ms:8000}") int timeoutMs,
-            @Value("${finviz.max-retries:1}") int maxRetries) {
-        this(baseUrl, userAgent, timeoutMs, maxRetries, (url, configuredUserAgent, configuredTimeout) -> Jsoup.connect(url)
+            @Value("${finviz.max-retries:1}") int maxRetries,
+            @Value("${finviz.default.country-filter:geo_usa}") String defaultCountryFilter,
+            @Value("${finviz.default.industry-filter:ind_stocksonly}") String defaultIndustryFilter) {
+        this(baseUrl, userAgent, timeoutMs, maxRetries, defaultCountryFilter, defaultIndustryFilter, (url, configuredUserAgent, configuredTimeout) -> Jsoup.connect(url)
                 .userAgent(configuredUserAgent)
                 .timeout(configuredTimeout)
                 .get());
     }
 
-    public JsoupFinvizAdapter(String baseUrl, String userAgent, int timeoutMs, FinvizPageFetcher pageFetcher) {
-        this(baseUrl, userAgent, timeoutMs, 1, pageFetcher);
-    }
-
-    public JsoupFinvizAdapter(String baseUrl, String userAgent, int timeoutMs, int maxRetries, FinvizPageFetcher pageFetcher) {
+    public JsoupFinvizAdapter(String baseUrl, String userAgent, int timeoutMs, int maxRetries,
+            String defaultCountryFilter, String defaultIndustryFilter, FinvizPageFetcher pageFetcher) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeoutMs = timeoutMs;
+        this.defaultCountryFilter = defaultCountryFilter;
+        this.defaultIndustryFilter = defaultIndustryFilter;
         if (maxRetries < 0) {
             log.warn("finviz_invalid_retry_config providedMaxRetries={} effectiveMaxRetries=0", maxRetries);
         }
@@ -128,10 +131,18 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
                 .queryParam("v", "111")
                 .queryParam("r", rowStart);
 
-        if (filters != null && !filters.isBlank()) {
-            builder.queryParam("f", filters);
+        String effectiveFilters = buildEffectiveFilters(filters);
+        if (!effectiveFilters.isBlank()) {
+            builder.queryParam("f", effectiveFilters);
         }
         return builder.build().encode().toUriString();
+    }
+
+    private String buildEffectiveFilters(String filters) {
+        if (filters == null || filters.isBlank()) {
+            return defaultCountryFilter + "," + defaultIndustryFilter;
+        }
+        return defaultCountryFilter + "," + defaultIndustryFilter + "," + filters.trim();
     }
 
     private List<String> extractTickers(Document page) {
