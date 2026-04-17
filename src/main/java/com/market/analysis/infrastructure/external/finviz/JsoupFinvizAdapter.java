@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -30,6 +31,7 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
     private final int maxRetries;
     private final FinvizPageFetcher pageFetcher;
 
+    @Autowired
     public JsoupFinvizAdapter(
             @Value("${finviz.base.url:https://finviz.com/screener.ashx}") String baseUrl,
             @Value("${finviz.user-agent:Mozilla/5.0}") String userAgent,
