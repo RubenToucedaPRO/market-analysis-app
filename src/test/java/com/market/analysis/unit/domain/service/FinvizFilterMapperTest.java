@@ -10,12 +10,12 @@ import org.junit.jupiter.api.Test;
 
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
 import com.market.analysis.domain.model.Rule;
-import com.market.analysis.domain.service.FinvizFilterMapper;
+import com.market.analysis.domain.service.FinvizFilterMapperImpl;
 
 @DisplayName("FinvizFilterMapper Domain Service Tests")
 class FinvizFilterMapperTest {
 
-    private final FinvizFilterMapper mapper = new FinvizFilterMapper();
+    private final FinvizFilterMapperImpl mapper = new FinvizFilterMapperImpl();
 
     @Test
     @DisplayName("Should map supported rules to Finviz filters")

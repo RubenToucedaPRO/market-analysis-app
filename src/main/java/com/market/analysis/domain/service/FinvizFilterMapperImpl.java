@@ -14,7 +14,7 @@ import com.market.analysis.domain.model.Rule;
  * Pure domain mapper that translates internal deterministic rules to Finviz
  * filter codes when an equivalent filter exists.
  */
-public class FinvizFilterMapper {
+public class FinvizFilterMapperImpl {
 
     private static final Map<String, String> OPERATOR_ALIASES = Map.of(
             ">", ">",
