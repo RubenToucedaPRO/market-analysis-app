@@ -88,7 +88,13 @@ public class FinvizFilterMapper {
     }
 
     private Double normalizeParam(Double param) {
-        return param == null ? null : (double) param.intValue();
+        if (param == null) {
+            return null;
+        }
+        if (Math.floor(param) == param) {
+            return Double.valueOf(param.intValue());
+        }
+        return param;
     }
 
     private String normalizeOperator(String operator) {
@@ -96,12 +102,12 @@ public class FinvizFilterMapper {
             return null;
         }
         String normalized = operator.toUpperCase(Locale.ROOT).trim();
-        return OPERATOR_ALIASES.getOrDefault(normalized, operator.trim());
+        return OPERATOR_ALIASES.getOrDefault(normalized, normalized);
     }
 
     private String describe(Rule rule) {
         return formatIndicator(rule.getSubjectCode(), rule.getSubjectParam())
-                + " " + String.valueOf(rule.getOperator()) + " "
+                + " " + rule.getOperator() + " "
                 + formatIndicator(rule.getTargetCode(), rule.getTargetParam());
     }
 
@@ -112,7 +118,11 @@ public class FinvizFilterMapper {
         if (param == null) {
             return code.toUpperCase(Locale.ROOT).trim();
         }
-        return code.toUpperCase(Locale.ROOT).trim() + "(" + param.intValue() + ")";
+        return code.toUpperCase(Locale.ROOT).trim() + "(" + formatParam(param) + ")";
+    }
+
+    private String formatParam(Double param) {
+        return Math.floor(param) == param ? Integer.toString(param.intValue()) : param.toString();
     }
 
     private record RulePattern(String subjectCode, Double subjectParam, String operator, String targetCode, Double targetParam) {

@@ -2,7 +2,7 @@ package com.market.analysis.unit.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -97,7 +97,11 @@ class FinvizFilterMapperTest {
     @Test
     @DisplayName("Should mark null rules as unmappable")
     void shouldMarkNullRulesAsUnmappable() {
-        FinvizFilterMappingResult result = mapper.map(Arrays.asList(rule("PRICE", null, "<", "SMA", 200.0), null));
+        List<Rule> rules = new ArrayList<>();
+        rules.add(rule("PRICE", null, "<", "SMA", 200.0));
+        rules.add(null);
+
+        FinvizFilterMappingResult result = mapper.map(rules);
 
         assertThat(result.getFilters()).isEqualTo("ta_sma200_pb");
         assertThat(result.getUnmappableRules()).containsExactly("NULL_RULE");
