@@ -46,6 +46,7 @@ import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 import com.market.analysis.domain.service.FinvizFilterMapperImpl;
 import com.market.analysis.domain.service.PromptBuilder;
+import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
 import com.market.analysis.domain.service.PromptResponseValidator;
 import com.market.analysis.domain.service.RiskRewardCalculator;
 import com.market.analysis.domain.service.RuleEvaluator;
@@ -94,18 +95,20 @@ public class BeanConfig {
 
     @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
-            CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
+            CompanyProfileRepository companyProfileRepository, ProhibitedKeywordRepository prohibitedKeywordRepository,
+            ProhibitedTickerRepository prohibitedTickerRepository,
             StrategyEvaluationRepository strategyEvaluationRepository,
             ApiCallRateRepository apiCallRateRepository, CandleHistoryRepository candleHistoryRepository,
             StrategyRepository strategyRepository,
             StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
             ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
-            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
+            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService,
+            ProhibitedKeywordMatcher prohibitedKeywordMatcher) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
+                prohibitedKeywordRepository, prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
                 candleHistoryRepository, strategyRepository, stockProviderPort, historicalProviderPort, apiIAPort,
                 stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder(),
-                promptResponseValidator());
+                prohibitedKeywordMatcher, promptResponseValidator());
     }
 
     @Bean
@@ -121,6 +124,11 @@ public class BeanConfig {
     @Bean
     public PromptBuilder promptBuilder() {
         return new PromptBuilder();
+    }
+
+    @Bean
+    public ProhibitedKeywordMatcher prohibitedKeywordMatcher() {
+        return new ProhibitedKeywordMatcher();
     }
 
     @Bean

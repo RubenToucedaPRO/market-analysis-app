@@ -17,6 +17,7 @@ import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
+import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
@@ -29,6 +30,7 @@ import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
+import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
@@ -36,6 +38,7 @@ import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.PromptBuilder;
+import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
 import com.market.analysis.domain.service.PromptResponseValidator;
 import com.market.analysis.domain.service.StockHistoricalService;
 
@@ -54,6 +57,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private final StockDataRepository stockDataRepository;
     private final CompanyProfileRepository companyProfileRepository;
+    private final ProhibitedKeywordRepository prohibitedKeywordRepository;
     private final ProhibitedTickerRepository prohibitedTickerRepository;
     private final StrategyEvaluationRepository strategyEvaluationRepository;
     private final ApiCallRateRepository apiCallRateRepository;
@@ -68,6 +72,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockHistoricalService stockHistoricalService;
     private final EvaluateStrategyService evaluateStrategyService;
     private final PromptBuilder promptBuilder;
+    private final ProhibitedKeywordMatcher prohibitedKeywordMatcher;
     private final PromptResponseValidator promptResponseValidator;
     private final AtomicLong aiRequests = new AtomicLong(0);
     private final AtomicLong aiValidResponses = new AtomicLong(0);
@@ -212,17 +217,23 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             log.warn("No company profile found for ticker {}, skipping", ticker);
             return;
         }
-        if (companyProfile.isProhibited()) {
+        String prohibitionReason = resolveProhibitionReason(companyProfile);
+        if (prohibitionReason != null) {
             ProhibitedTicker newProhibitedTicker = ProhibitedTicker.createProhibited(ticker,
-                    companyProfile.getProhibitionReason());
+                    prohibitionReason);
             prohibitedTickerRepository.save(newProhibitedTicker);
             log.info("Ticker {} marked as prohibited based on company profile by '{}'", ticker,
-                    companyProfile.getProhibitionReason());
+                    prohibitionReason);
             return;
         }
         validTickers.add(ticker);
         companyProfileRepository.save(companyProfile);
         log.info("Company profile for ticker {} saved/updated successfully", ticker);
+    }
+
+    private String resolveProhibitionReason(CompanyProfile companyProfile) {
+        List<ProhibitedKeyword> prohibitedKeywords = prohibitedKeywordRepository.findAll();
+        return prohibitedKeywordMatcher.findProhibitionReason(companyProfile.getName(), prohibitedKeywords);
     }
 
     private Stock getDataFromProvider(String ticker) {
