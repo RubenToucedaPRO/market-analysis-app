@@ -35,7 +35,7 @@
 ## 2) Objetivos funcionales solicitados
 
 1. **Persistir** los datos necesarios de cada ticker sugerido y mostrarlos en `detail` hasta una nueva ejecución, incluyendo la **fecha de sugerencia**.
-2. Si se pulsa **"Añadir tickets sugeridos"**, añadir esos tickers a analizados **sin recurrir a APIs externas**.
+2. Si se pulsa **"Añadir tickers sugeridos"**, añadir esos tickers a analizados **sin recurrir a APIs externas**.
 
 ---
 
@@ -84,7 +84,7 @@
 - Actualizar botón de UI para apuntar al nuevo endpoint/caso de uso.
 
 ### Resultado esperado
-- Pulsar **"Añadir tickets sugeridos"** agrega tickers a análisis usando datos ya guardados.
+- Pulsar **"Añadir tickers sugeridos"** agrega tickers a análisis usando datos ya guardados.
 
 ## Fase 4 — Reconciliación y refresco opcional posterior
 **Objetivo:** mantener coherencia temporal sin bloquear el alta offline.
