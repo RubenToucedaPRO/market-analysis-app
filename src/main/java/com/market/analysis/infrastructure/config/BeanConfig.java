@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 import com.market.analysis.application.mapper.CandleDTOMapper;
+import com.market.analysis.application.mapper.ProhibitedKeywordDTOMapper;
 import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
@@ -17,11 +18,13 @@ import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.DefaultDeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.DeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
+import com.market.analysis.application.usecase.ManageProhibitedKeywordService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
 import com.market.analysis.application.usecase.SuggestTickersService;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
+import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
@@ -32,6 +35,7 @@ import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
+import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
@@ -79,6 +83,13 @@ public class BeanConfig {
     public ManageProhibitedTickerUseCase manageProhibitedTickerUseCase(
             ProhibitedTickerRepository prohibitedTickerRepository, ProhibitedTickerDTOMapper prohibitedTickerMapper) {
         return new ManageProhibitedTickerService(prohibitedTickerRepository, prohibitedTickerMapper);
+    }
+
+    @Bean
+    public ManageProhibitedKeywordUseCase manageProhibitedKeywordUseCase(
+            ProhibitedKeywordRepository prohibitedKeywordRepository,
+            ProhibitedKeywordDTOMapper prohibitedKeywordMapper) {
+        return new ManageProhibitedKeywordService(prohibitedKeywordRepository, prohibitedKeywordMapper);
     }
 
     @Bean
