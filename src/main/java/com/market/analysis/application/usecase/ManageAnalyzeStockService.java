@@ -90,7 +90,8 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + strategyId));
 
         List<String> tickerList = parseTickers(tickers);
-        List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList);
+        List<ProhibitedKeyword> prohibitedKeywords = prohibitedKeywordRepository.findAll();
+        List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList, prohibitedKeywords);
 
         for (String ticker : validTickers) {
             Stock stock = getDataFromProvider(ticker);
@@ -180,12 +181,13 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
      * 
      * @param tickerList
      */
-    private List<String> validateAndUpdateCompanyProfiles(List<String> tickerList) {
+    private List<String> validateAndUpdateCompanyProfiles(List<String> tickerList,
+            List<ProhibitedKeyword> prohibitedKeywords) {
         List<String> validTickers = new ArrayList<>();
 
         for (String ticker : tickerList) {
             if (isCompanyUpdateRequired(ticker)) {
-                updateCompanyProfile(validTickers, ticker);
+                updateCompanyProfile(validTickers, ticker, prohibitedKeywords);
             } else {
                 validTickers.add(ticker);
             }
@@ -207,7 +209,8 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         return companyProfile == null || (companyProfile.getLastUpdated() == null || companyProfile.isOutdated());
     }
 
-    private void updateCompanyProfile(List<String> validTickers, String ticker) {
+    private void updateCompanyProfile(List<String> validTickers, String ticker,
+            List<ProhibitedKeyword> prohibitedKeywords) {
         if (prohibitedTickerRepository.existsByTicker(ticker)) {
             log.info("Ticker {} is already marked as prohibited, skipping profile check", ticker);
             return;
@@ -217,7 +220,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             log.warn("No company profile found for ticker {}, skipping", ticker);
             return;
         }
-        String prohibitionReason = resolveProhibitionReason(companyProfile);
+        String prohibitionReason = resolveProhibitionReason(companyProfile, prohibitedKeywords);
         if (prohibitionReason != null) {
             ProhibitedTicker newProhibitedTicker = ProhibitedTicker.createProhibited(ticker,
                     prohibitionReason);
@@ -231,8 +234,8 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         log.info("Company profile for ticker {} saved/updated successfully", ticker);
     }
 
-    private String resolveProhibitionReason(CompanyProfile companyProfile) {
-        List<ProhibitedKeyword> prohibitedKeywords = prohibitedKeywordRepository.findAll();
+    private String resolveProhibitionReason(CompanyProfile companyProfile,
+            List<ProhibitedKeyword> prohibitedKeywords) {
         return prohibitedKeywordMatcher.findProhibitionReason(companyProfile.getName(), prohibitedKeywords);
     }
 

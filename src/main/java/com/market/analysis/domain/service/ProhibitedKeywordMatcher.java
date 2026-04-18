@@ -8,6 +8,10 @@ import com.market.analysis.domain.model.ProhibitedKeyword;
 
 public class ProhibitedKeywordMatcher {
 
+    /**
+     * Temporary fallback used during keyword migration (phase 3).
+     * Must be removed after phase 6 seed/rollout when DB-managed keywords are guaranteed.
+     */
     private static final List<String> FALLBACK_PROHIBITED_KEYWORDS = List.of(
             "ACQUISITION", "MERGER", "ETF", "FUND", "TRUST",
             "BULL", "BEAR", "2X", "3X",
