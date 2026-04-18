@@ -1,7 +1,7 @@
 # Task: Plan de mejora para gestión de keywords de tickers prohibidos
 
 ## Resumen de la tarea
-- Se analiza el estado actual de la prohibición de tickers: la detección por keyword está hardcodeado en `CompanyProfile` (`PROHIBITED_KEYWORDS`) y la vista `/prohibited-tickers` solo permite listar/eliminar tickers ya bloqueados.
+- Se analiza el estado actual de la prohibición de tickers: la detección por keyword está hardcodeada en `CompanyProfile` (`PROHIBITED_KEYWORDS`) y la vista `/prohibited-tickers` solo permite listar/eliminar tickers ya bloqueados.
 - Se define una planificación por fases para migrar la lista de keywords prohibidas a base de datos y hacerla visible/editable en un lateral de la vista de tickers prohibidos.
 - No se implementan cambios funcionales en esta tarea: el objetivo es dejar un plan ejecutable y ordenado para desarrollo incremental.
 
@@ -22,7 +22,9 @@
 2. Crear puerto de salida `ProhibitedKeywordRepository` con operaciones mínimas: listar, crear, eliminar, existencia por keyword.
 3. Crear entidad JPA `ProhibitedKeywordEntity` y tabla `prohibited_keywords`.
 4. Crear repositorio JPA e implementación SQL del puerto.
-5. Definir restricción única para `keyword` y normalización a mayúsculas en capa Application antes de persistir (misma normalización en búsquedas y validaciones) para mantener consistencia e independencia del motor de BD.
+5. Definir restricción única para `keyword`.
+6. Aplicar normalización a mayúsculas en capa Application antes de persistir.
+7. Reusar esa misma normalización en búsquedas y validaciones para mantener consistencia e independencia del motor de BD.
 
 ### Fase 2 — Caso de uso de gestión de keywords
 1. Crear `ManageProhibitedKeywordUseCase` en `domain.port.in`.
@@ -36,7 +38,7 @@
 ### Fase 3 — Integración con lógica de bloqueo actual
 1. Extraer la lógica hardcodeada de `CompanyProfile` para que deje de depender de lista estática.
 2. Introducir servicio de dominio (ej. `ProhibitedKeywordMatcher`) que reciba la lista desde repositorio/caso de uso.
-3. Ajustar `ManageAnalyzeStockService` para usar el matcher y mantener el mismo resultado funcional (`isProhibited`/razón).
+3. Ajustar `ManageAnalyzeStockService` para usar el matcher y mantener el mismo resultado funcional (`isProhibited`/`reason`).
 4. Estrategia de transición: fallback temporal a lista estática solo si la tabla está vacía (retirable en fase final).
 
 ### Fase 4 — UI: lista lateral visible y editable en `/prohibited-tickers`
