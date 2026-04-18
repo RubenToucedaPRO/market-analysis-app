@@ -11,13 +11,21 @@
   >
     <div class="d-flex align-items-center">
       <i
-        class="bi fs-5 me-3"
-        th:classappend="${uiNotification.type == 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"
+        class="bi fs-5 me-3 bi-check-circle-fill"
+        th:if="${uiNotification.type == 'success'}"
+      ></i>
+      <i
+        class="bi fs-5 me-3 bi-exclamation-circle-fill"
+        th:if="${uiNotification.type == 'warning'}"
+      ></i>
+      <i
+        class="bi fs-5 me-3 bi-exclamation-triangle-fill"
+        th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
       ></i>
       <div>
-        <strong
-          th:text="${uiNotification.type == 'success' ? '¡Éxito!' : 'Aviso'}"
-        ></strong>
+        <strong th:if="${uiNotification.type == 'success'}">¡Éxito!</strong>
+        <strong th:if="${uiNotification.type == 'warning'}">Parcial</strong>
+        <strong th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}">Aviso</strong>
         <div th:text="${uiNotification.text}" class="small"></div>
       </div>
       <button
@@ -37,9 +45,19 @@
       "
     >
       <div
-        class="progress-bar js-notification-progress"
-        th:classappend="${uiNotification.type == 'success' ? 'bg-success' : 'bg-danger'}"
+        class="progress-bar js-notification-progress bg-success"
         style="width: 100%"
+        th:if="${uiNotification.type == 'success'}"
+      ></div>
+      <div
+        class="progress-bar js-notification-progress bg-warning"
+        style="width: 100%"
+        th:if="${uiNotification.type == 'warning'}"
+      ></div>
+      <div
+        class="progress-bar js-notification-progress bg-danger"
+        style="width: 100%"
+        th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
       ></div>
     </div>
   </div>

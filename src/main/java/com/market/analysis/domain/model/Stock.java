@@ -100,4 +100,36 @@ public class Stock {
     // ATR
     private BigDecimal atr14;
 
+    /**
+     * Applies technical indicators to this stock snapshot.
+     *
+     * @param indicators technical indicators calculated for the same ticker; if
+     *                   null, the stock remains unchanged.
+     */
+    public void applyTechnicalIndicators(TechnicalIndicators indicators) {
+        if (indicators == null) {
+            return;
+        }
+        this.sma20 = indicators.getSma20();
+        this.sma50 = indicators.getSma50();
+        this.sma200 = indicators.getSma200();
+        this.volume = indicators.getCurrentVolume();
+        this.averageVolume = indicators.getAverageVolume();
+        this.lastUpdated = indicators.getLastUpdated();
+        this.ema9 = indicators.getEma9();
+        this.ema12 = indicators.getEma12();
+        this.ema20 = indicators.getEma20();
+        this.ema26 = indicators.getEma26();
+        this.ema50 = indicators.getEma50();
+        this.ema200 = indicators.getEma200();
+        this.rsi14 = indicators.getRsi14();
+        this.rsi30 = indicators.getRsi30();
+        this.macdLine = indicators.getMacdLine();
+        this.macdSignal = indicators.getMacdSignal();
+        this.macdHistogram = indicators.getMacdHistogram();
+        this.bbUpper20 = indicators.getBbUpper20();
+        this.bbLower20 = indicators.getBbLower20();
+        this.atr14 = indicators.getAtr14();
+    }
+
 }

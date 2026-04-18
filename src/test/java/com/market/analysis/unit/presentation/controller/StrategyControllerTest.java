@@ -2,27 +2,32 @@ package com.market.analysis.unit.presentation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.RuleDTO;
+import com.market.analysis.application.dto.SuggestTickersResponseDTO;
+import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
@@ -41,6 +46,9 @@ class StrategyControllerTest {
     private ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
 
     @Mock
+    private SuggestTickersUseCase suggestTickersUseCase;
+
+    @Mock
     private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
 
     @Mock
@@ -52,7 +60,6 @@ class StrategyControllerTest {
     @Mock
     private org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes;
 
-    @InjectMocks
     private StrategyController strategyController;
 
     private StrategyDTO testStrategyDTO;
@@ -60,6 +67,11 @@ class StrategyControllerTest {
 
     @BeforeEach
     void setUp() {
+        strategyController = new StrategyController(
+                manageStrategyUseCase,
+                manageRuleDefinitionUseCase,
+                Optional.of(suggestTickersUseCase));
+
         testRuleDTO = RuleDTO.builder()
                 .id(1L)
                 .name("Test Rule")
@@ -228,5 +240,94 @@ class StrategyControllerTest {
         assertEquals("strategies/detail", viewName);
         verify(manageStrategyUseCase, times(1)).getStrategyById(1L);
         verify(model, times(1)).addAttribute("strategy", testStrategyDTO);
+    }
+
+    @Test
+    @DisplayName("Should suggest tickers with success notification")
+    void testSuggestTickersFromMarketSuccess() {
+        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
+                .suggestedTickers(List.of(SuggestedTickerDTO.builder()
+                        .ticker("AAPL")
+                        .suitabilityStatus(TickerSuitabilityStatus.APTO)
+                        .build()))
+                .unmappableRules(List.of())
+                .build();
+        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
+
+        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(suggestTickersUseCase).suggestTickers(any());
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Sugerencias generadas correctamente desde mercado."));
+    }
+
+    @Test
+    @DisplayName("Should suggest tickers with partial notification when there are discards")
+    void testSuggestTickersFromMarketPartial() {
+        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
+                .suggestedTickers(List.of(SuggestedTickerDTO.builder()
+                        .ticker("TSLA")
+                        .suitabilityStatus(TickerSuitabilityStatus.NO_APTO)
+                        .build()))
+                .unmappableRules(List.of())
+                .build();
+        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
+
+        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
+    }
+
+    @Test
+    @DisplayName("Should suggest tickers with partial notification when there are warnings")
+    void testSuggestTickersFromMarketPartialWithWarnings() {
+        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
+                .suggestedTickers(List.of())
+                .unmappableRules(List.of())
+                .warnings(List.of("finviz degraded"))
+                .build();
+        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
+
+        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
+    }
+
+    @Test
+    @DisplayName("Should return error notification when suggest use case fails")
+    void testSuggestTickersFromMarketError() {
+        when(suggestTickersUseCase.suggestTickers(any())).thenThrow(new RuntimeException("boom"));
+
+        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("No se pudo sugerir tickers desde mercado en este momento."));
+    }
+
+    @Test
+    @DisplayName("Should return error notification when suggest use case is unavailable")
+    void testSuggestTickersFromMarketUnavailable() {
+        strategyController = new StrategyController(
+                manageStrategyUseCase,
+                manageRuleDefinitionUseCase,
+                Optional.empty());
+
+        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(suggestTickersUseCase, never()).suggestTickers(any());
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("La sugerencia de tickers desde mercado no está disponible todavía."));
     }
 }

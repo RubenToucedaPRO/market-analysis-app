@@ -266,33 +266,48 @@
                 </div>
               </div>
             </div>
-            <!-- Action Buttons -->
-            <div class="strategy-actions">
-              <form th:action="@{/strategies/edit}" method="post">
-                <input type="hidden" name="id" th:value="${strategy.id}" />
-                <button type="submit" class="btn btn-outline-primary">
-                  <i class="bi bi-pencil-square me-1"></i>
-                  Editar
-                </button>
-              </form>
-
-              <form th:action="@{/strategies/delete}" method="post">
-                <input type="hidden" name="id" th:value="${strategy.id}" />
-                <button
-                  type="submit"
-                  class="btn btn-outline-danger"
-                  onclick="
-                    return confirm(
-                      '¿Estás seguro de borrar esta estrategia? Esta acción no se puede deshacer.',
-                    );
-                  "
-                >
-                  <i class="bi bi-trash me-1"></i>
-                  Eliminar
-                </button>
-              </form>
-            </div>
           </div>
+
+          <!-- Action Buttons -->
+          <div class="strategy-actions">
+            <form
+              th:action="@{/strategies/{id}/suggest-tickers(id=${strategy.id})}"
+              method="post"
+            >
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-lightning-charge me-1"></i>
+                Sugerir tickers desde mercado
+              </button>
+            </form>
+
+            <form th:action="@{/strategies/edit}" method="post">
+              <input type="hidden" name="id" th:value="${strategy.id}" />
+              <button type="submit" class="btn btn-outline-primary">
+                <i class="bi bi-pencil-square me-1"></i>
+                Editar
+              </button>
+            </form>
+
+            <form th:action="@{/strategies/delete}" method="post">
+              <input type="hidden" name="id" th:value="${strategy.id}" />
+              <button
+                type="submit"
+                class="btn btn-outline-danger"
+                onclick="
+                  return confirm(
+                    '¿Estás seguro de borrar esta estrategia? Esta acción no se puede deshacer.',
+                  );
+                "
+              >
+                <i class="bi bi-trash me-1"></i>
+                Eliminar
+              </button>
+            </form>
+          </div>
+
+          <div
+            th:replace="~{fragments/strategy-traceability :: strategyTraceability(strategyId=${strategy.id}, suggestedTickers=${suggestedTickers}, discardedTickers=${discardedTickers}, unmappableRules=${unmappableRules})}"
+          ></div>
         </div>
       </div>
     </main>
