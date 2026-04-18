@@ -1,5 +1,6 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,8 +46,8 @@ public class SqlProhibitedKeywordRepository implements ProhibitedKeywordReposito
             ProhibitedKeyword normalized = ProhibitedKeyword.builder()
                     .keyword(normalizedKeyword)
                     .active(prohibitedKeyword.isActive())
-                    .createdAt(prohibitedKeyword.getCreatedAt())
-                    .updatedAt(prohibitedKeyword.getUpdatedAt())
+                    .createdAt(resolveCreatedAt(prohibitedKeyword))
+                    .updatedAt(resolveUpdatedAt(prohibitedKeyword))
                     .build();
 
             ProhibitedKeywordEntity entity = prohibitedKeywordMapper.toEntity(normalized);
@@ -70,5 +71,16 @@ public class SqlProhibitedKeywordRepository implements ProhibitedKeywordReposito
             throw new IllegalArgumentException("Keyword must not be null or blank");
         }
         return keyword.trim().toUpperCase(Locale.ROOT);
+    }
+
+    private Instant resolveCreatedAt(ProhibitedKeyword prohibitedKeyword) {
+        return prohibitedKeyword.getCreatedAt() != null ? prohibitedKeyword.getCreatedAt() : Instant.now();
+    }
+
+    private Instant resolveUpdatedAt(ProhibitedKeyword prohibitedKeyword) {
+        if (prohibitedKeyword.getUpdatedAt() != null) {
+            return prohibitedKeyword.getUpdatedAt();
+        }
+        return prohibitedKeyword.getCreatedAt() != null ? prohibitedKeyword.getCreatedAt() : Instant.now();
     }
 }

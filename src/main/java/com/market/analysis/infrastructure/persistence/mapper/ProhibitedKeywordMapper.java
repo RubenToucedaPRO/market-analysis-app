@@ -1,7 +1,5 @@
 package com.market.analysis.infrastructure.persistence.mapper;
 
-import java.time.Instant;
-
 import org.springframework.stereotype.Component;
 
 import com.market.analysis.domain.model.ProhibitedKeyword;
@@ -15,12 +13,11 @@ public class ProhibitedKeywordMapper {
             return null;
         }
 
-        Instant now = Instant.now();
         ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
         entity.setKeyword(prohibitedKeyword.getKeyword());
         entity.setActive(prohibitedKeyword.isActive());
-        entity.setCreatedAt(prohibitedKeyword.getCreatedAt() != null ? prohibitedKeyword.getCreatedAt() : now);
-        entity.setUpdatedAt(prohibitedKeyword.getUpdatedAt() != null ? prohibitedKeyword.getUpdatedAt() : now);
+        entity.setCreatedAt(prohibitedKeyword.getCreatedAt());
+        entity.setUpdatedAt(prohibitedKeyword.getUpdatedAt());
         return entity;
     }
 
