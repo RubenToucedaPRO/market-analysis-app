@@ -1,7 +1,7 @@
 # Task: Plan de mejora para gestión de keywords de tickers prohibidos
 
 ## Resumen de la tarea
-- Se analiza el estado actual de la prohibición de tickers: la detección por keyword está hardcodeada en `CompanyProfile` (`PROHIBITED_KEYWORDS`) y la vista `/prohibited-tickers` solo permite listar/eliminar tickers ya bloqueados.
+- Se analiza el estado actual de la prohibición de tickers: la detección por keyword está hardcodeado en `CompanyProfile` (`PROHIBITED_KEYWORDS`) y la vista `/prohibited-tickers` solo permite listar/eliminar tickers ya bloqueados.
 - Se define una planificación por fases para migrar la lista de keywords prohibidas a base de datos y hacerla visible/editable en un lateral de la vista de tickers prohibidos.
 - No se implementan cambios funcionales en esta tarea: el objetivo es dejar un plan ejecutable y ordenado para desarrollo incremental.
 
@@ -22,7 +22,7 @@
 2. Crear puerto de salida `ProhibitedKeywordRepository` con operaciones mínimas: listar, crear, eliminar, existencia por keyword.
 3. Crear entidad JPA `ProhibitedKeywordEntity` y tabla `prohibited_keywords`.
 4. Crear repositorio JPA e implementación SQL del puerto.
-5. Definir restricción única para `keyword` y normalización a mayúsculas para comparaciones consistentes.
+5. Definir restricción única para `keyword` y normalización a mayúsculas en capa Application antes de persistir (misma normalización en búsquedas y validaciones) para mantener consistencia e independencia del motor de BD.
 
 ### Fase 2 — Caso de uso de gestión de keywords
 1. Crear `ManageProhibitedKeywordUseCase` en `domain.port.in`.
@@ -44,6 +44,7 @@
 2. Modificar `templates/prohibited-tickers/list.html`:
    - Mantener tabla principal de tickers prohibidos.
    - Añadir panel lateral (sidebar) con listado de keywords.
+   - Hacer el sidebar responsive/collapsible en móvil (Bootstrap 5) para preservar usabilidad y accesibilidad.
    - Añadir formulario de alta rápida de keyword.
    - Añadir acción de borrado por keyword.
 3. Mantener mensajes flash (`UiNotification`) y estilo Bootstrap existentes.
