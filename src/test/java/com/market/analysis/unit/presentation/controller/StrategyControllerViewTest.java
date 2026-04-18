@@ -137,6 +137,7 @@ class StrategyControllerViewTest {
                 .rules(List.of())
                 .build();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
 
         mockMvc.perform(get("/strategies/1"))
                 .andExpect(status().isOk())

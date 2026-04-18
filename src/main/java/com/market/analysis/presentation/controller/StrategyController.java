@@ -172,7 +172,7 @@ public class StrategyController {
             return;
         }
         Optional<SuggestTickersResponseDTO> snapshot = suggestTickersUseCase.get().getLatestSuggestionSnapshot(strategyId);
-        if (snapshot == null || snapshot.isEmpty()) {
+        if (snapshot.isEmpty()) {
             return;
         }
 
