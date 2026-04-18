@@ -30,6 +30,7 @@ import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.StrategyObjective;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 
 @DisplayName("SuggestTickersService Unit Tests")
@@ -47,6 +48,9 @@ class SuggestTickersServiceTest {
 
     @Mock
     private DeterministicTickerEvaluator deterministicTickerEvaluator;
+
+    @Mock
+    private SuggestionSnapshotRepository suggestionSnapshotRepository;
 
     @InjectMocks
     private SuggestTickersService suggestTickersService;
@@ -81,9 +85,11 @@ class SuggestTickersServiceTest {
         assertThat(result.getUnmappableRules()).containsExactly("MACD");
         assertThat(result.getWarnings()).containsExactly("Partial mapping used");
         assertThat(result.getSuggestedTickers()).hasSize(2);
+        assertThat(result.getSuggestedAt()).isNotNull();
         assertThat(result.getSuggestedTickers().get(0).getSuitabilityStatus()).isEqualTo(TickerSuitabilityStatus.APTO);
         assertThat(result.getSuggestedTickers().get(1).getSuitabilityStatus()).isEqualTo(TickerSuitabilityStatus.NO_APTO);
         assertThat(result.getSuggestedTickers().get(1).getTraceability()).containsExactly("Rule RSI failed");
+        verify(suggestionSnapshotRepository).save(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -173,8 +179,35 @@ class SuggestTickersServiceTest {
         assertThat(result.getSuggestedTickers()).isEmpty();
         assertThat(result.getWarnings())
                 .contains("Finviz no está disponible temporalmente; la sugerencia se ha degradado sin resultados.");
+        verify(suggestionSnapshotRepository).save(org.mockito.ArgumentMatchers.any());
         verify(deterministicTickerEvaluator, never()).evaluate(org.mockito.ArgumentMatchers.anyString(),
                 org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    @DisplayName("Should return latest persisted snapshot")
+    void shouldReturnLatestPersistedSnapshot() {
+        com.market.analysis.domain.model.SuggestionSnapshot snapshot = com.market.analysis.domain.model.SuggestionSnapshot.builder()
+                .strategyId(99L)
+                .suggestedAt(java.time.Instant.parse("2026-04-18T12:00:00Z"))
+                .appliedFilters("ta_sma20_pa")
+                .unmappableRules(List.of("ATR(14)"))
+                .warnings(List.of("warning"))
+                .suggestedTickers(List.of(
+                        com.market.analysis.domain.model.SuggestedTickerSnapshot.builder()
+                                .ticker("AAPL")
+                                .suitabilityStatus(TickerSuitabilityStatus.APTO.name())
+                                .traceability(List.of("ok"))
+                                .build()))
+                .build();
+        when(suggestionSnapshotRepository.findLatestByStrategyId(99L)).thenReturn(Optional.of(snapshot));
+
+        Optional<SuggestTickersResponseDTO> result = suggestTickersService.getLatestSuggestionSnapshot(99L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getSuggestedAt()).isEqualTo(java.time.Instant.parse("2026-04-18T12:00:00Z"));
+        assertThat(result.get().getSuggestedTickers()).hasSize(1);
+        assertThat(result.get().getSuggestedTickers().get(0).getTicker()).isEqualTo("AAPL");
     }
 
     private Strategy buildStrategy(Long id) {

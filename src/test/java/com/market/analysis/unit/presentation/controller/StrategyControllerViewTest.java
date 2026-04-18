@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -158,7 +159,6 @@ class StrategyControllerViewTest {
         mockMvc.perform(post("/strategies/1/suggest-tickers"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/strategies/1"))
-                .andExpect(flash().attributeExists("suggestedTickers", "discardedTickers", "unmappableRules"))
                 .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
                         UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables.")));
     }
@@ -172,16 +172,22 @@ class StrategyControllerViewTest {
                 .description("Desc")
                 .rules(List.of())
                 .build();
-        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
-
-        mockMvc.perform(get("/strategies/1")
-                .flashAttr("suggestedTickers", List.of(
-                        SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build()))
-                .flashAttr("discardedTickers", List.of(
+        SuggestTickersResponseDTO snapshot = SuggestTickersResponseDTO.builder()
+                .strategyId(1L)
+                .suggestedAt(Instant.parse("2026-04-18T12:00:00Z"))
+                .suggestedTickers(List.of(
+                        SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build(),
                         SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()))
-                .flashAttr("unmappableRules", List.of("ATR(14)")))
+                .unmappableRules(List.of("ATR(14)"))
+                .build();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.of(snapshot));
+
+        mockMvc.perform(get("/strategies/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Trazabilidad de sugerencias")))
+                .andExpect(content().string(containsString("Última sugerencia")))
+                .andExpect(content().string(containsString("2026-04-18T12:00:00Z")))
                 .andExpect(content().string(containsString("suggested-tickers-traceability")))
                 .andExpect(content().string(containsString("discarded-tickers-traceability")))
                 .andExpect(content().string(containsString("unmappable-rules-traceability")))
