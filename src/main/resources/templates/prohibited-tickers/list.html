@@ -119,7 +119,7 @@
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
               <h3 class="h6 mb-0">
                 <i class="bi bi-filter-circle me-1 text-primary"></i>
-                Keywords prohibidas
+                <span th:text="#{prohibited.tickers.keywords.title}">Keywords prohibidas</span>
               </h3>
               <button
                 class="btn btn-sm btn-outline-secondary d-lg-none"
@@ -129,13 +129,15 @@
                 aria-expanded="false"
                 aria-controls="keywordsSidebar"
               >
-                Ver
+                <span th:text="#{prohibited.tickers.keywords.toggle}">Ver</span>
               </button>
             </div>
             <div class="collapse show d-lg-block" id="keywordsSidebar">
               <div class="card-body">
                 <form th:action="@{/prohibited-tickers/keywords}" method="post" class="mb-3">
-                  <label for="keyword" class="form-label">Nueva keyword</label>
+                  <label for="keyword" class="form-label" th:text="#{prohibited.tickers.keywords.new}">
+                    Nueva keyword
+                  </label>
                   <div class="input-group">
                     <input
                       type="text"
@@ -152,7 +154,7 @@
                 </form>
 
                 <div th:if="${prohibitedKeywords.isEmpty()}" class="text-muted small">
-                  No hay keywords configuradas.
+                  <span th:text="#{prohibited.tickers.keywords.empty}">No hay keywords configuradas.</span>
                 </div>
 
                 <ul th:unless="${prohibitedKeywords.isEmpty()}" class="list-group list-group-flush">
@@ -163,7 +165,11 @@
                     <span class="fw-semibold" th:text="${prohibitedKeyword.keyword}">ETF</span>
                     <form th:action="@{/prohibited-tickers/keywords/delete}" method="post" class="ms-2">
                       <input type="hidden" name="keyword" th:value="${prohibitedKeyword.keyword}" />
-                      <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Eliminar keyword">
+                      <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        th:aria-label="#{prohibited.tickers.keywords.delete.aria}"
+                      >
                         <i class="bi bi-trash"></i>
                       </button>
                     </form>

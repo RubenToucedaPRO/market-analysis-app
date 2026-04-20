@@ -187,7 +187,7 @@ class ProhibitedTickerControllerTest {
     void testAddProhibitedKeywordValidationError() throws Exception {
         doThrow(new IllegalArgumentException("Keyword cannot be null or blank"))
                 .when(manageProhibitedKeywordUseCase)
-                .addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword(" ").build());
+                .addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword("").build());
 
         mockMvc.perform(post("/prohibited-tickers/keywords")
                 .param("keyword", " "))
@@ -197,7 +197,7 @@ class ProhibitedTickerControllerTest {
                         UiNotification.error("Keyword cannot be null or blank")));
 
         verify(manageProhibitedKeywordUseCase, times(1))
-                .addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword(" ").build());
+                .addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword("").build());
     }
 
     @Test

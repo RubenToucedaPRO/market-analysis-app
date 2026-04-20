@@ -34,3 +34,6 @@
 ## Próximos pasos sugeridos
 1. Fase 5: ampliar pruebas de integración JPA para unicidad y consultas de keywords.
 2. Revisar mensajes de validación para internacionalización completa en `messages.properties`.
+
+## Evidencia visual
+- Captura de la UI actualizada: `docs/images/prohibited-tickers-phase4.png`.
