@@ -87,15 +87,20 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
     }
 
     private String buildOfflineSummary(SuggestionSnapshot snapshot, String ticker) {
-        return snapshot.getSuggestedTickers().stream()
-                .filter(item -> item != null && ticker.equalsIgnoreCase(item.getTicker()))
-                .findFirst()
-                .map(SuggestedTickerSnapshot::getTraceability)
-                .filter(traceability -> traceability != null && !traceability.isEmpty())
-                .orElse(List.of("Alta offline desde snapshot de sugerencias."))
-                .stream()
+        SuggestedTickerSnapshot matchedTicker = findMatchedTicker(snapshot, ticker).orElse(null);
+        if (matchedTicker == null || matchedTicker.getTraceability() == null || matchedTicker.getTraceability().isEmpty()) {
+            return "Alta offline desde snapshot de sugerencias.";
+        }
+
+        return matchedTicker.getTraceability().stream()
                 .filter(line -> line != null && !line.isBlank())
                 .findFirst()
                 .orElse("Alta offline desde snapshot de sugerencias.");
+    }
+
+    private Optional<SuggestedTickerSnapshot> findMatchedTicker(SuggestionSnapshot snapshot, String ticker) {
+        return snapshot.getSuggestedTickers().stream()
+                .filter(item -> item != null && ticker.equalsIgnoreCase(item.getTicker()))
+                .findFirst();
     }
 }
