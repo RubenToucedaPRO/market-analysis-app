@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 import com.market.analysis.application.mapper.CandleDTOMapper;
+import com.market.analysis.application.mapper.ProhibitedKeywordDTOMapper;
 import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
@@ -17,11 +18,13 @@ import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.DefaultDeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.DeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
+import com.market.analysis.application.usecase.ManageProhibitedKeywordService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
 import com.market.analysis.application.usecase.SuggestTickersService;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
+import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
@@ -32,6 +35,7 @@ import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
+import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
@@ -42,6 +46,7 @@ import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 import com.market.analysis.domain.service.FinvizFilterMapperImpl;
 import com.market.analysis.domain.service.PromptBuilder;
+import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
 import com.market.analysis.domain.service.PromptResponseValidator;
 import com.market.analysis.domain.service.RiskRewardCalculator;
 import com.market.analysis.domain.service.RuleEvaluator;
@@ -82,19 +87,28 @@ public class BeanConfig {
     }
 
     @Bean
+    public ManageProhibitedKeywordUseCase manageProhibitedKeywordUseCase(
+            ProhibitedKeywordRepository prohibitedKeywordRepository,
+            ProhibitedKeywordDTOMapper prohibitedKeywordMapper) {
+        return new ManageProhibitedKeywordService(prohibitedKeywordRepository, prohibitedKeywordMapper);
+    }
+
+    @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
-            CompanyProfileRepository companyProfileRepository, ProhibitedTickerRepository prohibitedTickerRepository,
+            CompanyProfileRepository companyProfileRepository, ProhibitedKeywordRepository prohibitedKeywordRepository,
+            ProhibitedTickerRepository prohibitedTickerRepository,
             StrategyEvaluationRepository strategyEvaluationRepository,
             ApiCallRateRepository apiCallRateRepository, CandleHistoryRepository candleHistoryRepository,
             StrategyRepository strategyRepository,
             StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
             ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
-            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService) {
+            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService,
+            ProhibitedKeywordMatcher prohibitedKeywordMatcher) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
+                prohibitedKeywordRepository, prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
                 candleHistoryRepository, strategyRepository, stockProviderPort, historicalProviderPort, apiIAPort,
                 stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder(),
-                promptResponseValidator());
+                prohibitedKeywordMatcher, promptResponseValidator());
     }
 
     @Bean
@@ -110,6 +124,11 @@ public class BeanConfig {
     @Bean
     public PromptBuilder promptBuilder() {
         return new PromptBuilder();
+    }
+
+    @Bean
+    public ProhibitedKeywordMatcher prohibitedKeywordMatcher() {
+        return new ProhibitedKeywordMatcher();
     }
 
     @Bean
