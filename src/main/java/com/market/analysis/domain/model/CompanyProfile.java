@@ -1,7 +1,6 @@
 package com.market.analysis.domain.model;
 
 import java.time.Instant;
-import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -64,30 +63,7 @@ public class CompanyProfile {
 
     public boolean isOutdated() {
         return lastUpdated == null ||
-                lastUpdated.isBefore(Instant.now().minusSeconds(24 * 60 * 60 * 30));
+                lastUpdated.isBefore(Instant.now().minusSeconds(24L * 60 * 60 * 30));
     }
 
-    /**
-     * Keywords that indicate a ticker should be marked as prohibited.
-     * Includes ETFs, funds, SPACs, biotech, and leveraged products.
-     */
-    private static final List<String> PROHIBITED_KEYWORDS = List.of(
-            "ACQUISITION", "MERGER", "ETF", "FUND", "TRUST",
-            "BULL", "BEAR", "2X", "3X",
-            "THERAPEUTICS", "PHARMA", "BIO", "ONCOLOGY",
-            "LP", "PARTNERS", "WARRANTS");
-
-    public boolean isProhibited() {
-        return getProhibitionReason() != null;
-    }
-
-    public String getProhibitionReason() {
-        if (this.name == null)
-            return null;
-        String upperName = this.name.toUpperCase();
-        return PROHIBITED_KEYWORDS.stream()
-                .filter(upperName::contains)
-                .findFirst()
-                .orElse(null);
-    }
 }

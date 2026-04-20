@@ -37,11 +37,13 @@ import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
+import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.CompanyProfileRepository;
+import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
@@ -56,6 +58,9 @@ class ManageAnalyzeStockServiceTest {
 
     @Mock
     private CompanyProfileRepository companyProfileRepository;
+
+    @Mock
+    private ProhibitedKeywordRepository prohibitedKeywordRepository;
 
     @Mock
     private ProhibitedTickerRepository prohibitedTickerRepository;
@@ -95,6 +100,9 @@ class ManageAnalyzeStockServiceTest {
 
     @Mock
     private com.market.analysis.domain.service.PromptBuilder promptBuilder;
+
+    @Mock
+    private com.market.analysis.domain.service.ProhibitedKeywordMatcher prohibitedKeywordMatcher;
 
     @Mock
     private com.market.analysis.domain.service.PromptResponseValidator promptResponseValidator;
@@ -183,6 +191,11 @@ class ManageAnalyzeStockServiceTest {
                 .isLatest(true)
                 .build();
         when(evaluateStrategyService.evaluateStrategy(any(), any())).thenReturn(mockEvaluation);
+        when(prohibitedKeywordRepository.findAll()).thenReturn(List.of(
+                ProhibitedKeyword.builder().keyword("ETF").active(true).build()));
+        when(prohibitedKeywordMatcher.findProhibitionReason(eq(validCompanyProfile.getName()), anyList())).thenReturn(null);
+        when(prohibitedKeywordMatcher.findProhibitionReason(eq(prohibitedCompanyProfile.getName()), anyList()))
+                .thenReturn("ETF");
     }
 
     @Test
@@ -322,8 +335,30 @@ class ManageAnalyzeStockServiceTest {
 
         // Assert
         verify(stockProviderPort, times(1)).getCompanyProfile("SPY");
-        verify(prohibitedTickerRepository, times(1)).save(any(ProhibitedTicker.class));
+        ArgumentCaptor<ProhibitedTicker> prohibitedTickerCaptor = ArgumentCaptor.forClass(ProhibitedTicker.class);
+        verify(prohibitedTickerRepository, times(1)).save(prohibitedTickerCaptor.capture());
+        assertEquals("ETF", prohibitedTickerCaptor.getValue().getReason());
         verify(stockProviderPort, never()).getQuote("SPY");
+        verify(stockDataRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should mark existing company profile as prohibited before adding it as valid")
+    void shouldMarkExistingCompanyProfileAsProhibitedBeforeAddingItAsValid() {
+        // Arrange
+        when(companyProfileRepository.findByTicker("SPY")).thenReturn(Optional.of(prohibitedCompanyProfile));
+        when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(false);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+
+        // Act
+        service.getStockData("SPY", 1L);
+
+        // Assert
+        verify(stockProviderPort, never()).getCompanyProfile("SPY");
+        verify(stockProviderPort, never()).getQuote("SPY");
+        ArgumentCaptor<ProhibitedTicker> prohibitedTickerCaptor = ArgumentCaptor.forClass(ProhibitedTicker.class);
+        verify(prohibitedTickerRepository, times(1)).save(prohibitedTickerCaptor.capture());
+        assertEquals("ETF", prohibitedTickerCaptor.getValue().getReason());
         verify(stockDataRepository, never()).save(any());
     }
 
@@ -1008,11 +1043,11 @@ class ManageAnalyzeStockServiceTest {
 
         when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stockWithSmas));
         when(candleHistoryPort.findCandlesByTicker("AAPL")).thenReturn(List.of(candle1));
-        when(candleDTOMapper.toChartDTO(eq(stockWithSmas), anyList())).thenReturn(expected);
+        when(candleDTOMapper.toChartDTO(stockWithSmas, List.of(candle1))).thenReturn(expected);
 
         service.findCandlesByStockId(1L);
 
         verify(candleHistoryPort, times(1)).findCandlesByTicker("AAPL");
-        verify(candleDTOMapper, times(1)).toChartDTO(eq(stockWithSmas), eq(List.of(candle1)));
+        verify(candleDTOMapper, times(1)).toChartDTO(stockWithSmas, List.of(candle1));
     }
 }
