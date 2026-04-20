@@ -343,6 +343,26 @@ class ManageAnalyzeStockServiceTest {
     }
 
     @Test
+    @DisplayName("Should mark existing company profile as prohibited before adding it as valid")
+    void shouldMarkExistingCompanyProfileAsProhibitedBeforeAddingItAsValid() {
+        // Arrange
+        when(companyProfileRepository.findByTicker("SPY")).thenReturn(Optional.of(prohibitedCompanyProfile));
+        when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(false);
+        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
+
+        // Act
+        service.getStockData("SPY", 1L);
+
+        // Assert
+        verify(stockProviderPort, never()).getCompanyProfile("SPY");
+        verify(stockProviderPort, never()).getQuote("SPY");
+        ArgumentCaptor<ProhibitedTicker> prohibitedTickerCaptor = ArgumentCaptor.forClass(ProhibitedTicker.class);
+        verify(prohibitedTickerRepository, times(1)).save(prohibitedTickerCaptor.capture());
+        assertEquals("ETF", prohibitedTickerCaptor.getValue().getReason());
+        verify(stockDataRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("Should skip ticker when it is already marked as prohibited")
     void shouldSkipTickerWhenItIsAlreadyMarkedAsProhibited() {
         // Arrange

@@ -17,8 +17,8 @@ import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
-import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.model.HistoricalData;
+import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
@@ -37,8 +37,8 @@ import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
-import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
+import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.PromptResponseValidator;
 import com.market.analysis.domain.service.StockHistoricalService;
 
@@ -186,11 +186,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         List<String> validTickers = new ArrayList<>();
 
         for (String ticker : tickerList) {
-            if (isCompanyUpdateRequired(ticker)) {
-                updateCompanyProfile(validTickers, ticker, prohibitedKeywords);
-            } else {
-                validTickers.add(ticker);
-            }
+            resolveAndValidateCompanyProfile(validTickers, ticker, prohibitedKeywords);
         }
         return validTickers;
     }
@@ -204,18 +200,21 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
      * @param ticker the stock ticker symbol
      * @return true if an update is required, false otherwise
      */
-    private boolean isCompanyUpdateRequired(String ticker) {
-        CompanyProfile companyProfile = companyProfileRepository.findByTicker(ticker).orElse(null);
-        return companyProfile == null || (companyProfile.getLastUpdated() == null || companyProfile.isOutdated());
+    private boolean isCompanyProfileMissingOrOutdated(CompanyProfile companyProfile) {
+        return companyProfile == null || companyProfile.getLastUpdated() == null || companyProfile.isOutdated();
     }
 
-    private void updateCompanyProfile(List<String> validTickers, String ticker,
+    private void resolveAndValidateCompanyProfile(List<String> validTickers, String ticker,
             List<ProhibitedKeyword> prohibitedKeywords) {
         if (prohibitedTickerRepository.existsByTicker(ticker)) {
             log.info("Ticker {} is already marked as prohibited, skipping profile check", ticker);
             return;
         }
-        CompanyProfile companyProfile = stockProviderPort.getCompanyProfile(ticker);
+        CompanyProfile companyProfile = companyProfileRepository.findByTicker(ticker).orElse(null);
+        boolean companyProfileNeedsRefresh = isCompanyProfileMissingOrOutdated(companyProfile);
+        if (companyProfileNeedsRefresh) {
+            companyProfile = stockProviderPort.getCompanyProfile(ticker);
+        }
         if (companyProfile == null) {
             log.warn("No company profile found for ticker {}, skipping", ticker);
             return;
@@ -230,7 +229,9 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             return;
         }
         validTickers.add(ticker);
-        companyProfileRepository.save(companyProfile);
+        if (companyProfileNeedsRefresh) {
+            companyProfileRepository.save(companyProfile);
+        }
         log.info("Company profile for ticker {} saved/updated successfully", ticker);
     }
 
