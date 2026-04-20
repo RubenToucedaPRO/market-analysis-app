@@ -115,4 +115,19 @@ class AddSuggestedTickersToAnalysisServiceTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.addFromLatestSnapshot(null));
         assertThat(ex.getMessage()).isEqualTo("Strategy ID is required");
     }
+
+    @Test
+    @DisplayName("Should fail when snapshot is missing suggested timestamp")
+    void shouldFailWhenSnapshotMissingSuggestedAt() {
+        Long strategyId = 1L;
+        when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(Strategy.builder().id(strategyId).name("S").build()));
+        when(suggestionSnapshotRepository.findLatestByStrategyId(strategyId))
+                .thenReturn(Optional.of(SuggestionSnapshot.builder()
+                        .strategyId(strategyId)
+                        .suggestedTickers(List.of())
+                        .build()));
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> service.addFromLatestSnapshot(strategyId));
+        assertThat(ex.getMessage()).isEqualTo("Latest suggestion snapshot is missing suggestedAt");
+    }
 }

@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickersToAnalysisUseCase {
 
     private static final String APTO = "APTO";
+    private static final String OFFLINE_SUMMARY = "Alta offline desde snapshot de sugerencias.";
 
     private final SuggestionSnapshotRepository suggestionSnapshotRepository;
     private final StrategyRepository strategyRepository;
@@ -46,7 +47,10 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
         }
 
         SuggestionSnapshot snapshot = latestSnapshot.get();
-        Instant evaluatedAt = snapshot.getSuggestedAt() != null ? snapshot.getSuggestedAt() : Instant.now();
+        Instant evaluatedAt = snapshot.getSuggestedAt();
+        if (evaluatedAt == null) {
+            throw new IllegalStateException("Latest suggestion snapshot is missing suggestedAt");
+        }
         Set<String> aptTickers = new LinkedHashSet<>();
 
         for (SuggestedTickerSnapshot tickerSnapshot : snapshot.getSuggestedTickers()) {
@@ -89,13 +93,13 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
     private String buildOfflineSummary(SuggestionSnapshot snapshot, String ticker) {
         SuggestedTickerSnapshot matchedTicker = findMatchedTicker(snapshot, ticker).orElse(null);
         if (matchedTicker == null || matchedTicker.getTraceability() == null || matchedTicker.getTraceability().isEmpty()) {
-            return "Alta offline desde snapshot de sugerencias.";
+            return OFFLINE_SUMMARY;
         }
 
         return matchedTicker.getTraceability().stream()
                 .filter(line -> line != null && !line.isBlank())
                 .findFirst()
-                .orElse("Alta offline desde snapshot de sugerencias.");
+                .orElse(OFFLINE_SUMMARY);
     }
 
     private Optional<SuggestedTickerSnapshot> findMatchedTicker(SuggestionSnapshot snapshot, String ticker) {

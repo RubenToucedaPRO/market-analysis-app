@@ -42,6 +42,10 @@ public class StrategyController {
     private static final String ATTR_DISCARDED_TICKERS = "discardedTickers";
     private static final String ATTR_UNMAPPABLE_RULES = "unmappableRules";
     private static final String ATTR_SUGGESTED_AT = "suggestedAt";
+    private static final String MSG_ADD_SNAPSHOT_UNAVAILABLE =
+            "La alta desde snapshot de sugerencias no está disponible todavía.";
+    private static final String MSG_ADD_SNAPSHOT_NONE =
+            "No hay sugerencias aptas en snapshot para añadir.";
 
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
@@ -164,7 +168,7 @@ public class StrategyController {
             RedirectAttributes redirectAttributes) {
         if (addSuggestedTickersToAnalysisUseCase.isEmpty()) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
+                    UiNotification.error(MSG_ADD_SNAPSHOT_UNAVAILABLE));
             return "redirect:/strategies/" + strategyId;
         }
 
@@ -174,7 +178,7 @@ public class StrategyController {
                     UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: " + added + "."));
         } else {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.warning("No hay sugerencias aptas en snapshot para añadir."));
+                    UiNotification.warning(MSG_ADD_SNAPSHOT_NONE));
         }
 
         return "redirect:/analysis";
