@@ -1,5 +1,7 @@
 package com.market.analysis.domain.port.in;
 
+import java.util.Optional;
+
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 
@@ -9,4 +11,6 @@ import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 public interface SuggestTickersUseCase {
 
     SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request);
+
+    Optional<SuggestTickersResponseDTO> getLatestSuggestionSnapshot(Long strategyId);
 }

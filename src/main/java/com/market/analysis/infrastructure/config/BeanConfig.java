@@ -15,6 +15,7 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
+import com.market.analysis.application.usecase.AddSuggestedTickersToAnalysisService;
 import com.market.analysis.application.usecase.DefaultDeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.DeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
@@ -28,6 +29,7 @@ import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
@@ -42,6 +44,7 @@ import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 import com.market.analysis.domain.service.FinvizFilterMapperImpl;
@@ -169,12 +172,29 @@ public class BeanConfig {
             StrategyRepository strategyRepository,
             FinvizFilterMapper finvizFilterMapper,
             FinvizScreenerPort finvizScreenerPort,
-            DeterministicTickerEvaluator deterministicTickerEvaluator) {
+            DeterministicTickerEvaluator deterministicTickerEvaluator,
+            SuggestionSnapshotRepository suggestionSnapshotRepository) {
         return new SuggestTickersService(
                 strategyRepository,
                 finvizFilterMapper,
                 finvizScreenerPort,
-                deterministicTickerEvaluator);
+                deterministicTickerEvaluator,
+                suggestionSnapshotRepository);
+    }
+
+    @Bean
+    public AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase(
+            SuggestionSnapshotRepository suggestionSnapshotRepository,
+            StrategyRepository strategyRepository,
+            StockDataRepository stockDataRepository,
+            StrategyEvaluationRepository strategyEvaluationRepository,
+            StockProviderPort stockProviderPort) {
+        return new AddSuggestedTickersToAnalysisService(
+                suggestionSnapshotRepository,
+                strategyRepository,
+                stockDataRepository,
+                strategyEvaluationRepository,
+                stockProviderPort);
     }
 
     @Bean

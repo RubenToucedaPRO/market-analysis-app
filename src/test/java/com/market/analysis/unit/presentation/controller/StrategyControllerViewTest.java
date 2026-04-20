@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
@@ -51,6 +53,9 @@ class StrategyControllerViewTest {
 
     @MockitoBean
     private SuggestTickersUseCase suggestTickersUseCase;
+
+    @MockitoBean
+    private AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase;
 
     @Test
     @DisplayName("Should render subject parameter select for empty strategy form")
@@ -136,6 +141,7 @@ class StrategyControllerViewTest {
                 .rules(List.of())
                 .build();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
 
         mockMvc.perform(get("/strategies/1"))
                 .andExpect(status().isOk())
@@ -158,7 +164,6 @@ class StrategyControllerViewTest {
         mockMvc.perform(post("/strategies/1/suggest-tickers"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/strategies/1"))
-                .andExpect(flash().attributeExists("suggestedTickers", "discardedTickers", "unmappableRules"))
                 .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
                         UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables.")));
     }
@@ -172,25 +177,55 @@ class StrategyControllerViewTest {
                 .description("Desc")
                 .rules(List.of())
                 .build();
-        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
-
-        mockMvc.perform(get("/strategies/1")
-                .flashAttr("suggestedTickers", List.of(
-                        SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build()))
-                .flashAttr("discardedTickers", List.of(
+        SuggestTickersResponseDTO snapshot = SuggestTickersResponseDTO.builder()
+                .strategyId(1L)
+                .suggestedAt(Instant.parse("2026-04-18T12:00:00Z"))
+                .suggestedTickers(List.of(
+                        SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build(),
                         SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()))
-                .flashAttr("unmappableRules", List.of("ATR(14)")))
+                .unmappableRules(List.of("ATR(14)"))
+                .build();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.of(snapshot));
+
+        mockMvc.perform(get("/strategies/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Trazabilidad de sugerencias")))
+                .andExpect(content().string(containsString("Última sugerencia")))
+                .andExpect(content().string(containsString("2026-04-18T12:00:00Z")))
                 .andExpect(content().string(containsString("suggested-tickers-traceability")))
                 .andExpect(content().string(containsString("discarded-tickers-traceability")))
                 .andExpect(content().string(containsString("unmappable-rules-traceability")))
-                .andExpect(content().string(containsString("/analysis/getTickerData")))
-                .andExpect(content().string(containsString("name=\"tickers\"")))
-                .andExpect(content().string(containsString("name=\"strategyId\"")))
+                .andExpect(content().string(containsString("/strategies/1/add-suggested-tickers")))
                 .andExpect(content().string(containsString("A\u00f1adir sugeridos a an\u00e1lisis")))
+                .andExpect(content().string(containsString("/strategies/1/refresh-suggested-tickers")))
+                .andExpect(content().string(containsString("Refrescar sugeridos (batch)")))
                 .andExpect(content().string(containsString("AAPL")))
                 .andExpect(content().string(containsString("TSLA")))
                 .andExpect(content().string(containsString("ATR(14)")));
+    }
+
+    @Test
+    @DisplayName("Should post add suggested tickers from snapshot and redirect to analysis")
+    void shouldPostAddSuggestedTickersFromSnapshot() throws Exception {
+        when(addSuggestedTickersToAnalysisUseCase.addFromLatestSnapshot(1L)).thenReturn(2);
+
+        mockMvc.perform(post("/strategies/1/add-suggested-tickers"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/analysis"))
+                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
+                        UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: 2.")));
+    }
+
+    @Test
+    @DisplayName("Should post refresh suggested tickers from snapshot and redirect to analysis")
+    void shouldPostRefreshSuggestedTickersFromSnapshot() throws Exception {
+        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(1);
+
+        mockMvc.perform(post("/strategies/1/refresh-suggested-tickers"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/analysis"))
+                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
+                        UiNotification.success("Ticker(s) refrescados desde origen snapshot: 1.")));
     }
 }

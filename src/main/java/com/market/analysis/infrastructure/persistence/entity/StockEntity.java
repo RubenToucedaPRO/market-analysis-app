@@ -3,9 +3,13 @@ package com.market.analysis.infrastructure.persistence.entity;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import com.market.analysis.domain.model.StockOrigin;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -56,6 +60,10 @@ public class StockEntity {
 
     @Column(name = "strategy_id")
     private Long strategyId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origin")
+    private StockOrigin origin;
 
     @OneToOne(mappedBy = "stock", cascade = CascadeType.ALL, orphanRemoval = true)
     private StrategyEvaluationEntity strategyEvaluation;

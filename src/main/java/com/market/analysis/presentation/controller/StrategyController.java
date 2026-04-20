@@ -24,6 +24,7 @@ import com.market.analysis.application.dto.StrategyObjectiveDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
@@ -40,10 +41,18 @@ public class StrategyController {
     private static final String ATTR_SUGGESTED_TICKERS = "suggestedTickers";
     private static final String ATTR_DISCARDED_TICKERS = "discardedTickers";
     private static final String ATTR_UNMAPPABLE_RULES = "unmappableRules";
+    private static final String ATTR_SUGGESTED_AT = "suggestedAt";
+    private static final String MSG_ADD_SNAPSHOT_UNAVAILABLE =
+            "La alta desde snapshot de sugerencias no está disponible todavía.";
+    private static final String MSG_ADD_SNAPSHOT_NONE =
+            "No hay sugerencias aptas en snapshot para añadir.";
+    private static final String MSG_REFRESH_SNAPSHOT_NONE =
+            "No hay tickers de origen snapshot para refrescar.";
 
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
     private final Optional<SuggestTickersUseCase> suggestTickersUseCase;
+    private final Optional<AddSuggestedTickersToAnalysisUseCase> addSuggestedTickersToAnalysisUseCase;
 
     @GetMapping
     public String listStrategies(Model model) {
@@ -55,6 +64,7 @@ public class StrategyController {
     public String viewStrategyDetail(@PathVariable("id") long strategyId, Model model) {
         StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
         model.addAttribute(ATTR_STRATEGY, strategyDTO);
+        loadLastSuggestionSnapshot(strategyId, model);
         return "strategies/detail";
     }
 
@@ -144,10 +154,6 @@ public class StrategyController {
                 ? List.of()
                 : response.getWarnings();
 
-        redirectAttributes.addFlashAttribute(ATTR_SUGGESTED_TICKERS, suggested);
-        redirectAttributes.addFlashAttribute(ATTR_DISCARDED_TICKERS, discarded);
-        redirectAttributes.addFlashAttribute(ATTR_UNMAPPABLE_RULES, unmappableRules);
-
         if (!unmappableRules.isEmpty() || !discarded.isEmpty() || !responseWarnings.isEmpty()) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
@@ -159,6 +165,47 @@ public class StrategyController {
         return "redirect:/strategies/" + strategyId;
     }
 
+    @PostMapping("/{id}/add-suggested-tickers")
+    public String addSuggestedTickersToAnalysis(@PathVariable("id") long strategyId,
+            RedirectAttributes redirectAttributes) {
+        if (addSuggestedTickersToAnalysisUseCase.isEmpty()) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.error(MSG_ADD_SNAPSHOT_UNAVAILABLE));
+            return "redirect:/strategies/" + strategyId;
+        }
+
+        int added = addSuggestedTickersToAnalysisUseCase.get().addFromLatestSnapshot(strategyId);
+        if (added > 0) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: " + added + "."));
+        } else {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.warning(MSG_ADD_SNAPSHOT_NONE));
+        }
+
+        return "redirect:/analysis";
+    }
+
+    @PostMapping("/{id}/refresh-suggested-tickers")
+    public String refreshSuggestedTickersFromSnapshot(@PathVariable("id") long strategyId,
+            RedirectAttributes redirectAttributes) {
+        if (addSuggestedTickersToAnalysisUseCase.isEmpty()) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.error(MSG_ADD_SNAPSHOT_UNAVAILABLE));
+            return "redirect:/strategies/" + strategyId;
+        }
+
+        int refreshed = addSuggestedTickersToAnalysisUseCase.get().refreshFromSuggestionSnapshot(strategyId);
+        if (refreshed > 0) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Ticker(s) refrescados desde origen snapshot: " + refreshed + "."));
+        } else {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.warning(MSG_REFRESH_SNAPSHOT_NONE));
+        }
+        return "redirect:/analysis";
+    }
+
     private List<SuggestedTickerDTO> filterBySuitabilityStatus(SuggestTickersResponseDTO response,
             TickerSuitabilityStatus status) {
         if (response == null || response.getSuggestedTickers() == null) {
@@ -167,5 +214,21 @@ public class StrategyController {
         return response.getSuggestedTickers().stream()
                 .filter(ticker -> ticker.getSuitabilityStatus() == status)
                 .toList();
+    }
+
+    private void loadLastSuggestionSnapshot(long strategyId, Model model) {
+        if (suggestTickersUseCase.isEmpty()) {
+            return;
+        }
+        Optional<SuggestTickersResponseDTO> snapshot = suggestTickersUseCase.get().getLatestSuggestionSnapshot(strategyId);
+        if (snapshot.isEmpty()) {
+            return;
+        }
+
+        SuggestTickersResponseDTO response = snapshot.get();
+        model.addAttribute(ATTR_SUGGESTED_TICKERS, filterBySuitabilityStatus(response, TickerSuitabilityStatus.APTO));
+        model.addAttribute(ATTR_DISCARDED_TICKERS, filterBySuitabilityStatus(response, TickerSuitabilityStatus.NO_APTO));
+        model.addAttribute(ATTR_UNMAPPABLE_RULES, response.getUnmappableRules() == null ? List.of() : response.getUnmappableRules());
+        model.addAttribute(ATTR_SUGGESTED_AT, response.getSuggestedAt());
     }
 }

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,7 @@ import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
@@ -47,6 +49,9 @@ class StrategyControllerTest {
 
     @Mock
     private SuggestTickersUseCase suggestTickersUseCase;
+
+    @Mock
+    private AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase;
 
     @Mock
     private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
@@ -70,7 +75,8 @@ class StrategyControllerTest {
         strategyController = new StrategyController(
                 manageStrategyUseCase,
                 manageRuleDefinitionUseCase,
-                Optional.of(suggestTickersUseCase));
+                Optional.of(suggestTickersUseCase),
+                Optional.of(addSuggestedTickersToAnalysisUseCase));
 
         testRuleDTO = RuleDTO.builder()
                 .id(1L)
@@ -232,6 +238,15 @@ class StrategyControllerTest {
     void testViewStrategyDetail() {
         // Arrange
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        SuggestTickersResponseDTO snapshot = SuggestTickersResponseDTO.builder()
+                .strategyId(1L)
+                .suggestedAt(Instant.parse("2026-04-18T12:00:00Z"))
+                .suggestedTickers(List.of(
+                        SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build(),
+                        SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()))
+                .unmappableRules(List.of("ATR(14)"))
+                .build();
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(Optional.of(snapshot));
 
         // Act
         String viewName = strategyController.viewStrategyDetail(1L, model);
@@ -240,6 +255,12 @@ class StrategyControllerTest {
         assertEquals("strategies/detail", viewName);
         verify(manageStrategyUseCase, times(1)).getStrategyById(1L);
         verify(model, times(1)).addAttribute("strategy", testStrategyDTO);
+        verify(model, times(1)).addAttribute("suggestedTickers", List.of(
+                SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build()));
+        verify(model, times(1)).addAttribute("discardedTickers", List.of(
+                SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()));
+        verify(model, times(1)).addAttribute("unmappableRules", List.of("ATR(14)"));
+        verify(model, times(1)).addAttribute("suggestedAt", Instant.parse("2026-04-18T12:00:00Z"));
     }
 
     @Test
@@ -320,7 +341,8 @@ class StrategyControllerTest {
         strategyController = new StrategyController(
                 manageStrategyUseCase,
                 manageRuleDefinitionUseCase,
-                Optional.empty());
+                Optional.empty(),
+                Optional.of(addSuggestedTickersToAnalysisUseCase));
 
         String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
 
@@ -329,5 +351,95 @@ class StrategyControllerTest {
         verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.error("La sugerencia de tickers desde mercado no está disponible todavía."));
+    }
+
+    @Test
+    @DisplayName("Should add suggested tickers from snapshot and redirect to analysis")
+    void testAddSuggestedTickersToAnalysisSuccess() {
+        when(addSuggestedTickersToAnalysisUseCase.addFromLatestSnapshot(1L)).thenReturn(2);
+
+        String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
+
+        assertEquals("redirect:/analysis", viewName);
+        verify(addSuggestedTickersToAnalysisUseCase).addFromLatestSnapshot(1L);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: 2."));
+    }
+
+    @Test
+    @DisplayName("Should show warning when there are no suggested tickers to add from snapshot")
+    void testAddSuggestedTickersToAnalysisNoSnapshotData() {
+        when(addSuggestedTickersToAnalysisUseCase.addFromLatestSnapshot(1L)).thenReturn(0);
+
+        String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
+
+        assertEquals("redirect:/analysis", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("No hay sugerencias aptas en snapshot para añadir."));
+    }
+
+    @Test
+    @DisplayName("Should show error when add-from-snapshot use case is unavailable")
+    void testAddSuggestedTickersToAnalysisUnavailable() {
+        strategyController = new StrategyController(
+                manageStrategyUseCase,
+                manageRuleDefinitionUseCase,
+                Optional.of(suggestTickersUseCase),
+                Optional.empty());
+
+        String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(addSuggestedTickersToAnalysisUseCase, never()).addFromLatestSnapshot(any());
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
+    }
+
+    @Test
+    @DisplayName("Should refresh suggested tickers from snapshot and redirect to analysis")
+    void testRefreshSuggestedTickersFromSnapshotSuccess() {
+        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(2);
+
+        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
+
+        assertEquals("redirect:/analysis", viewName);
+        verify(addSuggestedTickersToAnalysisUseCase).refreshFromSuggestionSnapshot(1L);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Ticker(s) refrescados desde origen snapshot: 2."));
+    }
+
+    @Test
+    @DisplayName("Should warn when there are no snapshot-origin tickers to refresh")
+    void testRefreshSuggestedTickersFromSnapshotNoData() {
+        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(0);
+
+        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
+
+        assertEquals("redirect:/analysis", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("No hay tickers de origen snapshot para refrescar."));
+    }
+
+    @Test
+    @DisplayName("Should show error when refresh-from-snapshot use case is unavailable")
+    void testRefreshSuggestedTickersFromSnapshotUnavailable() {
+        strategyController = new StrategyController(
+                manageStrategyUseCase,
+                manageRuleDefinitionUseCase,
+                Optional.of(suggestTickersUseCase),
+                Optional.empty());
+
+        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(addSuggestedTickersToAnalysisUseCase, never()).refreshFromSuggestionSnapshot(any());
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
     }
 }

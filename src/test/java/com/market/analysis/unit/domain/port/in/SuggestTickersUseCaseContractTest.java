@@ -2,6 +2,7 @@ package com.market.analysis.unit.domain.port.in;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -19,23 +20,33 @@ class SuggestTickersUseCaseContractTest {
     @Test
     @DisplayName("Should keep APTO and NO_APTO states in response contract")
     void shouldKeepAptoAndNoAptoStates() {
-        SuggestTickersUseCase useCase = request -> SuggestTickersResponseDTO.builder()
-                .strategyId(request.getStrategyId())
-                .appliedFilters("ta_sma20_pa")
-                .suggestedTickers(List.of(
-                        SuggestedTickerDTO.builder()
-                                .ticker("AAPL")
-                                .suitabilityStatus(TickerSuitabilityStatus.APTO)
-                                .traceability(List.of("Cumple reglas"))
-                                .build(),
-                        SuggestedTickerDTO.builder()
-                                .ticker("TSLA")
-                                .suitabilityStatus(TickerSuitabilityStatus.NO_APTO)
-                                .traceability(List.of("No cumple volumen"))
-                                .build()))
-                .warnings(List.of("Regla ATR(14) marcada como UNMAPPABLE"))
-                .unmappableRules(List.of("ATR(14)"))
-                .build();
+        SuggestTickersUseCase useCase = new SuggestTickersUseCase() {
+            @Override
+            public SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request) {
+                return SuggestTickersResponseDTO.builder()
+                        .strategyId(request.getStrategyId())
+                        .appliedFilters("ta_sma20_pa")
+                        .suggestedTickers(List.of(
+                                SuggestedTickerDTO.builder()
+                                        .ticker("AAPL")
+                                        .suitabilityStatus(TickerSuitabilityStatus.APTO)
+                                        .traceability(List.of("Cumple reglas"))
+                                        .build(),
+                                SuggestedTickerDTO.builder()
+                                        .ticker("TSLA")
+                                        .suitabilityStatus(TickerSuitabilityStatus.NO_APTO)
+                                        .traceability(List.of("No cumple volumen"))
+                                        .build()))
+                        .warnings(List.of("Regla ATR(14) marcada como UNMAPPABLE"))
+                        .unmappableRules(List.of("ATR(14)"))
+                        .build();
+            }
+
+            @Override
+            public Optional<SuggestTickersResponseDTO> getLatestSuggestionSnapshot(Long strategyId) {
+                return Optional.empty();
+            }
+        };
 
         SuggestTickersResponseDTO response = useCase.suggestTickers(SuggestTickersRequestDTO.builder()
                 .strategyId(5L)

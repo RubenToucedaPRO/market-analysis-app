@@ -21,6 +21,7 @@ import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.model.TechnicalIndicators;
@@ -99,6 +100,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             if (stock != null) {
                 // Set the strategy ID
                 stock.setStrategyId(strategyId);
+                stock.setOrigin(StockOrigin.EXTERNAL_PROVIDER);
 
                 // Save the stock data
                 Stock savedStock = stockDataRepository.save(stock);
