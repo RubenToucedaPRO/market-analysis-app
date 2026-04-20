@@ -99,6 +99,7 @@ class AddSuggestedTickersToAnalysisServiceTest {
         assertThat(stockCaptor.getValue().getOrigin()).isEqualTo(StockOrigin.SUGGESTION_SNAPSHOT);
         assertThat(stockCaptor.getValue().getLastUpdated()).isEqualTo(suggestedAt);
         verify(strategyEvaluationRepository, times(1)).save(any(StrategyEvaluation.class), any(Stock.class));
+        verify(stockProviderPort, never()).getQuote(any());
     }
 
     @Test
