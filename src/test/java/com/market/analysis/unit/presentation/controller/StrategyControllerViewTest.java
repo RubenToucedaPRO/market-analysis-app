@@ -32,6 +32,7 @@ import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
@@ -52,6 +53,9 @@ class StrategyControllerViewTest {
 
     @MockitoBean
     private SuggestTickersUseCase suggestTickersUseCase;
+
+    @MockitoBean
+    private AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase;
 
     @Test
     @DisplayName("Should render subject parameter select for empty strategy form")
@@ -192,12 +196,22 @@ class StrategyControllerViewTest {
                 .andExpect(content().string(containsString("suggested-tickers-traceability")))
                 .andExpect(content().string(containsString("discarded-tickers-traceability")))
                 .andExpect(content().string(containsString("unmappable-rules-traceability")))
-                .andExpect(content().string(containsString("/analysis/getTickerData")))
-                .andExpect(content().string(containsString("name=\"tickers\"")))
-                .andExpect(content().string(containsString("name=\"strategyId\"")))
+                .andExpect(content().string(containsString("/strategies/1/add-suggested-tickers")))
                 .andExpect(content().string(containsString("A\u00f1adir sugeridos a an\u00e1lisis")))
                 .andExpect(content().string(containsString("AAPL")))
                 .andExpect(content().string(containsString("TSLA")))
                 .andExpect(content().string(containsString("ATR(14)")));
+    }
+
+    @Test
+    @DisplayName("Should post add suggested tickers from snapshot and redirect to analysis")
+    void shouldPostAddSuggestedTickersFromSnapshot() throws Exception {
+        when(addSuggestedTickersToAnalysisUseCase.addFromLatestSnapshot(1L)).thenReturn(2);
+
+        mockMvc.perform(post("/strategies/1/add-suggested-tickers"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/analysis"))
+                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
+                        UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: 2.")));
     }
 }
