@@ -91,7 +91,6 @@ class SuggestTickersServiceTest {
         assertThat(result.getSuggestedTickers().get(0).getSuitabilityStatus()).isEqualTo(TickerSuitabilityStatus.APTO);
         assertThat(result.getSuggestedTickers().get(1).getSuitabilityStatus()).isEqualTo(TickerSuitabilityStatus.NO_APTO);
         assertThat(result.getSuggestedTickers().get(1).getTraceability()).containsExactly("Rule RSI failed");
-        verify(suggestionSnapshotRepository).save(org.mockito.ArgumentMatchers.any());
 
         ArgumentCaptor<SuggestionSnapshot> snapshotCaptor = ArgumentCaptor.forClass(SuggestionSnapshot.class);
         verify(suggestionSnapshotRepository).save(snapshotCaptor.capture());
@@ -101,6 +100,7 @@ class SuggestTickersServiceTest {
         assertThat(persistedSnapshot.getSuggestedTickers().get(0).getSuggestedAt()).isEqualTo(result.getSuggestedAt());
         assertThat(persistedSnapshot.getSuggestedTickers().get(1).getStrategyId()).isNull();
         assertThat(persistedSnapshot.getSuggestedTickers().get(1).getSuggestedAt()).isNull();
+        assertThat(persistedSnapshot.getSuggestedTickers().get(1).getDeterministicMetrics()).isEmpty();
     }
 
     @Test

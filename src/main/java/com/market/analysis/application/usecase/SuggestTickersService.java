@@ -156,13 +156,15 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     }
 
     private SuggestedTickerSnapshot toSnapshotTicker(SuggestedTickerDTO dto, Long strategyId, Instant suggestedAt) {
-        boolean suitable = dto.getSuitabilityStatus() == TickerSuitabilityStatus.APTO;
+        boolean suitable = TickerSuitabilityStatus.APTO.equals(dto.getSuitabilityStatus());
+        List<String> deterministicMetrics =
+                suitable && dto.getDeterministicMetrics() != null ? dto.getDeterministicMetrics() : List.of();
         return SuggestedTickerSnapshot.builder()
                 .ticker(dto.getTicker())
                 .strategyId(suitable ? strategyId : null)
                 .suggestedAt(suitable ? suggestedAt : null)
                 .suitabilityStatus(dto.getSuitabilityStatus() == null ? null : dto.getSuitabilityStatus().name())
-                .deterministicMetrics(suitable ? Optional.ofNullable(dto.getDeterministicMetrics()).orElse(List.of()) : List.of())
+                .deterministicMetrics(deterministicMetrics)
                 .traceability(dto.getTraceability())
                 .build();
     }
