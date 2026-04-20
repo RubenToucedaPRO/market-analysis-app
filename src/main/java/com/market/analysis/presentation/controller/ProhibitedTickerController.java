@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.market.analysis.application.dto.ProhibitedKeywordDTO;
 import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
@@ -29,12 +31,15 @@ import lombok.RequiredArgsConstructor;
 public class ProhibitedTickerController {
 
     private final ManageProhibitedTickerUseCase manageProhibitedTickerUseCase;
+    private final ManageProhibitedKeywordUseCase manageProhibitedKeywordUseCase;
 
     @GetMapping
     public String listProhibitedTickers(Model model) {
         List<ProhibitedTickerDTO> prohibitedTickers = manageProhibitedTickerUseCase.getAllProhibitedTickers();
+        List<ProhibitedKeywordDTO> prohibitedKeywords = manageProhibitedKeywordUseCase.getAllProhibitedKeywords();
 
         model.addAttribute("prohibitedTickers", prohibitedTickers);
+        model.addAttribute("prohibitedKeywords", prohibitedKeywords);
         return "prohibited-tickers/list";
     }
 
@@ -46,5 +51,27 @@ public class ProhibitedTickerController {
                 UiNotification.success("Ticker '" + ticker + "' desbloqueado y eliminado correctamente."));
         return "redirect:/prohibited-tickers";
     }
-    
+
+    @PostMapping("/keywords")
+    public String addProhibitedKeyword(@RequestParam("keyword") String keyword, RedirectAttributes redirectAttributes) {
+        try {
+            manageProhibitedKeywordUseCase.addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword(keyword).build());
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Keyword '" + keyword + "' añadida correctamente."));
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.error(ex.getMessage()));
+        }
+        return "redirect:/prohibited-tickers";
+    }
+
+    @PostMapping("/keywords/delete")
+    public String deleteProhibitedKeyword(@RequestParam("keyword") String keyword,
+            RedirectAttributes redirectAttributes) {
+        manageProhibitedKeywordUseCase.removeProhibitedKeyword(keyword);
+        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Keyword '" + keyword + "' eliminada correctamente."));
+        return "redirect:/prohibited-tickers";
+    }
+
 }

@@ -52,63 +52,127 @@
         </div>
       </div>
 
-      <!-- Empty State -->
-      <div th:if="${prohibitedTickers.isEmpty()}" class="text-center py-5">
-        <i class="bi bi-shield-x text-muted" style="font-size: 4rem"></i>
-        <p class="text-muted fs-5 mt-3">
-          No se encontraron tickers prohibidos.
-        </p>
-      </div>
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <!-- Empty State -->
+          <div th:if="${prohibitedTickers.isEmpty()}" class="text-center py-5">
+            <i class="bi bi-shield-x text-muted" style="font-size: 4rem"></i>
+            <p class="text-muted fs-5 mt-3">
+              No se encontraron tickers prohibidos.
+            </p>
+          </div>
 
-      <!-- Prohibited Tickers Table -->
-      <div th:unless="${prohibitedTickers.isEmpty()}" class="card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th scope="col">Ticker</th>
-                  <th scope="col">Razón</th>
-                  <th scope="col" class="text-end">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr th:each="prohibitedTicker : ${prohibitedTickers}">
-                  <td class="fw-semibold" th:text="${prohibitedTicker.ticker}">
-                    XYZ
-                  </td>
-                  <td class="text-muted" th:text="${prohibitedTicker.reason}">
-                    Bloqueo manual
-                  </td>
-                  <td class="text-end">
-                    <form
-                      th:action="@{/prohibited-tickers/delete}"
-                      method="post"
-                      style="display: inline"
-                    >
-                      <input
-                        type="hidden"
-                        name="ticker"
-                        th:value="${prohibitedTicker.ticker}"
-                      />
-                      <button
-                        type="submit"
-                        class="btn btn-sm btn-outline-danger"
-                        onclick="
-                          return confirm(
-                            '¿Estás seguro de que quieres eliminar este ticker?',
-                          );
-                        "
-                      >
-                        <i class="bi bi-trash"></i> Eliminar
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <!-- Prohibited Tickers Table -->
+          <div th:unless="${prohibitedTickers.isEmpty()}" class="card">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Ticker</th>
+                      <th scope="col">Razón</th>
+                      <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:each="prohibitedTicker : ${prohibitedTickers}">
+                      <td class="fw-semibold" th:text="${prohibitedTicker.ticker}">
+                        XYZ
+                      </td>
+                      <td class="text-muted" th:text="${prohibitedTicker.reason}">
+                        Bloqueo manual
+                      </td>
+                      <td class="text-end">
+                        <form
+                          th:action="@{/prohibited-tickers/delete}"
+                          method="post"
+                          style="display: inline"
+                        >
+                          <input
+                            type="hidden"
+                            name="ticker"
+                            th:value="${prohibitedTicker.ticker}"
+                          />
+                          <button
+                            type="submit"
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="
+                              return confirm(
+                                '¿Estás seguro de que quieres eliminar este ticker?',
+                              );
+                            "
+                          >
+                            <i class="bi bi-trash"></i> Eliminar
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
+
+        <aside class="col-lg-4">
+          <div class="card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+              <h3 class="h6 mb-0">
+                <i class="bi bi-filter-circle me-1 text-primary"></i>
+                Keywords prohibidas
+              </h3>
+              <button
+                class="btn btn-sm btn-outline-secondary d-lg-none"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#keywordsSidebar"
+                aria-expanded="false"
+                aria-controls="keywordsSidebar"
+              >
+                Ver
+              </button>
+            </div>
+            <div class="collapse show d-lg-block" id="keywordsSidebar">
+              <div class="card-body">
+                <form th:action="@{/prohibited-tickers/keywords}" method="post" class="mb-3">
+                  <label for="keyword" class="form-label">Nueva keyword</label>
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="keyword"
+                      name="keyword"
+                      maxlength="100"
+                      required
+                    />
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-plus-lg"></i>
+                    </button>
+                  </div>
+                </form>
+
+                <div th:if="${prohibitedKeywords.isEmpty()}" class="text-muted small">
+                  No hay keywords configuradas.
+                </div>
+
+                <ul th:unless="${prohibitedKeywords.isEmpty()}" class="list-group list-group-flush">
+                  <li
+                    th:each="prohibitedKeyword : ${prohibitedKeywords}"
+                    class="list-group-item d-flex justify-content-between align-items-center px-0"
+                  >
+                    <span class="fw-semibold" th:text="${prohibitedKeyword.keyword}">ETF</span>
+                    <form th:action="@{/prohibited-tickers/keywords/delete}" method="post" class="ms-2">
+                      <input type="hidden" name="keyword" th:value="${prohibitedKeyword.keyword}" />
+                      <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Eliminar keyword">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </aside>
       </div>
     </main>
 
