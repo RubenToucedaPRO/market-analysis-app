@@ -168,12 +168,14 @@ public class BeanConfig {
             SuggestionSnapshotRepository suggestionSnapshotRepository,
             StrategyRepository strategyRepository,
             StockDataRepository stockDataRepository,
-            StrategyEvaluationRepository strategyEvaluationRepository) {
+            StrategyEvaluationRepository strategyEvaluationRepository,
+            StockProviderPort stockProviderPort) {
         return new AddSuggestedTickersToAnalysisService(
                 suggestionSnapshotRepository,
                 strategyRepository,
                 stockDataRepository,
-                strategyEvaluationRepository);
+                strategyEvaluationRepository,
+                stockProviderPort);
     }
 
     @Bean

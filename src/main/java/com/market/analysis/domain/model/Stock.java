@@ -71,6 +71,7 @@ public class Stock {
      * This enables strategy evaluation when ticker is added/updated.
      */
     private Long strategyId;
+    private StockOrigin origin;
 
     private StrategyEvaluation strategyEvaluation;
 

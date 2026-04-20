@@ -22,11 +22,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.application.usecase.AddSuggestedTickersToAnalysisService;
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.SuggestedTickerSnapshot;
 import com.market.analysis.domain.model.SuggestionSnapshot;
 import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.port.out.StockDataRepository;
+import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
@@ -46,6 +48,9 @@ class AddSuggestedTickersToAnalysisServiceTest {
 
     @Mock
     private StrategyEvaluationRepository strategyEvaluationRepository;
+
+    @Mock
+    private StockProviderPort stockProviderPort;
 
     @InjectMocks
     private AddSuggestedTickersToAnalysisService service;
@@ -91,6 +96,7 @@ class AddSuggestedTickersToAnalysisServiceTest {
         verify(stockDataRepository, times(1)).save(stockCaptor.capture());
         assertThat(stockCaptor.getValue().getTicker()).isEqualTo("AAPL");
         assertThat(stockCaptor.getValue().getStrategyId()).isEqualTo(strategyId);
+        assertThat(stockCaptor.getValue().getOrigin()).isEqualTo(StockOrigin.SUGGESTION_SNAPSHOT);
         assertThat(stockCaptor.getValue().getLastUpdated()).isEqualTo(suggestedAt);
         verify(strategyEvaluationRepository, times(1)).save(any(StrategyEvaluation.class), any(Stock.class));
     }
@@ -129,5 +135,61 @@ class AddSuggestedTickersToAnalysisServiceTest {
 
         IllegalStateException ex = assertThrows(IllegalStateException.class, () -> service.addFromLatestSnapshot(strategyId));
         assertThat(ex.getMessage()).isEqualTo("Latest suggestion snapshot is missing suggestedAt");
+    }
+
+    @Test
+    @DisplayName("Should refresh snapshot-origin tickers in batch")
+    void shouldRefreshSnapshotOriginTickersInBatch() {
+        Long strategyId = 1L;
+        Stock snapshotStock = Stock.builder()
+                .id(10L)
+                .ticker("AAPL")
+                .strategyId(strategyId)
+                .origin(StockOrigin.SUGGESTION_SNAPSHOT)
+                .build();
+        Stock externalStock = Stock.builder()
+                .id(11L)
+                .ticker("MSFT")
+                .strategyId(strategyId)
+                .origin(StockOrigin.EXTERNAL_PROVIDER)
+                .build();
+        Stock quote = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(java.math.BigDecimal.valueOf(185.1))
+                .openPrice(java.math.BigDecimal.valueOf(183.9))
+                .highOfDay(java.math.BigDecimal.valueOf(186.0))
+                .lowOfDay(java.math.BigDecimal.valueOf(183.2))
+                .previousClose(java.math.BigDecimal.valueOf(182.7))
+                .build();
+
+        when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(Strategy.builder().id(strategyId).name("S").build()));
+        when(stockDataRepository.findAllByStrategyId(strategyId)).thenReturn(List.of(snapshotStock, externalStock));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(quote);
+
+        int refreshed = service.refreshFromSuggestionSnapshot(strategyId);
+
+        assertThat(refreshed).isEqualTo(1);
+        verify(stockProviderPort, times(1)).getQuote("AAPL");
+        verify(stockDataRepository, times(1)).save(snapshotStock);
+    }
+
+    @Test
+    @DisplayName("Should return zero refreshes when there are no snapshot-origin tickers")
+    void shouldReturnZeroRefreshesWhenNoSnapshotOriginTickers() {
+        Long strategyId = 1L;
+        Stock externalStock = Stock.builder()
+                .id(11L)
+                .ticker("MSFT")
+                .strategyId(strategyId)
+                .origin(StockOrigin.EXTERNAL_PROVIDER)
+                .build();
+
+        when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(Strategy.builder().id(strategyId).name("S").build()));
+        when(stockDataRepository.findAllByStrategyId(strategyId)).thenReturn(List.of(externalStock));
+
+        int refreshed = service.refreshFromSuggestionSnapshot(strategyId);
+
+        assertThat(refreshed).isZero();
+        verify(stockProviderPort, never()).getQuote(any());
     }
 }

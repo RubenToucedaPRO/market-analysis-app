@@ -9,12 +9,14 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.model.SuggestedTickerSnapshot;
 import com.market.analysis.domain.model.SuggestionSnapshot;
 import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.out.StockDataRepository;
+import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
@@ -31,6 +33,7 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
     private final StrategyRepository strategyRepository;
     private final StockDataRepository stockDataRepository;
     private final StrategyEvaluationRepository strategyEvaluationRepository;
+    private final StockProviderPort stockProviderPort;
 
     @Override
     public int addFromLatestSnapshot(Long strategyId) {
@@ -68,6 +71,7 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
             Stock stock = stockDataRepository.save(Stock.builder()
                     .ticker(ticker)
                     .strategyId(strategyId)
+                    .origin(StockOrigin.SUGGESTION_SNAPSHOT)
                     .lastUpdated(evaluatedAt)
                     .build());
 
@@ -88,6 +92,42 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
         }
 
         return addedCount;
+    }
+
+    @Override
+    public int refreshFromSuggestionSnapshot(Long strategyId) {
+        if (strategyId == null) {
+            throw new IllegalArgumentException("Strategy ID is required");
+        }
+
+        strategyRepository.findById(strategyId)
+                .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + strategyId));
+
+        int refreshed = 0;
+        for (Stock existingStock : stockDataRepository.findAllByStrategyId(strategyId)) {
+            if (existingStock == null || existingStock.getTicker() == null || existingStock.getTicker().isBlank()) {
+                continue;
+            }
+            if (existingStock.getOrigin() != StockOrigin.SUGGESTION_SNAPSHOT) {
+                continue;
+            }
+
+            Stock quote = stockProviderPort.getQuote(existingStock.getTicker());
+            if (quote == null) {
+                continue;
+            }
+
+            existingStock.setCurrentPrice(quote.getCurrentPrice());
+            existingStock.setOpenPrice(quote.getOpenPrice());
+            existingStock.setHighOfDay(quote.getHighOfDay());
+            existingStock.setLowOfDay(quote.getLowOfDay());
+            existingStock.setPreviousClose(quote.getPreviousClose());
+            existingStock.setLastUpdated(Instant.now());
+            stockDataRepository.save(existingStock);
+            refreshed++;
+        }
+
+        return refreshed;
     }
 
     private String buildOfflineSummary(SuggestionSnapshot snapshot, String ticker) {

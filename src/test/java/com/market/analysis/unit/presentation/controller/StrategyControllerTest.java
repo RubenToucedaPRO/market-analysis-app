@@ -397,4 +397,49 @@ class StrategyControllerTest {
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
     }
+
+    @Test
+    @DisplayName("Should refresh suggested tickers from snapshot and redirect to analysis")
+    void testRefreshSuggestedTickersFromSnapshotSuccess() {
+        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(2);
+
+        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
+
+        assertEquals("redirect:/analysis", viewName);
+        verify(addSuggestedTickersToAnalysisUseCase).refreshFromSuggestionSnapshot(1L);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Ticker(s) refrescados desde origen snapshot: 2."));
+    }
+
+    @Test
+    @DisplayName("Should warn when there are no snapshot-origin tickers to refresh")
+    void testRefreshSuggestedTickersFromSnapshotNoData() {
+        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(0);
+
+        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
+
+        assertEquals("redirect:/analysis", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("No hay tickers de origen snapshot para refrescar."));
+    }
+
+    @Test
+    @DisplayName("Should show error when refresh-from-snapshot use case is unavailable")
+    void testRefreshSuggestedTickersFromSnapshotUnavailable() {
+        strategyController = new StrategyController(
+                manageStrategyUseCase,
+                manageRuleDefinitionUseCase,
+                Optional.of(suggestTickersUseCase),
+                Optional.empty());
+
+        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(addSuggestedTickersToAnalysisUseCase, never()).refreshFromSuggestionSnapshot(any());
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
+    }
 }
