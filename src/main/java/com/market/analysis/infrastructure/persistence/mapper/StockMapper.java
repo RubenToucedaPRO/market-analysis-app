@@ -30,6 +30,7 @@ public class StockMapper {
         entity.setSma200(domain.getSma200());
         entity.setVolume(domain.getVolume());
         entity.setStrategyId(domain.getStrategyId());
+        entity.setOrigin(domain.getOrigin());
         entity.setAverageVolume(domain.getAverageVolume());
         entity.setLastUpdate(domain.getLastUpdated());
         entity.setStrategyEvaluation(domain.getStrategyEvaluation() != null
@@ -91,6 +92,7 @@ public class StockMapper {
                 .averageVolume(entity.getAverageVolume())
                 .lastUpdated(entity.getLastUpdate())
                 .strategyId(entity.getStrategyId())
+                .origin(entity.getOrigin())
                 .strategyEvaluation(entity.getStrategyEvaluation() != null
                         ? strategyEvaluationMapper.toDomain(entity.getStrategyEvaluation())
                         : null)

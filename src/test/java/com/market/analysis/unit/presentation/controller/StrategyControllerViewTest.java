@@ -198,6 +198,8 @@ class StrategyControllerViewTest {
                 .andExpect(content().string(containsString("unmappable-rules-traceability")))
                 .andExpect(content().string(containsString("/strategies/1/add-suggested-tickers")))
                 .andExpect(content().string(containsString("A\u00f1adir sugeridos a an\u00e1lisis")))
+                .andExpect(content().string(containsString("/strategies/1/refresh-suggested-tickers")))
+                .andExpect(content().string(containsString("Refrescar sugeridos (batch)")))
                 .andExpect(content().string(containsString("AAPL")))
                 .andExpect(content().string(containsString("TSLA")))
                 .andExpect(content().string(containsString("ATR(14)")));
@@ -213,5 +215,17 @@ class StrategyControllerViewTest {
                 .andExpect(view().name("redirect:/analysis"))
                 .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
                         UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: 2.")));
+    }
+
+    @Test
+    @DisplayName("Should post refresh suggested tickers from snapshot and redirect to analysis")
+    void shouldPostRefreshSuggestedTickersFromSnapshot() throws Exception {
+        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(1);
+
+        mockMvc.perform(post("/strategies/1/refresh-suggested-tickers"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(view().name("redirect:/analysis"))
+                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
+                        UiNotification.success("Ticker(s) refrescados desde origen snapshot: 1.")));
     }
 }
