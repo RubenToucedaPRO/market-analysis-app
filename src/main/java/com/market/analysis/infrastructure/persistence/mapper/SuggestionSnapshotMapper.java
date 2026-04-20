@@ -53,7 +53,10 @@ public class SuggestionSnapshotMapper {
     private SuggestedTickerSnapshotEntity toEntityTicker(SuggestedTickerSnapshot snapshot) {
         SuggestedTickerSnapshotEntity entity = new SuggestedTickerSnapshotEntity();
         entity.setTicker(snapshot.getTicker());
+        entity.setStrategyId(snapshot.getStrategyId());
+        entity.setSuggestedAt(snapshot.getSuggestedAt());
         entity.setSuitabilityStatus(snapshot.getSuitabilityStatus());
+        entity.setDeterministicMetrics(serializeList(snapshot.getDeterministicMetrics()));
         entity.setTraceability(serializeList(snapshot.getTraceability()));
         return entity;
     }
@@ -61,7 +64,10 @@ public class SuggestionSnapshotMapper {
     private SuggestedTickerSnapshot toDomainTicker(SuggestedTickerSnapshotEntity entity) {
         return SuggestedTickerSnapshot.builder()
                 .ticker(entity.getTicker())
+                .strategyId(entity.getStrategyId())
+                .suggestedAt(entity.getSuggestedAt())
                 .suitabilityStatus(entity.getSuitabilityStatus())
+                .deterministicMetrics(deserializeList(entity.getDeterministicMetrics()))
                 .traceability(deserializeList(entity.getTraceability()))
                 .build();
     }

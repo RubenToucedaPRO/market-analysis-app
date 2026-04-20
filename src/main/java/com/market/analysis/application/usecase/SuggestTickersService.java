@@ -150,15 +150,21 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 .unmappableRules(response.getUnmappableRules())
                 .warnings(response.getWarnings())
                 .suggestedTickers(Optional.ofNullable(response.getSuggestedTickers()).orElse(List.of()).stream()
-                        .map(this::toSnapshotTicker)
+                        .map(dto -> toSnapshotTicker(dto, response.getStrategyId(), response.getSuggestedAt()))
                         .toList())
                 .build();
     }
 
-    private SuggestedTickerSnapshot toSnapshotTicker(SuggestedTickerDTO dto) {
+    private SuggestedTickerSnapshot toSnapshotTicker(SuggestedTickerDTO dto, Long strategyId, Instant suggestedAt) {
+        boolean suitable = TickerSuitabilityStatus.APTO.equals(dto.getSuitabilityStatus());
+        List<String> deterministicMetrics =
+                suitable && dto.getDeterministicMetrics() != null ? dto.getDeterministicMetrics() : List.of();
         return SuggestedTickerSnapshot.builder()
                 .ticker(dto.getTicker())
+                .strategyId(suitable ? strategyId : null)
+                .suggestedAt(suitable ? suggestedAt : null)
                 .suitabilityStatus(dto.getSuitabilityStatus() == null ? null : dto.getSuitabilityStatus().name())
+                .deterministicMetrics(deterministicMetrics)
                 .traceability(dto.getTraceability())
                 .build();
     }
@@ -187,7 +193,10 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         }
         return SuggestedTickerDTO.builder()
                 .ticker(snapshot.getTicker())
+                .strategyId(snapshot.getStrategyId())
+                .suggestedAt(snapshot.getSuggestedAt())
                 .suitabilityStatus(suitabilityStatus)
+                .deterministicMetrics(snapshot.getDeterministicMetrics())
                 .traceability(snapshot.getTraceability())
                 .build();
     }
