@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.application.usecase.AddSuggestedTickersToAnalysisService;
-import com.market.analysis.application.usecase.StockDeterministicAnalysisPipeline;
+import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
@@ -45,7 +45,7 @@ class AddSuggestedTickersToAnalysisServiceTest {
     private StockDataRepository stockDataRepository;
 
     @Mock
-    private StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
+    private AnalyzeAndPersistStockService analyzeAndPersistStockService;
 
     @Mock
     private StockProviderPort stockProviderPort;
@@ -81,13 +81,13 @@ class AddSuggestedTickersToAnalysisServiceTest {
 
         when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
         when(suggestionSnapshotRepository.findLatestByStrategyId(strategyId)).thenReturn(Optional.of(snapshot));
-        when(stockDeterministicAnalysisPipeline.analyzeAndPersist("AAPL", strategy, StockOrigin.STRATEGY_SUGGESTION))
+        when(analyzeAndPersistStockService.analyzeAndPersist("AAPL", strategy, StockOrigin.STRATEGY_SUGGESTION))
             .thenReturn(Stock.builder().id(10L).ticker("AAPL").build());
 
         int added = service.addFromLatestSnapshot(strategyId);
 
         assertThat(added).isEqualTo(1);
-        verify(stockDeterministicAnalysisPipeline, times(1)).analyzeAndPersist(
+        verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist(
             "AAPL",
             strategy,
             StockOrigin.STRATEGY_SUGGESTION);
@@ -104,7 +104,7 @@ class AddSuggestedTickersToAnalysisServiceTest {
         int added = service.addFromLatestSnapshot(strategyId);
 
         assertThat(added).isZero();
-        verify(stockDeterministicAnalysisPipeline, never()).analyzeAndPersist(any(), any(), any());
+        verify(analyzeAndPersistStockService, never()).analyzeAndPersist(any(), any(), any());
     }
 
     @Test

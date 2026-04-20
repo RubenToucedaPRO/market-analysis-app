@@ -21,7 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.application.usecase.StockDeterministicAnalysisPipeline;
+import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedKeyword;
@@ -45,8 +45,8 @@ import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
 import com.market.analysis.domain.service.StockHistoricalService;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("StockDeterministicAnalysisPipeline Tests")
-class StockDeterministicAnalysisPipelineTest {
+@DisplayName("AnalyzeAndPersistStockService Tests")
+class AnalyzeAndPersistStockServiceTest {
 
     @Mock
     private StockDataRepository stockDataRepository;
@@ -74,7 +74,7 @@ class StockDeterministicAnalysisPipelineTest {
     private ProhibitedKeywordMatcher prohibitedKeywordMatcher;
 
     @InjectMocks
-    private StockDeterministicAnalysisPipeline pipeline;
+    private AnalyzeAndPersistStockService pipeline;
 
     @Test
     @DisplayName("Should persist and evaluate stock with requested origin")

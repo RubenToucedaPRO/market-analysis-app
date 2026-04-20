@@ -24,7 +24,7 @@ import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
-import com.market.analysis.application.usecase.StockDeterministicAnalysisPipeline;
+import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
@@ -57,7 +57,7 @@ class ManageAnalyzeStockServiceTest {
     @Mock
     private CandleDTOMapper candleDTOMapper;
     @Mock
-    private StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
+    private AnalyzeAndPersistStockService analyzeAndPersistStockService;
     @Mock
     private PromptBuilder promptBuilder;
     @Mock
@@ -83,12 +83,12 @@ class ManageAnalyzeStockServiceTest {
         Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
 
         when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
-        when(stockDeterministicAnalysisPipeline.validateAndUpdateCompanyProfiles(List.of("AAPL")))
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("AAPL")))
             .thenReturn(List.of("AAPL"));
 
         service.getStockData("AAPL", strategyId);
 
-        verify(stockDeterministicAnalysisPipeline, times(1)).analyzeAndPersist(
+        verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist(
                 "AAPL",
                 strategy,
                 StockOrigin.EXTERNAL_PROVIDER);
@@ -101,12 +101,12 @@ class ManageAnalyzeStockServiceTest {
         Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
 
         when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
-        when(stockDeterministicAnalysisPipeline.validateAndUpdateCompanyProfiles(List.of("SPY")))
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("SPY")))
                 .thenReturn(List.of());
 
         service.getStockData("SPY", strategyId);
 
-        verify(stockDeterministicAnalysisPipeline, never()).analyzeAndPersist(any(), any(), any());
+        verify(analyzeAndPersistStockService, never()).analyzeAndPersist(any(), any(), any());
     }
 
     @Test

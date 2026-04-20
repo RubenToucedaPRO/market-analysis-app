@@ -7,7 +7,7 @@ Además, se introdujo un nuevo origin de stock para distinguir altas creadas des
 
 ## Código generado
 - Nuevo servicio de aplicación:
-  - src/main/java/com/market/analysis/application/usecase/StockDeterministicAnalysisPipeline.java
+  - src/main/java/com/market/analysis/application/usecase/AnalyzeAndPersistStockService.java
 - Modificaciones en orquestación de análisis:
   - src/main/java/com/market/analysis/application/usecase/ManageAnalyzeStockService.java
 - Reutilización del pipeline desde estrategia:
@@ -23,7 +23,7 @@ Además, se introdujo un nuevo origin de stock para distinguir altas creadas des
   - src/main/java/com/market/analysis/infrastructure/config/BeanConfig.java
 
 ## Decisiones técnicas tomadas
-1. Se creó StockDeterministicAnalysisPipeline para encapsular quote, históricos, indicadores, cache diario, persistencia de candles y evaluación de estrategia en un único flujo determinista reutilizable.
+1. Se creó AnalyzeAndPersistStockService para encapsular quote, históricos, indicadores, cache diario, persistencia de candles y evaluación de estrategia en un único flujo determinista reutilizable.
 2. ManageAnalyzeStockService quedó como orquestador fino y delega en el pipeline tanto la validación de perfiles/prohibidos como el procesamiento determinista.
 3. AddSuggestedTickersToAnalysisService ahora utiliza el mismo pipeline para altas desde estrategia, evitando la evaluación simplificada offline previa.
 4. Se añadió StockOrigin.STRATEGY_SUGGESTION para identificar altas de estrategia.
@@ -36,7 +36,7 @@ Se actualizaron tests unitarios y se añadieron pruebas del pipeline extraído:
   - src/test/java/com/market/analysis/unit/application/usecase/ManageAnalyzeStockServiceTest.java
   - src/test/java/com/market/analysis/unit/application/usecase/AddSuggestedTickersToAnalysisServiceTest.java
 - Nuevo:
-  - src/test/java/com/market/analysis/unit/application/usecase/StockDeterministicAnalysisPipelineTest.java
+  - src/test/java/com/market/analysis/unit/application/usecase/AnalyzeAndPersistStockServiceTest.java
 
 Resultado de ejecución de tests objetivo:
 - 22 tests pasados

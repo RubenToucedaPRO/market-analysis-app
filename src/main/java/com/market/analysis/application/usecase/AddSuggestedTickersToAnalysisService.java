@@ -28,7 +28,7 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
     private final StrategyRepository strategyRepository;
     private final StockDataRepository stockDataRepository;
     private final StockProviderPort stockProviderPort;
-    private final StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
+    private final AnalyzeAndPersistStockService analyzeAndPersistStockService;
 
     @Override
     public int addFromLatestSnapshot(Long strategyId) {
@@ -59,7 +59,7 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
 
         int addedCount = 0;
         for (String ticker : aptTickers) {
-            Stock persistedStock = stockDeterministicAnalysisPipeline.analyzeAndPersist(
+            Stock persistedStock = analyzeAndPersistStockService.analyzeAndPersist(
                 ticker,
                 strategy,
                 StockOrigin.STRATEGY_SUGGESTION);

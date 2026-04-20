@@ -23,7 +23,7 @@ import com.market.analysis.application.usecase.ManageProhibitedKeywordService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
-import com.market.analysis.application.usecase.StockDeterministicAnalysisPipeline;
+import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.application.usecase.SuggestTickersService;
 import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
@@ -103,15 +103,15 @@ public class BeanConfig {
             StrategyRepository strategyRepository,
             StockProviderPort stockProviderPort,
             ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
-            StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline) {
+            AnalyzeAndPersistStockService analyzeAndPersistStockService) {
         return new ManageAnalyzeStockService(stockDataRepository,
                 candleHistoryRepository, strategyRepository, stockProviderPort, apiIAPort,
-                stockMapper, candleDTOMapper, stockDeterministicAnalysisPipeline, promptBuilder(),
+                stockMapper, candleDTOMapper, analyzeAndPersistStockService, promptBuilder(),
                 promptResponseValidator());
     }
 
     @Bean
-    public StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline(
+    public AnalyzeAndPersistStockService analyzeAndPersistStockService(
             StockDataRepository stockDataRepository,
             StrategyEvaluationRepository strategyEvaluationRepository,
             ApiCallRateRepository apiCallRateRepository,
@@ -124,7 +124,7 @@ public class BeanConfig {
             StockHistoricalService stockHistoricalService,
             EvaluateStrategyService evaluateStrategyService,
             ProhibitedKeywordMatcher prohibitedKeywordMatcher) {
-        return new StockDeterministicAnalysisPipeline(
+        return new AnalyzeAndPersistStockService(
                 stockDataRepository,
                 strategyEvaluationRepository,
                 apiCallRateRepository,
@@ -213,13 +213,13 @@ public class BeanConfig {
             StrategyRepository strategyRepository,
             StockDataRepository stockDataRepository,
             StockProviderPort stockProviderPort,
-            StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline) {
+            AnalyzeAndPersistStockService analyzeAndPersistStockService) {
         return new AddSuggestedTickersToAnalysisService(
                 suggestionSnapshotRepository,
                 strategyRepository,
                 stockDataRepository,
                 stockProviderPort,
-                stockDeterministicAnalysisPipeline);
+                analyzeAndPersistStockService);
     }
 
     @Bean

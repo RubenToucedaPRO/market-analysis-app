@@ -45,7 +45,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private final StockDataDTOMapper stockMapper;
     private final CandleDTOMapper candleDTOMapper;
 
-    private final StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
+    private final AnalyzeAndPersistStockService analyzeAndPersistStockService;
     private final PromptBuilder promptBuilder;
     private final PromptResponseValidator promptResponseValidator;
     private final AtomicLong aiRequests = new AtomicLong(0);
@@ -64,10 +64,10 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + strategyId));
 
         List<String> tickerList = parseTickers(tickers);
-        List<String> validTickers = stockDeterministicAnalysisPipeline.validateAndUpdateCompanyProfiles(tickerList);
+        List<String> validTickers = analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
-            stockDeterministicAnalysisPipeline.analyzeAndPersist(ticker, strategy, StockOrigin.EXTERNAL_PROVIDER);
+            analyzeAndPersistStockService.analyzeAndPersist(ticker, strategy, StockOrigin.EXTERNAL_PROVIDER);
         }
     }
 

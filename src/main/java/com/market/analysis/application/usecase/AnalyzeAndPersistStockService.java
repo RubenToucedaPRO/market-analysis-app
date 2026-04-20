@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Slf4j
-public class StockDeterministicAnalysisPipeline {
+public class AnalyzeAndPersistStockService {
 
     private static final ZoneId NEW_YORK_ZONE = ZoneId.of("America/New_York");
     private static final int DEFAULT_INDICATOR_PERIOD = 20;
