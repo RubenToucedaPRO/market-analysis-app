@@ -1,6 +1,7 @@
 package com.market.analysis.application.usecase;
 
 import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -10,10 +11,13 @@ import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
+import com.market.analysis.domain.model.SuggestedTickerSnapshot;
+import com.market.analysis.domain.model.SuggestionSnapshot;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     private final FinvizFilterMapper finvizFilterMapper;
     private final FinvizScreenerPort finvizScreenerPort;
     private final DeterministicTickerEvaluator deterministicTickerEvaluator;
+    private final SuggestionSnapshotRepository suggestionSnapshotRepository;
 
     @Override
     public SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request) {
@@ -58,7 +63,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         if (appliedFilters == null || appliedFilters.isBlank()) {
             warnings.add(EMPTY_FILTERS_WARNING);
             log.info("suggest_tickers_empty_filters strategyId={}", request.getStrategyId());
-            return buildResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
+            return buildAndPersistResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
         }
 
         List<String> candidates;
@@ -70,7 +75,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                     request.getStrategyId(),
                     appliedFilters,
                     ex.getMessage());
-            return buildResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
+            return buildAndPersistResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
         }
 
         log.info("suggest_tickers_candidates strategyId={} candidatesCount={}",
@@ -84,7 +89,15 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 .map(ticker -> classifyTicker(ticker, strategy))
                 .toList();
 
-        return buildResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, suggestedTickers);
+        return buildAndPersistResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, suggestedTickers);
+    }
+
+    @Override
+    public Optional<SuggestTickersResponseDTO> getLatestSuggestionSnapshot(Long strategyId) {
+        if (strategyId == null) {
+            return Optional.empty();
+        }
+        return suggestionSnapshotRepository.findLatestByStrategyId(strategyId).map(this::toResponse);
     }
 
     private SuggestedTickerDTO classifyTicker(String ticker, Strategy strategy) {
@@ -104,14 +117,78 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 .build();
     }
 
-        private SuggestTickersResponseDTO buildResponse(Long strategyId, String appliedFilters,
+    private SuggestTickersResponseDTO buildAndPersistResponse(Long strategyId, String appliedFilters,
             List<String> unmappableRules, List<String> warnings, List<SuggestedTickerDTO> suggestedTickers) {
+        SuggestTickersResponseDTO response = buildResponse(strategyId, appliedFilters, unmappableRules, warnings, suggestedTickers,
+                Instant.now());
+        suggestionSnapshotRepository.save(toSnapshot(response));
+        return response;
+    }
+
+    private SuggestTickersResponseDTO buildResponse(Long strategyId, String appliedFilters,
+            List<String> unmappableRules, List<String> warnings, List<SuggestedTickerDTO> suggestedTickers) {
+        return buildResponse(strategyId, appliedFilters, unmappableRules, warnings, suggestedTickers, Instant.now());
+    }
+
+    private SuggestTickersResponseDTO buildResponse(Long strategyId, String appliedFilters,
+            List<String> unmappableRules, List<String> warnings, List<SuggestedTickerDTO> suggestedTickers, Instant suggestedAt) {
         return SuggestTickersResponseDTO.builder()
                 .strategyId(strategyId)
                 .appliedFilters(appliedFilters)
+                .suggestedAt(suggestedAt)
                 .unmappableRules(unmappableRules)
                 .warnings(warnings)
                 .suggestedTickers(suggestedTickers)
+                .build();
+    }
+
+    private SuggestionSnapshot toSnapshot(SuggestTickersResponseDTO response) {
+        return SuggestionSnapshot.builder()
+                .strategyId(response.getStrategyId())
+                .suggestedAt(response.getSuggestedAt())
+                .appliedFilters(response.getAppliedFilters())
+                .unmappableRules(response.getUnmappableRules())
+                .warnings(response.getWarnings())
+                .suggestedTickers(Optional.ofNullable(response.getSuggestedTickers()).orElse(List.of()).stream()
+                        .map(this::toSnapshotTicker)
+                        .toList())
+                .build();
+    }
+
+    private SuggestedTickerSnapshot toSnapshotTicker(SuggestedTickerDTO dto) {
+        return SuggestedTickerSnapshot.builder()
+                .ticker(dto.getTicker())
+                .suitabilityStatus(dto.getSuitabilityStatus() == null ? null : dto.getSuitabilityStatus().name())
+                .traceability(dto.getTraceability())
+                .build();
+    }
+
+    private SuggestTickersResponseDTO toResponse(SuggestionSnapshot snapshot) {
+        return buildResponse(
+                snapshot.getStrategyId(),
+                snapshot.getAppliedFilters(),
+                snapshot.getUnmappableRules(),
+                snapshot.getWarnings(),
+                snapshot.getSuggestedTickers().stream()
+                        .map(this::toSuggestedTickerDTO)
+                        .toList(),
+                snapshot.getSuggestedAt());
+    }
+
+    private SuggestedTickerDTO toSuggestedTickerDTO(SuggestedTickerSnapshot snapshot) {
+        TickerSuitabilityStatus suitabilityStatus = TickerSuitabilityStatus.NO_APTO;
+        if (snapshot.getSuitabilityStatus() != null) {
+            try {
+                suitabilityStatus = TickerSuitabilityStatus.valueOf(snapshot.getSuitabilityStatus());
+            } catch (IllegalArgumentException ex) {
+                log.warn("Unknown suitability status '{}' for ticker '{}'", snapshot.getSuitabilityStatus(),
+                        snapshot.getTicker());
+            }
+        }
+        return SuggestedTickerDTO.builder()
+                .ticker(snapshot.getTicker())
+                .suitabilityStatus(suitabilityStatus)
+                .traceability(snapshot.getTraceability())
                 .build();
     }
 

@@ -40,6 +40,7 @@ public class StrategyController {
     private static final String ATTR_SUGGESTED_TICKERS = "suggestedTickers";
     private static final String ATTR_DISCARDED_TICKERS = "discardedTickers";
     private static final String ATTR_UNMAPPABLE_RULES = "unmappableRules";
+    private static final String ATTR_SUGGESTED_AT = "suggestedAt";
 
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
@@ -55,6 +56,7 @@ public class StrategyController {
     public String viewStrategyDetail(@PathVariable("id") long strategyId, Model model) {
         StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
         model.addAttribute(ATTR_STRATEGY, strategyDTO);
+        loadLastSuggestionSnapshot(strategyId, model);
         return "strategies/detail";
     }
 
@@ -144,10 +146,6 @@ public class StrategyController {
                 ? List.of()
                 : response.getWarnings();
 
-        redirectAttributes.addFlashAttribute(ATTR_SUGGESTED_TICKERS, suggested);
-        redirectAttributes.addFlashAttribute(ATTR_DISCARDED_TICKERS, discarded);
-        redirectAttributes.addFlashAttribute(ATTR_UNMAPPABLE_RULES, unmappableRules);
-
         if (!unmappableRules.isEmpty() || !discarded.isEmpty() || !responseWarnings.isEmpty()) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
@@ -167,5 +165,21 @@ public class StrategyController {
         return response.getSuggestedTickers().stream()
                 .filter(ticker -> ticker.getSuitabilityStatus() == status)
                 .toList();
+    }
+
+    private void loadLastSuggestionSnapshot(long strategyId, Model model) {
+        if (suggestTickersUseCase.isEmpty()) {
+            return;
+        }
+        Optional<SuggestTickersResponseDTO> snapshot = suggestTickersUseCase.get().getLatestSuggestionSnapshot(strategyId);
+        if (snapshot.isEmpty()) {
+            return;
+        }
+
+        SuggestTickersResponseDTO response = snapshot.get();
+        model.addAttribute(ATTR_SUGGESTED_TICKERS, filterBySuitabilityStatus(response, TickerSuitabilityStatus.APTO));
+        model.addAttribute(ATTR_DISCARDED_TICKERS, filterBySuitabilityStatus(response, TickerSuitabilityStatus.NO_APTO));
+        model.addAttribute(ATTR_UNMAPPABLE_RULES, response.getUnmappableRules() == null ? List.of() : response.getUnmappableRules());
+        model.addAttribute(ATTR_SUGGESTED_AT, response.getSuggestedAt());
     }
 }

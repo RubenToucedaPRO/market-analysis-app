@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -232,6 +233,15 @@ class StrategyControllerTest {
     void testViewStrategyDetail() {
         // Arrange
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        SuggestTickersResponseDTO snapshot = SuggestTickersResponseDTO.builder()
+                .strategyId(1L)
+                .suggestedAt(Instant.parse("2026-04-18T12:00:00Z"))
+                .suggestedTickers(List.of(
+                        SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build(),
+                        SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()))
+                .unmappableRules(List.of("ATR(14)"))
+                .build();
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(Optional.of(snapshot));
 
         // Act
         String viewName = strategyController.viewStrategyDetail(1L, model);
@@ -240,6 +250,12 @@ class StrategyControllerTest {
         assertEquals("strategies/detail", viewName);
         verify(manageStrategyUseCase, times(1)).getStrategyById(1L);
         verify(model, times(1)).addAttribute("strategy", testStrategyDTO);
+        verify(model, times(1)).addAttribute("suggestedTickers", List.of(
+                SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build()));
+        verify(model, times(1)).addAttribute("discardedTickers", List.of(
+                SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()));
+        verify(model, times(1)).addAttribute("unmappableRules", List.of("ATR(14)"));
+        verify(model, times(1)).addAttribute("suggestedAt", Instant.parse("2026-04-18T12:00:00Z"));
     }
 
     @Test

@@ -38,6 +38,7 @@ import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 import com.market.analysis.domain.service.FinvizFilterMapperImpl;
@@ -150,12 +151,14 @@ public class BeanConfig {
             StrategyRepository strategyRepository,
             FinvizFilterMapper finvizFilterMapper,
             FinvizScreenerPort finvizScreenerPort,
-            DeterministicTickerEvaluator deterministicTickerEvaluator) {
+            DeterministicTickerEvaluator deterministicTickerEvaluator,
+            SuggestionSnapshotRepository suggestionSnapshotRepository) {
         return new SuggestTickersService(
                 strategyRepository,
                 finvizFilterMapper,
                 finvizScreenerPort,
-                deterministicTickerEvaluator);
+                deterministicTickerEvaluator,
+                suggestionSnapshotRepository);
     }
 
     @Bean
