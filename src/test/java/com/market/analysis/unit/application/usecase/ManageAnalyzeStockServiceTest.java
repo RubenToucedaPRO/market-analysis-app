@@ -3,16 +3,12 @@ package com.market.analysis.unit.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,21 +26,15 @@ import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.StockDeterministicAnalysisPipeline;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
-import com.market.analysis.domain.model.CompanyProfile;
-import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.domain.port.out.CandleHistoryRepository;
-import com.market.analysis.domain.port.out.CompanyProfileRepository;
-import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
-import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyRepository;
-import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
 import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.PromptResponseValidator;
 
@@ -54,12 +44,6 @@ class ManageAnalyzeStockServiceTest {
 
     @Mock
     private StockDataRepository stockDataRepository;
-    @Mock
-    private CompanyProfileRepository companyProfileRepository;
-    @Mock
-    private ProhibitedKeywordRepository prohibitedKeywordRepository;
-    @Mock
-    private ProhibitedTickerRepository prohibitedTickerRepository;
     @Mock
     private CandleHistoryRepository candleHistoryRepository;
     @Mock
@@ -76,8 +60,6 @@ class ManageAnalyzeStockServiceTest {
     private StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
     @Mock
     private PromptBuilder promptBuilder;
-    @Mock
-    private ProhibitedKeywordMatcher prohibitedKeywordMatcher;
     @Mock
     private PromptResponseValidator promptResponseValidator;
 
@@ -99,18 +81,10 @@ class ManageAnalyzeStockServiceTest {
     void shouldDelegateToPipelineForValidTickers() {
         Long strategyId = 1L;
         Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
-        CompanyProfile profile = CompanyProfile.builder()
-                .ticker("AAPL")
-                .name("Apple Inc.")
-                .lastUpdated(Instant.now())
-                .build();
 
         when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
-        when(prohibitedKeywordRepository.findAll()).thenReturn(List.of(ProhibitedKeyword.builder().keyword("ETF").active(true).build()));
-        when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(false);
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(profile));
-        when(prohibitedKeywordMatcher.findProhibitionReason(eq("Apple Inc."), anyList()))
-                .thenReturn(null);
+        when(stockDeterministicAnalysisPipeline.validateAndUpdateCompanyProfiles(List.of("AAPL")))
+            .thenReturn(List.of("AAPL"));
 
         service.getStockData("AAPL", strategyId);
 
@@ -121,18 +95,18 @@ class ManageAnalyzeStockServiceTest {
     }
 
     @Test
-    @DisplayName("Should skip prohibited ticker before calling shared pipeline")
-    void shouldSkipProhibitedTicker() {
+    @DisplayName("Should skip analysis when pipeline returns no valid tickers")
+    void shouldSkipWhenPipelineReturnsNoValidTickers() {
         Long strategyId = 1L;
         Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
 
         when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
-        when(prohibitedKeywordRepository.findAll()).thenReturn(List.of());
-        when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(true);
+        when(stockDeterministicAnalysisPipeline.validateAndUpdateCompanyProfiles(List.of("SPY")))
+                .thenReturn(List.of());
 
         service.getStockData("SPY", strategyId);
 
-        verify(stockDeterministicAnalysisPipeline, never()).analyzeAndPersist(anyString(), any(), any());
+        verify(stockDeterministicAnalysisPipeline, never()).analyzeAndPersist(any(), any(), any());
     }
 
     @Test

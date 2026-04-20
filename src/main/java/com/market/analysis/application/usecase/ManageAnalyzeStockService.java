@@ -14,22 +14,15 @@ import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Candle;
-import com.market.analysis.domain.model.CompanyProfile;
-import com.market.analysis.domain.model.ProhibitedKeyword;
-import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.domain.port.out.CandleHistoryRepository;
-import com.market.analysis.domain.port.out.CompanyProfileRepository;
-import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
-import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyRepository;
-import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
 import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.PromptResponseValidator;
 
@@ -45,9 +38,6 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     private static final int MAX_PROMPT_CHARS = 4000;
 
     private final StockDataRepository stockDataRepository;
-    private final CompanyProfileRepository companyProfileRepository;
-    private final ProhibitedKeywordRepository prohibitedKeywordRepository;
-    private final ProhibitedTickerRepository prohibitedTickerRepository;
     private final CandleHistoryRepository candleHistoryRepository;
     private final StrategyRepository strategyRepository;
     private final StockProviderPort stockProviderPort;
@@ -57,7 +47,6 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private final StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
     private final PromptBuilder promptBuilder;
-    private final ProhibitedKeywordMatcher prohibitedKeywordMatcher;
     private final PromptResponseValidator promptResponseValidator;
     private final AtomicLong aiRequests = new AtomicLong(0);
     private final AtomicLong aiValidResponses = new AtomicLong(0);
@@ -75,8 +64,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + strategyId));
 
         List<String> tickerList = parseTickers(tickers);
-        List<ProhibitedKeyword> prohibitedKeywords = prohibitedKeywordRepository.findAll();
-        List<String> validTickers = validateAndUpdateCompanyProfiles(tickerList, prohibitedKeywords);
+        List<String> validTickers = stockDeterministicAnalysisPipeline.validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
             stockDeterministicAnalysisPipeline.analyzeAndPersist(ticker, strategy, StockOrigin.EXTERNAL_PROVIDER);
@@ -139,71 +127,6 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 .map(String::toUpperCase)
                 .filter(t -> !t.isEmpty())
                 .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    /**
-     * Checks if company profiles exist and are up-to-date for the given list of
-     * tickers.
-     * 
-     * @param tickerList
-     */
-    private List<String> validateAndUpdateCompanyProfiles(List<String> tickerList,
-            List<ProhibitedKeyword> prohibitedKeywords) {
-        List<String> validTickers = new ArrayList<>();
-
-        for (String ticker : tickerList) {
-            resolveAndValidateCompanyProfile(validTickers, ticker, prohibitedKeywords);
-        }
-        return validTickers;
-    }
-
-    /**
-     * Determines if a company profile update is required based on existence and
-     * staleness.
-     * If the profile is missing or outdated, it will be deleted to ensure fresh
-     * data is fetched.
-     * 
-     * @param ticker the stock ticker symbol
-     * @return true if an update is required, false otherwise
-     */
-    private boolean isCompanyProfileMissingOrOutdated(CompanyProfile companyProfile) {
-        return companyProfile == null || companyProfile.getLastUpdated() == null || companyProfile.isOutdated();
-    }
-
-    private void resolveAndValidateCompanyProfile(List<String> validTickers, String ticker,
-            List<ProhibitedKeyword> prohibitedKeywords) {
-        if (prohibitedTickerRepository.existsByTicker(ticker)) {
-            log.info("Ticker {} is already marked as prohibited, skipping profile check", ticker);
-            return;
-        }
-        CompanyProfile companyProfile = companyProfileRepository.findByTicker(ticker).orElse(null);
-        boolean companyProfileNeedsRefresh = isCompanyProfileMissingOrOutdated(companyProfile);
-        if (companyProfileNeedsRefresh) {
-            companyProfile = stockProviderPort.getCompanyProfile(ticker);
-        }
-        if (companyProfile == null) {
-            log.warn("No company profile found for ticker {}, skipping", ticker);
-            return;
-        }
-        String prohibitionReason = resolveProhibitionReason(companyProfile, prohibitedKeywords);
-        if (prohibitionReason != null) {
-            ProhibitedTicker newProhibitedTicker = ProhibitedTicker.createProhibited(ticker,
-                    prohibitionReason);
-            prohibitedTickerRepository.save(newProhibitedTicker);
-            log.info("Ticker {} marked as prohibited based on company profile by '{}'", ticker,
-                    prohibitionReason);
-            return;
-        }
-        validTickers.add(ticker);
-        if (companyProfileNeedsRefresh) {
-            companyProfileRepository.save(companyProfile);
-        }
-        log.info("Company profile for ticker {} saved/updated successfully", ticker);
-    }
-
-    private String resolveProhibitionReason(CompanyProfile companyProfile,
-            List<ProhibitedKeyword> prohibitedKeywords) {
-        return prohibitedKeywordMatcher.findProhibitionReason(companyProfile.getName(), prohibitedKeywords);
     }
 
     @Override

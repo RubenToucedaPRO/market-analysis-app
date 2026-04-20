@@ -24,7 +24,7 @@ Además, se introdujo un nuevo origin de stock para distinguir altas creadas des
 
 ## Decisiones técnicas tomadas
 1. Se creó StockDeterministicAnalysisPipeline para encapsular quote, históricos, indicadores, cache diario, persistencia de candles y evaluación de estrategia en un único flujo determinista reutilizable.
-2. ManageAnalyzeStockService quedó como orquestador de validación de perfiles/prohibidos y delega el procesamiento determinista al pipeline.
+2. ManageAnalyzeStockService quedó como orquestador fino y delega en el pipeline tanto la validación de perfiles/prohibidos como el procesamiento determinista.
 3. AddSuggestedTickersToAnalysisService ahora utiliza el mismo pipeline para altas desde estrategia, evitando la evaluación simplificada offline previa.
 4. Se añadió StockOrigin.STRATEGY_SUGGESTION para identificar altas de estrategia.
 5. Se introdujo un método de repositorio findAllStocksVisibleInAnalysis que excluye STRATEGY_SUGGESTION y mantiene compatibilidad con registros legacy de origin nulo.
@@ -39,7 +39,7 @@ Se actualizaron tests unitarios y se añadieron pruebas del pipeline extraído:
   - src/test/java/com/market/analysis/unit/application/usecase/StockDeterministicAnalysisPipelineTest.java
 
 Resultado de ejecución de tests objetivo:
-- 20 tests pasados
+- 22 tests pasados
 - 0 fallos
 
 ## Advertencias de SonarQube o arquitectura
