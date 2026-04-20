@@ -24,6 +24,7 @@ import com.market.analysis.application.dto.StrategyObjectiveDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
@@ -45,6 +46,7 @@ public class StrategyController {
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
     private final Optional<SuggestTickersUseCase> suggestTickersUseCase;
+    private final Optional<AddSuggestedTickersToAnalysisUseCase> addSuggestedTickersToAnalysisUseCase;
 
     @GetMapping
     public String listStrategies(Model model) {
@@ -155,6 +157,27 @@ public class StrategyController {
         }
 
         return "redirect:/strategies/" + strategyId;
+    }
+
+    @PostMapping("/{id}/add-suggested-tickers")
+    public String addSuggestedTickersToAnalysis(@PathVariable("id") long strategyId,
+            RedirectAttributes redirectAttributes) {
+        if (addSuggestedTickersToAnalysisUseCase.isEmpty()) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
+            return "redirect:/strategies/" + strategyId;
+        }
+
+        int added = addSuggestedTickersToAnalysisUseCase.get().addFromLatestSnapshot(strategyId);
+        if (added > 0) {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: " + added + "."));
+        } else {
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.warning("No hay sugerencias aptas en snapshot para añadir."));
+        }
+
+        return "redirect:/analysis";
     }
 
     private List<SuggestedTickerDTO> filterBySuitabilityStatus(SuggestTickersResponseDTO response,

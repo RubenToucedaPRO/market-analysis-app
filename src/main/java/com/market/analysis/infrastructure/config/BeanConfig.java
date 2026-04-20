@@ -14,6 +14,7 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
+import com.market.analysis.application.usecase.AddSuggestedTickersToAnalysisService;
 import com.market.analysis.application.usecase.DefaultDeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.DeterministicTickerEvaluator;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
@@ -25,6 +26,7 @@ import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
+import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
@@ -159,6 +161,19 @@ public class BeanConfig {
                 finvizScreenerPort,
                 deterministicTickerEvaluator,
                 suggestionSnapshotRepository);
+    }
+
+    @Bean
+    public AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase(
+            SuggestionSnapshotRepository suggestionSnapshotRepository,
+            StrategyRepository strategyRepository,
+            StockDataRepository stockDataRepository,
+            StrategyEvaluationRepository strategyEvaluationRepository) {
+        return new AddSuggestedTickersToAnalysisService(
+                suggestionSnapshotRepository,
+                strategyRepository,
+                stockDataRepository,
+                strategyEvaluationRepository);
     }
 
     @Bean

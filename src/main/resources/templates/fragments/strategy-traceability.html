@@ -29,16 +29,10 @@
       </div>
       <form
         th:if="${suggestedTickers != null and !suggestedTickers.isEmpty()}"
-        th:action="@{/analysis/getTickerData}"
+        th:action="@{/strategies/{id}/add-suggested-tickers(id=${strategyId})}"
         method="post"
         class="mt-2"
       >
-        <input
-          type="hidden"
-          name="tickers"
-          th:value="${#strings.listJoin(suggestedTickers.![ticker], ',')}"
-        />
-        <input type="hidden" name="strategyId" th:value="${strategyId}" />
         <button
           type="submit"
           class="btn btn-sm btn-outline-primary"
