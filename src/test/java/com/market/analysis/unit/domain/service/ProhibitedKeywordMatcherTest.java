@@ -29,11 +29,11 @@ class ProhibitedKeywordMatcherTest {
     }
 
     @Test
-    @DisplayName("Should fallback to static keywords when repository list is empty")
-    void shouldFallbackToStaticKeywordsWhenRepositoryListIsEmpty() {
+    @DisplayName("Should return null when configured keyword list is empty")
+    void shouldReturnNullWhenConfiguredKeywordListIsEmpty() {
         String reason = matcher.findProhibitionReason("Vanguard International Stock Index Fund", List.of());
 
-        assertEquals("FUND", reason);
+        assertNull(reason);
     }
 
     @Test
