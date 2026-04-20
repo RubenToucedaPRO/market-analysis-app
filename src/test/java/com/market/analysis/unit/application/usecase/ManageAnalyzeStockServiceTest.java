@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -192,8 +193,8 @@ class ManageAnalyzeStockServiceTest {
         when(evaluateStrategyService.evaluateStrategy(any(), any())).thenReturn(mockEvaluation);
         when(prohibitedKeywordRepository.findAll()).thenReturn(List.of(
                 ProhibitedKeyword.builder().keyword("ETF").active(true).build()));
-        when(prohibitedKeywordMatcher.findProhibitionReason(validCompanyProfile.getName(), anyList())).thenReturn(null);
-        when(prohibitedKeywordMatcher.findProhibitionReason(prohibitedCompanyProfile.getName(), anyList()))
+        when(prohibitedKeywordMatcher.findProhibitionReason(eq(validCompanyProfile.getName()), anyList())).thenReturn(null);
+        when(prohibitedKeywordMatcher.findProhibitionReason(eq(prohibitedCompanyProfile.getName()), anyList()))
                 .thenReturn("ETF");
     }
 
@@ -825,7 +826,7 @@ class ManageAnalyzeStockServiceTest {
                 .atr14(BigDecimal.valueOf(2.5))
                 .build();
 
-        when(stockDataRepository.findByTickerAndLastUpdateBetween("AAPL", any(Instant.class), any(Instant.class)))
+        when(stockDataRepository.findByTickerAndLastUpdateBetween(eq("AAPL"), any(Instant.class), any(Instant.class)))
                 .thenReturn(cachedStock);
         when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
@@ -894,7 +895,7 @@ class ManageAnalyzeStockServiceTest {
         service.getStockData("AAPL", 1L);
 
         // Assert
-        verify(candleHistoryPort, times(1)).saveCandlesForTicker("AAPL", anyList());
+        verify(candleHistoryPort, times(1)).saveCandlesForTicker(eq("AAPL"), anyList());
     }
 
     @Test
@@ -1042,7 +1043,7 @@ class ManageAnalyzeStockServiceTest {
 
         when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stockWithSmas));
         when(candleHistoryPort.findCandlesByTicker("AAPL")).thenReturn(List.of(candle1));
-        when(candleDTOMapper.toChartDTO(stockWithSmas, anyList())).thenReturn(expected);
+        when(candleDTOMapper.toChartDTO(stockWithSmas, List.of(candle1))).thenReturn(expected);
 
         service.findCandlesByStockId(1L);
 
