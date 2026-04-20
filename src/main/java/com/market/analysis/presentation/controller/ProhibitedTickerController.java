@@ -33,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProhibitedTickerController {
 
+    private static final String REDIRECT_PROHIBITED_TICKERS = "redirect:/prohibited-tickers";
+
     private final ManageProhibitedTickerUseCase manageProhibitedTickerUseCase;
     private final ManageProhibitedKeywordUseCase manageProhibitedKeywordUseCase;
     private final MessageSource messageSource;
@@ -53,7 +55,7 @@ public class ProhibitedTickerController {
         manageProhibitedTickerUseCase.removeProhibitedTicker(ticker);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Ticker '" + ticker + "' desbloqueado y eliminado correctamente."));
-        return "redirect:/prohibited-tickers";
+        return REDIRECT_PROHIBITED_TICKERS;
     }
 
     @PostMapping("/keywords")
@@ -71,7 +73,7 @@ public class ProhibitedTickerController {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.error(ex.getMessage()));
         }
-        return "redirect:/prohibited-tickers";
+        return REDIRECT_PROHIBITED_TICKERS;
     }
 
     @PostMapping("/keywords/delete")
@@ -84,7 +86,7 @@ public class ProhibitedTickerController {
                 UiNotification.success(
                         messageSource.getMessage("prohibited.tickers.keyword.removed", new Object[] { displayKeyword },
                                 locale)));
-        return "redirect:/prohibited-tickers";
+        return REDIRECT_PROHIBITED_TICKERS;
     }
 
 }

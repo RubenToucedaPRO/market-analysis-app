@@ -35,7 +35,11 @@ class JpaProhibitedKeywordRepositoryIT {
         jpaProhibitedKeywordRepository.saveAndFlush(newKeywordEntity("ETF"));
 
         assertThrows(DataIntegrityViolationException.class,
-                () -> jpaProhibitedKeywordRepository.saveAndFlush(newKeywordEntity("ETF")));
+                this::saveDuplicateKeyword);
+    }
+
+    private void saveDuplicateKeyword() {
+        jpaProhibitedKeywordRepository.saveAndFlush(newKeywordEntity("ETF"));
     }
 
     @Test

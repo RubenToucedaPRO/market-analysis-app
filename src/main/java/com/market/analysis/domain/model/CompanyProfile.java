@@ -63,7 +63,7 @@ public class CompanyProfile {
 
     public boolean isOutdated() {
         return lastUpdated == null ||
-                lastUpdated.isBefore(Instant.now().minusSeconds(24 * 60 * 60 * 30));
+                lastUpdated.isBefore(Instant.now().minusSeconds(24L * 60 * 60 * 30));
     }
 
 }

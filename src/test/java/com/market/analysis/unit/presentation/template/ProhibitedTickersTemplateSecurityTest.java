@@ -26,8 +26,9 @@ class ProhibitedTickersTemplateSecurityTest {
     void shouldNotUseUnescapedRenderingInTemplate() throws IOException {
         String template = Files.readString(TEMPLATE_PATH);
 
-        assertThat(template).contains("th:text=");
-        assertThat(template).doesNotContain("th:utext=");
+        assertThat(template)
+                .contains("th:text=")
+                .doesNotContain("th:utext=");
     }
 
     @Test
@@ -37,8 +38,9 @@ class ProhibitedTickersTemplateSecurityTest {
         Document document = Jsoup.parse(template);
 
         List<Element> postForms = document.select("form[method=post]");
-        assertThat(postForms).hasSize(EXPECTED_CSRF_FIELDS_COUNT);
-        assertThat(postForms).allMatch(form -> form.html().contains("th:name=\"${_csrf.parameterName}\"")
-                && form.html().contains("th:value=\"${_csrf.token}\""));
+        assertThat(postForms)
+                .hasSize(EXPECTED_CSRF_FIELDS_COUNT)
+                .allMatch(form -> form.html().contains("th:name=\"${_csrf.parameterName}\"")
+                        && form.html().contains("th:value=\"${_csrf.token}\""));
     }
 }
