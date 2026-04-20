@@ -12,6 +12,8 @@ public interface StockDataRepository {
 
     public List<Stock> findAllStocks();
 
+    public List<Stock> findAllStocksVisibleInAnalysis();
+
     public Optional<Stock> findById(Long id);
 
     public boolean existsByTicker(String ticker);

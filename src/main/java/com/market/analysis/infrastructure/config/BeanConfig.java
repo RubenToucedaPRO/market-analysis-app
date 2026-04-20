@@ -23,6 +23,7 @@ import com.market.analysis.application.usecase.ManageProhibitedKeywordService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
+import com.market.analysis.application.usecase.StockDeterministicAnalysisPipeline;
 import com.market.analysis.application.usecase.SuggestTickersService;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
@@ -100,19 +101,39 @@ public class BeanConfig {
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
             CompanyProfileRepository companyProfileRepository, ProhibitedKeywordRepository prohibitedKeywordRepository,
             ProhibitedTickerRepository prohibitedTickerRepository,
-            StrategyEvaluationRepository strategyEvaluationRepository,
-            ApiCallRateRepository apiCallRateRepository, CandleHistoryRepository candleHistoryRepository,
-            StrategyRepository strategyRepository,
-            StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
+                CandleHistoryRepository candleHistoryRepository,
+                StrategyRepository strategyRepository,
+                StockProviderPort stockProviderPort,
             ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
-            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService,
+                StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline,
             ProhibitedKeywordMatcher prohibitedKeywordMatcher) {
         return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedKeywordRepository, prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
-                candleHistoryRepository, strategyRepository, stockProviderPort, historicalProviderPort, apiIAPort,
-                stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder(),
+                prohibitedKeywordRepository, prohibitedTickerRepository,
+                candleHistoryRepository, strategyRepository, stockProviderPort, apiIAPort,
+                stockMapper, candleDTOMapper, stockDeterministicAnalysisPipeline, promptBuilder(),
                 prohibitedKeywordMatcher, promptResponseValidator());
     }
+
+            @Bean
+            public StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline(
+                StockDataRepository stockDataRepository,
+                StrategyEvaluationRepository strategyEvaluationRepository,
+                ApiCallRateRepository apiCallRateRepository,
+                CandleHistoryRepository candleHistoryRepository,
+                StockProviderPort stockProviderPort,
+                HistoricalProviderPort historicalProviderPort,
+                StockHistoricalService stockHistoricalService,
+                EvaluateStrategyService evaluateStrategyService) {
+            return new StockDeterministicAnalysisPipeline(
+                stockDataRepository,
+                strategyEvaluationRepository,
+                apiCallRateRepository,
+                candleHistoryRepository,
+                stockProviderPort,
+                historicalProviderPort,
+                stockHistoricalService,
+                evaluateStrategyService);
+            }
 
     @Bean
     public RuleEvaluator ruleEvaluator() {
@@ -187,14 +208,14 @@ public class BeanConfig {
             SuggestionSnapshotRepository suggestionSnapshotRepository,
             StrategyRepository strategyRepository,
             StockDataRepository stockDataRepository,
-            StrategyEvaluationRepository strategyEvaluationRepository,
-            StockProviderPort stockProviderPort) {
+            StockProviderPort stockProviderPort,
+            StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline) {
         return new AddSuggestedTickersToAnalysisService(
                 suggestionSnapshotRepository,
                 strategyRepository,
                 stockDataRepository,
-                strategyEvaluationRepository,
-                stockProviderPort);
+                stockProviderPort,
+                stockDeterministicAnalysisPipeline);
     }
 
     @Bean

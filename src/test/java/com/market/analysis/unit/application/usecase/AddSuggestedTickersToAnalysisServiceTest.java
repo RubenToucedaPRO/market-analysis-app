@@ -15,21 +15,19 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.market.analysis.application.usecase.AddSuggestedTickersToAnalysisService;
+import com.market.analysis.application.usecase.StockDeterministicAnalysisPipeline;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.SuggestedTickerSnapshot;
 import com.market.analysis.domain.model.SuggestionSnapshot;
-import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
-import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 
@@ -47,7 +45,7 @@ class AddSuggestedTickersToAnalysisServiceTest {
     private StockDataRepository stockDataRepository;
 
     @Mock
-    private StrategyEvaluationRepository strategyEvaluationRepository;
+    private StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
 
     @Mock
     private StockProviderPort stockProviderPort;
@@ -83,22 +81,16 @@ class AddSuggestedTickersToAnalysisServiceTest {
 
         when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
         when(suggestionSnapshotRepository.findLatestByStrategyId(strategyId)).thenReturn(Optional.of(snapshot));
-        when(stockDataRepository.save(any())).thenAnswer(invocation -> {
-            Stock stock = invocation.getArgument(0, Stock.class);
-            stock.setId(10L);
-            return stock;
-        });
+        when(stockDeterministicAnalysisPipeline.analyzeAndPersist("AAPL", strategy, StockOrigin.STRATEGY_SUGGESTION))
+            .thenReturn(Stock.builder().id(10L).ticker("AAPL").build());
 
         int added = service.addFromLatestSnapshot(strategyId);
 
         assertThat(added).isEqualTo(1);
-        ArgumentCaptor<Stock> stockCaptor = ArgumentCaptor.forClass(Stock.class);
-        verify(stockDataRepository, times(1)).save(stockCaptor.capture());
-        assertThat(stockCaptor.getValue().getTicker()).isEqualTo("AAPL");
-        assertThat(stockCaptor.getValue().getStrategyId()).isEqualTo(strategyId);
-        assertThat(stockCaptor.getValue().getOrigin()).isEqualTo(StockOrigin.SUGGESTION_SNAPSHOT);
-        assertThat(stockCaptor.getValue().getLastUpdated()).isEqualTo(suggestedAt);
-        verify(strategyEvaluationRepository, times(1)).save(any(StrategyEvaluation.class), any(Stock.class));
+        verify(stockDeterministicAnalysisPipeline, times(1)).analyzeAndPersist(
+            "AAPL",
+            strategy,
+            StockOrigin.STRATEGY_SUGGESTION);
         verify(stockProviderPort, never()).getQuote(any());
     }
 
@@ -112,8 +104,7 @@ class AddSuggestedTickersToAnalysisServiceTest {
         int added = service.addFromLatestSnapshot(strategyId);
 
         assertThat(added).isZero();
-        verify(stockDataRepository, never()).save(any());
-        verify(strategyEvaluationRepository, never()).save(any(), any());
+        verify(stockDeterministicAnalysisPipeline, never()).analyzeAndPersist(any(), any(), any());
     }
 
     @Test
@@ -146,7 +137,7 @@ class AddSuggestedTickersToAnalysisServiceTest {
                 .id(10L)
                 .ticker("AAPL")
                 .strategyId(strategyId)
-                .origin(StockOrigin.SUGGESTION_SNAPSHOT)
+            .origin(StockOrigin.STRATEGY_SUGGESTION)
                 .build();
         Stock externalStock = Stock.builder()
                 .id(11L)

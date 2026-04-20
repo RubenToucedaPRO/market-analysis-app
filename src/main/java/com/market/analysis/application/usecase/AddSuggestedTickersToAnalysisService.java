@@ -1,9 +1,7 @@
 package com.market.analysis.application.usecase;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -11,13 +9,11 @@ import java.util.Set;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.model.Strategy;
-import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.model.SuggestedTickerSnapshot;
 import com.market.analysis.domain.model.SuggestionSnapshot;
 import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
-import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 
@@ -27,13 +23,12 @@ import lombok.RequiredArgsConstructor;
 public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickersToAnalysisUseCase {
 
     private static final String APTO = "APTO";
-    private static final String OFFLINE_SUMMARY = "Alta offline desde snapshot de sugerencias.";
 
     private final SuggestionSnapshotRepository suggestionSnapshotRepository;
     private final StrategyRepository strategyRepository;
     private final StockDataRepository stockDataRepository;
-    private final StrategyEvaluationRepository strategyEvaluationRepository;
     private final StockProviderPort stockProviderPort;
+    private final StockDeterministicAnalysisPipeline stockDeterministicAnalysisPipeline;
 
     @Override
     public int addFromLatestSnapshot(Long strategyId) {
@@ -54,41 +49,23 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
         if (evaluatedAt == null) {
             throw new IllegalStateException("Latest suggestion snapshot is missing suggestedAt");
         }
-        Set<String> aptTickers = new LinkedHashSet<>();
-
-        for (SuggestedTickerSnapshot tickerSnapshot : snapshot.getSuggestedTickers()) {
-            if (tickerSnapshot == null || tickerSnapshot.getTicker() == null || tickerSnapshot.getTicker().isBlank()) {
-                continue;
-            }
-            if (!APTO.equalsIgnoreCase(tickerSnapshot.getSuitabilityStatus())) {
-                continue;
-            }
-            aptTickers.add(tickerSnapshot.getTicker().trim().toUpperCase(Locale.ROOT));
-        }
+        Set<String> aptTickers = Optional.ofNullable(snapshot.getSuggestedTickers())
+            .orElse(java.util.List.of())
+                .stream()
+                .filter(this::isValidSnapshotTicker)
+                .filter(this::isAptoTicker)
+                .map(this::normalizeTicker)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
 
         int addedCount = 0;
         for (String ticker : aptTickers) {
-            Stock stock = stockDataRepository.save(Stock.builder()
-                    .ticker(ticker)
-                    .strategyId(strategyId)
-                    .origin(StockOrigin.SUGGESTION_SNAPSHOT)
-                    .lastUpdated(evaluatedAt)
-                    .build());
-
-            StrategyEvaluation evaluation = StrategyEvaluation.builder()
-                    .ticker(ticker)
-                    .strategyId(strategyId)
-                    .strategyName(strategy.getName())
-                    .compliant(true)
-                    .complianceRate(BigDecimal.valueOf(100))
-                    .summary(buildOfflineSummary(snapshot, ticker))
-                    .evaluatedAt(evaluatedAt)
-                    .priceAtEvaluation(stock.getCurrentPrice())
-                    .isLatest(true)
-                    .build();
-
-            strategyEvaluationRepository.save(evaluation, stock);
+            Stock persistedStock = stockDeterministicAnalysisPipeline.analyzeAndPersist(
+                ticker,
+                strategy,
+                StockOrigin.STRATEGY_SUGGESTION);
+            if (persistedStock != null) {
             addedCount++;
+            }
         }
 
         return addedCount;
@@ -103,48 +80,50 @@ public class AddSuggestedTickersToAnalysisService implements AddSuggestedTickers
         strategyRepository.findById(strategyId)
                 .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + strategyId));
 
-        int refreshed = 0;
-        for (Stock existingStock : stockDataRepository.findAllByStrategyId(strategyId)) {
-            if (existingStock == null || existingStock.getTicker() == null || existingStock.getTicker().isBlank()) {
-                continue;
-            }
-            if (existingStock.getOrigin() != StockOrigin.SUGGESTION_SNAPSHOT) {
-                continue;
-            }
+        return (int) stockDataRepository.findAllByStrategyId(strategyId).stream()
+                .filter(this::isValidRefreshCandidate)
+                .map(this::refreshSnapshotStock)
+                .filter(Boolean.TRUE::equals)
+                .count();
+    }
 
-            Stock quote = stockProviderPort.getQuote(existingStock.getTicker());
-            if (quote == null) {
-                continue;
-            }
+    private boolean isValidSnapshotTicker(SuggestedTickerSnapshot tickerSnapshot) {
+        return tickerSnapshot != null && tickerSnapshot.getTicker() != null && !tickerSnapshot.getTicker().isBlank();
+    }
 
-            existingStock.setCurrentPrice(quote.getCurrentPrice());
-            existingStock.setOpenPrice(quote.getOpenPrice());
-            existingStock.setHighOfDay(quote.getHighOfDay());
-            existingStock.setLowOfDay(quote.getLowOfDay());
-            existingStock.setPreviousClose(quote.getPreviousClose());
-            existingStock.setLastUpdated(Instant.now());
-            stockDataRepository.save(existingStock);
-            refreshed++;
+    private boolean isAptoTicker(SuggestedTickerSnapshot tickerSnapshot) {
+        return APTO.equalsIgnoreCase(tickerSnapshot.getSuitabilityStatus());
+    }
+
+    private String normalizeTicker(SuggestedTickerSnapshot tickerSnapshot) {
+        return tickerSnapshot.getTicker().trim().toUpperCase(Locale.ROOT);
+    }
+
+    private boolean isValidRefreshCandidate(Stock existingStock) {
+        return existingStock != null
+                && existingStock.getTicker() != null
+                && !existingStock.getTicker().isBlank()
+                && isRefreshableSnapshotOrigin(existingStock.getOrigin());
+    }
+
+    private boolean refreshSnapshotStock(Stock existingStock) {
+        Stock quote = stockProviderPort.getQuote(existingStock.getTicker());
+        if (quote == null) {
+            return false;
         }
 
-        return refreshed;
+        existingStock.setCurrentPrice(quote.getCurrentPrice());
+        existingStock.setOpenPrice(quote.getOpenPrice());
+        existingStock.setHighOfDay(quote.getHighOfDay());
+        existingStock.setLowOfDay(quote.getLowOfDay());
+        existingStock.setPreviousClose(quote.getPreviousClose());
+        existingStock.setLastUpdated(Instant.now());
+        stockDataRepository.save(existingStock);
+        return true;
     }
 
-    private String buildOfflineSummary(SuggestionSnapshot snapshot, String ticker) {
-        SuggestedTickerSnapshot matchedTicker = findMatchedTicker(snapshot, ticker).orElse(null);
-        if (matchedTicker == null || matchedTicker.getTraceability() == null || matchedTicker.getTraceability().isEmpty()) {
-            return OFFLINE_SUMMARY;
-        }
-
-        return matchedTicker.getTraceability().stream()
-                .filter(line -> line != null && !line.isBlank())
-                .findFirst()
-                .orElse(OFFLINE_SUMMARY);
+    private boolean isRefreshableSnapshotOrigin(StockOrigin origin) {
+        return origin == StockOrigin.SUGGESTION_SNAPSHOT || origin == StockOrigin.STRATEGY_SUGGESTION;
     }
 
-    private Optional<SuggestedTickerSnapshot> findMatchedTicker(SuggestionSnapshot snapshot, String ticker) {
-        return snapshot.getSuggestedTickers().stream()
-                .filter(item -> item != null && ticker.equalsIgnoreCase(item.getTicker()))
-                .findFirst();
-    }
 }
