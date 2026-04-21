@@ -16,16 +16,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
+import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.StrategyObjectiveDTO;
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
-import com.market.analysis.application.dto.StrategyDTO;
-import com.market.analysis.application.dto.StrategyObjectiveDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
+import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
+import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
 
@@ -36,14 +38,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StrategyController {
 
+    private static final String STRATEGY_REDIRECT_PREFIX = "redirect:/strategies/";
+
     private static final String ATTR_RULE_DEFINITIONS = "ruleDefinitions";
     private static final String ATTR_STRATEGY = "strategy";
     private static final String ATTR_SUGGESTED_TICKERS = "suggestedTickers";
     private static final String ATTR_DISCARDED_TICKERS = "discardedTickers";
     private static final String ATTR_UNMAPPABLE_RULES = "unmappableRules";
     private static final String ATTR_SUGGESTED_AT = "suggestedAt";
-    private static final String MSG_ADD_SNAPSHOT_UNAVAILABLE =
-            "La alta desde snapshot de sugerencias no está disponible todavía.";
     private static final String MSG_ADD_SNAPSHOT_NONE =
             "No hay sugerencias aptas en snapshot para añadir.";
     private static final String MSG_REFRESH_SNAPSHOT_NONE =
@@ -52,7 +54,7 @@ public class StrategyController {
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
     private final Optional<SuggestTickersUseCase> suggestTickersUseCase;
-    private final Optional<AddSuggestedTickersToAnalysisUseCase> addSuggestedTickersToAnalysisUseCase;
+    private final StockDataRepository stockDataRepository;
 
     @GetMapping
     public String listStrategies(Model model) {
@@ -130,7 +132,7 @@ public class StrategyController {
         if (suggestTickersUseCase.isEmpty()) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.error("La sugerencia de tickers desde mercado no está disponible todavía."));
-            return "redirect:/strategies/" + strategyId;
+            return STRATEGY_REDIRECT_PREFIX + strategyId;
         }
 
         SuggestTickersResponseDTO response;
@@ -142,10 +144,9 @@ public class StrategyController {
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.error("No se pudo sugerir tickers desde mercado en este momento."));
-            return "redirect:/strategies/" + strategyId;
+            return STRATEGY_REDIRECT_PREFIX + strategyId;
         }
 
-        List<SuggestedTickerDTO> suggested = filterBySuitabilityStatus(response, TickerSuitabilityStatus.APTO);
         List<SuggestedTickerDTO> discarded = filterBySuitabilityStatus(response, TickerSuitabilityStatus.NO_APTO);
         List<String> unmappableRules = response == null || response.getUnmappableRules() == null
                 ? List.of()
@@ -162,22 +163,16 @@ public class StrategyController {
                     UiNotification.success("Sugerencias generadas correctamente desde mercado."));
         }
 
-        return "redirect:/strategies/" + strategyId;
+        return STRATEGY_REDIRECT_PREFIX + strategyId;
     }
 
     @PostMapping("/{id}/add-suggested-tickers")
     public String addSuggestedTickersToAnalysis(@PathVariable("id") long strategyId,
             RedirectAttributes redirectAttributes) {
-        if (addSuggestedTickersToAnalysisUseCase.isEmpty()) {
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.error(MSG_ADD_SNAPSHOT_UNAVAILABLE));
-            return "redirect:/strategies/" + strategyId;
-        }
-
-        int added = addSuggestedTickersToAnalysisUseCase.get().addFromLatestSnapshot(strategyId);
+        int added = switchSuggestedTickersOrigin(strategyId);
         if (added > 0) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: " + added + "."));
+                    UiNotification.success("Ticker(s) cambiados a origen análisis: " + added + "."));
         } else {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.warning(MSG_ADD_SNAPSHOT_NONE));
@@ -189,21 +184,30 @@ public class StrategyController {
     @PostMapping("/{id}/refresh-suggested-tickers")
     public String refreshSuggestedTickersFromSnapshot(@PathVariable("id") long strategyId,
             RedirectAttributes redirectAttributes) {
-        if (addSuggestedTickersToAnalysisUseCase.isEmpty()) {
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.error(MSG_ADD_SNAPSHOT_UNAVAILABLE));
-            return "redirect:/strategies/" + strategyId;
-        }
-
-        int refreshed = addSuggestedTickersToAnalysisUseCase.get().refreshFromSuggestionSnapshot(strategyId);
+        int refreshed = switchSuggestedTickersOrigin(strategyId);
         if (refreshed > 0) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success("Ticker(s) refrescados desde origen snapshot: " + refreshed + "."));
+                    UiNotification.success("Ticker(s) movidos a origen snapshot: " + refreshed + "."));
         } else {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.warning(MSG_REFRESH_SNAPSHOT_NONE));
         }
         return "redirect:/analysis";
+    }
+
+    private int switchSuggestedTickersOrigin(long strategyId) {
+        List<Stock> stocks = stockDataRepository.findAllByStrategyId(strategyId);
+        int switched = 0;
+        for (Stock stock : stocks) {
+            if (stock != null && stock.getOrigin() != null
+                    && (stock.getOrigin() == StockOrigin.SUGGESTION_SNAPSHOT
+                            || stock.getOrigin() == StockOrigin.STRATEGY_SUGGESTION)) {
+                stock.setOrigin(StockOrigin.EXTERNAL_PROVIDER);
+                stockDataRepository.save(stock);
+                switched++;
+            }
+        }
+        return switched;
     }
 
     private List<SuggestedTickerDTO> filterBySuitabilityStatus(SuggestTickersResponseDTO response,

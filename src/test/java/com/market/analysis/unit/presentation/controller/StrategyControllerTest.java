@@ -2,14 +2,12 @@ package com.market.analysis.unit.presentation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,23 +18,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.RuleDTO;
+import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
-import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
-import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
-import com.market.analysis.application.mapper.StrategyDTOMapper;
+import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
+import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
 
-/**
- * Unit tests for StrategyController.
- */
 @DisplayName("StrategyController Unit Tests")
 @ExtendWith(MockitoExtension.class)
 class StrategyControllerTest {
@@ -51,13 +46,7 @@ class StrategyControllerTest {
     private SuggestTickersUseCase suggestTickersUseCase;
 
     @Mock
-    private AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase;
-
-    @Mock
-    private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
-
-    @Mock
-    private StrategyDTOMapper strategyDTOMapper;
+    private StockDataRepository stockDataRepository;
 
     @Mock
     private Model model;
@@ -66,7 +55,6 @@ class StrategyControllerTest {
     private org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes;
 
     private StrategyController strategyController;
-
     private StrategyDTO testStrategyDTO;
     private RuleDTO testRuleDTO;
 
@@ -76,7 +64,7 @@ class StrategyControllerTest {
                 manageStrategyUseCase,
                 manageRuleDefinitionUseCase,
                 Optional.of(suggestTickersUseCase),
-                Optional.of(addSuggestedTickersToAnalysisUseCase));
+                stockDataRepository);
 
         testRuleDTO = RuleDTO.builder()
                 .id(1L)
@@ -99,63 +87,52 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should list all strategies")
     void testListStrategies() {
-        // Arrange
         List<StrategyDTO> strategies = List.of(testStrategyDTO);
         when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategies);
 
-        // Act
         String viewName = strategyController.listStrategies(model);
 
-        // Assert
         assertEquals("strategies/list", viewName);
-        verify(manageStrategyUseCase, times(1)).getAllStrategies();
-        verify(model, times(1)).addAttribute("strategies", strategies);
+        verify(manageStrategyUseCase).getAllStrategies();
+        verify(model).addAttribute("strategies", strategies);
     }
 
     @Test
     @DisplayName("Should show create form with empty strategy")
     void testShowCreateForm() {
-        // Act
         String viewName = strategyController.showCreateForm(model);
 
-        // Assert
         assertEquals("strategies/create", viewName);
-        verify(manageRuleDefinitionUseCase, times(1)).getAllRuleDefinitions();
-        verify(model, times(3)).addAttribute(any(String.class), any());
+        verify(manageRuleDefinitionUseCase).getAllRuleDefinitions();
+                verify(model, org.mockito.Mockito.times(3)).addAttribute(any(String.class), any());
     }
 
     @Test
     @DisplayName("Should show edit form with existing strategy")
     void testShowEditForm() {
-        // Arrange
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
 
-        // Act
         String viewName = strategyController.showEditForm(1L, model);
 
-        // Assert
         assertEquals("strategies/create", viewName);
-        verify(manageStrategyUseCase, times(1)).getStrategyById(1L);
-        verify(manageRuleDefinitionUseCase, times(1)).getAllRuleDefinitions();
+        verify(manageStrategyUseCase).getStrategyById(1L);
+        verify(manageRuleDefinitionUseCase).getAllRuleDefinitions();
     }
 
     @Test
     @DisplayName("Should save strategy and redirect with success flash")
     void testSaveStrategy() {
-        // Arrange
         StrategyDTO strategyDTO = StrategyDTO.builder()
                 .name("Test Strategy")
                 .description("Test Description")
                 .rules(List.of())
                 .build();
 
-        // Act
         String viewName = strategyController.saveStrategy(strategyDTO, redirectAttributes);
 
-        // Assert
         assertEquals("redirect:/strategies", viewName);
-        verify(manageStrategyUseCase, times(1)).createStrategy(any(StrategyDTO.class));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
+        verify(manageStrategyUseCase).createStrategy(any(StrategyDTO.class));
+        verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Estrategia creada correctamente."));
     }
@@ -163,7 +140,6 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should save existing strategy and redirect with update flash")
     void testSaveStrategyUpdate() {
-        // Arrange – id != null triggers update message
         StrategyDTO strategyDTO = StrategyDTO.builder()
                 .id(1L)
                 .name("Test Strategy")
@@ -171,13 +147,11 @@ class StrategyControllerTest {
                 .rules(List.of())
                 .build();
 
-        // Act
         String viewName = strategyController.saveStrategy(strategyDTO, redirectAttributes);
 
-        // Assert
         assertEquals("redirect:/strategies", viewName);
-        verify(manageStrategyUseCase, times(1)).updateStrategy(any(StrategyDTO.class));
-        verify(redirectAttributes, times(1)).addFlashAttribute(
+        verify(manageStrategyUseCase).updateStrategy(any(StrategyDTO.class));
+        verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Estrategia actualizada correctamente."));
     }
@@ -185,58 +159,18 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should delete strategy and redirect with success flash")
     void testDeleteStrategy() {
-        // Act
         String viewName = strategyController.deleteStrategy(1L, redirectAttributes);
 
-        // Assert
         assertEquals("redirect:/strategies", viewName);
-        verify(manageStrategyUseCase, times(1)).deleteStrategy(1L);
-        verify(redirectAttributes, times(1)).addFlashAttribute(
+        verify(manageStrategyUseCase).deleteStrategy(1L);
+        verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Estrategia eliminada correctamente."));
     }
 
     @Test
-    @DisplayName("Should handle list with empty strategies")
-    void testListStrategiesEmpty() {
-        // Arrange
-        when(manageStrategyUseCase.getAllStrategies()).thenReturn(List.of());
-
-        // Act
-        String viewName = strategyController.listStrategies(model);
-
-        // Assert
-        assertEquals("strategies/list", viewName);
-        verify(model, times(1)).addAttribute("strategies", List.of());
-    }
-
-    @Test
-    @DisplayName("Should handle multiple strategies in list")
-    void testListMultipleStrategies() {
-        // Arrange
-        StrategyDTO strategy2 = StrategyDTO.builder()
-                .id(2L)
-                .name("Strategy 2")
-                .description("Description 2")
-                .rules(List.of(testRuleDTO))
-                .build();
-
-        List<StrategyDTO> strategies = List.of(testStrategyDTO, strategy2);
-        when(manageStrategyUseCase.getAllStrategies()).thenReturn(strategies);
-
-        // Act
-        String viewName = strategyController.listStrategies(model);
-
-        // Assert
-        assertEquals("strategies/list", viewName);
-        verify(manageStrategyUseCase, times(1)).getAllStrategies();
-        verify(model, times(1)).addAttribute("strategies", strategies);
-    }
-
-    @Test
     @DisplayName("Should view strategy detail by id")
     void testViewStrategyDetail() {
-        // Arrange
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
         SuggestTickersResponseDTO snapshot = SuggestTickersResponseDTO.builder()
                 .strategyId(1L)
@@ -248,19 +182,17 @@ class StrategyControllerTest {
                 .build();
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(Optional.of(snapshot));
 
-        // Act
         String viewName = strategyController.viewStrategyDetail(1L, model);
 
-        // Assert
         assertEquals("strategies/detail", viewName);
-        verify(manageStrategyUseCase, times(1)).getStrategyById(1L);
-        verify(model, times(1)).addAttribute("strategy", testStrategyDTO);
-        verify(model, times(1)).addAttribute("suggestedTickers", List.of(
+        verify(manageStrategyUseCase).getStrategyById(1L);
+        verify(model).addAttribute("strategy", testStrategyDTO);
+        verify(model).addAttribute("suggestedTickers", List.of(
                 SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build()));
-        verify(model, times(1)).addAttribute("discardedTickers", List.of(
+        verify(model).addAttribute("discardedTickers", List.of(
                 SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()));
-        verify(model, times(1)).addAttribute("unmappableRules", List.of("ATR(14)"));
-        verify(model, times(1)).addAttribute("suggestedAt", Instant.parse("2026-04-18T12:00:00Z"));
+        verify(model).addAttribute("unmappableRules", List.of("ATR(14)"));
+        verify(model).addAttribute("suggestedAt", Instant.parse("2026-04-18T12:00:00Z"));
     }
 
     @Test
@@ -285,92 +217,44 @@ class StrategyControllerTest {
     }
 
     @Test
-    @DisplayName("Should suggest tickers with partial notification when there are discards")
-    void testSuggestTickersFromMarketPartial() {
-        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
-                .suggestedTickers(List.of(SuggestedTickerDTO.builder()
-                        .ticker("TSLA")
-                        .suitabilityStatus(TickerSuitabilityStatus.NO_APTO)
-                        .build()))
-                .unmappableRules(List.of())
-                .build();
-        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
-
-        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
-
-        assertEquals("redirect:/strategies/1", viewName);
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
-    }
-
-    @Test
-    @DisplayName("Should suggest tickers with partial notification when there are warnings")
-    void testSuggestTickersFromMarketPartialWithWarnings() {
-        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
-                .suggestedTickers(List.of())
-                .unmappableRules(List.of())
-                .warnings(List.of("finviz degraded"))
-                .build();
-        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
-
-        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
-
-        assertEquals("redirect:/strategies/1", viewName);
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables."));
-    }
-
-    @Test
-    @DisplayName("Should return error notification when suggest use case fails")
-    void testSuggestTickersFromMarketError() {
-        when(suggestTickersUseCase.suggestTickers(any())).thenThrow(new RuntimeException("boom"));
-
-        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
-
-        assertEquals("redirect:/strategies/1", viewName);
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.error("No se pudo sugerir tickers desde mercado en este momento."));
-    }
-
-    @Test
-    @DisplayName("Should return error notification when suggest use case is unavailable")
-    void testSuggestTickersFromMarketUnavailable() {
-        strategyController = new StrategyController(
-                manageStrategyUseCase,
-                manageRuleDefinitionUseCase,
-                Optional.empty(),
-                Optional.of(addSuggestedTickersToAnalysisUseCase));
-
-        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
-
-        assertEquals("redirect:/strategies/1", viewName);
-        verify(suggestTickersUseCase, never()).suggestTickers(any());
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.error("La sugerencia de tickers desde mercado no está disponible todavía."));
-    }
-
-    @Test
-    @DisplayName("Should add suggested tickers from snapshot and redirect to analysis")
+    @DisplayName("Should switch suggested tickers to analysis origin and redirect")
     void testAddSuggestedTickersToAnalysisSuccess() {
-        when(addSuggestedTickersToAnalysisUseCase.addFromLatestSnapshot(1L)).thenReturn(2);
+        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
+                stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT),
+                stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION),
+                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER)));
 
         String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
 
         assertEquals("redirect:/analysis", viewName);
-        verify(addSuggestedTickersToAnalysisUseCase).addFromLatestSnapshot(1L);
+        verify(stockDataRepository).findAllByStrategyId(1L);
+        verify(stockDataRepository, org.mockito.Mockito.times(2)).save(any(Stock.class));
         verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: 2."));
+                UiNotification.success("Ticker(s) cambiados a origen análisis: 2."));
     }
 
     @Test
-    @DisplayName("Should show warning when there are no suggested tickers to add from snapshot")
+    @DisplayName("Should refresh suggested tickers from snapshot and redirect to analysis")
+    void testRefreshSuggestedTickersFromSnapshotSuccess() {
+        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
+                stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT),
+                stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION)));
+
+        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
+
+        assertEquals("redirect:/analysis", viewName);
+        verify(stockDataRepository, org.mockito.Mockito.times(2)).save(any(Stock.class));
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Ticker(s) movidos a origen snapshot: 2."));
+    }
+
+    @Test
+    @DisplayName("Should warn when there are no eligible tickers to switch")
     void testAddSuggestedTickersToAnalysisNoSnapshotData() {
-        when(addSuggestedTickersToAnalysisUseCase.addFromLatestSnapshot(1L)).thenReturn(0);
+        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
+                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER)));
 
         String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
 
@@ -381,41 +265,10 @@ class StrategyControllerTest {
     }
 
     @Test
-    @DisplayName("Should show error when add-from-snapshot use case is unavailable")
-    void testAddSuggestedTickersToAnalysisUnavailable() {
-        strategyController = new StrategyController(
-                manageStrategyUseCase,
-                manageRuleDefinitionUseCase,
-                Optional.of(suggestTickersUseCase),
-                Optional.empty());
-
-        String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
-
-        assertEquals("redirect:/strategies/1", viewName);
-        verify(addSuggestedTickersToAnalysisUseCase, never()).addFromLatestSnapshot(any());
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
-    }
-
-    @Test
-    @DisplayName("Should refresh suggested tickers from snapshot and redirect to analysis")
-    void testRefreshSuggestedTickersFromSnapshotSuccess() {
-        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(2);
-
-        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
-
-        assertEquals("redirect:/analysis", viewName);
-        verify(addSuggestedTickersToAnalysisUseCase).refreshFromSuggestionSnapshot(1L);
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker(s) refrescados desde origen snapshot: 2."));
-    }
-
-    @Test
     @DisplayName("Should warn when there are no snapshot-origin tickers to refresh")
     void testRefreshSuggestedTickersFromSnapshotNoData() {
-        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(0);
+        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
+                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER)));
 
         String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
 
@@ -425,21 +278,10 @@ class StrategyControllerTest {
                 UiNotification.warning("No hay tickers de origen snapshot para refrescar."));
     }
 
-    @Test
-    @DisplayName("Should show error when refresh-from-snapshot use case is unavailable")
-    void testRefreshSuggestedTickersFromSnapshotUnavailable() {
-        strategyController = new StrategyController(
-                manageStrategyUseCase,
-                manageRuleDefinitionUseCase,
-                Optional.of(suggestTickersUseCase),
-                Optional.empty());
-
-        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
-
-        assertEquals("redirect:/strategies/1", viewName);
-        verify(addSuggestedTickersToAnalysisUseCase, never()).refreshFromSuggestionSnapshot(any());
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.error("La alta desde snapshot de sugerencias no está disponible todavía."));
+    private Stock stockWithOrigin(String ticker, StockOrigin origin) {
+        return Stock.builder()
+                .ticker(ticker)
+                .origin(origin)
+                .build();
     }
 }

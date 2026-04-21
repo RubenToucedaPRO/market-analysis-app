@@ -1,7 +1,7 @@
 package com.market.analysis.application.usecase;
 
-import java.util.ArrayList;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -11,9 +11,11 @@ import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
+import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
+import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.model.SuggestedTickerSnapshot;
 import com.market.analysis.domain.model.SuggestionSnapshot;
-import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.StrategyRepository;
@@ -30,15 +32,13 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     private static final int DEFAULT_MAX_CANDIDATES = 20;
     private static final String EMPTY_FILTERS_WARNING =
             "No Finviz filters could be generated for this strategy.";
-    private static final String EVALUATOR_EMPTY_TRACE_WARNING =
-            "Deterministic evaluation did not return traceability details.";
     private static final String FINVIZ_DEGRADED_WARNING =
             "Finviz no está disponible temporalmente; la sugerencia se ha degradado sin resultados.";
 
     private final StrategyRepository strategyRepository;
     private final FinvizFilterMapper finvizFilterMapper;
     private final FinvizScreenerPort finvizScreenerPort;
-    private final DeterministicTickerEvaluator deterministicTickerEvaluator;
+    private final AnalyzeAndPersistStockService analyzeAndPersistStockService;
     private final SuggestionSnapshotRepository suggestionSnapshotRepository;
 
     @Override
@@ -81,12 +81,13 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         log.info("suggest_tickers_candidates strategyId={} candidatesCount={}",
                 request.getStrategyId(),
                 Optional.ofNullable(candidates).orElse(List.of()).size());
-        List<SuggestedTickerDTO> suggestedTickers = Optional.ofNullable(candidates).orElse(List.of()).stream()
+        List<String> validTickers = analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(candidates);
+        List<SuggestedTickerDTO> suggestedTickers = Optional.ofNullable(validTickers).orElse(List.of()).stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
                 .filter(ticker -> !ticker.isEmpty())
                 .distinct()
-                .map(ticker -> classifyTicker(ticker, strategy))
+                .map(ticker -> classifyAndPersistTicker(ticker, strategy))
                 .toList();
 
         return buildAndPersistResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, suggestedTickers);
@@ -100,21 +101,36 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         return suggestionSnapshotRepository.findLatestByStrategyId(strategyId).map(this::toResponse);
     }
 
-    private SuggestedTickerDTO classifyTicker(String ticker, Strategy strategy) {
-        DeterministicTickerEvaluation evaluation = deterministicTickerEvaluator.evaluate(ticker, strategy);
-        List<String> traceability = (evaluation != null && !evaluation.getTraceability().isEmpty())
-                ? new ArrayList<>(evaluation.getTraceability())
-                : new ArrayList<>(List.of(EVALUATOR_EMPTY_TRACE_WARNING));
+    private SuggestedTickerDTO classifyAndPersistTicker(String ticker, Strategy strategy) {
+    Stock persistedStock = analyzeAndPersistStockService.analyzeAndPersist(ticker, strategy,
+                StockOrigin.SUGGESTION_SNAPSHOT);
+        boolean suitable = persistedStock != null && persistedStock.getStrategyEvaluation() != null
+                && persistedStock.getStrategyEvaluation().isCompliant();
 
-        boolean suitable = evaluation != null && evaluation.isSuitable();
-        if (!suitable) {
-            log.info("suggest_ticker_discarded ticker={} traceability={}", ticker, traceability);
-        }
-        return SuggestedTickerDTO.builder()
+        List<String> traceability = buildTraceability(persistedStock, suitable);
+        SuggestedTickerDTO dto = SuggestedTickerDTO.builder()
                 .ticker(ticker)
+                .strategyId(strategy.getId())
                 .suitabilityStatus(suitable ? TickerSuitabilityStatus.APTO : TickerSuitabilityStatus.NO_APTO)
                 .traceability(traceability)
                 .build();
+
+        if (!suitable) {
+            log.info("suggest_ticker_discarded ticker={} traceability={}", ticker, traceability);
+        }
+        return dto;
+    }
+
+    private List<String> buildTraceability(Stock persistedStock, boolean suitable) {
+        if (persistedStock == null || persistedStock.getStrategyEvaluation() == null) {
+            return List.of("No se pudo generar una evaluación determinista válida.");
+        }
+
+        String summary = persistedStock.getStrategyEvaluation().getSummary();
+        if (summary == null || summary.isBlank()) {
+            return List.of(suitable ? "Ticker apto" : "Ticker no apto");
+        }
+        return List.of(summary);
     }
 
     private SuggestTickersResponseDTO buildAndPersistResponse(Long strategyId, String appliedFilters,
@@ -123,11 +139,6 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 Instant.now());
         suggestionSnapshotRepository.save(toSnapshot(response));
         return response;
-    }
-
-    private SuggestTickersResponseDTO buildResponse(Long strategyId, String appliedFilters,
-            List<String> unmappableRules, List<String> warnings, List<SuggestedTickerDTO> suggestedTickers) {
-        return buildResponse(strategyId, appliedFilters, unmappableRules, warnings, suggestedTickers, Instant.now());
     }
 
     private SuggestTickersResponseDTO buildResponse(Long strategyId, String appliedFilters,

@@ -15,17 +15,13 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
-import com.market.analysis.application.usecase.AddSuggestedTickersToAnalysisService;
-import com.market.analysis.application.usecase.DefaultDeterministicTickerEvaluator;
-import com.market.analysis.application.usecase.DeterministicTickerEvaluator;
+import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.ManageProhibitedKeywordService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
 import com.market.analysis.application.usecase.ManageStrategyService;
-import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.application.usecase.SuggestTickersService;
-import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
@@ -180,46 +176,18 @@ public class BeanConfig {
     }
 
     @Bean
-    public DeterministicTickerEvaluator deterministicTickerEvaluator(
-            StockProviderPort stockProviderPort,
-            HistoricalProviderPort historicalProviderPort,
-            StockHistoricalService stockHistoricalService,
-            EvaluateStrategyService evaluateStrategyService) {
-        return new DefaultDeterministicTickerEvaluator(
-                stockProviderPort,
-                historicalProviderPort,
-                stockHistoricalService,
-                evaluateStrategyService);
-    }
-
-    @Bean
     public SuggestTickersUseCase suggestTickersUseCase(
             StrategyRepository strategyRepository,
             FinvizFilterMapper finvizFilterMapper,
             FinvizScreenerPort finvizScreenerPort,
-            DeterministicTickerEvaluator deterministicTickerEvaluator,
+            AnalyzeAndPersistStockService analyzeAndPersistStockService,
             SuggestionSnapshotRepository suggestionSnapshotRepository) {
         return new SuggestTickersService(
                 strategyRepository,
                 finvizFilterMapper,
                 finvizScreenerPort,
-                deterministicTickerEvaluator,
+                analyzeAndPersistStockService,
                 suggestionSnapshotRepository);
-    }
-
-    @Bean
-    public AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase(
-            SuggestionSnapshotRepository suggestionSnapshotRepository,
-            StrategyRepository strategyRepository,
-            StockDataRepository stockDataRepository,
-            StockProviderPort stockProviderPort,
-            AnalyzeAndPersistStockService analyzeAndPersistStockService) {
-        return new AddSuggestedTickersToAnalysisService(
-                suggestionSnapshotRepository,
-                strategyRepository,
-                stockDataRepository,
-                stockProviderPort,
-                analyzeAndPersistStockService);
     }
 
     @Bean

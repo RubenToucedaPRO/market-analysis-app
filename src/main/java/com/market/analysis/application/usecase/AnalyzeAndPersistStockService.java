@@ -75,6 +75,7 @@ public class AnalyzeAndPersistStockService {
         StrategyEvaluation evaluationResult = evaluateStrategyService.evaluateStrategy(strategy, savedStock);
         if (evaluationResult != null) {
             strategyEvaluationRepository.save(evaluationResult, savedStock);
+            savedStock.setStrategyEvaluation(evaluationResult);
             log.info("Ticker {} added with strategy '{}' (origin={}): {}",
                     ticker,
                     strategy.getName(),
