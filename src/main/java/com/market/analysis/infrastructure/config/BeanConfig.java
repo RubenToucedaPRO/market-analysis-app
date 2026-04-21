@@ -181,13 +181,15 @@ public class BeanConfig {
             FinvizFilterMapper finvizFilterMapper,
             FinvizScreenerPort finvizScreenerPort,
             AnalyzeAndPersistStockService analyzeAndPersistStockService,
-            SuggestionSnapshotRepository suggestionSnapshotRepository) {
+            SuggestionSnapshotRepository suggestionSnapshotRepository,
+            StockDataRepository stockDataRepository) {
         return new SuggestTickersService(
                 strategyRepository,
                 finvizFilterMapper,
                 finvizScreenerPort,
                 analyzeAndPersistStockService,
-                suggestionSnapshotRepository);
+                suggestionSnapshotRepository,
+                stockDataRepository);
     }
 
     @Bean

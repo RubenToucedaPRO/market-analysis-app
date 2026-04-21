@@ -22,12 +22,9 @@ import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
-import com.market.analysis.domain.model.Stock;
-import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
-import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
 
@@ -54,7 +51,6 @@ public class StrategyController {
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
     private final Optional<SuggestTickersUseCase> suggestTickersUseCase;
-    private final StockDataRepository stockDataRepository;
 
     @GetMapping
     public String listStrategies(Model model) {
@@ -169,7 +165,9 @@ public class StrategyController {
     @PostMapping("/{id}/add-suggested-tickers")
     public String addSuggestedTickersToAnalysis(@PathVariable("id") long strategyId,
             RedirectAttributes redirectAttributes) {
-        int added = switchSuggestedTickersOrigin(strategyId);
+        int added = suggestTickersUseCase
+            .map(useCase -> useCase.switchSuggestedTickersOrigin(strategyId))
+            .orElse(0);
         if (added > 0) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.success("Ticker(s) cambiados a origen análisis: " + added + "."));
@@ -184,7 +182,9 @@ public class StrategyController {
     @PostMapping("/{id}/refresh-suggested-tickers")
     public String refreshSuggestedTickersFromSnapshot(@PathVariable("id") long strategyId,
             RedirectAttributes redirectAttributes) {
-        int refreshed = switchSuggestedTickersOrigin(strategyId);
+        int refreshed = suggestTickersUseCase
+            .map(useCase -> useCase.switchSuggestedTickersOrigin(strategyId))
+            .orElse(0);
         if (refreshed > 0) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.success("Ticker(s) movidos a origen snapshot: " + refreshed + "."));
@@ -193,21 +193,6 @@ public class StrategyController {
                     UiNotification.warning(MSG_REFRESH_SNAPSHOT_NONE));
         }
         return "redirect:/analysis";
-    }
-
-    private int switchSuggestedTickersOrigin(long strategyId) {
-        List<Stock> stocks = stockDataRepository.findAllByStrategyId(strategyId);
-        int switched = 0;
-        for (Stock stock : stocks) {
-            if (stock != null && stock.getOrigin() != null
-                    && (stock.getOrigin() == StockOrigin.SUGGESTION_SNAPSHOT
-                            || stock.getOrigin() == StockOrigin.STRATEGY_SUGGESTION)) {
-                stock.setOrigin(StockOrigin.EXTERNAL_PROVIDER);
-                stockDataRepository.save(stock);
-                switched++;
-            }
-        }
-        return switched;
     }
 
     private List<SuggestedTickerDTO> filterBySuitabilityStatus(SuggestTickersResponseDTO response,

@@ -18,6 +18,7 @@ import com.market.analysis.domain.model.SuggestedTickerSnapshot;
 import com.market.analysis.domain.model.SuggestionSnapshot;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
+import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.FinvizFilterMapper;
@@ -40,6 +41,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     private final FinvizScreenerPort finvizScreenerPort;
     private final AnalyzeAndPersistStockService analyzeAndPersistStockService;
     private final SuggestionSnapshotRepository suggestionSnapshotRepository;
+    private final StockDataRepository stockDataRepository;
 
     @Override
     public SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request) {
@@ -99,6 +101,22 @@ public class SuggestTickersService implements SuggestTickersUseCase {
             return Optional.empty();
         }
         return suggestionSnapshotRepository.findLatestByStrategyId(strategyId).map(this::toResponse);
+    }
+
+    @Override
+    public int switchSuggestedTickersOrigin(long strategyId) {
+        List<Stock> stocks = stockDataRepository.findAllByStrategyId(strategyId);
+        int switched = 0;
+        for (Stock stock : stocks) {
+            if (stock != null && stock.getOrigin() != null
+                    && (stock.getOrigin() == StockOrigin.SUGGESTION_SNAPSHOT
+                            || stock.getOrigin() == StockOrigin.STRATEGY_SUGGESTION)) {
+                stock.setOrigin(StockOrigin.EXTERNAL_PROVIDER);
+                stockDataRepository.save(stock);
+                switched++;
+            }
+        }
+        return switched;
     }
 
     private SuggestedTickerDTO classifyAndPersistTicker(String ticker, Strategy strategy) {

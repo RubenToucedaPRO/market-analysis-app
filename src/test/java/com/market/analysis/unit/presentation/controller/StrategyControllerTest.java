@@ -22,12 +22,9 @@ import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
-import com.market.analysis.domain.model.Stock;
-import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
-import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
@@ -46,9 +43,6 @@ class StrategyControllerTest {
     private SuggestTickersUseCase suggestTickersUseCase;
 
     @Mock
-    private StockDataRepository stockDataRepository;
-
-    @Mock
     private Model model;
 
     @Mock
@@ -63,8 +57,7 @@ class StrategyControllerTest {
         strategyController = new StrategyController(
                 manageStrategyUseCase,
                 manageRuleDefinitionUseCase,
-                Optional.of(suggestTickersUseCase),
-                stockDataRepository);
+                Optional.of(suggestTickersUseCase));
 
         testRuleDTO = RuleDTO.builder()
                 .id(1L)
@@ -219,16 +212,12 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should switch suggested tickers to analysis origin and redirect")
     void testAddSuggestedTickersToAnalysisSuccess() {
-        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
-                stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT),
-                stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION),
-                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER)));
+        when(suggestTickersUseCase.switchSuggestedTickersOrigin(1L)).thenReturn(2);
 
         String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
 
         assertEquals("redirect:/analysis", viewName);
-        verify(stockDataRepository).findAllByStrategyId(1L);
-        verify(stockDataRepository, org.mockito.Mockito.times(2)).save(any(Stock.class));
+        verify(suggestTickersUseCase).switchSuggestedTickersOrigin(1L);
         verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Ticker(s) cambiados a origen análisis: 2."));
@@ -237,14 +226,12 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should refresh suggested tickers from snapshot and redirect to analysis")
     void testRefreshSuggestedTickersFromSnapshotSuccess() {
-        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
-                stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT),
-                stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION)));
+        when(suggestTickersUseCase.switchSuggestedTickersOrigin(1L)).thenReturn(2);
 
         String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
 
         assertEquals("redirect:/analysis", viewName);
-        verify(stockDataRepository, org.mockito.Mockito.times(2)).save(any(Stock.class));
+        verify(suggestTickersUseCase).switchSuggestedTickersOrigin(1L);
         verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Ticker(s) movidos a origen snapshot: 2."));
@@ -253,8 +240,7 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should warn when there are no eligible tickers to switch")
     void testAddSuggestedTickersToAnalysisNoSnapshotData() {
-        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
-                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER)));
+        when(suggestTickersUseCase.switchSuggestedTickersOrigin(1L)).thenReturn(0);
 
         String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
 
@@ -267,8 +253,7 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should warn when there are no snapshot-origin tickers to refresh")
     void testRefreshSuggestedTickersFromSnapshotNoData() {
-        when(stockDataRepository.findAllByStrategyId(1L)).thenReturn(List.of(
-                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER)));
+        when(suggestTickersUseCase.switchSuggestedTickersOrigin(1L)).thenReturn(0);
 
         String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
 
@@ -278,10 +263,4 @@ class StrategyControllerTest {
                 UiNotification.warning("No hay tickers de origen snapshot para refrescar."));
     }
 
-    private Stock stockWithOrigin(String ticker, StockOrigin origin) {
-        return Stock.builder()
-                .ticker(ticker)
-                .origin(origin)
-                .build();
-    }
 }

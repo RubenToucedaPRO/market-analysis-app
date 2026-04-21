@@ -33,7 +33,6 @@ import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
-import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
 import com.market.analysis.presentation.util.WebConstants;
@@ -53,9 +52,6 @@ class StrategyControllerViewTest {
 
     @MockitoBean
     private SuggestTickersUseCase suggestTickersUseCase;
-
-    @MockitoBean
-    private StockDataRepository stockDataRepository;
 
     @Test
     @DisplayName("Should render subject parameter select for empty strategy form")

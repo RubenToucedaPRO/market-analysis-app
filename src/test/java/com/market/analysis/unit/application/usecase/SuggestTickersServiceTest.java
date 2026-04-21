@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +81,8 @@ class SuggestTickersServiceTest {
                 .warnings(List.of("Partial mapping used"))
                 .build());
         when(finvizScreenerPort.findTickers("ta_sma20_pa", 5)).thenReturn(List.of("AAPL", "TSLA"));
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("AAPL", "TSLA")))
+                .thenReturn(List.of("AAPL", "TSLA"));
         when(analyzeAndPersistStockService.analyzeAndPersist("AAPL", strategy, StockOrigin.SUGGESTION_SNAPSHOT))
                 .thenReturn(buildStock("AAPL", true, "All deterministic rules passed"));
         when(analyzeAndPersistStockService.analyzeAndPersist("TSLA", strategy, StockOrigin.SUGGESTION_SNAPSHOT))
@@ -123,6 +126,8 @@ class SuggestTickersServiceTest {
                 .warnings(List.of("Unsupported rule detected"))
                 .build());
         when(finvizScreenerPort.findTickers("ta_sma20_pa", 20)).thenReturn(List.of("MSFT"));
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("MSFT")))
+                .thenReturn(List.of("MSFT"));
         when(analyzeAndPersistStockService.analyzeAndPersist("MSFT", strategy, StockOrigin.SUGGESTION_SNAPSHOT))
                 .thenReturn(buildStock("MSFT", true, "Compliant"));
 
@@ -151,6 +156,8 @@ class SuggestTickersServiceTest {
                 .filters("ta_rsi_os30")
                 .build());
         when(finvizScreenerPort.findTickers("ta_rsi_os30", 20)).thenReturn(List.of("NFLX"));
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("NFLX")))
+                .thenReturn(List.of("NFLX"));
         when(analyzeAndPersistStockService.analyzeAndPersist("NFLX", strategy, StockOrigin.SUGGESTION_SNAPSHOT))
                 .thenReturn(buildStock("NFLX", true, "Compliant"));
 
@@ -227,6 +234,45 @@ class SuggestTickersServiceTest {
                 .isEqualTo(Instant.parse("2026-04-18T12:00:00Z"));
         assertThat(result.get().getSuggestedTickers().get(0).getDeterministicMetrics()).containsExactly("SMA20=123.45");
     }
+
+        @Test
+        @DisplayName("Should switch only snapshot-suggestion origins to external provider")
+        void shouldSwitchSuggestedTickerOrigins() {
+                Stock snapshotStock = stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT);
+                Stock strategySuggestionStock = stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION);
+                Stock externalStock = stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER);
+                when(stockDataRepository.findAllByStrategyId(7L)).thenReturn(List.of(snapshotStock, strategySuggestionStock, externalStock));
+
+                int switched = suggestTickersService.switchSuggestedTickersOrigin(7L);
+
+                assertThat(switched).isEqualTo(2);
+                assertThat(snapshotStock.getOrigin()).isEqualTo(StockOrigin.EXTERNAL_PROVIDER);
+                assertThat(strategySuggestionStock.getOrigin()).isEqualTo(StockOrigin.EXTERNAL_PROVIDER);
+                assertThat(externalStock.getOrigin()).isEqualTo(StockOrigin.EXTERNAL_PROVIDER);
+                verify(stockDataRepository).findAllByStrategyId(7L);
+                verify(stockDataRepository, times(2)).save(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should return zero when no stocks are eligible to switch")
+        void shouldReturnZeroWhenNoEligibleStocksToSwitch() {
+                when(stockDataRepository.findAllByStrategyId(8L)).thenReturn(List.of(
+                                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER),
+                                stockWithOrigin("IBM", null)));
+
+                int switched = suggestTickersService.switchSuggestedTickersOrigin(8L);
+
+                assertThat(switched).isZero();
+                verify(stockDataRepository).findAllByStrategyId(8L);
+                verify(stockDataRepository, never()).save(any(Stock.class));
+        }
+
+        private Stock stockWithOrigin(String ticker, StockOrigin origin) {
+                return Stock.builder()
+                                .ticker(ticker)
+                                .origin(origin)
+                                .build();
+        }
 
     private Stock buildStock(String ticker, boolean compliant, String summary) {
         return Stock.builder()
