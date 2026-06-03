@@ -45,8 +45,6 @@ public class StrategyController {
     private static final String ATTR_SUGGESTED_AT = "suggestedAt";
     private static final String MSG_ADD_SNAPSHOT_NONE =
             "No hay sugerencias aptas en snapshot para añadir.";
-    private static final String MSG_REFRESH_SNAPSHOT_NONE =
-            "No hay tickers de origen snapshot para refrescar.";
 
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
@@ -176,22 +174,6 @@ public class StrategyController {
                     UiNotification.warning(MSG_ADD_SNAPSHOT_NONE));
         }
 
-        return "redirect:/analysis";
-    }
-
-    @PostMapping("/{id}/refresh-suggested-tickers")
-    public String refreshSuggestedTickersFromSnapshot(@PathVariable("id") long strategyId,
-            RedirectAttributes redirectAttributes) {
-        int refreshed = suggestTickersUseCase
-            .map(useCase -> useCase.convertSuggestedTickersToAnalysis(strategyId))
-            .orElse(0);
-        if (refreshed > 0) {
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success("Ticker(s) movidos a origen snapshot: " + refreshed + "."));
-        } else {
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.warning(MSG_REFRESH_SNAPSHOT_NONE));
-        }
         return "redirect:/analysis";
     }
 

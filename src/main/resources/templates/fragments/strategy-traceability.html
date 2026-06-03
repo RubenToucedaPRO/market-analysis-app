@@ -42,21 +42,6 @@
           Añadir sugeridos a análisis
         </button>
       </form>
-      <form
-        th:if="${suggestedTickers != null and !suggestedTickers.isEmpty()}"
-        th:action="@{/strategies/{id}/refresh-suggested-tickers(id=${strategyId})}"
-        method="post"
-        class="mt-2"
-      >
-        <button
-          type="submit"
-          class="btn btn-sm btn-outline-secondary"
-          aria-label="Refrescar en batch los tickers añadidos desde snapshot"
-        >
-          <i class="bi bi-arrow-repeat me-1"></i>
-          Refrescar sugeridos (batch)
-        </button>
-      </form>
       <p
         class="text-muted small mb-0"
         th:if="${suggestedTickers == null or suggestedTickers.isEmpty()}"
