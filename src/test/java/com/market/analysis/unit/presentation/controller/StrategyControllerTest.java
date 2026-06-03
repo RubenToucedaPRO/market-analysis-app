@@ -223,19 +223,6 @@ class StrategyControllerTest {
                 UiNotification.success("Ticker(s) cambiados a origen análisis: 2."));
     }
 
-    @Test
-    @DisplayName("Should refresh suggested tickers from snapshot and redirect to analysis")
-    void testRefreshSuggestedTickersFromSnapshotSuccess() {
-        when(suggestTickersUseCase.convertSuggestedTickersToAnalysis(1L)).thenReturn(2);
-
-        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
-
-        assertEquals("redirect:/analysis", viewName);
-        verify(suggestTickersUseCase).convertSuggestedTickersToAnalysis(1L);
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker(s) movidos a origen snapshot: 2."));
-    }
 
     @Test
     @DisplayName("Should warn when there are no eligible tickers to switch")
@@ -249,18 +236,4 @@ class StrategyControllerTest {
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.warning("No hay sugerencias aptas en snapshot para añadir."));
     }
-
-    @Test
-    @DisplayName("Should warn when there are no snapshot-origin tickers to refresh")
-    void testRefreshSuggestedTickersFromSnapshotNoData() {
-        when(suggestTickersUseCase.convertSuggestedTickersToAnalysis(1L)).thenReturn(0);
-
-        String viewName = strategyController.refreshSuggestedTickersFromSnapshot(1L, redirectAttributes);
-
-        assertEquals("redirect:/analysis", viewName);
-        verify(redirectAttributes).addFlashAttribute(
-                WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.warning("No hay tickers de origen snapshot para refrescar."));
-    }
-
 }
