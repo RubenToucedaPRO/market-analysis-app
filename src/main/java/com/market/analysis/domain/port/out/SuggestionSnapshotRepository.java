@@ -9,4 +9,6 @@ public interface SuggestionSnapshotRepository {
     SuggestionSnapshot save(SuggestionSnapshot snapshot);
 
     Optional<SuggestionSnapshot> findLatestByStrategyId(Long strategyId);
+
+    void deleteAllByStrategyId(Long strategyId);
 }

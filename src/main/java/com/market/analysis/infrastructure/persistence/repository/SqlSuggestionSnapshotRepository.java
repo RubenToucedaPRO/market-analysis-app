@@ -32,4 +32,11 @@ public class SqlSuggestionSnapshotRepository implements SuggestionSnapshotReposi
         return jpaSuggestionSnapshotRepository.findTopByStrategyIdOrderBySuggestedAtDescIdDesc(strategyId)
                 .map(suggestionSnapshotMapper::toDomain);
     }
+
+    @Override
+    @Transactional
+    public void deleteAllByStrategyId(Long strategyId) {
+        jpaSuggestionSnapshotRepository.deleteAllByStrategyId(strategyId);
+    }
+    
 }

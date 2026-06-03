@@ -52,6 +52,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + request.getStrategyId()));
 
         stockDataRepository.deleteAllByStrategyIdAndOrigin(strategy.getId(), StockOrigin.SUGGESTION_SNAPSHOT);
+        suggestionSnapshotRepository.deleteAllByStrategyId(strategy.getId());
         
         FinvizFilterMappingResult mappingResult = finvizFilterMapper.map(strategy);
         List<String> unmappableRules = mappingResult != null ? mappingResult.getUnmappableRules() : List.of();
@@ -192,8 +193,8 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                 suitable && dto.getDeterministicMetrics() != null ? dto.getDeterministicMetrics() : List.of();
         return SuggestedTickerSnapshot.builder()
                 .ticker(dto.getTicker())
-                .strategyId(suitable ? strategyId : null)
-                .suggestedAt(suitable ? suggestedAt : null)
+                .strategyId(strategyId)
+                .suggestedAt(suggestedAt)
                 .suitabilityStatus(dto.getSuitabilityStatus() == null ? null : dto.getSuitabilityStatus().name())
                 .deterministicMetrics(deterministicMetrics)
                 .traceability(dto.getTraceability())
