@@ -48,6 +48,6 @@ Resultado de ejecución de tests objetivo:
 - Se mantiene IA solo para interpretación (sin impacto en evaluación determinista), conforme a arquitectura definida en README y AGENTS.
 
 ## Próximos pasos sugeridos
-1. Exponer métricas de pipeline por origin (EXTERNAL_PROVIDER vs STRATEGY_SUGGESTION) para observabilidad operativa.
+1. Exponer métricas de pipeline por origin (ANALYSIS vs STRATEGY_SUGGESTION) para observabilidad operativa.
 2. Añadir test de integración de repositorio para validar explícitamente el filtro de visibilidad en análisis.
 3. Revisar si refreshFromSuggestionSnapshot debe redirigir a estrategias en lugar de análisis cuando el origin sea STRATEGY_SUGGESTION.

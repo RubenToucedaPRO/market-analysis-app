@@ -48,7 +48,7 @@ class SuggestTickersUseCaseContractTest {
             }
 
             @Override
-            public int switchSuggestedTickersOrigin(long strategyId) {
+            public int convertSuggestedTickersToAnalysis(long strategyId) {
                 return 0;
             }
         };

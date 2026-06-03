@@ -166,7 +166,7 @@ public class StrategyController {
     public String addSuggestedTickersToAnalysis(@PathVariable("id") long strategyId,
             RedirectAttributes redirectAttributes) {
         int added = suggestTickersUseCase
-            .map(useCase -> useCase.switchSuggestedTickersOrigin(strategyId))
+            .map(useCase -> useCase.convertSuggestedTickersToAnalysis(strategyId))
             .orElse(0);
         if (added > 0) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
@@ -183,7 +183,7 @@ public class StrategyController {
     public String refreshSuggestedTickersFromSnapshot(@PathVariable("id") long strategyId,
             RedirectAttributes redirectAttributes) {
         int refreshed = suggestTickersUseCase
-            .map(useCase -> useCase.switchSuggestedTickersOrigin(strategyId))
+            .map(useCase -> useCase.convertSuggestedTickersToAnalysis(strategyId))
             .orElse(0);
         if (refreshed > 0) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,

@@ -67,7 +67,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         List<String> validTickers = analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(tickerList);
 
         for (String ticker : validTickers) {
-            analyzeAndPersistStockService.analyzeAndPersist(ticker, strategy, StockOrigin.EXTERNAL_PROVIDER);
+            analyzeAndPersistStockService.analyzeAndPersist(ticker, strategy, StockOrigin.ANALYSIS);
         }
     }
 

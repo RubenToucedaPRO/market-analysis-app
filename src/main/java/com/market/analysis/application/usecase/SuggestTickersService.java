@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SuggestTickersService implements SuggestTickersUseCase {
 
-    private static final int DEFAULT_MAX_CANDIDATES = 20;
+    private static final int DEFAULT_MAX_CANDIDATES = 5;
     private static final String EMPTY_FILTERS_WARNING =
             "No Finviz filters could be generated for this strategy.";
     private static final String FINVIZ_DEGRADED_WARNING =
@@ -51,6 +51,8 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         Strategy strategy = strategyRepository.findById(request.getStrategyId())
                 .orElseThrow(() -> new IllegalArgumentException("Strategy not found with id: " + request.getStrategyId()));
 
+        stockDataRepository.deleteAllByStrategyIdAndOrigin(strategy.getId(), StockOrigin.SUGGESTION_SNAPSHOT);
+        
         FinvizFilterMappingResult mappingResult = finvizFilterMapper.map(strategy);
         List<String> unmappableRules = mappingResult != null ? mappingResult.getUnmappableRules() : List.of();
         List<String> warnings = new ArrayList<>(mappingResult != null ? mappingResult.getWarnings() : List.of());
@@ -104,14 +106,14 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     }
 
     @Override
-    public int switchSuggestedTickersOrigin(long strategyId) {
+    public int convertSuggestedTickersToAnalysis(long strategyId) {
         List<Stock> stocks = stockDataRepository.findAllByStrategyId(strategyId);
         int switched = 0;
         for (Stock stock : stocks) {
             if (stock != null && stock.getOrigin() != null
                     && (stock.getOrigin() == StockOrigin.SUGGESTION_SNAPSHOT
-                            || stock.getOrigin() == StockOrigin.STRATEGY_SUGGESTION)) {
-                stock.setOrigin(StockOrigin.EXTERNAL_PROVIDER);
+                            || stock.getOrigin() == StockOrigin.STRATEGY_SUGGESTION) && stock.getStrategyEvaluation().isCompliant()) {
+                stock.setOrigin(StockOrigin.ANALYSIS);
                 stockDataRepository.save(stock);
                 switched++;
             }

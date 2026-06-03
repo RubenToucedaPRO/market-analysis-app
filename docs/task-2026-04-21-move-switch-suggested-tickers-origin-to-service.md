@@ -15,7 +15,7 @@ Con este cambio, el controlador deja de depender de `StockDataRepository` y dele
 - Se inyecta `StockDataRepository` en el constructor para ejecutar:
   - lectura de stocks por estrategia,
   - filtrado de orígenes `SUGGESTION_SNAPSHOT` y `STRATEGY_SUGGESTION`,
-  - cambio de origen a `EXTERNAL_PROVIDER`,
+  - cambio de origen a `ANALYSIS`,
   - persistencia y conteo de elementos cambiados.
 
 ### Controlador web
@@ -54,5 +54,5 @@ Resultado de ejecución:
 - Mejora arquitectónica aplicada: se reduce lógica de negocio en capa de presentación.
 
 ## Próximos pasos sugeridos
-1. Valorar renombrar el endpoint `refresh-suggested-tickers` o su mensaje de éxito para reflejar mejor que el destino final es `EXTERNAL_PROVIDER`.
+1. Valorar renombrar el endpoint `refresh-suggested-tickers` o su mensaje de éxito para reflejar mejor que el destino final es `ANALYSIS`.
 2. Añadir test de integración (Application + Persistence) para validar el cambio de origen con datos reales en H2.

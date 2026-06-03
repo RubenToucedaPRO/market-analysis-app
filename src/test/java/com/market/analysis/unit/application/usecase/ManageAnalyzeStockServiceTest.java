@@ -23,8 +23,8 @@ import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
-import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
+import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
@@ -91,7 +91,7 @@ class ManageAnalyzeStockServiceTest {
         verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist(
                 "AAPL",
                 strategy,
-                StockOrigin.EXTERNAL_PROVIDER);
+                StockOrigin.ANALYSIS);
     }
 
     @Test

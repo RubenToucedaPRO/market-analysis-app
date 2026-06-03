@@ -119,7 +119,7 @@ class AnalyzeAndPersistStockServiceTest {
         Strategy strategy = Strategy.builder().id(1L).name("Momentum").build();
         when(stockProviderPort.getQuote("AAPL")).thenReturn(null);
 
-        pipeline.analyzeAndPersist("AAPL", strategy, StockOrigin.EXTERNAL_PROVIDER);
+        pipeline.analyzeAndPersist("AAPL", strategy, StockOrigin.ANALYSIS);
 
         verify(stockDataRepository, never()).save(any());
         verify(strategyEvaluationRepository, never()).save(any(), any());
@@ -140,7 +140,7 @@ class AnalyzeAndPersistStockServiceTest {
         when(stockDataRepository.save(any(Stock.class))).thenReturn(saved);
         when(evaluateStrategyService.evaluateStrategy(strategy, saved)).thenReturn(evaluation);
 
-        pipeline.analyzeAndPersist("AAPL", strategy, StockOrigin.EXTERNAL_PROVIDER);
+        pipeline.analyzeAndPersist("AAPL", strategy, StockOrigin.ANALYSIS);
 
         verify(historicalProviderPort, never()).fetchHistoricalData(anyString());
         verify(stockDataRepository, times(1)).save(any(Stock.class));

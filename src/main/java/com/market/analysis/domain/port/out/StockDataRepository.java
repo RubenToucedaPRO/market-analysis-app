@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
 
 public interface StockDataRepository {
 
@@ -25,5 +26,7 @@ public interface StockDataRepository {
     public void updateStockData(Stock stockData);
 
     public void deleteById(Long id);
+
+    public void deleteAllByStrategyIdAndOrigin(Long strategyId, StockOrigin origin);
 
 }

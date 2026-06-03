@@ -240,15 +240,15 @@ class SuggestTickersServiceTest {
         void shouldSwitchSuggestedTickerOrigins() {
                 Stock snapshotStock = stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT);
                 Stock strategySuggestionStock = stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION);
-                Stock externalStock = stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER);
+                Stock externalStock = stockWithOrigin("MSFT", StockOrigin.ANALYSIS);
                 when(stockDataRepository.findAllByStrategyId(7L)).thenReturn(List.of(snapshotStock, strategySuggestionStock, externalStock));
 
-                int switched = suggestTickersService.switchSuggestedTickersOrigin(7L);
+                int switched = suggestTickersService.convertSuggestedTickersToAnalysis(7L);
 
                 assertThat(switched).isEqualTo(2);
-                assertThat(snapshotStock.getOrigin()).isEqualTo(StockOrigin.EXTERNAL_PROVIDER);
-                assertThat(strategySuggestionStock.getOrigin()).isEqualTo(StockOrigin.EXTERNAL_PROVIDER);
-                assertThat(externalStock.getOrigin()).isEqualTo(StockOrigin.EXTERNAL_PROVIDER);
+                assertThat(snapshotStock.getOrigin()).isEqualTo(StockOrigin.ANALYSIS);
+                assertThat(strategySuggestionStock.getOrigin()).isEqualTo(StockOrigin.ANALYSIS);
+                assertThat(externalStock.getOrigin()).isEqualTo(StockOrigin.ANALYSIS);
                 verify(stockDataRepository).findAllByStrategyId(7L);
                 verify(stockDataRepository, times(2)).save(any(Stock.class));
         }
@@ -257,10 +257,10 @@ class SuggestTickersServiceTest {
         @DisplayName("Should return zero when no stocks are eligible to switch")
         void shouldReturnZeroWhenNoEligibleStocksToSwitch() {
                 when(stockDataRepository.findAllByStrategyId(8L)).thenReturn(List.of(
-                                stockWithOrigin("MSFT", StockOrigin.EXTERNAL_PROVIDER),
+                                stockWithOrigin("MSFT", StockOrigin.ANALYSIS),
                                 stockWithOrigin("IBM", null)));
 
-                int switched = suggestTickersService.switchSuggestedTickersOrigin(8L);
+                int switched = suggestTickersService.convertSuggestedTickersToAnalysis(8L);
 
                 assertThat(switched).isZero();
                 verify(stockDataRepository).findAllByStrategyId(8L);

@@ -1,7 +1,7 @@
 package com.market.analysis.domain.model;
 
 public enum StockOrigin {
-    EXTERNAL_PROVIDER,
+    ANALYSIS,
     SUGGESTION_SNAPSHOT,
     STRATEGY_SUGGESTION
 }

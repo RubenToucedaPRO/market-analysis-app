@@ -55,7 +55,7 @@ public class SqlStockDataRepository implements StockDataRepository {
     @Transactional(readOnly = true)
     public List<Stock> findAllStocksVisibleInAnalysis() {
         log.debug("Retrieving stock data visible in analysis");
-        return jpaRepository.findAllVisibleInAnalysis(StockOrigin.STRATEGY_SUGGESTION).stream()
+        return jpaRepository.findAllVisibleInAnalysis(StockOrigin.ANALYSIS).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
@@ -100,6 +100,12 @@ public class SqlStockDataRepository implements StockDataRepository {
     @Override
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllByStrategyIdAndOrigin(Long strategyId, StockOrigin origin) {
+        jpaRepository.deleteAllByStrategyIdAndOrigin(strategyId, origin);
     }
 
 }
