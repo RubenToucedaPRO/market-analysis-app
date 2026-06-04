@@ -11,4 +11,6 @@ import com.market.analysis.infrastructure.persistence.entity.SuggestionSnapshotE
 public interface JpaSuggestionSnapshotRepository extends JpaRepository<SuggestionSnapshotEntity, Long> {
 
     Optional<SuggestionSnapshotEntity> findTopByStrategyIdOrderBySuggestedAtDescIdDesc(Long strategyId);
+
+    void deleteAllByStrategyId(Long strategyId);
 }

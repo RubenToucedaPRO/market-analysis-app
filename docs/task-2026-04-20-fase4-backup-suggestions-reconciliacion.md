@@ -8,7 +8,7 @@ Se implementó la fase 4 del plan `docs/backup_suggestions.md` para:
 ## Código generado
 ### 1) Origen de alta persistido en `Stock`
 Se añadió `StockOrigin` con valores:
-- `EXTERNAL_PROVIDER`
+- `ANALYSIS`
 - `SUGGESTION_SNAPSHOT`
 
 Y se propagó en:
@@ -21,7 +21,7 @@ En `AddSuggestedTickersToAnalysisService#addFromLatestSnapshot(...)` los registr
 - `origin = SUGGESTION_SNAPSHOT`
 
 Además, en el flujo estándar `ManageAnalyzeStockService#getStockData(...)` se marca:
-- `origin = EXTERNAL_PROVIDER`
+- `origin = ANALYSIS`
 
 ### 3) Refresco posterior manual en batch
 Se extendió `AddSuggestedTickersToAnalysisUseCase` con:

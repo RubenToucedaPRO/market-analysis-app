@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.infrastructure.persistence.entity.CompanyProfileEntity;
 import com.market.analysis.infrastructure.persistence.mapper.StockMapper;
@@ -46,6 +47,15 @@ public class SqlStockDataRepository implements StockDataRepository {
     public List<Stock> findAllStocks() {
         log.debug("Retrieving all stock data");
         return jpaRepository.findAllWithProfile().stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Stock> findAllStocksVisibleInAnalysis() {
+        log.debug("Retrieving stock data visible in analysis");
+        return jpaRepository.findAllVisibleInAnalysis(StockOrigin.ANALYSIS).stream()
                 .map(mapper::toDomain)
                 .toList();
     }
@@ -90,6 +100,12 @@ public class SqlStockDataRepository implements StockDataRepository {
     @Override
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllByStrategyIdAndOrigin(Long strategyId, StockOrigin origin) {
+        jpaRepository.deleteAllByStrategyIdAndOrigin(strategyId, origin);
     }
 
 }

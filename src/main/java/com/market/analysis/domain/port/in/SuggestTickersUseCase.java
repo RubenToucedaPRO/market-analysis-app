@@ -13,4 +13,6 @@ public interface SuggestTickersUseCase {
     SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request);
 
     Optional<SuggestTickersResponseDTO> getLatestSuggestionSnapshot(Long strategyId);
+
+    int convertSuggestedTickersToAnalysis(long strategyId);
 }
