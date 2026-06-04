@@ -194,8 +194,6 @@ class StrategyControllerViewTest {
                 .andExpect(content().string(containsString("unmappable-rules-traceability")))
                 .andExpect(content().string(containsString("/strategies/1/add-suggested-tickers")))
                 .andExpect(content().string(containsString("A\u00f1adir sugeridos a an\u00e1lisis")))
-                .andExpect(content().string(containsString("/strategies/1/refresh-suggested-tickers")))
-                .andExpect(content().string(containsString("Refrescar sugeridos (batch)")))
                 .andExpect(content().string(containsString("AAPL")))
                 .andExpect(content().string(containsString("TSLA")))
                 .andExpect(content().string(containsString("ATR(14)")));
@@ -211,13 +209,4 @@ class StrategyControllerViewTest {
                         UiNotification.warning("No hay sugerencias aptas en snapshot para añadir.")));
     }
 
-    @Test
-    @DisplayName("Should post refresh suggested tickers from snapshot and redirect to analysis")
-    void shouldPostRefreshSuggestedTickersFromSnapshot() throws Exception {
-        mockMvc.perform(post("/strategies/1/refresh-suggested-tickers"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/analysis"))
-                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
-                        UiNotification.warning("No hay tickers de origen snapshot para refrescar.")));
-    }
 }

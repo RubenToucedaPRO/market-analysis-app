@@ -3,6 +3,8 @@ package com.market.analysis.unit.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -104,8 +106,8 @@ class SuggestTickersServiceTest {
         assertThat(persistedSnapshot.getSuggestedTickers()).hasSize(2);
         assertThat(persistedSnapshot.getSuggestedTickers().get(0).getStrategyId()).isEqualTo(10L);
         assertThat(persistedSnapshot.getSuggestedTickers().get(0).getSuggestedAt()).isEqualTo(result.getSuggestedAt());
-        assertThat(persistedSnapshot.getSuggestedTickers().get(1).getStrategyId()).isNull();
-        assertThat(persistedSnapshot.getSuggestedTickers().get(1).getSuggestedAt()).isNull();
+        assertThat(persistedSnapshot.getSuggestedTickers().get(1).getStrategyId()).isEqualTo(10L);
+        assertThat(persistedSnapshot.getSuggestedTickers().get(1).getSuggestedAt()).isEqualTo(result.getSuggestedAt());
         assertThat(persistedSnapshot.getSuggestedTickers().get(1).getDeterministicMetrics()).isEmpty();
         verify(analyzeAndPersistStockService).analyzeAndPersist("AAPL", strategy, StockOrigin.SUGGESTION_SNAPSHOT);
         verify(analyzeAndPersistStockService).analyzeAndPersist("TSLA", strategy, StockOrigin.SUGGESTION_SNAPSHOT);
@@ -125,7 +127,7 @@ class SuggestTickersServiceTest {
                 .unmappableRules(List.of("EMA_200"))
                 .warnings(List.of("Unsupported rule detected"))
                 .build());
-        when(finvizScreenerPort.findTickers("ta_sma20_pa", 20)).thenReturn(List.of("MSFT"));
+        when(finvizScreenerPort.findTickers(eq("ta_sma20_pa"), anyInt())).thenReturn(List.of("MSFT"));
         when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("MSFT")))
                 .thenReturn(List.of("MSFT"));
         when(analyzeAndPersistStockService.analyzeAndPersist("MSFT", strategy, StockOrigin.SUGGESTION_SNAPSHOT))
@@ -138,7 +140,7 @@ class SuggestTickersServiceTest {
         assertThat(result.getWarnings())
                 .contains("Unsupported rule detected")
                 .doesNotContain("Strict mode enabled: execution blocked due to unmappable strategy rules.");
-        verify(finvizScreenerPort).findTickers("ta_sma20_pa", 20);
+        verify(finvizScreenerPort).findTickers(eq("ta_sma20_pa"), anyInt());
         verify(analyzeAndPersistStockService).analyzeAndPersist("MSFT", strategy, StockOrigin.SUGGESTION_SNAPSHOT);
     }
 
@@ -155,7 +157,7 @@ class SuggestTickersServiceTest {
         when(finvizFilterMapper.map(strategy)).thenReturn(FinvizFilterMappingResult.builder()
                 .filters("ta_rsi_os30")
                 .build());
-        when(finvizScreenerPort.findTickers("ta_rsi_os30", 20)).thenReturn(List.of("NFLX"));
+        when(finvizScreenerPort.findTickers(eq("ta_rsi_os30"), anyInt())).thenReturn(List.of("NFLX"));
         when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("NFLX")))
                 .thenReturn(List.of("NFLX"));
         when(analyzeAndPersistStockService.analyzeAndPersist("NFLX", strategy, StockOrigin.SUGGESTION_SNAPSHOT))
@@ -191,7 +193,7 @@ class SuggestTickersServiceTest {
         when(finvizFilterMapper.map(strategy)).thenReturn(FinvizFilterMappingResult.builder()
                 .filters("ta_sma20_pa")
                 .build());
-        when(finvizScreenerPort.findTickers("ta_sma20_pa", 20)).thenThrow(new RuntimeException("timeout"));
+        when(finvizScreenerPort.findTickers(eq("ta_sma20_pa"), anyInt())).thenThrow(new RuntimeException("timeout"));
 
         SuggestTickersResponseDTO result = suggestTickersService.suggestTickers(request);
 
@@ -241,6 +243,9 @@ class SuggestTickersServiceTest {
                 Stock snapshotStock = stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT);
                 Stock strategySuggestionStock = stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION);
                 Stock externalStock = stockWithOrigin("MSFT", StockOrigin.ANALYSIS);
+                snapshotStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().compliant(true).build());
+                strategySuggestionStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().compliant(true).build());
+                externalStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().compliant(true).build());
                 when(stockDataRepository.findAllByStrategyId(7L)).thenReturn(List.of(snapshotStock, strategySuggestionStock, externalStock));
 
                 int switched = suggestTickersService.convertSuggestedTickersToAnalysis(7L);

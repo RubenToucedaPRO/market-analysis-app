@@ -162,7 +162,7 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
             return null;
         }
         // Element tickerLink = columns.get(1).selectFirst("a[href*=stock.ashx?t=]");
-        Element tickerLink = columns.get(1).selectFirst("a.tab-link");
+        Element tickerLink = columns.get(1).selectFirst("a.tab-link, a[href*=ashx?t=]");
         if (tickerLink == null) {
             return null;
         }
