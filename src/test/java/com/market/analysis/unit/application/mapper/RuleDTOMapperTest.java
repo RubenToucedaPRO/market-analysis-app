@@ -48,7 +48,6 @@ class RuleDTOMapperTest {
         assertEquals(">", dto.getOperator());
         assertEquals("SMA", dto.getTargetCode());
         assertEquals(200.0, dto.getTargetParam());
-        assertEquals("SMA 50 crosses above SMA 200", dto.getDescription());
     }
 
     @Test

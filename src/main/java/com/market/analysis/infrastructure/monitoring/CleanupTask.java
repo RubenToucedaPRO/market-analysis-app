@@ -27,7 +27,7 @@ public class CleanupTask {
      * Scheduled task that runs every 24 hours to clean up old API call logs from
      * the database.
      */
-    @Scheduled(cron = "00 44 07 * * *")
+    @Scheduled(cron = "00 00 10 * * *")
     @Transactional
     public void executeCleanup() {
         Instant threshold = Instant.now().minusSeconds(CLEANUP_INTERVAL_MS);
@@ -39,7 +39,7 @@ public class CleanupTask {
     * Scheduled task that runs every 24 hours to purge orphan candles from the
     * database.
     */
-    @Scheduled(cron = "0 37 7 * * *")
+    @Scheduled(cron = "0 00 10 * * *")
     public void runPurge() {
         log.info("Iniciando tarea programada de purga...");
         candleDataPort.purgeOrphanCandles();
