@@ -11,9 +11,9 @@ El núcleo de la aplicación concentra la lógica de negocio y actúa como orque
 
 - **Filtrado dinámico de activos**: Mecanismo previo de selección que procesa los tickers a analizar, descartando activos de alto riesgo mediante una lista negra configurable y criterios sectoriales predefinidos.
 - **Motor de estrategias declarativas**: Motor basado en reglas técnicas (medias móviles, volumen, indicadores y patrones de velas) que permite definir y evaluar estrategias de inversión de forma desacoplada de la persistencia y de las fuentes de datos.
-- **Integración de IA generativa**: Uso de modelos de lenguaje (GPT-4o-mini de OpenAI) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
+- **Integración de IA generativa**: Uso de modelos de lenguaje vía OpenRouter (modelo por defecto `google/gemma-3-4b-it:free`) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
 - **Arquitectura Hexagonal**: Separación clara entre dominio, lógica de aplicación y adaptadores de infraestructura, incluyendo Spring Boot, la capa de persistencia con MariaDB y la integración con APIs externas.
-- **Interfaz web ligera**: Frontend desarrollado con Thymeleaf y HTMX, que actúa como adaptador de entrada y proporciona una experiencia de usuario reactiva sin recurrir a un cliente pesado, manteniendo la lógica de presentación separada del núcleo del sistema.
+- **Interfaz web ligera**: Frontend desarrollado con Thymeleaf y Bootstrap 5, con apoyo puntual de JavaScript vanilla para interacciones específicas, manteniendo la lógica de presentación separada del núcleo del sistema.
 
 
 ### Arquitectura del Sistema
@@ -23,7 +23,7 @@ La aplicación está construida para ser desplegada en **Railway**, enfocándose
 - **Gestión de Datos:** Integración híbrida de APIs:
     - **Finnhub:** Datos de perfil, precios en tiempo real y calendario de ganancias.
     - **Polygon.io:** Extracción de indicadores técnicos y métricas de volumen.
-    - **GPT-4o-mini de OpenAI:** Análisis cualitativo avanzado.
+    - **OpenRouter (modelo `google/gemma-3-4b-it:free`):** Análisis cualitativo avanzado.
 
 
 ### Flujo de Procesamiento y Análisis
@@ -44,7 +44,7 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
 ### Backend
 - **Java 21 (LTS)**  
   Lenguaje principal del sistema, seleccionado por su estabilidad, soporte a largo plazo y características modernas del ecosistema JVM.
-- **Spring Boot 3.5.x**  
+- **Spring Boot 3.5.10**  
   Framework principal para el desarrollo backend, facilitando la configuración, la inyección de dependencias y el desarrollo estructurado de la aplicación.
 - **Spring Data JPA**  
   Capa de persistencia relacional desacoplada del dominio mediante el uso de repositorios.
@@ -54,16 +54,16 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
   Herramienta de gestión de dependencias y automatización de la construcción del proyecto.
 - **JUnit 5 + Mockito**  
   Frameworks utilizados para la implementación de pruebas unitarias y de integración.
+- **SLF4J + Logback**  
+  Logging estructurado con `@Slf4j` y encoder Logstash.
 
 ### Frontend
 - **Thymeleaf**  
   Motor de plantillas server-side para el renderizado dinámico de vistas HTML.
 - **Bootstrap 5**  
   Framework CSS para la construcción de una interfaz responsiva y consistente.
-- **HTMX**  
-  Librería para interactividad dinámica basada en peticiones HTTP, reduciendo la complejidad del cliente.
 - **JavaScript vanilla**  
-  Uso mínimo y puntual, limitado a funcionalidades no cubiertas por HTMX.
+  Uso mínimo y puntual para interacciones no cubiertas por Thymeleaf y Bootstrap.
 
 ### Base de Datos
 - **H2**  
@@ -72,7 +72,7 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
   Sistema gestor de base de datos relacional destinado al entorno productivo.
 
 ### Integración de IA
-- **GPT-4o-mini de OpenAI**  
+- **OpenRouter (modelo `google/gemma-3-4b-it:free`)**  
   Servicio externo utilizado para la generación de análisis interpretativo.
 - **Prompt engineering controlado**  
   Construcción de prompts basada exclusivamente en resultados cuantitativos generados por el sistema, sin impacto en la lógica de evaluación determinista.
@@ -118,7 +118,23 @@ Proveedor principal de datos históricos de mercado, utilizado como base para la
 
 ---
 
-### API de IA (OpenAI)
+### Finviz
+Fuente pública de datos utilizada para **sugerencias de tickers** mediante scraping controlado (adapter `JsoupFinvizAdapter`).
+
+**Funcionalidades utilizadas:**
+- Filtrado de activos por país/sector
+- Generación de listas de candidatos a analizar
+
+**Uso en el sistema:**
+- Alimenta el caso de uso de sugerencias de tickers
+- Registra snapshots de resultados
+
+**Variables de entorno:**  
+`FINVIZ_BASE_URL`, `FINVIZ_USER_AGENT`, `FINVIZ_TIMEOUT_MS`
+
+---
+
+### API de IA (OpenRouter)
 Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interpretativo** de los resultados generados por el sistema.
 
 **Funcionalidades utilizadas:**
@@ -132,7 +148,7 @@ Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interp
 - No generan señales ni recomendaciones de inversión
 
 **Variable de entorno:**  
-`OPENAI_API_KEY`
+`OPENROUTER_API_KEY`
 
 ---
 
@@ -147,9 +163,12 @@ Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interp
 ```bash
 export FINNHUB_API_TOKEN=your_token_here
 export POLYGON_API_TOKEN=your_token_here
-export OPENAI_API_KEY=your_key_here
+export OPENROUTER_API_KEY=your_key_here
 export SPRING_PROFILES_ACTIVE=dev
 ```
+
+Opcionales para IA (OpenRouter):  
+`OPENROUTER_MODEL`, `OPENROUTER_TEMPERATURE`, `OPENROUTER_MAX_TOKENS`, `OPENROUTER_TOP_P`, `OPENROUTER_FREQUENCY_PENALTY`
 
 ### Ejecución Local
 ```bash
@@ -201,7 +220,7 @@ La estructura del proyecto se ha diseñado siguiendo una **Arquitectura Hexagona
 ### Arquitectura General
 
 La aplicación está organizada en capas, con las dependencias apuntando siempre hacia el dominio:
-  -   Presentation: controladores web, vistas Thymeleaf y HTMX.
+  -   Presentation: controladores web y vistas Thymeleaf.
   -   Application: casos de uso y orquestación de la lógica de negocio.
   -   Domain: entidades, reglas y servicios de dominio.
   -   Infrastructure: persistencia, integración con APIs externas, IA y configuración técnica.
@@ -239,70 +258,117 @@ src/main/java/com/market/analysis/
 
 ├── domain                         # Núcleo puro, sin dependencias
 │   ├── model                      # Entidades y Value Objects
-│   │   ├── Ticker.java
+│   │   ├── Stock.java
 │   │   ├── Strategy.java
 │   │   ├── Rule.java
-│   │   └── AnalysisResult.java
+│   │   ├── AnalysisResult.java
+│   │   ├── SuggestedTickerSnapshot.java
+│   │   ├── SuggestionSnapshot.java
+│   │   └── ApiCallLog.java
 │   │
 │   ├── service                    # Lógica de negocio pura
-│   │   └── StockAnalyzer.java
+│   │   ├── RuleEvaluator.java
+│   │   ├── RiskRewardCalculator.java
+│   │   └── PromptBuilder.java
 │   │
 │   ├── port
 │   │   ├── in                     # Puertos de entrada (Use Case interfaces)
-│   │   │   ├── ObtainTickerDataUseCase.java
-│   │   │   └── EvaluateStrategyUseCase.java
+│   │   │   ├── ManageAnalyzeTickerUseCase.java
+│   │   │   ├── ManageStrategyUseCase.java
+│   │   │   ├── ManageRuleDefinitionUseCase.java
+│   │   │   ├── ManageProhibitedTickerUseCase.java
+│   │   │   ├── ManageProhibitedKeywordUseCase.java
+│   │   │   ├── EvaluateStrategyUseCase.java
+│   │   │   └── SuggestTickersUseCase.java
 │   │   └── out                    # Puertos de salida (repositorios y APIs)
-│   │       ├── TickerRepository.java
+│   │       ├── StockDataRepository.java
+│   │       ├── StockProviderPort.java
+│   │       ├── CandleHistoryRepository.java
+│   │       ├── CompanyProfileRepository.java
+│   │       ├── StrategyRepository.java
+│   │       ├── StrategyEvaluationRepository.java
+│   │       ├── RuleDefinitionRepository.java
 │   │       ├── ProhibitedTickerRepository.java
-│   │       ├── FinnhubPort.java
-│   │       ├── PolygonPort.java
-│   │       └── OpenAiPort.java
+│   │       ├── ProhibitedKeywordRepository.java
+│   │       ├── SuggestionSnapshotRepository.java
+│   │       ├── ApiCallRateRepository.java
+│   │       ├── HistoricalProviderPort.java
+│   │       ├── ApiIAPort.java
+│   │       ├── FinvizScreenerPort.java
+│   │       └── HealthCheckPort.java
 │   │
 │   └── exception                  # Excepciones del dominio
-│       └── DomainException.java
+│       └── StockDataNotFoundException.java
 │
 ├── application                    # Implementación de Use Cases (Orquestación)
+│   ├── dto
+│   │   ├── StockDataDTO.java
+│   │   ├── StrategyDTO.java
+│   │   ├── RuleDefinitionDTO.java
+│   │   └── SuggestTickersRequestDTO.java
+│   │
+│   ├── mapper
+│   │   ├── StockDataDTOMapper.java
+│   │   ├── StrategyDTOMapper.java
+│   │   ├── RuleDefinitionDTOMapper.java
+│   │   └── HealthCheckMapper.java
+│   │
 │   └── usecase
-│       ├── ObtainTickerDataService.java
-│       └── EvaluateStrategyService.java
+│       ├── ManageAnalyzeStockService.java
+│       ├── AnalyzeAndPersistStockService.java
+│       ├── ManageStrategyService.java
+│       ├── ManageRuleDefinitionService.java
+│       ├── ManageProhibitedTickerService.java
+│       ├── ManageProhibitedKeywordService.java
+│       ├── SuggestTickersService.java
+│       └── HealthCheckService.java
 │
 ├── infrastructure                 # Adaptadores técnicos
 │   ├── persistence
 │   │   ├── entity                 # Entidades JPA
-│   │   │   └── TickerEntity.java
+│   │   │   ├── StockEntity.java
+│   │   │   ├── StrategyEntity.java
+│   │   │   ├── RuleDefinitionEntity.java
+│   │   │   ├── SuggestionSnapshotEntity.java
+│   │   │   └── ApiCallLogEntity.java
 │   │   ├── repository             # Repositorios JPA
-│   │   │   ├── JpaTickerRepository.java
+│   │   │   ├── JpaStockDataRepository.java
 │   │   │   └── JpaProhibitedTickerRepository.java
 │   │   └── mapper                 # Mapper Domain ↔ JPA
-│   │       └── TickerMapper.java
+│   │       ├── StockMapper.java
+│   │       └── SuggestionSnapshotMapper.java
 │   │
 │   ├── external                   # Integraciones externas
 │   │   ├── finnhub
-│   │   │   └── FinnhubClient.java
+│   │   │   └── FinnhubAdapter.java
 │   │   ├── polygon
-│   │   │   └── PolygonClient.java
-│   │   └── openai
-│   │       └── OpenAiClient.java
+│   │   │   └── PolygonAdapter.java
+│   │   ├── finviz
+│   │   │   └── JsoupFinvizAdapter.java
+│   │   └── openrouter
+│   │       └── OpenrouterAdapter.java
+│   │
+│   ├── monitoring                 # Monitorización y health checks
+│   │   └── HealthCheckAdapter.java
 │   │
 │   ├── config                     # Beans y wiring de Use Cases
 │   │    └── BeanConfig.java
 │   │
-│   └── monitoring                 # Monitorización y logging
+│   └── migration                  # Semillas y ajustes de datos
 │
 ├── presentation                    # Adaptadores de entrada (UI)
 │   ├── controller
-│   │   ├── AnalysisController.java
+│   │   ├── AnalyzeTickerController.java
 │   │   ├── StrategyController.java
-│   │   ├── TrackingController.java
-│   │   ├── ProhibitedController.java
-│   │   └── ErrorController.java
+│   │   ├── ProhibitedTickerController.java
+│   │   ├── RuleDefinitionController.java
+│   │   └── HealthCheckController.java
 │   │
-│   ├── dto                        # DTOs para request/response
-│   │   ├── TickerDto.java
-│   │   └── StrategyDto.java
+│   ├── dto                        # DTOs de UI
+│   │   └── UiNotification.java
 │   │
-│   └── mapper                     # Mapper Domain ↔ DTO
-│       └── TickerViewMapper.java
+│   └── exception                  # Errores web centralizados
+│       └── GlobalExceptionHandler.java
 │
 └── MarketAnalysisApplication.java  # Clase principal Spring Boot
 
@@ -402,6 +468,9 @@ Todas las integraciones externas están desacopladas mediante interfaces, garant
 ### Métricas de Calidad
 - Cobertura de tests > 80%
 - SonarQube quality gate: A
+  - S107: máximo 7 parámetros por método/constructor
+  - S3776: complejidad cognitiva < 15
+  - S134: profundidad de anidamiento < 4
 - Sin deuda técnica crítica
 - Documentación completa (JavaDoc + README)
 
@@ -431,7 +500,7 @@ Todas las integraciones externas están desacopladas mediante interfaces, garant
 
 ### Fase 4: Interfaz Web (Semana 1-2)
 - [ ] Diseño de vistas Thymeleaf
-- [ ] Formularios dinámicos con HTMX
+- [ ] Formularios dinámicos con Thymeleaf + JavaScript vanilla
 - [ ] Visualización de evaluaciones
 - [ ] Dashboard de estrategias
 
