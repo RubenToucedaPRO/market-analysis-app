@@ -2,8 +2,8 @@ package com.market.analysis.unit.domain.port.in;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +45,11 @@ class SuggestTickersUseCaseContractTest {
             @Override
             public Optional<SuggestTickersResponseDTO> getLatestSuggestionSnapshot(Long strategyId) {
                 return Optional.empty();
+            }
+
+            @Override
+            public int convertSuggestedTickersToAnalysis(long strategyId) {
+                return 0;
             }
         };
 

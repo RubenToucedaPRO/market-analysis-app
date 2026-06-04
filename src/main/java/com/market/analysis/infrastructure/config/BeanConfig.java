@@ -15,9 +15,7 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
-import com.market.analysis.application.usecase.AddSuggestedTickersToAnalysisService;
-import com.market.analysis.application.usecase.DefaultDeterministicTickerEvaluator;
-import com.market.analysis.application.usecase.DeterministicTickerEvaluator;
+import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
 import com.market.analysis.application.usecase.ManageProhibitedKeywordService;
 import com.market.analysis.application.usecase.ManageProhibitedTickerService;
@@ -29,7 +27,6 @@ import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
 import com.market.analysis.domain.port.out.ApiIAPort;
@@ -48,8 +45,8 @@ import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 import com.market.analysis.domain.service.FinvizFilterMapperImpl;
-import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
+import com.market.analysis.domain.service.PromptBuilder;
 import com.market.analysis.domain.service.PromptResponseValidator;
 import com.market.analysis.domain.service.RiskRewardCalculator;
 import com.market.analysis.domain.service.RuleEvaluator;
@@ -98,20 +95,44 @@ public class BeanConfig {
 
     @Bean
     public ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase(StockDataRepository stockDataRepository,
-            CompanyProfileRepository companyProfileRepository, ProhibitedKeywordRepository prohibitedKeywordRepository,
-            ProhibitedTickerRepository prohibitedTickerRepository,
-            StrategyEvaluationRepository strategyEvaluationRepository,
-            ApiCallRateRepository apiCallRateRepository, CandleHistoryRepository candleHistoryRepository,
+            CandleHistoryRepository candleHistoryRepository,
             StrategyRepository strategyRepository,
-            StockProviderPort stockProviderPort, HistoricalProviderPort historicalProviderPort,
+            StockProviderPort stockProviderPort,
             ApiIAPort apiIAPort, StockDataDTOMapper stockMapper, CandleDTOMapper candleDTOMapper,
-            StockHistoricalService stockHistoricalService, EvaluateStrategyService evaluateStrategyService,
+            AnalyzeAndPersistStockService analyzeAndPersistStockService) {
+        return new ManageAnalyzeStockService(stockDataRepository,
+                candleHistoryRepository, strategyRepository, stockProviderPort, apiIAPort,
+                stockMapper, candleDTOMapper, analyzeAndPersistStockService, promptBuilder(),
+                promptResponseValidator());
+    }
+
+    @Bean
+    public AnalyzeAndPersistStockService analyzeAndPersistStockService(
+            StockDataRepository stockDataRepository,
+            StrategyEvaluationRepository strategyEvaluationRepository,
+            ApiCallRateRepository apiCallRateRepository,
+            CandleHistoryRepository candleHistoryRepository,
+            CompanyProfileRepository companyProfileRepository,
+            ProhibitedKeywordRepository prohibitedKeywordRepository,
+            ProhibitedTickerRepository prohibitedTickerRepository,
+            StockProviderPort stockProviderPort,
+            HistoricalProviderPort historicalProviderPort,
+            StockHistoricalService stockHistoricalService,
+            EvaluateStrategyService evaluateStrategyService,
             ProhibitedKeywordMatcher prohibitedKeywordMatcher) {
-        return new ManageAnalyzeStockService(stockDataRepository, companyProfileRepository,
-                prohibitedKeywordRepository, prohibitedTickerRepository, strategyEvaluationRepository, apiCallRateRepository,
-                candleHistoryRepository, strategyRepository, stockProviderPort, historicalProviderPort, apiIAPort,
-                stockMapper, candleDTOMapper, stockHistoricalService, evaluateStrategyService, promptBuilder(),
-                prohibitedKeywordMatcher, promptResponseValidator());
+        return new AnalyzeAndPersistStockService(
+                stockDataRepository,
+                strategyEvaluationRepository,
+                apiCallRateRepository,
+                candleHistoryRepository,
+                companyProfileRepository,
+                prohibitedKeywordRepository,
+                prohibitedTickerRepository,
+                stockProviderPort,
+                historicalProviderPort,
+                stockHistoricalService,
+                evaluateStrategyService,
+                prohibitedKeywordMatcher);
     }
 
     @Bean
@@ -155,46 +176,20 @@ public class BeanConfig {
     }
 
     @Bean
-    public DeterministicTickerEvaluator deterministicTickerEvaluator(
-            StockProviderPort stockProviderPort,
-            HistoricalProviderPort historicalProviderPort,
-            StockHistoricalService stockHistoricalService,
-            EvaluateStrategyService evaluateStrategyService) {
-        return new DefaultDeterministicTickerEvaluator(
-                stockProviderPort,
-                historicalProviderPort,
-                stockHistoricalService,
-                evaluateStrategyService);
-    }
-
-    @Bean
     public SuggestTickersUseCase suggestTickersUseCase(
             StrategyRepository strategyRepository,
             FinvizFilterMapper finvizFilterMapper,
             FinvizScreenerPort finvizScreenerPort,
-            DeterministicTickerEvaluator deterministicTickerEvaluator,
-            SuggestionSnapshotRepository suggestionSnapshotRepository) {
+            AnalyzeAndPersistStockService analyzeAndPersistStockService,
+            SuggestionSnapshotRepository suggestionSnapshotRepository,
+            StockDataRepository stockDataRepository) {
         return new SuggestTickersService(
                 strategyRepository,
                 finvizFilterMapper,
                 finvizScreenerPort,
-                deterministicTickerEvaluator,
-                suggestionSnapshotRepository);
-    }
-
-    @Bean
-    public AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase(
-            SuggestionSnapshotRepository suggestionSnapshotRepository,
-            StrategyRepository strategyRepository,
-            StockDataRepository stockDataRepository,
-            StrategyEvaluationRepository strategyEvaluationRepository,
-            StockProviderPort stockProviderPort) {
-        return new AddSuggestedTickersToAnalysisService(
+                analyzeAndPersistStockService,
                 suggestionSnapshotRepository,
-                strategyRepository,
-                stockDataRepository,
-                strategyEvaluationRepository,
-                stockProviderPort);
+                stockDataRepository);
     }
 
     @Bean

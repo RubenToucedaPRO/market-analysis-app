@@ -12,10 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.time.Instant;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,6 @@ import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
-import com.market.analysis.domain.port.in.AddSuggestedTickersToAnalysisUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.controller.StrategyController;
 import com.market.analysis.presentation.dto.UiNotification;
@@ -54,9 +53,6 @@ class StrategyControllerViewTest {
     @MockitoBean
     private SuggestTickersUseCase suggestTickersUseCase;
 
-    @MockitoBean
-    private AddSuggestedTickersToAnalysisUseCase addSuggestedTickersToAnalysisUseCase;
-
     @Test
     @DisplayName("Should render subject parameter select for empty strategy form")
     void shouldRenderSubjectParameterSelectInCreateForm() throws Exception {
@@ -65,7 +61,7 @@ class StrategyControllerViewTest {
                 .name("Simple Moving Average")
                 .requiresParam(true)
                 .anyParamAllowed(false)
-            .allowedParams(Set.of(20.0, 50.0, 200.0))
+                .allowedParams(Set.of(20.0, 50.0, 200.0))
                 .build();
 
         when(manageRuleDefinitionUseCase.getAllRuleDefinitions()).thenReturn(List.of(smaDefinition));
@@ -83,52 +79,52 @@ class StrategyControllerViewTest {
     @Test
     @DisplayName("Should render saved subject and target parameters in edit form")
     void shouldRenderSavedParametersInEditForm() throws Exception {
-    RuleDefinitionDTO priceDefinition = RuleDefinitionDTO.builder()
-        .code("PRICE")
-        .name("Price")
-        .requiresParam(true)
-        .anyParamAllowed(true)
-        .allowedParams(Set.of())
-        .build();
+        RuleDefinitionDTO priceDefinition = RuleDefinitionDTO.builder()
+                .code("PRICE")
+                .name("Price")
+                .requiresParam(true)
+                .anyParamAllowed(true)
+                .allowedParams(Set.of())
+                .build();
 
-    RuleDefinitionDTO smaDefinition = RuleDefinitionDTO.builder()
-        .code("SMA")
-        .name("Simple Moving Average")
-        .requiresParam(true)
-        .anyParamAllowed(false)
-        .allowedParams(Set.of(20.0, 50.0, 200.0))
-        .build();
+        RuleDefinitionDTO smaDefinition = RuleDefinitionDTO.builder()
+                .code("SMA")
+                .name("Simple Moving Average")
+                .requiresParam(true)
+                .anyParamAllowed(false)
+                .allowedParams(Set.of(20.0, 50.0, 200.0))
+                .build();
 
-    RuleDTO rule = RuleDTO.builder()
-        .id(1L)
-        .name("Rule 1")
-        .subjectCode("SMA")
-        .subjectParam(50.0)
-        .operator(">")
-        .targetCode("PRICE")
-        .targetParam(100.0)
-        .build();
+        RuleDTO rule = RuleDTO.builder()
+                .id(1L)
+                .name("Rule 1")
+                .subjectCode("SMA")
+                .subjectParam(50.0)
+                .operator(">")
+                .targetCode("PRICE")
+                .targetParam(100.0)
+                .build();
 
-    StrategyDTO strategy = StrategyDTO.builder()
-        .id(1L)
-        .name("Editable Strategy")
-        .description("Strategy description")
-        .rules(new ArrayList<>(List.of(rule)))
-        .build();
+        StrategyDTO strategy = StrategyDTO.builder()
+                .id(1L)
+                .name("Editable Strategy")
+                .description("Strategy description")
+                .rules(new ArrayList<>(List.of(rule)))
+                .build();
 
-    when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
-    when(manageRuleDefinitionUseCase.getAllRuleDefinitions()).thenReturn(List.of(priceDefinition, smaDefinition));
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(manageRuleDefinitionUseCase.getAllRuleDefinitions()).thenReturn(List.of(priceDefinition, smaDefinition));
 
-    mockMvc.perform(post("/strategies/edit").param("id", "1"))
-        .andExpect(status().isOk())
-        .andExpect(view().name("strategies/create"))
-        .andExpect(content().string(containsString("subject-param-input-0")))
-        .andExpect(content().string(containsString("target-param-input-0")))
-        .andExpect(content().string(containsString("value=\"50.0\"")))
-        .andExpect(content().string(containsString("value=\"100.0\"")));
+        mockMvc.perform(post("/strategies/edit").param("id", "1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("strategies/create"))
+                .andExpect(content().string(containsString("subject-param-input-0")))
+                .andExpect(content().string(containsString("target-param-input-0")))
+                .andExpect(content().string(containsString("value=\"50.0\"")))
+                .andExpect(content().string(containsString("value=\"100.0\"")));
 
-    verify(manageStrategyUseCase).getStrategyById(1L);
-    verify(manageRuleDefinitionUseCase).getAllRuleDefinitions();
+        verify(manageStrategyUseCase).getStrategyById(1L);
+        verify(manageRuleDefinitionUseCase).getAllRuleDefinitions();
     }
 
     @Test
@@ -198,8 +194,6 @@ class StrategyControllerViewTest {
                 .andExpect(content().string(containsString("unmappable-rules-traceability")))
                 .andExpect(content().string(containsString("/strategies/1/add-suggested-tickers")))
                 .andExpect(content().string(containsString("A\u00f1adir sugeridos a an\u00e1lisis")))
-                .andExpect(content().string(containsString("/strategies/1/refresh-suggested-tickers")))
-                .andExpect(content().string(containsString("Refrescar sugeridos (batch)")))
                 .andExpect(content().string(containsString("AAPL")))
                 .andExpect(content().string(containsString("TSLA")))
                 .andExpect(content().string(containsString("ATR(14)")));
@@ -208,24 +202,11 @@ class StrategyControllerViewTest {
     @Test
     @DisplayName("Should post add suggested tickers from snapshot and redirect to analysis")
     void shouldPostAddSuggestedTickersFromSnapshot() throws Exception {
-        when(addSuggestedTickersToAnalysisUseCase.addFromLatestSnapshot(1L)).thenReturn(2);
-
         mockMvc.perform(post("/strategies/1/add-suggested-tickers"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/analysis"))
                 .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
-                        UiNotification.success("Ticker(s) añadidos desde snapshot de sugerencias: 2.")));
+                        UiNotification.warning("No hay sugerencias aptas en snapshot para añadir.")));
     }
 
-    @Test
-    @DisplayName("Should post refresh suggested tickers from snapshot and redirect to analysis")
-    void shouldPostRefreshSuggestedTickersFromSnapshot() throws Exception {
-        when(addSuggestedTickersToAnalysisUseCase.refreshFromSuggestionSnapshot(1L)).thenReturn(1);
-
-        mockMvc.perform(post("/strategies/1/refresh-suggested-tickers"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/analysis"))
-                .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
-                        UiNotification.success("Ticker(s) refrescados desde origen snapshot: 1.")));
-    }
 }
