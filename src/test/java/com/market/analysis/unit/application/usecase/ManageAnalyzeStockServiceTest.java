@@ -3,6 +3,7 @@ package com.market.analysis.unit.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,6 +42,11 @@ import com.market.analysis.domain.service.PromptResponseValidator;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ManageAnalyzeStockService Tests")
 class ManageAnalyzeStockServiceTest {
+
+    private static final int MAX_PROMPT_CHARS = 4000;
+    private static final int OVERSIZED_PROMPT_CHARS = 4500;
+    private static final String IA_FALLBACK_VALORATION =
+            "No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.";
 
     @Mock
     private StockDataRepository stockDataRepository;
@@ -110,6 +116,33 @@ class ManageAnalyzeStockServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw IllegalArgumentException when strategy does not exist")
+    void shouldThrowWhenStrategyNotFound() {
+        when(strategyRepository.findById(1L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.getStockData("AAPL", 1L));
+
+        assertThat(ex.getMessage()).isEqualTo("Strategy not found with id: 1");
+    }
+
+    @Test
+    @DisplayName("Should normalize and analyze multiple tickers")
+    void shouldNormalizeAndAnalyzeMultipleTickers() {
+        Long strategyId = 1L;
+        Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
+
+        when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("AAPL", "MSFT")))
+                .thenReturn(List.of("AAPL", "MSFT"));
+
+        service.getStockData(" aapl , msft ", strategyId);
+
+        verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist("AAPL", strategy, StockOrigin.ANALYSIS);
+        verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist("MSFT", strategy, StockOrigin.ANALYSIS);
+    }
+
+    @Test
     @DisplayName("Should list only analysis-visible stocks")
     void shouldListOnlyAnalysisVisibleStocks() {
         Stock stock = Stock.builder().ticker("AAPL").build();
@@ -121,7 +154,22 @@ class ManageAnalyzeStockServiceTest {
         List<StockDataDTO> result = service.findAllStocks();
 
         assertThat(result).hasSize(1);
+        assertThat(result.getFirst()).isEqualTo(dto);
         verify(stockDataRepository, times(1)).findAllStocksVisibleInAnalysis();
+    }
+
+    @Test
+    @DisplayName("Should return mapped stock data by id")
+    void shouldReturnStockDataById() {
+        Stock stock = Stock.builder().id(10L).ticker("AAPL").build();
+        StockDataDTO dto = StockDataDTO.builder().id(10L).ticker("AAPL").build();
+
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.of(stock));
+        when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto);
+
+        StockDataDTO result = service.findStockDataById(10L);
+
+        assertThat(result).isEqualTo(dto);
     }
 
     @Test
@@ -146,6 +194,40 @@ class ManageAnalyzeStockServiceTest {
     }
 
     @Test
+    @DisplayName("Should skip stock save when quote is not available")
+    void shouldSkipUpdateWhenQuoteDoesNotExist() {
+        Stock existing = Stock.builder().id(10L).ticker("AAPL").build();
+
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.of(existing));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(null);
+
+        service.updateStockData(10L);
+
+        verify(stockDataRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should delete candles when removing the last stock for ticker")
+    void shouldDeleteCandlesWhenDeletingLastStockForTicker() {
+        when(stockDataRepository.existsByTicker("AAPL")).thenReturn(false);
+
+        service.deleteById(10L, "AAPL");
+
+        verify(stockDataRepository, times(1)).deleteById(10L);
+        verify(candleHistoryRepository, times(1)).deleteCandlesByTicker("AAPL");
+    }
+
+    @Test
+    @DisplayName("Should keep candles when stock data still exists for ticker")
+    void shouldKeepCandlesWhenTickerStillExists() {
+        when(stockDataRepository.existsByTicker("AAPL")).thenReturn(true);
+
+        service.deleteById(10L, "AAPL");
+
+        verify(candleHistoryRepository, never()).deleteCandlesByTicker(any());
+    }
+
+    @Test
     @DisplayName("Should build and return candle chart data")
     void shouldFindCandlesByStockId() {
         Stock stock = Stock.builder().id(10L).ticker("AAPL").build();
@@ -158,6 +240,90 @@ class ManageAnalyzeStockServiceTest {
         CandleChartDTO result = service.findCandlesByStockId(10L);
 
         assertThat(result).isEqualTo(chartDTO);
+    }
+
+    @Test
+    @DisplayName("Should throw StockDataNotFoundException when candles stock does not exist")
+    void shouldThrowWhenFindingCandlesForMissingStock() {
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThrows(StockDataNotFoundException.class, () -> service.findCandlesByStockId(10L));
+    }
+
+    @Test
+    @DisplayName("Should save generated valoration when first AI response is valid")
+    void shouldSaveValorationWhenFirstResponseIsValid() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn("valid");
+        when(promptResponseValidator.isValid("valid")).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isTrue();
+        assertThat(stock.getValorationIA()).isEqualTo("valid");
+    }
+
+    @Test
+    @DisplayName("Should save generated valoration when retry response is valid")
+    void shouldSaveValorationWhenRetryResponseIsValid() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn("invalid");
+        when(promptResponseValidator.isValid("invalid")).thenReturn(false);
+        when(promptResponseValidator.buildRetryPrompt("prompt")).thenReturn("retry-prompt");
+        when(apiIAPort.getValoration("retry-prompt")).thenReturn("valid-retry");
+        when(promptResponseValidator.isValid("valid-retry")).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isTrue();
+        assertThat(stock.getValorationIA()).isEqualTo("valid-retry");
+    }
+
+    @Test
+    @DisplayName("Should truncate oversized prompt before requesting AI valoration")
+    void shouldTruncatePromptBeforeRequestingAiValoration() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+        String oversizedPrompt = "x".repeat(OVERSIZED_PROMPT_CHARS);
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn(oversizedPrompt);
+        when(apiIAPort.getValoration(any())).thenReturn("valid");
+        when(promptResponseValidator.isValid("valid")).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isTrue();
+        verify(apiIAPort, times(1)).getValoration(eq(oversizedPrompt.substring(0, MAX_PROMPT_CHARS)));
+    }
+
+    @Test
+    @DisplayName("Should save fallback valoration when AI request throws exception")
+    void shouldSaveFallbackWhenAiRequestThrowsException() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenThrow(new RuntimeException("boom"));
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isFalse();
+        assertThat(stock.getValorationIA())
+                .isEqualTo(IA_FALLBACK_VALORATION);
     }
 
     @Test
@@ -180,7 +346,7 @@ class ManageAnalyzeStockServiceTest {
         assertThat(generated).isFalse();
         verify(stockDataRepository, times(1)).save(stock);
         assertThat(stock.getValorationIA())
-                .isEqualTo("No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.");
+                .isEqualTo(IA_FALLBACK_VALORATION);
     }
 
     @Test
