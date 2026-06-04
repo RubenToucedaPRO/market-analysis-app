@@ -34,7 +34,6 @@ class RuleDTOMapperTest {
                 .operator(">")
                 .targetCode("SMA")
                 .targetParam(200.0)
-                .description("SMA 50 crosses above SMA 200")
                 .build();
 
         // Act
@@ -79,7 +78,6 @@ class RuleDTOMapperTest {
         assertEquals(">", rule.getOperator());
         assertEquals("CONSTANT", rule.getTargetCode());
         assertEquals(70.0, rule.getTargetParam());
-        assertEquals("RSI 14 above 70", rule.getDescription());
     }
 
     @Test
@@ -114,7 +112,6 @@ class RuleDTOMapperTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Price above 100")
                 .build();
 
         // Act
@@ -138,7 +135,6 @@ class RuleDTOMapperTest {
                 .operator(">")
                 .targetCode("SMA")
                 .targetParam(200.0)
-                .description("SMA 50 > SMA 200")
                 .build();
 
         Rule rule2 = Rule.builder()
@@ -149,7 +145,6 @@ class RuleDTOMapperTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(70.0)
-                .description("RSI 14 > 70")
                 .build();
 
         List<Rule> rules = List.of(rule1, rule2);

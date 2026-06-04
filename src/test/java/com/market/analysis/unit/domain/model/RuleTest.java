@@ -28,7 +28,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("SMA")
                                 .targetParam(200.0)
-                                .description("SMA 50 crosses above SMA 200")
                                 .build();
 
                 // Assert
@@ -40,7 +39,6 @@ class RuleTest {
                 assertEquals(">", rule.getOperator());
                 assertEquals("SMA", rule.getTargetCode());
                 assertEquals(200.0, rule.getTargetParam());
-                assertEquals("SMA 50 crosses above SMA 200", rule.getDescription());
         }
 
         @Test
@@ -55,7 +53,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(70.0)
-                                .description("RSI 14 above 70")
                                 .build();
 
                 // Assert
@@ -76,7 +73,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Current price above 100")
                                 .build();
 
                 // Assert
@@ -97,7 +93,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("SMA")
                                 .targetParam(200.0)
-                                .description("Price above 200-day SMA")
                                 .build();
 
                 // Assert
@@ -120,7 +115,6 @@ class RuleTest {
                                 .operator("<")
                                 .targetCode("AVG_VOLUME")
                                 .targetParam(20.0)
-                                .description("Volume below 20-day average")
                                 .build();
 
                 Rule rule2 = Rule.builder()
@@ -131,7 +125,6 @@ class RuleTest {
                                 .operator("crosses_above")
                                 .targetCode("SMA")
                                 .targetParam(50.0)
-                                .description("Price crosses above 50-day SMA")
                                 .build();
 
                 // Assert
@@ -151,7 +144,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("SMA")
                                 .targetParam(200.0)
-                                .description("Description A")
                                 .build();
 
                 Rule rule2 = Rule.builder()
@@ -162,7 +154,6 @@ class RuleTest {
                                 .operator("<")
                                 .targetCode("CONSTANT")
                                 .targetParam(30.0)
-                                .description("Description B")
                                 .build();
 
                 // Act & Assert
@@ -182,7 +173,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("SMA")
                                 .targetParam(200.0)
-                                .description("Description")
                                 .build();
 
                 Rule rule2 = Rule.builder()
@@ -193,7 +183,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("SMA")
                                 .targetParam(200.0)
-                                .description("Description")
                                 .build();
 
                 // Act & Assert
@@ -212,7 +201,6 @@ class RuleTest {
                                 .operator("crosses_below")
                                 .targetCode("SIGNAL")
                                 .targetParam(9.0)
-                                .description("MACD crosses below signal line")
                                 .build();
 
                 // Assert
@@ -223,7 +211,6 @@ class RuleTest {
                 assertEquals("crosses_below", rule.getOperator());
                 assertEquals("SIGNAL", rule.getTargetCode());
                 assertEquals(9.0, rule.getTargetParam());
-                assertEquals("MACD crosses below signal line", rule.getDescription());
         }
 
         @Test
@@ -238,7 +225,6 @@ class RuleTest {
                                 .operator(">")
                                 .targetCode("AVG_VOLUME")
                                 .targetParam(50.0)
-                                .description("Volume above 50-day average")
                                 .build();
 
                 // Assert
