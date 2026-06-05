@@ -476,43 +476,6 @@ Todas las integraciones externas están desacopladas mediante interfaces, garant
 
 ---
 
-## 📅 Planificación
-
-### Fase 1: Fundamentos (Semana 1)
-- [x] Modelado del dominio
-- [x] Definición de interfaces de reglas
-- [x] Arquitectura base (capas)
-- [x] Configuración de proyecto Maven
-- [x] Setup de H2 + Spring Data JPA
-
-### Fase 2: Core Funcional (Semana 1-2)
-- [ ] Implementación de reglas técnicas
-- [ ] RuleFactory y construcción dinámica
-- [ ] Integración Finnhub + Polygon
-- [ ] Motor de evaluación de estrategias
-- [ ] Cálculo de R:R
-
-### Fase 3: IA y Persistencia (Semana 1-2)
-- [ ] Integración con API de IA
-- [ ] Generación de prompts contextuales
-- [ ] Persistencia de estrategias
-- [ ] CRUD completo de estrategias
-
-### Fase 4: Interfaz Web (Semana 1-2)
-- [ ] Diseño de vistas Thymeleaf
-- [ ] Formularios dinámicos con Thymeleaf + JavaScript vanilla
-- [ ] Visualización de evaluaciones
-- [ ] Dashboard de estrategias
-
-### Fase 5: Testing y Despliegue (Semana 2-3)
-- [ ] Suite completa de tests
-- [ ] Configuración CI/CD (GitHub Actions)
-- [ ] Migración a MariaDB en producción
-- [ ] Despliegue en Railway/Render/AWS
-- [ ] Documentación final
-
----
-
 ## 📄 Licencia
 
 Proyecto académico desarrollado con fines educativos.  
