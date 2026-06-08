@@ -1,6 +1,7 @@
 package com.market.analysis.domain.service;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.util.Objects;
 
 import com.market.analysis.domain.model.Stock;
@@ -52,7 +53,7 @@ public class PromptBuilder {
     }
 
     private String decimal(BigDecimal value) {
-        return value == null ? NOT_AVAILABLE : String.format("%.2f", value);
+        return value == null ? NOT_AVAILABLE : String.format(Locale.ENGLISH, "%.2f", value);
     }
 
     private String whole(Long value) {
