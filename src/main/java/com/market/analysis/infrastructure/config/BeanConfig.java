@@ -41,6 +41,7 @@ import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.port.out.SuggestedTickerRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.FinvizFilterMapper;
@@ -182,6 +183,7 @@ public class BeanConfig {
             FinvizScreenerPort finvizScreenerPort,
             AnalyzeAndPersistStockService analyzeAndPersistStockService,
             SuggestionSnapshotRepository suggestionSnapshotRepository,
+            SuggestedTickerRepository suggestedTickerRepository,
             StockDataRepository stockDataRepository) {
         return new SuggestTickersService(
                 strategyRepository,
@@ -189,6 +191,7 @@ public class BeanConfig {
                 finvizScreenerPort,
                 analyzeAndPersistStockService,
                 suggestionSnapshotRepository,
+                suggestedTickerRepository,
                 stockDataRepository);
     }
 

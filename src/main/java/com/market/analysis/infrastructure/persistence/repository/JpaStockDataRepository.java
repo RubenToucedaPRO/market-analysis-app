@@ -3,6 +3,7 @@ package com.market.analysis.infrastructure.persistence.repository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,6 +34,9 @@ public interface JpaStockDataRepository extends JpaRepository<StockEntity, Long>
 
     @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.strategyId = :strategyId")
     List<StockEntity> findAllByStrategyId(@Param("strategyId") Long strategyId);
+
+    @Query("SELECT s.ticker FROM StockEntity s WHERE s.strategyId = :strategyId")
+    Set<String> findTickerByStrategyId(@Param("strategyId") Long strategyId);
 
     boolean existsByTicker(String ticker);
 
