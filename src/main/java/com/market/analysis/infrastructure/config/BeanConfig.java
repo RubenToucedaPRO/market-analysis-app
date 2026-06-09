@@ -199,7 +199,7 @@ public class BeanConfig {
     public RestClient finnhubRestClient(RestClient.Builder builder) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10000);
-        factory.setReadTimeout(10000);
+        factory.setReadTimeout(90000);
 
         if (finnhubBaseUrl == null || finnhubBaseUrl.isEmpty()) {
             throw new IllegalStateException("Finnhub base URL is not configured properly.");

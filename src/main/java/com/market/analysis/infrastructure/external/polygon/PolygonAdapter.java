@@ -6,7 +6,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +25,6 @@ import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
 import com.market.analysis.infrastructure.exception.PolygonException;
 
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,18 +43,30 @@ public class PolygonAdapter implements HistoricalProviderPort {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    private static final long RATE_LIMIT_WINDOW = 62000; // 1 minute + margin
+    private static final int MAX_CALLS_PER_MINUTE = 5;
+
+    /**
+     * Deque to track call timestamps and enforce rate limiting in memory.
+     */
+    private final Deque<Instant> apiCallTimestamps = new ConcurrentLinkedDeque<>();
+
     private static final int SIZE_HISTORICAL = 300;
 
     @Override
-    @RateLimiter(name = "polygonClient")
     public HistoricalData fetchHistoricalData(String ticker) {
         log.debug("Requesting historical data from Polygon for: {}", ticker);
+
+        waitForRateLimit();
 
         URI uri = buildUri(ticker, SIZE_HISTORICAL);
 
         try {
+            // Record successful call for rate limiting
+            recordApiCall();
+            
             ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
-
+            
             //  JSON response mapping (Infrastructure) to Domain model.
             //    Candle persistence is orchestrated by the Application Use Case.
             return parseApiResponse(ticker, response.getBody());
@@ -143,6 +156,44 @@ public class PolygonAdapter implements HistoricalProviderPort {
                 .queryParam("apiKey", apiToken)
                 .buildAndExpand(ticker.toUpperCase(), fromDate.format(formatter), toDate.format(formatter))
                 .toUri();
+    }
+
+    private synchronized void waitForRateLimit() {
+        removeExpiredTimestamps();
+        
+        // We fetch the oldest call snapshot to evaluate the loop condition cleanly
+        Instant oldestCall = apiCallTimestamps.peekFirst();
+        
+        while (apiCallTimestamps.size() >= MAX_CALLS_PER_MINUTE && oldestCall != null) {
+            long elapsed = Instant.now().toEpochMilli() - oldestCall.toEpochMilli();
+            long waitTime = RATE_LIMIT_WINDOW - elapsed;
+            
+            // If the window time has already passed, we can break naturally by clearing the condition
+            if (waitTime > 0) {
+                try {
+                    log.info("Polygon rate limit window saturated ({} calls). Waiting {}ms for safety...", apiCallTimestamps.size(), waitTime);
+                    this.wait(waitTime + 200);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return; // Standard pattern for handling InterruptedException
+                }
+            }
+            
+            // Refresh state for the next loop iteration check
+            removeExpiredTimestamps();
+            oldestCall = apiCallTimestamps.peekFirst();
+        }
+    }
+    
+    private void recordApiCall() {
+        apiCallTimestamps.addLast(Instant.now());
+    }
+
+    private void removeExpiredTimestamps() {
+        Instant windowStart = Instant.now().minusMillis(RATE_LIMIT_WINDOW);
+        while (!apiCallTimestamps.isEmpty() && apiCallTimestamps.peekFirst().isBefore(windowStart)) {
+            apiCallTimestamps.pollFirst();
+        }
     }
 
 }

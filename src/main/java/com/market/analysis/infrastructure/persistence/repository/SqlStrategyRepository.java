@@ -20,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SqlStrategyRepository implements StrategyRepository { // Tu interfaz de dominio
 
     private final JpaStrategyRepository jpaRepository;
-    private final JpaStockDataRepository stockDataRepository;
     private final StrategyMapper mapper;
 
     @Override
