@@ -107,9 +107,4 @@ public class FinnhubAdapter implements StockProviderPort {
         }
     }
 
-    @Override
-    public boolean hasUpComingEarnings(String ticker) {
-        return false;
-    }
-
 }
