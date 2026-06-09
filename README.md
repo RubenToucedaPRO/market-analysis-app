@@ -1,11 +1,16 @@
-# market-analysis-app
-
 # Motor de Análisis Técnico de Acciones - TFM Desarrollo con IA
 
+![Java 21](https://img.shields.io/badge/Java-21-orange.svg)
+![Coverage >80%](https://img.shields.io/badge/Coverage-%3E80%25-brightgreen.svg)
+![Build](https://img.shields.io/badge/Build-passing-brightgreen.svg)
+![License](https://img.shields.io/badge/License-Academic-blue.svg)
+
 ## 📊 Descripción General del Proyecto
-Este proyecto implementa un sistema avanzado de análisis técnico y apoyo a la toma de decisiones en la gestión de activos financieros. La aplicación se ha diseñado siguiendo una **Arquitectura Hexagonal  con Clean Architecture estricta**, separando de forma explícita el **dominio**, los **casos de uso** y los **adaptadores de infraestructura**, con el objetivo de obtener un sistema desacoplado, mantenible y fácilmente testeable.
+Este proyecto implementa un sistema avanzado de análisis técnico y apoyo a la toma de decisiones en la gestión de activos financieros de uso personal. La aplicación se ha diseñado siguiendo una **Arquitectura Hexagonal  con Clean Architecture estricta**, separando de forma explícita el **dominio**, los **casos de uso** y los **adaptadores de infraestructura**, con el objetivo de obtener un sistema desacoplado, mantenible y fácilmente testeable.
 
 El núcleo de la aplicación concentra la lógica de negocio y actúa como orquestador de los casos de uso, integrando datos de mercado históricos y en tiempo real obtenidos de APIs externas (Finnhub y Polygon.io) con un motor de reglas técnicas y una capa de análisis asistida por inteligencia artificial. Las dependencias técnicas quedan relegadas a la periferia del sistema, evitando su propagación al dominio.
+
+![Diagrama de Arquitectura Hexagonal](/image/arquitectura_hexagonal.jpeg)
 
 ### Principales componentes del sistema
 
@@ -27,15 +32,16 @@ La aplicación está construida para ser desplegada en **Railway**, enfocándose
 
 
 ### Flujo de Procesamiento y Análisis
-El motor de la aplicación ejecuta un pipeline de validación en cada consulta:
+Flujo de procesamiento para cada ticker ingresado o sugerido:
 
-1.  **Filtro de Seguridad:** Verificación contra una lista negra de sectores de alto riesgo (ETFs, Biotecnología, Warrants, activos apalancados, etc.).
-2.  **Enriquecimiento Técnico:** Cálculo automático de medias móviles (SMA 20, 50, 200) y análisis de volumen comparativo.
-3.  **Evaluación de Estrategias:** Motor de reglas declarativas que valida si el activo cumple con criterios técnicos predefinidos.
-4.  **Cálculo R:R:** Determinación automática de la relación Riesgo/Beneficio.
-5.  **Análisis IA:** Generación de un resumen interpretativo basado en los resultados cuantitativos.
+1.  **Inserción de Ticker o sugerencia:** El usuario ingresa un ticker específico o solicita sugerencias basadas en criterios predefinidos.
+2.  **Filtro de Seguridad:** Verificación contra una lista negra de sectores de alto riesgo (ETFs, Biotecnología, Warrants, activos apalancados, etc.).
+3.  **Enriquecimiento Técnico:** Cálculo automático de medias móviles (SMA 20, 50, 200) y análisis de volumen comparativo.
+4.  **Evaluación de Estrategias:** Motor de reglas declarativas que valida si el activo cumple con criterios técnicos predefinidos.
+5.  **Cálculo R:R:** Determinación automática de la relación Riesgo/Beneficio.
+6.  **Análisis IA:** Generación de un resumen interpretativo basado en los resultados cuantitativos a petición del usuario.
+7.  **Persistencia y Seguimiento:** Almacenamiento de resultados, sugerencias de tickers y registros de llamadas a APIs para análisis posterior.
 
----
 
 ## 🛠️ Stack Tecnológico
 
@@ -44,7 +50,7 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
 ### Backend
 - **Java 21 (LTS)**  
   Lenguaje principal del sistema, seleccionado por su estabilidad, soporte a largo plazo y características modernas del ecosistema JVM.
-- **Spring Boot 3.5.10**  
+- **Spring Boot 3.5.14**  
   Framework principal para el desarrollo backend, facilitando la configuración, la inyección de dependencias y el desarrollo estructurado de la aplicación.
 - **Spring Data JPA**  
   Capa de persistencia relacional desacoplada del dominio mediante el uso de repositorios.
@@ -89,7 +95,6 @@ Proveedor de datos de mercado utilizado para la obtención de información actua
 **Funcionalidades utilizadas:**
 - Cotización actual
 - Información corporativa básica
-- Calendario de resultados financieros
 
 **Uso en el sistema:**
 - Contextualización del activo evaluado
@@ -122,15 +127,11 @@ Proveedor principal de datos históricos de mercado, utilizado como base para la
 Fuente pública de datos utilizada para **sugerencias de tickers** mediante scraping controlado (adapter `JsoupFinvizAdapter`).
 
 **Funcionalidades utilizadas:**
-- Filtrado de activos por país/sector
-- Generación de listas de candidatos a analizar
+- Generación de listas de candidatos a analizar por estrategia segun las reglas definidas.
 
 **Uso en el sistema:**
 - Alimenta el caso de uso de sugerencias de tickers
 - Registra snapshots de resultados
-
-**Variables de entorno:**  
-`FINVIZ_BASE_URL`, `FINVIZ_USER_AGENT`, `FINVIZ_TIMEOUT_MS`
 
 ---
 
@@ -155,35 +156,86 @@ Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interp
 ## Instalación y Ejecución
 
 ### Requisitos Previos
-- Java 21+
-- Maven 3.9+
-- MariaDB (producción) o H2 (desarrollo)
+- **Java 21+**
+- **Maven 3.9+**
+- **Docker & Docker Compose** (Para levantar MariaDB y el entorno aislado)
+
+---
 
 ### Variables de Entorno
-```bash
-export FINNHUB_API_TOKEN=your_token_here
-export POLYGON_API_TOKEN=your_token_here
-export OPENROUTER_API_KEY=your_key_here
-export SPRING_PROFILES_ACTIVE=dev
+
+El proyecto utiliza un archivo `.env` en la raíz para gestionar las credenciales. A continuación se detallan las variables obligatorias y opcionales necesarias:
+
+#### Configuración de APIs e Inteligencia Artificial
+```env
+FINNHUB_API_TOKEN=your_token_here
+POLYGON_API_TOKEN=your_token_here
+OPENROUTER_API_KEY=your_key_here
+SPRING_PROFILES_ACTIVE=docker
+
+# Opcionales para ajustar el comportamiento de la IA (OpenRouter)
+OPENROUTER_MODEL=qwen/qwen-2.5-coder-32b-instruct:free
+OPENROUTER_TEMPERATURE=0.2
+OPENROUTER_MAX_TOKENS=1000
+OPENROUTER_TOP_P=0.9
+OPENROUTER_FREQUENCY_PENALTY=0.0
 ```
 
-Opcionales para IA (OpenRouter):  
-`OPENROUTER_MODEL`, `OPENROUTER_TEMPERATURE`, `OPENROUTER_MAX_TOKENS`, `OPENROUTER_TOP_P`, `OPENROUTER_FREQUENCY_PENALTY`
+#### Configuración de Base de Datos
+```env
+DB_DATABASE=marketanalysisdb
+DB_USER=marketuser
+DB_PASSWORD=tu_password_segura
+DB_ROOT_PASSWORD=tu_password_root_segura
+DB_PORT_EXTERNAL=3306
+APP_PORT_EXTERNAL=8080
+```
 
-### Ejecución Local
+
+
+### Ejecución Local con Docker
+
+Para simplificar el despliegue en desarrollo, el proyecto utiliza **Docker Compose**, lo que automatiza la creación de la base de datos MariaDB, la ejecución del script de inicialización (`script-bd.sql`) y el arranque de la aplicación Spring Boot de forma aislada.
+
+#### 1. Clonar el repositorio
 ```bash
-# Clonar repositorio
 git clone https://github.com/RubenToucedaPRO/market-analysis-app.git
 cd market-analysis-app
-
-# Compilar
-mvn clean install
-
-# Ejecutar
-mvn spring-boot:run
 ```
 
-La aplicación estará disponible en `http://localhost:8080`
+#### 2. Configurar el archivo de entorno
+Crea un archivo llamado `.env` en la raíz del proyecto basándote en la plantilla `.env.example` y rellena tus credenciales y tokens de APIs:
+```bash
+cp .env.example .env
+```
+
+#### 3. Compilar la aplicación Java
+Antes de levantar los contenedores, empaqueta el artefacto `.jar` de Spring Boot para que Docker pueda construir la imagen de la aplicación:
+```bash
+mvn clean package -DskipTests
+```
+*(Nota: Se añade `-DskipTests` debido a que los tests de integración requieren que la base de datos esté levantada previamente).*
+
+#### 4. Levantar el entorno
+Arranca la base de datos y la aplicación en segundo plano ejecutando:
+```bash
+docker compose up -d
+```
+
+Este comando realizará las siguientes tareas automáticamente de forma secuencial:
+1. Levantará el contenedor de MariaDB y aplicará las restricciones de RAM idóneas para producción.
+2. Inyectará y ejecutará de forma automática el archivo `./config/database/script-bd.sql`.
+3. Validará la salud de la base de datos a través de su *healthcheck*.
+4. Construirá y arrancará el contenedor de la aplicación conectándose a la red interna compartida.
+
+La aplicación estará completamente disponible en `http://localhost:8080`.
+
+#### 5. Detener el entorno
+Si deseas parar los servicios y liberar los puertos de tu máquina local:
+```bash
+docker compose down
+```
+*(Si necesitas limpiar por completo la base de datos y borrar los datos locales para forzar una reinstalación limpia del script SQL, utiliza `docker compose down -v`)*.
 
 ---
 
@@ -200,7 +252,7 @@ La estructura del proyecto se ha diseñado siguiendo una **Arquitectura Hexagona
 
 **Análisis y Seguimiento**
 - **Vista Analysis**: Panel principal para la ingesta de nuevos tickers y la ejecución del análisis técnico y de IA.
-- **Vista Tracking**: Monitorización de activos seleccionados para seguimiento a medio y largo plazo.
+- **Vista Tracking**: Monitorización de activos seleccionados para analisis.
 
 **Motor de Estrategias**
 - Definición de estrategias técnicas mediante lógica declarativa.
@@ -211,9 +263,6 @@ La estructura del proyecto se ha diseñado siguiendo una **Arquitectura Hexagona
 **Control de Exclusiones**
 - **Vista Prohibited**: Gestión de activos vetados por el sistema.
 - Permite la limpieza manual de la lista negra para rehabilitar tickers excluidos por filtros automáticos.
-
-**Monitorización**
-- **Vista Errors**: Registro centralizado de excepciones y eventos del sistema para garantizar estabilidad y trazabilidad.
 
 ---
 
@@ -389,39 +438,7 @@ Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a
 
 ---
 
-## 🧠 Enfoque Conceptual del Dominio
-
-**Estrategia**  
-Una estrategia es una composición ordenada de reglas técnicas evaluables sobre un conjunto de datos de mercado.  
-Estrategia = Regla₁ + Regla₂ + … + Reglaₙ → Evaluación determinista → Métricas cuantitativas → Análisis interpretativo mediante IA.
-
-**Regla**  
-Condición técnica autocontenida y reutilizable que produce:
-- Un resultado booleano (cumple / no cumple).
-- Una justificación basada en valores calculados.
-
-**Evaluación de Estrategia**
-Incluye:
-1. Evaluación determinista de reglas mediante un operador lógico AND.
-2. Cálculo de métricas cuantitativas como la relación riesgo/beneficio.
-3. Resultado explicable y trazable.
-4. Análisis interpretativo mediante IA, sin influencia sobre el resultado de la evaluación.
-
----
-
-## 🗃️ Persistencia
-
-Las estrategias se almacenan como configuración.
-- Tabla strategy: definición general de la estrategia.
-- Tabla strategy_rule: reglas asociadas, ordenadas y parametrizadas.
-
-Los parámetros de las reglas se almacenan en formato JSON, permitiendo flexibilidad y extensibilidad sin cambios estructurales en la base de datos.
-
-Todas las integraciones externas están desacopladas mediante interfaces, garantizando la independencia del dominio y facilitando el testing.
-
----
-
-### Principios Aplicados
+## Principios Aplicados
 - Dependencias dirigidas exclusivamente hacia el dominio
 - Dominio libre de anotaciones de frameworks (Spring, JPA, etc.)
 - Desacoplamiento de la infraestructura mediante puertos e interfaces
@@ -431,6 +448,15 @@ Todas las integraciones externas están desacopladas mediante interfaces, garant
   - Strategy (composición de reglas)
   - Factory (creación dinámica de reglas)
   - Repository (persistencia desacoplada)
+
+---
+## Funcionalidades Clave
+- Definición de estrategias técnicas mediante reglas declarativas
+- Ingesta de tickers para análisis técnico y evaluación en base a estrategias predefinidas
+- Cálculo automático de la relación riesgo/beneficio
+- Generación de análisis interpretativo mediante IA
+- Sugerencias de tickers basadas en la estrategia definida
+- Gestión de activos prohibidos y palabras clave de exclusión
 
 ---
 
