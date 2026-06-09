@@ -35,7 +35,7 @@ class JsoupFinvizAdapterTest {
                     requestedUrls.add(url);
                     usedUserAgents.add(userAgent);
                     usedTimeouts.add(timeoutMs);
-                    if (url.contains("r=1")) {
+                    if (!url.contains("r=") || url.contains("r=1")) {
                         return parseFixture("fixtures/finviz/screener-page-1.html");
                     }
                     if (url.contains("r=21")) {
