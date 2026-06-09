@@ -42,6 +42,7 @@ Flujo de procesamiento para cada ticker ingresado o sugerido:
 6.  **Análisis IA:** Generación de un resumen interpretativo basado en los resultados cuantitativos a petición del usuario.
 7.  **Persistencia y Seguimiento:** Almacenamiento de resultados, sugerencias de tickers y registros de llamadas a APIs para análisis posterior.
 
+---
 
 ## 🛠️ Stack Tecnológico
 
@@ -103,7 +104,6 @@ Proveedor de datos de mercado utilizado para la obtención de información actua
 **Variable de entorno:**  
 `FINNHUB_API_TOKEN`
 
----
 
 ### Polygon.io
 Proveedor principal de datos históricos de mercado, utilizado como base para la evaluación determinista de estrategias.
@@ -121,7 +121,6 @@ Proveedor principal de datos históricos de mercado, utilizado como base para la
 **Variable de entorno:**  
 `POLYGON_API_TOKEN`
 
----
 
 ### Finviz
 Fuente pública de datos utilizada para **sugerencias de tickers** mediante scraping controlado (adapter `JsoupFinvizAdapter`).
@@ -133,7 +132,6 @@ Fuente pública de datos utilizada para **sugerencias de tickers** mediante scra
 - Alimenta el caso de uso de sugerencias de tickers
 - Registra snapshots de resultados
 
----
 
 ### API de IA (OpenRouter)
 Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interpretativo** de los resultados generados por el sistema.
@@ -160,11 +158,10 @@ Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interp
 - **Maven 3.9+**
 - **Docker & Docker Compose** (Para levantar MariaDB y el entorno aislado)
 
----
 
 ### Variables de Entorno
 
-El proyecto utiliza un archivo `.env` en la raíz para gestionar las credenciales. A continuación se detallan las variables obligatorias y opcionales necesarias:
+El proyecto utiliza un archivo `.env` en la raíz para gestionar las credenciales. A continuación se detallan las variables obligatorias y opcionales necesarias (paso 2 del proceso de ejecución):
 
 #### Configuración de APIs e Inteligencia Artificial
 ```env
@@ -244,7 +241,6 @@ docker compose down
 
 La estructura del proyecto se ha diseñado siguiendo una **Arquitectura Hexagonal inspirada en Clean Architecture**, con el objetivo de separar claramente responsabilidades, aislar el dominio del problema de los detalles técnicos y facilitar la mantenibilidad, testabilidad y evolución del sistema.
 
----
 
 ### Módulos Funcionales
 **Login y Seguridad**
@@ -264,7 +260,6 @@ La estructura del proyecto se ha diseñado siguiendo una **Arquitectura Hexagona
 - **Vista Prohibited**: Gestión de activos vetados por el sistema.
 - Permite la limpieza manual de la lista negra para rehabilitar tickers excluidos por filtros automáticos.
 
----
 
 ### Arquitectura General
 
@@ -274,7 +269,6 @@ La aplicación está organizada en capas, con las dependencias apuntando siempre
   -   Domain: entidades, reglas y servicios de dominio.
   -   Infrastructure: persistencia, integración con APIs externas, IA y configuración técnica.
 
----
 
 ### Estructura de Paquetes
 
@@ -299,7 +293,6 @@ market-analysis-app/
 ├── pom.xml                    Configuración Maven  
 └── README.md                  Documentación principal  
 
----
 
 ### Estructura Detallada de Paquetes
 
