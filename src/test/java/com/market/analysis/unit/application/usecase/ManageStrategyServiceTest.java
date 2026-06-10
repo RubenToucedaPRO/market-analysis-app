@@ -77,7 +77,6 @@ class ManageStrategyServiceTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Price above 100")
                 .build();
 
         testStrategy = Strategy.builder()

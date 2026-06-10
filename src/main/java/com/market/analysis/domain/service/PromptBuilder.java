@@ -10,6 +10,7 @@ import com.market.analysis.domain.model.StrategyEvaluation;
 public class PromptBuilder {
 
     private static final String NOT_AVAILABLE = "N/A";
+    private static final Locale SPANISH_LOCALE = Locale.forLanguageTag("es-ES");
 
     public String buildAnalysisPrompt(Stock stock, StrategyEvaluation evaluation) {
         Stock safeStock = Objects.requireNonNull(stock, "Stock cannot be null");

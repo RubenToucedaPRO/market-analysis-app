@@ -38,8 +38,6 @@ public class RuleEntity {
     @Column(name = "target_param")
     private Double targetParam;
 
-    private String description;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "strategy_id")
     private StrategyEntity strategy;

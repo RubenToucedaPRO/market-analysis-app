@@ -83,4 +83,10 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
         return candles;
     }
 
+    @Override
+    @Transactional
+    public void purgeOrphanCandles() {
+        log.info("purgeOrphanCandles: deleting candles not associated with any ticker analysis");
+        jpaCandleRepository.deleteOrphans();
+    }
 }

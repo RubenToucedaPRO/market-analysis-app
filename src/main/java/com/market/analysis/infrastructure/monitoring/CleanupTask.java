@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.infrastructure.persistence.repository.JpaApiCallRateRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -18,17 +19,30 @@ public class CleanupTask {
 
     private final JpaApiCallRateRepository apiCallRepository;
 
+    private final CandleHistoryRepository candleDataPort;
+
     private static final long CLEANUP_INTERVAL_MS = 86400; // 24 hours in seconds
 
     /**
      * Scheduled task that runs every 24 hours to clean up old API call logs from
      * the database.
      */
-    @Scheduled(cron = "00 00 00 * * *")
+    @Scheduled(cron = "00 00 10 * * *")
     @Transactional
     public void executeCleanup() {
-        Instant threshold = Instant.now().minusSeconds(CLEANUP_INTERVAL_MS); // Umbral de 24 horas
+        Instant threshold = Instant.now().minusSeconds(CLEANUP_INTERVAL_MS);
         int deleted = apiCallRepository.deleteByOcurredAtBefore(threshold);
         log.info("Tarea de limpieza: Se han borrado {} registros de llamadas antiguos.", deleted);
+    }
+
+    /**
+    * Scheduled task that runs every 24 hours to purge orphan candles from the
+    * database.
+    */
+    @Scheduled(cron = "0 00 10 * * *")
+    public void runPurge() {
+        log.info("Iniciando tarea programada de purga...");
+        candleDataPort.purgeOrphanCandles();
+        log.info("Tarea de purga finalizada.");
     }
 }

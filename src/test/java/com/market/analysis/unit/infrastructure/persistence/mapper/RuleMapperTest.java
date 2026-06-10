@@ -37,7 +37,6 @@ class RuleMapperTest {
                 .operator(">")
                 .targetCode("SMA")
                 .targetParam(200.0)
-                .description("50-day SMA crosses above 200-day SMA")
                 .build();
 
         // Act
@@ -52,7 +51,6 @@ class RuleMapperTest {
         assertEquals(">", entity.getOperator());
         assertEquals("SMA", entity.getTargetCode());
         assertEquals(200.0, entity.getTargetParam());
-        assertEquals("50-day SMA crosses above 200-day SMA", entity.getDescription());
     }
 
     @Test
@@ -67,7 +65,6 @@ class RuleMapperTest {
         entity.setOperator(">");
         entity.setTargetCode("CONSTANT");
         entity.setTargetParam(70.0);
-        entity.setDescription("RSI above 70 indicates overbought");
 
         // Act
         Rule rule = ruleMapper.toDomain(entity);
@@ -81,7 +78,6 @@ class RuleMapperTest {
         assertEquals(">", rule.getOperator());
         assertEquals("CONSTANT", rule.getTargetCode());
         assertEquals(70.0, rule.getTargetParam());
-        assertEquals("RSI above 70 indicates overbought", rule.getDescription());
     }
 
     @Test
@@ -116,7 +112,6 @@ class RuleMapperTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Price above 100")
                 .build();
 
         // Act
@@ -142,7 +137,6 @@ class RuleMapperTest {
                 .operator(">")
                 .targetCode("AVG_VOLUME")
                 .targetParam(20.0)
-                .description("Volume above 20-day average")
                 .build();
 
         // Act
@@ -157,6 +151,5 @@ class RuleMapperTest {
         assertEquals(originalRule.getOperator(), convertedRule.getOperator());
         assertEquals(originalRule.getTargetCode(), convertedRule.getTargetCode());
         assertEquals(originalRule.getTargetParam(), convertedRule.getTargetParam());
-        assertEquals(originalRule.getDescription(), convertedRule.getDescription());
     }
 }
