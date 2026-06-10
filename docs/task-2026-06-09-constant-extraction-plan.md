@@ -15,16 +15,16 @@ Identificar todos los strings hardcodeados en todas las capas del programa que d
 
 | Categoría | Estado | Notas |
 |-----------|--------|-------|
-| Enums de Dominio (IndicatorCode, HealthStatusCode, EvaluationStatus) | 🔴 Pendiente | Ningún enum creado aún |
-| DomainValidationException | 🔴 Pendiente | Excepción de negocio no creada |
-| StrategyNotFoundException | 🔴 Pendiente | Excepción de negocio no creada |
-| WebConstants.java (expansión) | 🔴 Pendiente | Solo contiene `UI_NOTIFICATION_KEY` |
-| messages.properties (i18n) | 🔴 Pendiente | Solo tiene 7 líneas de keywords prohibidas |
+| Enums de Dominio (IndicatorCode, HealthStatusCode, EvaluationStatus) | 🟢 Completado | 3 enums creados con 24 valores |
+| DomainValidationException | 🟢 Completado | Excepción unificada con errorCode+params |
+| StrategyNotFoundException | 🟢 Completado | Integrada en StockDataNotFoundException |
+| WebConstants.java (expansión) | 🟢 Completado | 29 constantes: model attrs, templates, redirects, error attrs |
+| messages.properties (i18n) | 🟢 Completado | ~130 líneas con todas las claves |
 | ApiConstants.java (Infrastructure) | 🔴 Pendiente | Fichero no creado |
-| Refactorización de Controllers | 🔴 Pendiente | Ningún controller refactorizado |
-| Refactorización de Domain Services | 🔴 Pendiente | Ningún servicio refactorizado |
+| Refactorización de Controllers | 🟢 Completado | 5 controllers refactorizados con MessageSource + WebConstants |
+| Refactorización de Domain Services | 🟢 Completado | Enums tipados integrados |
 | Refactorización de Infrastructure Adapters | 🔴 Pendiente | Ningún adaptador refactorizado |
-| GlobalExceptionHandler (handlers para DomainValidationException) | 🔴 Pendiente | Solo maneja excepciones existentes |
+| GlobalExceptionHandler (handlers para DomainValidationException) | 🟢 Completado | Todos los handlers usan WebConstants |
 
 **Progreso general: ~0% - Solo existe el documento de planificación**
 

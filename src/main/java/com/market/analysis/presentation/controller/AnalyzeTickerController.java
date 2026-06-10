@@ -1,7 +1,10 @@
 package com.market.analysis.presentation.controller;
 
 import java.util.List;
+import java.util.Locale;
 
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,63 +31,71 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AnalyzeTickerController {
 
-    private static final String REDIRECT_ANALYZE = "redirect:/analysis";
-
     private final ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
     private final ManageStrategyUseCase manageStrategyUseCase;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String getAllTickers(Model model) {
         List<StockDataDTO> tickers = manageAnalyzeTickerUseCase.findAllStocks();
         List<StrategyDTO> strategies = manageStrategyUseCase.getAllStrategies();
 
-        model.addAttribute("tickers", tickers);
-        model.addAttribute("strategies", strategies);
-        return "analysis/analysis";
+        model.addAttribute(WebConstants.ATTR_TICKERS, tickers);
+        model.addAttribute(WebConstants.ATTR_STRATEGIES, strategies);
+        return WebConstants.TEMPLATE_ANALYSIS;
     }
 
     @PostMapping("/getTickerData")
     public String getTickerData(@RequestParam String tickers, @RequestParam Long strategyId,
             RedirectAttributes redirectAttributes) {
+        Locale locale = LocaleContextHolder.getLocale();
         if (strategyId == null) {
             throw new IllegalArgumentException("Strategy selection is required");
         }
         manageAnalyzeTickerUseCase.getStockData(tickers, strategyId);
+        String message = messageSource.getMessage("ticker.added", null, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker(s) añadidos y analizados correctamente."));
-        return REDIRECT_ANALYZE;
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_ANALYSIS;
     }
 
     @PostMapping("/update")
     public String updateTicker(@RequestParam Long id, RedirectAttributes redirectAttributes) {
+        Locale locale = LocaleContextHolder.getLocale();
         manageAnalyzeTickerUseCase.updateStockData(id);
+        String message = messageSource.getMessage("ticker.updated", null, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Datos del ticker actualizados correctamente."));
-        return REDIRECT_ANALYZE;
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_ANALYSIS;
     }
 
     @PostMapping("/ticker/{id}/update")
     public String updateTickerFromDetail(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        Locale locale = LocaleContextHolder.getLocale();
         manageAnalyzeTickerUseCase.updateStockData(id);
+        String message = messageSource.getMessage("ticker.updated", null, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Datos del ticker actualizados correctamente."));
-        return REDIRECT_ANALYZE + "/ticker/" + id;
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
     }
 
     @PostMapping("/delete")
     public String deleteTicker(@RequestParam Long id, @RequestParam String ticker,
             RedirectAttributes redirectAttributes) {
+        Locale locale = LocaleContextHolder.getLocale();
         manageAnalyzeTickerUseCase.deleteById(id, ticker);
+        String message = messageSource.getMessage("ticker.deleted",
+                new Object[] { ticker }, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker '" + ticker + "' eliminado correctamente."));
-        return REDIRECT_ANALYZE;
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_ANALYSIS;
     }
 
     @GetMapping("/ticker/{id}")
     public String getTickerDetail(@PathVariable Long id, Model model) {
         StockDataDTO ticker = manageAnalyzeTickerUseCase.findStockDataById(id);
-        model.addAttribute("ticker", ticker);
-        return "analysis/ticker-detail";
+        model.addAttribute(WebConstants.ATTR_TICKER, ticker);
+        return WebConstants.TEMPLATE_TICKER_DETAIL;
     }
 
     /**
@@ -105,22 +116,24 @@ public class AnalyzeTickerController {
     @GetMapping("/ticker/{id}/chart")
     public String getTickerChart(@PathVariable Long id, Model model) {
         StockDataDTO ticker = manageAnalyzeTickerUseCase.findStockDataById(id);
-        model.addAttribute("ticker", ticker);
-        return "analysis/ticker-chart";
+        model.addAttribute(WebConstants.ATTR_TICKER, ticker);
+        return WebConstants.TEMPLATE_TICKER_CHART;
     }
 
     @PostMapping("/getValorationIA")
     public String getValorationIA(@RequestParam Long id, RedirectAttributes redirectAttributes) {
+        Locale locale = LocaleContextHolder.getLocale();
         boolean generated = manageAnalyzeTickerUseCase.getValorationIA(id);
         if (generated) {
+            String message = messageSource.getMessage("ticker.ia.success", null, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Valoración IA generada y guardada correctamente."));
+                UiNotification.success(message));
         } else {
+            String message = messageSource.getMessage("ticker.ia.failed", null, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.error(
-                    "No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback."));
+                UiNotification.error(message));
         }
-        return REDIRECT_ANALYZE + "/ticker/" + id;
+        return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
     }
 
 }

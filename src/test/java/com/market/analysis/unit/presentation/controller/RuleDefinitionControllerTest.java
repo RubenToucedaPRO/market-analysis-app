@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.ui.Model;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -38,6 +40,9 @@ class RuleDefinitionControllerTest {
 
     @Mock
     private RuleDefinitionDTOMapper mapper;
+
+    @Mock
+    private MessageSource messageSource;
 
     @Mock
     private Model model;
@@ -116,6 +121,8 @@ class RuleDefinitionControllerTest {
                 .requiresParam(true)
                 .description("RSI indicator")
                 .build();
+        when(messageSource.getMessage("ruledefinition.created", null, Locale.getDefault()))
+                .thenReturn("Definición de regla creada correctamente.");
 
         // Act
         String viewName = ruleDefinitionController.saveRuleDefinition(dtoWithoutId, redirectAttributes);
@@ -134,6 +141,8 @@ class RuleDefinitionControllerTest {
     void testSaveRuleDefinitionUpdate() {
         // Arrange
         // testRuleDefinitionDTO has id = 1L
+        when(messageSource.getMessage("ruledefinition.updated", null, Locale.getDefault()))
+                .thenReturn("Definición de regla actualizada correctamente.");
 
         // Act
         String viewName = ruleDefinitionController.saveRuleDefinition(testRuleDefinitionDTO, redirectAttributes);
@@ -150,6 +159,10 @@ class RuleDefinitionControllerTest {
     @Test
     @DisplayName("Should delete rule definition and redirect with success flash message")
     void testDeleteRuleDefinition() {
+        // Arrange
+        when(messageSource.getMessage("ruledefinition.deleted", null, Locale.getDefault()))
+                .thenReturn("Definición de regla eliminada con éxito.");
+
         // Act
         String viewName = ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes);
 

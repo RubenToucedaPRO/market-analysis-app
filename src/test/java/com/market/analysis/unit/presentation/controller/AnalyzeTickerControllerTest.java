@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.CandleChartDTO;
@@ -48,6 +50,9 @@ class AnalyzeTickerControllerTest {
 
     @Mock
     private com.market.analysis.application.mapper.StrategyDTOMapper strategyMapper;
+
+    @Mock
+    private MessageSource messageSource;
 
     @Mock
     private Model model;
@@ -132,6 +137,8 @@ class AnalyzeTickerControllerTest {
         // Arrange
         String tickers = "AAPL,GOOGL,MSFT";
         Long strategyId = 1L;
+        when(messageSource.getMessage("ticker.added", null, Locale.getDefault()))
+                .thenReturn("Ticker(s) añadidos y analizados correctamente.");
 
         // Act
         String viewName = controller.getTickerData(tickers, strategyId, redirectAttributes);
@@ -164,6 +171,8 @@ class AnalyzeTickerControllerTest {
     void testUpdateTicker() {
         // Arrange
         Long id = 1L;
+        when(messageSource.getMessage("ticker.updated", null, Locale.getDefault()))
+                .thenReturn("Datos del ticker actualizados correctamente.");
 
         // Act
         String viewName = controller.updateTicker(id, redirectAttributes);
@@ -181,6 +190,8 @@ class AnalyzeTickerControllerTest {
     void testUpdateTickerFromDetail() {
         // Arrange
         Long id = 1L;
+        when(messageSource.getMessage("ticker.updated", null, Locale.getDefault()))
+                .thenReturn("Datos del ticker actualizados correctamente.");
 
         // Act
         String viewName = controller.updateTickerFromDetail(id, redirectAttributes);
@@ -198,6 +209,8 @@ class AnalyzeTickerControllerTest {
     void testDeleteTicker() {
         // Arrange
         Long id = 1L;
+        when(messageSource.getMessage("ticker.deleted", new Object[] { "AAPL" }, Locale.getDefault()))
+                .thenReturn("Ticker 'AAPL' eliminado correctamente.");
 
         // Act
         String viewName = controller.deleteTicker(id, "AAPL", redirectAttributes);
@@ -245,6 +258,8 @@ class AnalyzeTickerControllerTest {
         // Arrange
         Long id = 1L;
         when(manageAnalyzeTickerUseCase.getValorationIA(id)).thenReturn(true);
+        when(messageSource.getMessage("ticker.ia.success", null, Locale.getDefault()))
+                .thenReturn("Valoración IA generada y guardada correctamente.");
 
         // Act
         String viewName = controller.getValorationIA(id, redirectAttributes);
@@ -265,6 +280,8 @@ class AnalyzeTickerControllerTest {
         Long id2 = 10L;
         when(manageAnalyzeTickerUseCase.getValorationIA(id1)).thenReturn(true);
         when(manageAnalyzeTickerUseCase.getValorationIA(id2)).thenReturn(true);
+        when(messageSource.getMessage("ticker.ia.success", null, Locale.getDefault()))
+                .thenReturn("Valoración IA generada y guardada correctamente.");
 
         // Act
         String viewName1 = controller.getValorationIA(id1, redirectAttributes);
@@ -282,6 +299,8 @@ class AnalyzeTickerControllerTest {
     void testGetValorationIAFallbackShowsErrorNotification() {
         Long id = 7L;
         when(manageAnalyzeTickerUseCase.getValorationIA(id)).thenReturn(false);
+        when(messageSource.getMessage("ticker.ia.failed", null, Locale.getDefault()))
+                .thenReturn("No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback.");
 
         String viewName = controller.getValorationIA(id, redirectAttributes);
 

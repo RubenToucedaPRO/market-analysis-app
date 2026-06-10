@@ -5,6 +5,7 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,11 +45,6 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    private static final String ERROR_VIEW = "error";
-    private static final String ATTR_ERROR_MESSAGE = "errorMessage";
-    private static final String ATTR_ERROR_DETAILS = "errorDetails";
-    private static final String ATTR_ERROR_TYPE = "errorType";
-    private static final String DEFAULT_REFERER = "/";
     private static final String ERROR_EXTERNAL_SERVICE = "error.external_service";
 
     private final MessageSource messageSource;
@@ -268,11 +264,11 @@ public class GlobalExceptionHandler {
 
         String userMessage = messageSource.getMessage(
                 "error.database", null, Locale.getDefault());
-        model.addAttribute(ATTR_ERROR_TYPE, "Database Error");
-        model.addAttribute(ATTR_ERROR_MESSAGE, userMessage);
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
+        model.addAttribute(WebConstants.ATTR_ERROR_TYPE, "Database Error");
+        model.addAttribute(WebConstants.ATTR_ERROR_MESSAGE, userMessage);
+        model.addAttribute(WebConstants.ATTR_ERROR_DETAILS, ex.getMessage());
 
-        return ERROR_VIEW;
+        return WebConstants.TEMPLATE_ERROR;
     }
 
     /**
@@ -287,11 +283,11 @@ public class GlobalExceptionHandler {
 
         String userMessage = messageSource.getMessage(
                 "error.unexpected", null, Locale.getDefault());
-        model.addAttribute(ATTR_ERROR_TYPE, "System Error");
-        model.addAttribute(ATTR_ERROR_MESSAGE, userMessage);
-        model.addAttribute(ATTR_ERROR_DETAILS, ex.getMessage());
+        model.addAttribute(WebConstants.ATTR_ERROR_TYPE, "System Error");
+        model.addAttribute(WebConstants.ATTR_ERROR_MESSAGE, userMessage);
+        model.addAttribute(WebConstants.ATTR_ERROR_DETAILS, ex.getMessage());
 
-        return ERROR_VIEW;
+        return WebConstants.TEMPLATE_ERROR;
     }
 
     // -------------------------------------------------------------------------
@@ -309,7 +305,7 @@ public class GlobalExceptionHandler {
      */
     private String redirectWithError(String message, RedirectAttributes ra, HttpServletRequest req) {
         ra.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(message));
-        String referer = req.getHeader("Referer");
-        return "redirect:" + (referer != null ? referer : DEFAULT_REFERER);
+        String referer = req.getHeader(HttpHeaders.REFERER);
+        return "redirect:" + (referer != null ? referer : WebConstants.DEFAULT_REFERER);
     }
 }

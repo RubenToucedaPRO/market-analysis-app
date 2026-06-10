@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.RuleDTO;
@@ -43,6 +45,9 @@ class StrategyControllerTest {
     private SuggestTickersUseCase suggestTickersUseCase;
 
     @Mock
+    private MessageSource messageSource;
+
+    @Mock
     private Model model;
 
     @Mock
@@ -57,7 +62,8 @@ class StrategyControllerTest {
         strategyController = new StrategyController(
                 manageStrategyUseCase,
                 manageRuleDefinitionUseCase,
-                Optional.of(suggestTickersUseCase));
+                Optional.of(suggestTickersUseCase),
+                messageSource);
 
         testRuleDTO = RuleDTO.builder()
                 .id(1L)
@@ -120,6 +126,8 @@ class StrategyControllerTest {
                 .description("Test Description")
                 .rules(List.of())
                 .build();
+        when(messageSource.getMessage("strategy.created", null, Locale.getDefault()))
+                .thenReturn("Estrategia creada correctamente.");
 
         String viewName = strategyController.saveStrategy(strategyDTO, redirectAttributes);
 
@@ -139,6 +147,8 @@ class StrategyControllerTest {
                 .description("Test Description")
                 .rules(List.of())
                 .build();
+        when(messageSource.getMessage("strategy.updated", null, Locale.getDefault()))
+                .thenReturn("Estrategia actualizada correctamente.");
 
         String viewName = strategyController.saveStrategy(strategyDTO, redirectAttributes);
 
@@ -152,6 +162,9 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should delete strategy and redirect with success flash")
     void testDeleteStrategy() {
+        when(messageSource.getMessage("strategy.deleted", null, Locale.getDefault()))
+                .thenReturn("Estrategia eliminada correctamente.");
+
         String viewName = strategyController.deleteStrategy(1L, redirectAttributes);
 
         assertEquals("redirect:/strategies", viewName);
@@ -199,6 +212,8 @@ class StrategyControllerTest {
                 .unmappableRules(List.of())
                 .build();
         when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
+        when(messageSource.getMessage("strategy.suggestion.success", null, Locale.getDefault()))
+                .thenReturn("Sugerencias generadas correctamente desde mercado.");
 
         String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
 
@@ -213,6 +228,8 @@ class StrategyControllerTest {
     @DisplayName("Should switch suggested tickers to analysis origin and redirect")
     void testAddSuggestedTickersToAnalysisSuccess() {
         when(suggestTickersUseCase.convertSuggestedTickersToAnalysis(1L)).thenReturn(2);
+        when(messageSource.getMessage("strategy.tickers.switched", new Object[] { 2 }, Locale.getDefault()))
+                .thenReturn("Ticker(s) cambiados a origen análisis: 2.");
 
         String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
 
@@ -228,6 +245,8 @@ class StrategyControllerTest {
     @DisplayName("Should warn when there are no eligible tickers to switch")
     void testAddSuggestedTickersToAnalysisNoSnapshotData() {
         when(suggestTickersUseCase.convertSuggestedTickersToAnalysis(1L)).thenReturn(0);
+        when(messageSource.getMessage("strategy.suggestion.none_added", null, Locale.getDefault()))
+                .thenReturn("No hay sugerencias aptas en snapshot para añadir.");
 
         String viewName = strategyController.addSuggestedTickersToAnalysis(1L, redirectAttributes);
 
