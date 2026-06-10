@@ -5,6 +5,8 @@ import java.util.Locale;
 
 import com.market.analysis.application.dto.ProhibitedKeywordDTO;
 import com.market.analysis.application.mapper.ProhibitedKeywordDTOMapper;
+import com.market.analysis.domain.exception.DomainErrorCodes;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
@@ -38,12 +40,12 @@ public class ManageProhibitedKeywordService implements ManageProhibitedKeywordUs
     @Override
     public void addProhibitedKeyword(ProhibitedKeywordDTO prohibitedKeyword) {
         if (prohibitedKeyword == null) {
-            throw new IllegalArgumentException("Prohibited keyword cannot be null");
+            throw new DomainValidationException(DomainErrorCodes.KEYWORD_NULL);
         }
 
         String normalizedKeyword = normalizeKeyword(prohibitedKeyword.getKeyword());
         if (prohibitedKeywordRepository.existsByKeyword(normalizedKeyword)) {
-            throw new IllegalArgumentException("Prohibited keyword already exists: " + normalizedKeyword);
+            throw new DomainValidationException(DomainErrorCodes.KEYWORD_EXISTS, normalizedKeyword);
         }
 
         log.info("Adding prohibited keyword: {}", normalizedKeyword);
@@ -70,12 +72,12 @@ public class ManageProhibitedKeywordService implements ManageProhibitedKeywordUs
 
     private String normalizeKeyword(String keyword) {
         if (keyword == null || keyword.isBlank()) {
-            throw new IllegalArgumentException("Keyword cannot be null or blank");
+            throw new DomainValidationException(DomainErrorCodes.KEYWORD_BLANK);
         }
 
         String normalizedKeyword = keyword.trim().toUpperCase(Locale.ROOT);
         if (normalizedKeyword.length() > MAX_KEYWORD_LENGTH) {
-            throw new IllegalArgumentException("Keyword length must be <= " + MAX_KEYWORD_LENGTH);
+            throw new DomainValidationException(DomainErrorCodes.KEYWORD_TOO_LONG, MAX_KEYWORD_LENGTH);
         }
 
         return normalizedKeyword;

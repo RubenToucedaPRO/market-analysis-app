@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.out.StockProviderPort;
+import com.market.analysis.infrastructure.config.ApiConstants;
 import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.external.finnhub.dto.CompanyData;
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
@@ -42,7 +43,7 @@ public class FinnhubAdapter implements StockProviderPort {
             // Sintaxis fluida, limpia y SIN .block()
             QuoteData quote = restClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/quote")
+                            .path(ApiConstants.FINNHUB_ENDPOINT_QUOTE)
                             .queryParam(SYMBOL, ticker)
                             .queryParam(TOKEN, apiToken)
                             .build())
@@ -77,7 +78,7 @@ public class FinnhubAdapter implements StockProviderPort {
         try {
             CompanyData profile = restClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/stock/profile2")
+                            .path(ApiConstants.FINNHUB_ENDPOINT_PROFILE)
                             .queryParam(SYMBOL, ticker)
                             .queryParam(TOKEN, apiToken)
                             .build())

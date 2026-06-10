@@ -7,8 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.AnalysisResult;
+import com.market.analysis.domain.model.EvaluationStatus;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
@@ -27,8 +30,14 @@ import com.market.analysis.domain.model.StrategyEvaluation;
 
 public class EvaluateStrategyService {
 
-    private static final String PASSED = "PASSED";
-    private static final String FAILED = "FAILED";
+    private static final String METRIC_TOTAL_RULES = "totalRules";
+    private static final String METRIC_PASSED_RULES = "passedRules";
+    private static final String METRIC_FAILED_RULES = "failedRules";
+
+    private static final String SUMMARY_TEMPLATE = "Strategy '%s' evaluation for %s: %s. ";
+    private static final String RULES_PASSED_TEMPLATE = "%d/%d rules passed.";
+    private static final String SUFFIX_FAILED_RULES = " Failed rules: ";
+    private static final String MSG_RISK_PLAN_FAILED = " Risk plan could not be calculated: ";
 
     private final RuleEvaluator ruleEvaluator;
     private final RiskRewardCalculator riskRewardCalculator;
@@ -40,29 +49,22 @@ public class EvaluateStrategyService {
 
     public StrategyEvaluation evaluateStrategy(Strategy strategy, Stock stock) {
         if (strategy == null) {
-            throw new IllegalArgumentException("Strategy cannot be null");
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_NULL);
         }
         if (stock == null) {
-            throw new IllegalArgumentException("Stock data cannot be null");
+            throw new DomainValidationException(DomainErrorCodes.STOCK_DATA_NULL);
         }
 
-        // Validate strategy consistency
         strategy.validateConsistency();
 
-        // Evaluate each rule in the strategy
         List<RuleResult> ruleResults = new ArrayList<>();
         for (Rule rule : strategy.getRules()) {
             RuleResult result = ruleEvaluator.evaluate(rule, stock);
             ruleResults.add(result);
         }
 
-        // Calculate metrics
         Map<String, Object> metrics = calculateMetrics(ruleResults);
-
-        // Determine overall pass/fail
         boolean overallPassed = determineOverallResult(ruleResults);
-
-        // Generate summary
         String summary = generateSummary(strategy, stock.getTicker(), ruleResults, overallPassed);
 
         AnalysisResult result = AnalysisResult.builder()
@@ -94,7 +96,7 @@ public class EvaluateStrategyService {
                 stopLossPrice = null;
                 riskRewardRatio = null;
                 recommendedShares = null;
-                summary = summary + " Risk plan could not be calculated: " + e.getMessage();
+                summary = summary + MSG_RISK_PLAN_FAILED + e.getMessage();
             }
         }
 
@@ -124,9 +126,9 @@ public class EvaluateStrategyService {
         long passedCount = ruleResults.stream().filter(RuleResult::isPassed).count();
         long totalCount = ruleResults.size();
 
-        metrics.put("totalRules", totalCount);
-        metrics.put("passedRules", passedCount);
-        metrics.put("failedRules", totalCount - passedCount);
+        metrics.put(METRIC_TOTAL_RULES, totalCount);
+        metrics.put(METRIC_PASSED_RULES, passedCount);
+        metrics.put(METRIC_FAILED_RULES, totalCount - passedCount);
 
         return metrics;
     }
@@ -148,14 +150,14 @@ public class EvaluateStrategyService {
         long totalCount = ruleResults.size();
 
         StringBuilder summary = new StringBuilder();
-        summary.append(String.format("Strategy '%s' evaluation for %s: %s. ",
+        summary.append(String.format(SUMMARY_TEMPLATE,
                 strategy.getName(),
                 ticker,
-                overallPassed ? PASSED : FAILED));
-        summary.append(String.format("%d/%d rules passed.", passedCount, totalCount));
+                overallPassed ? EvaluationStatus.PASSED.getStatus() : EvaluationStatus.FAILED.getStatus()));
+        summary.append(String.format(RULES_PASSED_TEMPLATE, passedCount, totalCount));
 
         if (!overallPassed) {
-            summary.append(" Failed rules: ");
+            summary.append(SUFFIX_FAILED_RULES);
             List<String> failedRules = ruleResults.stream()
                     .filter(r -> !r.isPassed())
                     .map(r -> r.getRule().getName())

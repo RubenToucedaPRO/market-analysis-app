@@ -13,6 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApiKeyObfuscatorInterceptor implements ClientHttpRequestInterceptor {
 
+    private static final String SENSITIVE_PARAM_PATTERN = "(apikey|token)=[^&]*";
+    private static final String OBFUSCATION_REPLACEMENT = "$1=*****";
+    private static final String LOG_REQUEST_FORMAT = "External Req: {} {}";
+
     @Override
     @NonNull
     public ClientHttpResponse intercept(@NonNull HttpRequest request, @NonNull byte[] body,
@@ -31,9 +35,9 @@ public class ApiKeyObfuscatorInterceptor implements ClientHttpRequestInterceptor
             String originalUri = request.getURI().toString();
             String method = request.getMethod().toString();
 
-            String maskedUri = originalUri.toLowerCase().replaceAll("(apikey|token)=[^&]*", "$1=*****");
+            String maskedUri = originalUri.toLowerCase().replaceAll(SENSITIVE_PARAM_PATTERN, OBFUSCATION_REPLACEMENT);
 
-            log.debug("External Req: {} {}", method, maskedUri);
+            log.debug(LOG_REQUEST_FORMAT, method, maskedUri);
         }
     }
 }

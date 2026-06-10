@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.market.analysis.application.dto.HealthCheckResponse;
 import com.market.analysis.domain.model.HealthStatus;
+import com.market.analysis.domain.model.HealthStatusCode;
 
 /**
  * Mapper for converting domain HealthStatus entities to presentation DTOs.
@@ -25,7 +26,7 @@ public class HealthCheckMapper {
             return null;
         }
         
-        int httpStatusCode = "UP".equals(healthStatus.getStatus()) ? 200 : 503;
+        int httpStatusCode = HealthStatusCode.UP.getStatus().equals(healthStatus.getStatus()) ? 200 : 503;
 
         return HealthCheckResponse.builder()
                 .status(healthStatus.getStatus())

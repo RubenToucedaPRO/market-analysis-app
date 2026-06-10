@@ -26,6 +26,7 @@ import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StockOrigin;
@@ -73,12 +74,12 @@ class ManageAnalyzeStockServiceTest {
     private ManageAnalyzeStockService service;
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException when strategy id is null")
+    @DisplayName("Should throw DomainValidationException when strategy id is null")
     void shouldThrowWhenStrategyIdIsNull() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
                 () -> service.getStockData("AAPL", null));
 
-        assertThat(ex.getMessage()).isEqualTo("Strategy ID is required");
+        assertThat(ex.getErrorCode()).isEqualTo("validation.strategy_id_required");
         verify(strategyRepository, never()).findById(any());
     }
 
@@ -116,14 +117,14 @@ class ManageAnalyzeStockServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException when strategy does not exist")
+    @DisplayName("Should throw DomainValidationException when strategy does not exist")
     void shouldThrowWhenStrategyNotFound() {
         when(strategyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
                 () -> service.getStockData("AAPL", 1L));
 
-        assertThat(ex.getMessage()).isEqualTo("Strategy not found with id: 1");
+        assertThat(ex.getErrorCode()).isEqualTo("strategy.not_found");
     }
 
     @Test

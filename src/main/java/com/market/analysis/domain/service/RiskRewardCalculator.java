@@ -5,7 +5,10 @@ import java.math.RoundingMode;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
+import com.market.analysis.domain.model.IndicatorCode;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyObjective;
@@ -26,8 +29,11 @@ public class RiskRewardCalculator {
     private static final int RATIO_SCALE = 4;
     private static final RoundingMode PRICE_ROUNDING = RoundingMode.HALF_UP;
     private static final RoundingMode POSITION_ROUNDING = RoundingMode.DOWN;
-    private static final String ENTRY_PRICE_NULL_MSG = "Entry price cannot be null";
-    private static final String ENTRY_PRICE = "Entry price";
+
+    private static final String FIELD_ENTRY_PRICE = "Entry price";
+    private static final String FIELD_TARGET_PRICE = "Target price";
+    private static final String FIELD_STOP_PRICE = "Stop price";
+    private static final String FIELD_CAPITAL_TO_RISK = "Capital to risk";
 
     /**
      * Calculates the target price for a strategy based on the objective type.
@@ -36,15 +42,15 @@ public class RiskRewardCalculator {
      * @param objective  the strategy objective containing target configuration
      * @param stock      the stock data containing technical indicators
      * @return the calculated target price
-     * @throws IllegalArgumentException  if parameters are null or invalid
+     * @throws DomainValidationException if parameters are null or invalid
      * @throws MissingIndicatorException if required SMA indicator is missing
      */
     public BigDecimal calculateTargetPrice(BigDecimal entryPrice, StrategyObjective objective, Stock stock) {
-        Objects.requireNonNull(entryPrice, ENTRY_PRICE_NULL_MSG);
-        Objects.requireNonNull(objective, "Strategy objective cannot be null");
-        Objects.requireNonNull(stock, "Stock cannot be null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(objective, DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
+        requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
-        validatePositivePrice(entryPrice, ENTRY_PRICE);
+        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
 
         return switch (objective.getTargetType()) {
             case SMA -> resolveSmaValue(objective.getTargetValue(), stock, "target");
@@ -60,16 +66,16 @@ public class RiskRewardCalculator {
      * @param objective  the strategy objective containing stop-loss configuration
      * @param stock      the stock data containing technical indicators
      * @return the calculated stop-loss price
-     * @throws IllegalArgumentException  if parameters are null, invalid, or if
+     * @throws DomainValidationException if parameters are null, invalid, or if
      *                                   stop-loss >= entry price
      * @throws MissingIndicatorException if required SMA indicator is missing
      */
     public BigDecimal calculateStopLossPrice(BigDecimal entryPrice, StrategyObjective objective, Stock stock) {
-        Objects.requireNonNull(entryPrice, ENTRY_PRICE_NULL_MSG);
-        Objects.requireNonNull(objective, "Strategy objective cannot be null");
-        Objects.requireNonNull(stock, "Stock cannot be null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(objective, DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
+        requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
-        validatePositivePrice(entryPrice, ENTRY_PRICE);
+        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
 
         BigDecimal stopLossPrice = switch (objective.getStopLossType()) {
             case SMA -> resolveSmaValue(objective.getStopLossValue(), stock, "stop-loss");
@@ -89,31 +95,30 @@ public class RiskRewardCalculator {
      * @param targetPrice the target price for taking profit
      * @param stopPrice   the stop-loss price for risk management
      * @return the risk-reward ratio (potential reward / potential risk)
-     * @throws IllegalArgumentException if parameters are null, invalid, or
+     * @throws DomainValidationException if parameters are null, invalid, or
      *                                  mathematically inconsistent
      */
     public BigDecimal calculateRiskRewardRatio(BigDecimal entryPrice, BigDecimal targetPrice, BigDecimal stopPrice) {
-        Objects.requireNonNull(entryPrice, ENTRY_PRICE_NULL_MSG);
-        Objects.requireNonNull(targetPrice, "Target price cannot be null");
-        Objects.requireNonNull(stopPrice, "Stop price cannot be null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(targetPrice, DomainErrorCodes.TARGET_PRICE_NULL);
+        requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
 
-        validatePositivePrice(entryPrice, ENTRY_PRICE);
-        validatePositivePrice(targetPrice, "Target price");
-        validatePositivePrice(stopPrice, "Stop price");
+        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
+        validatePositivePrice(targetPrice, FIELD_TARGET_PRICE);
+        validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
 
-        // For long positions: target should be above entry, stop should be below entry
         if (targetPrice.compareTo(entryPrice) <= 0) {
-            throw new IllegalArgumentException("Target price must be greater than entry price for long positions");
+            throw new DomainValidationException(DomainErrorCodes.TARGET_BELOW_ENTRY);
         }
         if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new IllegalArgumentException("Stop price must be less than entry price for long positions");
+            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
         }
 
         BigDecimal potentialReward = targetPrice.subtract(entryPrice);
         BigDecimal potentialRisk = entryPrice.subtract(stopPrice);
 
         if (potentialRisk.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Potential risk must be greater than zero");
+            throw new DomainValidationException(DomainErrorCodes.RISK_ZERO);
         }
 
         return potentialReward.divide(potentialRisk, RATIO_SCALE, PRICE_ROUNDING);
@@ -127,29 +132,28 @@ public class RiskRewardCalculator {
      * @param stopPrice     the stop-loss price
      * @param capitalToRisk the total capital amount to risk on this position
      * @return the number of shares to buy (rounded down)
-     * @throws IllegalArgumentException if parameters are null, invalid, or
+     * @throws DomainValidationException if parameters are null, invalid, or
      *                                  mathematically inconsistent
      */
     public BigDecimal calculatePositionSize(BigDecimal entryPrice, BigDecimal stopPrice, BigDecimal capitalToRisk) {
-        Objects.requireNonNull(entryPrice, ENTRY_PRICE_NULL_MSG);
-        Objects.requireNonNull(stopPrice, "Stop price cannot be null");
-        Objects.requireNonNull(capitalToRisk, "Capital to risk cannot be null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
+        requireNonNull(capitalToRisk, DomainErrorCodes.CAPITAL_NULL);
 
-        validatePositivePrice(entryPrice, ENTRY_PRICE);
-        validatePositivePrice(stopPrice, "Stop price");
-        validatePositivePrice(capitalToRisk, "Capital to risk");
+        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
+        validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
+        validatePositivePrice(capitalToRisk, FIELD_CAPITAL_TO_RISK);
 
         if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new IllegalArgumentException("Stop price must be less than entry price for long positions");
+            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
         }
 
         BigDecimal riskPerShare = entryPrice.subtract(stopPrice);
 
         if (riskPerShare.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Risk per share must be greater than zero");
+            throw new DomainValidationException(DomainErrorCodes.RISK_PER_SHARE_ZERO);
         }
 
-        // Round DOWN to ensure we never exceed the maximum risk
         return capitalToRisk.divide(riskPerShare, 0, POSITION_ROUNDING);
     }
 
@@ -163,36 +167,30 @@ public class RiskRewardCalculator {
      * @param context     context description for error messages (e.g., "target",
      *                    "stop-loss")
      * @return the SMA value with proper scaling
-     * @throws IllegalArgumentException  if period is not supported by the catalog
+     * @throws DomainValidationException if period is not supported by the catalog
      * @throws MissingIndicatorException if the required SMA value is null in stock
      *                                   data
      */
     private BigDecimal resolveSmaValue(BigDecimal periodValue, Stock stock, String context) {
-        Objects.requireNonNull(periodValue, "SMA period value cannot be null");
+        requireNonNull(periodValue, DomainErrorCodes.SMA_PERIOD_NULL);
 
         int period = periodValue.intValue();
 
-        BigDecimal smaValue = RuleCapabilityCatalog.getCapability("SMA")
+        BigDecimal smaValue = RuleCapabilityCatalog.getCapability(IndicatorCode.SMA.getCode())
                 .map(cap -> cap.resolve((double) period, stock))
                 .orElse(null);
 
         if (smaValue == null) {
-            // Distinguish between unsupported period and missing data
-            boolean isPeriodSupported = RuleCapabilityCatalog.getCapability("SMA")
+            boolean isPeriodSupported = RuleCapabilityCatalog.getCapability(IndicatorCode.SMA.getCode())
                     .map(cap -> cap.isParamAllowed((double) period))
                     .orElse(false);
 
             if (!isPeriodSupported) {
-                throw new IllegalArgumentException(
-                        String.format("SMA period %d is not supported. Only periods %s are allowed.",
-                                period, RuleCapabilityCatalog.getCapability("SMA")
-                                        .map(cap -> cap.getAllowedParams().toString())
-                                        .orElse("[]")));
+                throw new DomainValidationException(
+                        DomainErrorCodes.SMA_PERIOD_UNSUPPORTED, period);
             }
 
-            throw new MissingIndicatorException(
-                    String.format("SMA%d value is required for %s calculation but is missing in stock data for %s",
-                            period, context, stock.getTicker()));
+            throw new MissingIndicatorException(DomainErrorCodes.RULE_MISSING_INDICATOR);
         }
 
         return smaValue.setScale(PRICE_SCALE, PRICE_ROUNDING);
@@ -208,10 +206,10 @@ public class RiskRewardCalculator {
      * @return the calculated price
      */
     private BigDecimal calculatePercentagePrice(BigDecimal entryPrice, BigDecimal percentageValue, boolean isTarget) {
-        Objects.requireNonNull(percentageValue, "Percentage value cannot be null");
+        requireNonNull(percentageValue, DomainErrorCodes.PERCENTAGE_NULL);
 
         if (percentageValue.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Percentage value must be greater than zero");
+            throw new DomainValidationException(DomainErrorCodes.PERCENTAGE_ZERO);
         }
 
         BigDecimal multiplier = percentageValue.divide(BigDecimal.valueOf(100), RATIO_SCALE, PRICE_ROUNDING);
@@ -229,7 +227,7 @@ public class RiskRewardCalculator {
      * @return the fixed price with proper scaling
      */
     private BigDecimal validateAndReturnFixedPrice(BigDecimal fixedPrice, String context) {
-        Objects.requireNonNull(fixedPrice, context + " fixed price cannot be null");
+        requireNonNull(fixedPrice, DomainErrorCodes.FIXED_PRICE_NULL);
         validatePositivePrice(fixedPrice, context + " fixed price");
         return fixedPrice.setScale(PRICE_SCALE, PRICE_ROUNDING);
     }
@@ -259,6 +257,12 @@ public class RiskRewardCalculator {
             throw new IllegalArgumentException(
                     String.format(Locale.ENGLISH, "Stop-loss price (%.2f) must be less than entry price (%.2f) for long positions",
                             stopLossPrice.doubleValue(), entryPrice.doubleValue()));
+        }
+    }
+
+    private static void requireNonNull(Object value, String errorCode) {
+        if (value == null) {
+            throw new DomainValidationException(errorCode);
         }
     }
 }

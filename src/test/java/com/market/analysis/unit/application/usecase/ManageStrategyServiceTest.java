@@ -27,6 +27,7 @@ import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.ManageStrategyService;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleDefinition;
@@ -167,16 +168,16 @@ class ManageStrategyServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when strategy not found")
+    @DisplayName("Should throw DomainValidationException when strategy not found")
     void testGetStrategyByIdNotFound() {
         // Arrange
         when(strategyRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageStrategyService.getStrategyById(999L));
 
-        assertEquals("Strategy not found with id: 999", exception.getMessage());
+        assertEquals("strategy.not_found", exception.getErrorCode());
         verify(strategyRepository, times(1)).findById(999L);
     }
 
@@ -242,8 +243,9 @@ class ManageStrategyServiceTest {
         when(strategyDTOMapper.toDomain(invalidStrategy)).thenReturn(invalidStrategyDomain);
 
         // Act & Assert
-        assertThrows(IllegalStateException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageStrategyService.createStrategy(invalidStrategy));
+        assertEquals("validation.strategy_no_rules", exception.getErrorCode());
     }
 
     @Test
@@ -318,7 +320,8 @@ class ManageStrategyServiceTest {
         when(strategyDTOMapper.toDomain(invalidStrategy)).thenReturn(invalidStrategyDomain);
 
         // Act & Assert
-        assertThrows(IllegalStateException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageStrategyService.updateStrategy(invalidStrategy));
+        assertEquals("validation.strategy_no_rules", exception.getErrorCode());
     }
 }

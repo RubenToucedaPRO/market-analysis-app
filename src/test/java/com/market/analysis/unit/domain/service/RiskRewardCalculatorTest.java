@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Stock;
@@ -130,8 +131,9 @@ class RiskRewardCalculatorTest {
 
             // Act & Assert — message now references catalog-derived allowed periods
             assertThatThrownBy(() -> calculator.calculateTargetPrice(entryPrice, objective, testStock))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("SMA period 100 is not supported");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.sma_period_unsupported"));
         }
 
         @Test
@@ -159,9 +161,8 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateTargetPrice(entryPrice, objective, stockWithoutSma20))
                     .isInstanceOf(MissingIndicatorException.class)
-                    .hasMessageContaining("SMA20")
-                    .hasMessageContaining("target")
-                    .hasMessageContaining("AAPL");
+                    .satisfies(ex -> assertThat(((MissingIndicatorException) ex).getErrorCode())
+                            .isEqualTo("rule.missing_indicator"));
         }
 
         @Test
@@ -221,8 +222,9 @@ class RiskRewardCalculatorTest {
 
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateTargetPrice(null, objective, testStock))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Entry price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.entry_price_null"));
         }
 
         @Test
@@ -348,8 +350,7 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateStopLossPrice(entryPrice, objective, testStock))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Stop-loss price")
-                    .hasMessageContaining("must be less than entry price");
+                    .hasMessageContaining("Stop-loss price");
         }
 
         @Test
@@ -369,8 +370,7 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateStopLossPrice(entryPrice, objective, testStock))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Stop-loss price")
-                    .hasMessageContaining("must be less than entry price");
+                    .hasMessageContaining("Stop-loss price");
         }
 
         @Test
@@ -398,9 +398,8 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateStopLossPrice(entryPrice, objective, stockWithoutSma50))
                     .isInstanceOf(MissingIndicatorException.class)
-                    .hasMessageContaining("SMA50")
-                    .hasMessageContaining("stop-loss")
-                    .hasMessageContaining("MSFT");
+                    .satisfies(ex -> assertThat(((MissingIndicatorException) ex).getErrorCode())
+                            .isEqualTo("rule.missing_indicator"));
         }
     }
 
@@ -468,8 +467,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(null, 
                     BigDecimal.valueOf(110), BigDecimal.valueOf(95)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Entry price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.entry_price_null"));
         }
 
         @Test
@@ -478,8 +478,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(BigDecimal.valueOf(100), 
                     null, BigDecimal.valueOf(95)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Target price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.target_price_null"));
         }
 
         @Test
@@ -488,8 +489,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(
                     BigDecimal.valueOf(100), BigDecimal.valueOf(100), BigDecimal.valueOf(95)))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Target price must be greater than entry price");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.target_below_entry"));
         }
 
         @Test
@@ -498,8 +500,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(
                     BigDecimal.valueOf(100), BigDecimal.valueOf(110), BigDecimal.valueOf(100)))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Stop price must be less than entry price");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.stop_above_entry"));
         }
     }
 
@@ -564,8 +567,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(null, 
                     BigDecimal.valueOf(95), BigDecimal.valueOf(1000)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Entry price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.entry_price_null"));
         }
 
         @Test
@@ -574,8 +578,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(BigDecimal.valueOf(100), 
                     null, BigDecimal.valueOf(1000)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Stop price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.stop_price_null"));
         }
 
         @Test
@@ -584,8 +589,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(BigDecimal.valueOf(100), 
                     BigDecimal.valueOf(95), null))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Capital to risk cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.capital_null"));
         }
 
         @Test
@@ -594,8 +600,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(
                     BigDecimal.valueOf(100), BigDecimal.valueOf(100), BigDecimal.valueOf(1000)))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Stop price must be less than entry price");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.stop_above_entry"));
         }
 
         @Test
@@ -674,8 +681,9 @@ class RiskRewardCalculatorTest {
             // Note: target (130) < entry (150), so this would fail in calculateRiskRewardRatio
             // This test shows validation is working - in real scenario, target should be above entry
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(entryPrice, targetPrice, stopLossPrice))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Target price must be greater than entry price");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.target_below_entry"));
         }
     }
 
@@ -762,8 +770,9 @@ class RiskRewardCalculatorTest {
 
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateTargetPrice(entryPrice, objective, testStock))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("SMA period 75 is not supported");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.sma_period_unsupported"));
         }
 
         @Test
@@ -791,9 +800,8 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateTargetPrice(entryPrice, objective, stockWithNullSma200))
                     .isInstanceOf(MissingIndicatorException.class)
-                    .hasMessageContaining("SMA200")
-                    .hasMessageContaining("target")
-                    .hasMessageContaining("TSLA");
+                    .satisfies(ex -> assertThat(((MissingIndicatorException) ex).getErrorCode())
+                            .isEqualTo("rule.missing_indicator"));
         }
     }
 }

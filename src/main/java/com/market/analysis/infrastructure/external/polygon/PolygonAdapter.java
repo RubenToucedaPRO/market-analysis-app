@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
+import com.market.analysis.infrastructure.config.ApiConstants;
 import com.market.analysis.infrastructure.exception.PolygonException;
 
 import lombok.RequiredArgsConstructor;
@@ -100,18 +101,18 @@ public class PolygonAdapter implements HistoricalProviderPort {
         List<Candle> candles = new ArrayList<>();
         try {
             JsonNode root = objectMapper.readTree(jsonBody);
-            JsonNode resultsNode = root.path("results");
+            JsonNode resultsNode = root.path(ApiConstants.JSON_RESULTS);
 
             if (resultsNode.isArray()) {
                 for (JsonNode node : resultsNode) {
                     // 'c' = close price, 'v' = volume en la API de Polygon
-                    double closePrice = node.path("c").asDouble();
-                    long volume = node.path("v").asLong();
+                    double closePrice = node.path(ApiConstants.JSON_CLOSE).asDouble();
+                    long volume = node.path(ApiConstants.JSON_VOLUME).asLong();
                     prices.add(closePrice);
                     volumes.add(volume);
 
                     // F1.6: extract full OHLCV + timestamp into domain Candle
-                    long timestampMs = node.path("t").asLong();
+                    long timestampMs = node.path(ApiConstants.JSON_TIMESTAMP).asLong();
                     if (timestampMs > 0) {
                         candles.add(buildCandle(ticker, node, closePrice, volume, timestampMs));
                     }
@@ -134,9 +135,9 @@ public class PolygonAdapter implements HistoricalProviderPort {
         return Candle.builder()
                 .ticker(ticker)
                 .dateTime(Instant.ofEpochMilli(timestampMs))
-                .openPrice(BigDecimal.valueOf(node.path("o").asDouble()))
-                .highPrice(BigDecimal.valueOf(node.path("h").asDouble()))
-                .lowPrice(BigDecimal.valueOf(node.path("l").asDouble()))
+                .openPrice(BigDecimal.valueOf(node.path(ApiConstants.JSON_OPEN).asDouble()))
+                .highPrice(BigDecimal.valueOf(node.path(ApiConstants.JSON_HIGH).asDouble()))
+                .lowPrice(BigDecimal.valueOf(node.path(ApiConstants.JSON_LOW).asDouble()))
                 .closePrice(BigDecimal.valueOf(closePrice))
                 .volume(volume)
                 .build();
@@ -146,14 +147,14 @@ public class PolygonAdapter implements HistoricalProviderPort {
         LocalDate toDate = LocalDate.now();
         // Subtract 350 days to ensure we get enough trading days for SMA200
         LocalDate fromDate = toDate.minusDays(350);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ApiConstants.POLYGON_DATE_PATTERN);
 
         return UriComponentsBuilder.fromUriString(baseUrl)
-                .path("v2/aggs/ticker/{ticker}/range/1/day/{from}/{to}")
-                .queryParam("adjusted", "true")
-                .queryParam("sort", "desc")
-                .queryParam("limit", size)
-                .queryParam("apiKey", apiToken)
+                .path(ApiConstants.POLYGON_URI_AGGREGATES)
+                .queryParam(ApiConstants.POLYGON_QUERY_ADJUSTED, "true")
+                .queryParam(ApiConstants.POLYGON_QUERY_SORT, ApiConstants.POLYGON_SORT_DESC)
+                .queryParam(ApiConstants.POLYGON_QUERY_LIMIT, size)
+                .queryParam(ApiConstants.POLYGON_QUERY_API_KEY, apiToken)
                 .buildAndExpand(ticker.toUpperCase(), fromDate.format(formatter), toDate.format(formatter))
                 .toUri();
     }

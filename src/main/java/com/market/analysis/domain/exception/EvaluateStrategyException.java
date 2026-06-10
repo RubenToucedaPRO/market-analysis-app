@@ -1,30 +1,39 @@
 package com.market.analysis.domain.exception;
 
 /**
- * Exception thrown when evaluation of a strategy fails or cannot be completed.
- * This is a domain-level exception that represents a failure during strategy
- * evaluation.
+ * Domain exception thrown when strategy evaluation fails or cannot be completed.
+ *
+ * <p>The domain throws this exception with an {@code errorCode} (unique key)
+ * and optional parameters. The {@code GlobalExceptionHandler} in Presentation
+ * resolves the final message using {@code MessageSource}.</p>
+ *
+ * <p>Usage example:</p>
+ * <pre>
+ *   throw new EvaluateStrategyException("strategy.evaluation_failed");
+ * </pre>
  */
 public class EvaluateStrategyException extends RuntimeException {
 
-    /**
-     * Constructs a new EvaluateStrategyException with the specified detail
-     * message.
-     * 
-     * @param message the detail message describing the strategy evaluation error
-     */
-    public EvaluateStrategyException(String message) {
-        super(message);
+    private final String errorCode;
+    private final transient Object[] params;
+
+    public EvaluateStrategyException(String errorCode) {
+        super(errorCode);
+        this.errorCode = errorCode;
+        this.params = new Object[0];
     }
 
-    /**
-     * Constructs a new EvaluateStrategyException with the specified detail
-     * message and cause.
-     * 
-     * @param message the detail message describing the strategy evaluation error
-     * @param cause   the underlying cause of the evaluation failure
-     */
-    public EvaluateStrategyException(String message, Throwable cause) {
-        super(message, cause);
+    public EvaluateStrategyException(String errorCode, Object... params) {
+        super(errorCode);
+        this.errorCode = errorCode;
+        this.params = params;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public Object[] getParams() {
+        return params;
     }
 }

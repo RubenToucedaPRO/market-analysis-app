@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
+import com.market.analysis.infrastructure.config.ApiConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,12 +130,12 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
 
     private String buildUrl(String filters, int rowStart) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl)
-                .queryParam("v", "111")
-                .queryParam("r", rowStart);
+                .queryParam(ApiConstants.FINVIZ_QUERY_VIEW, ApiConstants.FINVIZ_VIEW_VALUE)
+                .queryParam(ApiConstants.FINVIZ_QUERY_ROW, rowStart);
 
         String effectiveFilters = buildEffectiveFilters(filters);
         if (!effectiveFilters.isBlank()) {
-            builder.queryParam("f", effectiveFilters);
+            builder.queryParam(ApiConstants.FINVIZ_QUERY_FILTERS, effectiveFilters);
         }
         return builder.build().encode().toUriString();
     }
@@ -147,7 +148,7 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
     }
 
     private List<String> extractTickers(Document page) {
-        return page.select("tbody tr")
+        return page.select(ApiConstants.FINVIZ_SELECTOR_TABLE_ROWS)
                 .stream()
                 .map(this::extractTickerFromRow)
                 .filter(symbol -> symbol != null)
@@ -161,7 +162,7 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
         if (columns.size() < 2) {
             return null;
         }
-        Element tickerLink = columns.get(1).selectFirst("a.tab-link, a[href*=ashx?t=]");
+        Element tickerLink = columns.get(1).selectFirst(ApiConstants.FINVIZ_SELECTOR_TICKER_LINK);
         if (tickerLink == null) {
             return null;
         }
@@ -169,7 +170,7 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
     }
 
     private boolean hasNextPage(Document page, int nextStart) {
-        return !page.select("a[href*=r=" + nextStart + "]").isEmpty();
+        return !page.select(ApiConstants.FINVIZ_SELECTOR_NEXT_PAGE + nextStart + "]").isEmpty();
     }
 
     @FunctionalInterface

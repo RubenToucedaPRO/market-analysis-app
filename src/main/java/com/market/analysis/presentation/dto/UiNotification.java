@@ -12,6 +12,10 @@ package com.market.analysis.presentation.dto;
  */
 public record UiNotification(String text, String type) {
 
+    public static final String TYPE_SUCCESS = "success";
+    public static final String TYPE_DANGER = "danger";
+    public static final String TYPE_WARNING = "warning";
+
     /**
      * Creates a success notification.
      *
@@ -19,7 +23,7 @@ public record UiNotification(String text, String type) {
      * @return a {@code UiNotification} with type {@code "success"}
      */
     public static UiNotification success(String message) {
-        return new UiNotification(message, "success");
+        return new UiNotification(message, TYPE_SUCCESS);
     }
 
     /**
@@ -29,7 +33,7 @@ public record UiNotification(String text, String type) {
      * @return a {@code UiNotification} with type {@code "danger"}
      */
     public static UiNotification error(String message) {
-        return new UiNotification(message, "danger");
+        return new UiNotification(message, TYPE_DANGER);
     }
 
     /**
@@ -39,6 +43,6 @@ public record UiNotification(String text, String type) {
      * @return a {@code UiNotification} with type {@code "warning"}
      */
     public static UiNotification warning(String message) {
-        return new UiNotification(message, "warning");
+        return new UiNotification(message, TYPE_WARNING);
     }
 }

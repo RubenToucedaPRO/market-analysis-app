@@ -1,27 +1,40 @@
 package com.market.analysis.domain.exception;
 
 /**
- * Exception thrown when an entity cannot be deleted because it has associated dependencies.
- * This is a domain-level exception representing a business rule violation related to integrity.
+ * Domain exception thrown when an entity cannot be deleted because it has
+ * associated dependencies (referential integrity violation).
+ *
+ * <p>The domain throws this exception with an {@code errorCode} (unique key)
+ * and optional parameters. The {@code GlobalExceptionHandler} in Presentation
+ * resolves the final message using {@code MessageSource}.</p>
+ *
+ * <p>Usage example:</p>
+ * <pre>
+ *   throw new EntityInUseException("entity.in_use", ruleCode);
+ * </pre>
  */
 public class EntityInUseException extends RuntimeException {
 
-    /**
-     * Constructs a new EntityInUseException with the specified detail message.
-     *
-     * @param message the detail message
-     */
-    public EntityInUseException(String message) {
-        super(message);
+    private final String errorCode;
+    private final transient Object[] params;
+
+    public EntityInUseException(String errorCode) {
+        super(errorCode);
+        this.errorCode = errorCode;
+        this.params = new Object[0];
     }
 
-    /**
-     * Constructs a new EntityInUseException with the specified detail message and cause.
-     *
-     * @param message the detail message
-     * @param cause   the cause
-     */
-    public EntityInUseException(String message, Throwable cause) {
-        super(message, cause);
+    public EntityInUseException(String errorCode, Object... params) {
+        super(errorCode);
+        this.errorCode = errorCode;
+        this.params = params;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public Object[] getParams() {
+        return params;
     }
 }

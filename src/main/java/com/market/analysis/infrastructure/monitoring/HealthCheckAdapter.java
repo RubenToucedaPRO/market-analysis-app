@@ -28,6 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HealthCheckAdapter implements HealthCheckPort {
 
+    private static final int CONNECTION_VALIDATION_TIMEOUT_SECONDS = 5;
+
     private final DataSource dataSource;
 
     /**
@@ -40,7 +42,7 @@ public class HealthCheckAdapter implements HealthCheckPort {
     @Override
     public boolean isDatabaseHealthy() {
         try (Connection connection = dataSource.getConnection()) {
-            return connection.isValid(5);
+            return connection.isValid(CONNECTION_VALIDATION_TIMEOUT_SECONDS);
         } catch (Exception e) {
             throw new PersistenceException("Database health check failed", e);
         }
@@ -58,7 +60,7 @@ public class HealthCheckAdapter implements HealthCheckPort {
         long startTime = System.currentTimeMillis();
 
         try (Connection connection = dataSource.getConnection()) {
-            if (connection.isValid(5)) {
+            if (connection.isValid(CONNECTION_VALIDATION_TIMEOUT_SECONDS)) {
                 return System.currentTimeMillis() - startTime;
             }
             throw new PersistenceException("Database connection validation failed");

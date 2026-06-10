@@ -33,8 +33,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProhibitedTickerController {
 
-    private static final String REDIRECT_PROHIBITED_TICKERS = "redirect:/prohibited-tickers";
-
     private final ManageProhibitedTickerUseCase manageProhibitedTickerUseCase;
     private final ManageProhibitedKeywordUseCase manageProhibitedKeywordUseCase;
     private final MessageSource messageSource;
@@ -44,18 +42,21 @@ public class ProhibitedTickerController {
         List<ProhibitedTickerDTO> prohibitedTickers = manageProhibitedTickerUseCase.getAllProhibitedTickers();
         List<ProhibitedKeywordDTO> prohibitedKeywords = manageProhibitedKeywordUseCase.getAllProhibitedKeywords();
 
-        model.addAttribute("prohibitedTickers", prohibitedTickers);
-        model.addAttribute("prohibitedKeywords", prohibitedKeywords);
-        return "prohibited-tickers/list";
+        model.addAttribute(WebConstants.ATTR_PROHIBITED_TICKERS, prohibitedTickers);
+        model.addAttribute(WebConstants.ATTR_PROHIBITED_KEYWORDS, prohibitedKeywords);
+        return WebConstants.TEMPLATE_PROHIBITED_TICKERS_LIST;
     }
 
     @PostMapping("/delete")
     public String deleteProhibitedTicker(@RequestParam("ticker") String ticker,
             RedirectAttributes redirectAttributes) {
+        Locale locale = LocaleContextHolder.getLocale();
         manageProhibitedTickerUseCase.removeProhibitedTicker(ticker);
+        String message = messageSource.getMessage("prohibited.tickers.removed",
+                new Object[] { ticker }, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Ticker '" + ticker + "' desbloqueado y eliminado correctamente."));
-        return REDIRECT_PROHIBITED_TICKERS;
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_PROHIBITED_TICKERS;
     }
 
     @PostMapping("/keywords")
@@ -65,15 +66,15 @@ public class ProhibitedTickerController {
         try {
             manageProhibitedKeywordUseCase
                     .addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword(displayKeyword).build());
+            String message = messageSource.getMessage("prohibited.tickers.keyword.added",
+                    new Object[] { displayKeyword }, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success(
-                            messageSource.getMessage("prohibited.tickers.keyword.added", new Object[] { displayKeyword },
-                                    locale)));
+                    UiNotification.success(message));
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.error(ex.getMessage()));
         }
-        return REDIRECT_PROHIBITED_TICKERS;
+        return WebConstants.REDIRECT_PROHIBITED_TICKERS;
     }
 
     @PostMapping("/keywords/delete")
@@ -82,11 +83,11 @@ public class ProhibitedTickerController {
         Locale locale = LocaleContextHolder.getLocale();
         String displayKeyword = keyword == null ? "" : keyword.trim();
         manageProhibitedKeywordUseCase.removeProhibitedKeyword(displayKeyword);
+        String message = messageSource.getMessage("prohibited.tickers.keyword.removed",
+                new Object[] { displayKeyword }, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success(
-                        messageSource.getMessage("prohibited.tickers.keyword.removed", new Object[] { displayKeyword },
-                                locale)));
-        return REDIRECT_PROHIBITED_TICKERS;
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_PROHIBITED_TICKERS;
     }
 
 }

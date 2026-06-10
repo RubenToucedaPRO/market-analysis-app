@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.market.analysis.application.dto.ProhibitedKeywordDTO;
 import com.market.analysis.application.mapper.ProhibitedKeywordDTOMapper;
 import com.market.analysis.application.usecase.ManageProhibitedKeywordService;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
 
@@ -94,20 +95,20 @@ class ManageProhibitedKeywordServiceTest {
         ProhibitedKeywordDTO inputDto = ProhibitedKeywordDTO.builder().keyword("etf").build();
         when(prohibitedKeywordRepository.existsByKeyword("ETF")).thenReturn(true);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageProhibitedKeywordService.addProhibitedKeyword(inputDto));
 
-        assertEquals("Prohibited keyword already exists: ETF", exception.getMessage());
+        assertEquals("validation.keyword_exists", exception.getMessage());
         verify(prohibitedKeywordRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("Should reject blank keyword")
     void shouldRejectBlankKeyword() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageProhibitedKeywordService.isKeywordProhibited("   "));
 
-        assertEquals("Keyword cannot be null or blank", exception.getMessage());
+        assertEquals("validation.keyword_blank", exception.getMessage());
     }
 
     @Test
@@ -115,10 +116,10 @@ class ManageProhibitedKeywordServiceTest {
     void shouldRejectKeywordLongerThanMaxLength() {
         String longKeyword = "A".repeat(101);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageProhibitedKeywordService.removeProhibitedKeyword(longKeyword));
 
-        assertEquals("Keyword length must be <= 100", exception.getMessage());
+        assertEquals("validation.keyword_too_long", exception.getMessage());
     }
 
     @Test

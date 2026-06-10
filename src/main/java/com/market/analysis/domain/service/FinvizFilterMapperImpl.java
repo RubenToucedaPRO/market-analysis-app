@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
+import com.market.analysis.domain.model.IndicatorCode;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
 
@@ -17,8 +18,12 @@ import com.market.analysis.domain.model.Strategy;
  */
 public class FinvizFilterMapperImpl implements FinvizFilterMapper {
 
-    private static final Set<String> THOUSAND_SCALED_SUBJECTS = Set.of("VOLUME", "AVG_VOLUME");
-    private static final Set<String> STATIC_VALUE_TARGETS = Set.of("CONSTANT", "VALUE");
+    private static final String NULL_RULE_LABEL = "NULL_RULE";
+
+    private static final Set<String> THOUSAND_SCALED_SUBJECTS = Set.of(
+            IndicatorCode.VOLUME.getCode(), IndicatorCode.AVG_VOLUME.getCode());
+    private static final Set<String> STATIC_VALUE_TARGETS = Set.of(
+            IndicatorCode.CONSTANT.getCode(), IndicatorCode.VALUE.getCode());
 
     private static final Map<String, String> OPERATOR_ALIASES = Map.of(
             ">", ">",
@@ -27,30 +32,30 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
             "LESS_THAN", "<");
 
     private static final Map<RulePattern, String> MAPPINGS = Map.ofEntries(
-            Map.entry(RulePattern.of("PRICE", null, ">", "SMA", 20.0), "ta_sma20_pa"),
-            Map.entry(RulePattern.of("PRICE", null, "<", "SMA", 20.0), "ta_sma20_pb"),
-            Map.entry(RulePattern.of("PRICE", null, ">", "SMA", 50.0), "ta_sma50_pa"),
-            Map.entry(RulePattern.of("PRICE", null, "<", "SMA", 50.0), "ta_sma50_pb"),
-            Map.entry(RulePattern.of("PRICE", null, ">", "SMA", 200.0), "ta_sma200_pa"),
-            Map.entry(RulePattern.of("PRICE", null, "<", "SMA", 200.0), "ta_sma200_pb"),
-            Map.entry(RulePattern.of("PRICE", null, ">", "CONSTANT", null, true), "sh_price_o"),
-            Map.entry(RulePattern.of("PRICE", null, ">", "VALUE", null, true), "sh_price_o"),
-            Map.entry(RulePattern.of("PRICE", null, "<", "CONSTANT", null, true), "sh_price_u"),
-            Map.entry(RulePattern.of("PRICE", null, "<", "VALUE", null, true), "sh_price_u"),
-            Map.entry(RulePattern.of("SMA", 20.0, ">", "SMA", 50.0), "ta_sma20_sa50"),
-            Map.entry(RulePattern.of("SMA", 20.0, "<", "SMA", 50.0), "ta_sma20_sb50"),
-            Map.entry(RulePattern.of("SMA", 50.0, ">", "SMA", 200.0), "ta_sma50_sa200"),
-            Map.entry(RulePattern.of("SMA", 50.0, "<", "SMA", 200.0), "ta_sma50_sb200"),
-            Map.entry(RulePattern.of("VOLUME", null, ">", "AVG_VOLUME", null), "sh_relvol_o1"),
-            Map.entry(RulePattern.of("VOLUME", null, "<", "AVG_VOLUME", null), "sh_relvol_u1"),
-            Map.entry(RulePattern.of("VOLUME", null, ">", "CONSTANT", null, true), "sh_curvol_o"),
-            Map.entry(RulePattern.of("VOLUME", null, ">", "VALUE", null, true), "sh_curvol_o"),
-            Map.entry(RulePattern.of("VOLUME", null, "<", "CONSTANT", null, true), "sh_curvol_u"),
-            Map.entry(RulePattern.of("VOLUME", null, "<", "VALUE", null, true), "sh_curvol_u"),
-            Map.entry(RulePattern.of("AVG_VOLUME", null, ">", "CONSTANT", null, true), "sh_avgvol_o"),
-            Map.entry(RulePattern.of("AVG_VOLUME", null, ">", "VALUE", null, true), "sh_avgvol_o"),
-            Map.entry(RulePattern.of("AVG_VOLUME", null, "<", "CONSTANT", null, true), "sh_avgvol_u"),
-            Map.entry(RulePattern.of("AVG_VOLUME", null, "<", "VALUE", null, true), "sh_avgvol_u"));
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, ">", IndicatorCode.SMA.getCode(), 20.0), "ta_sma20_pa"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, "<", IndicatorCode.SMA.getCode(), 20.0), "ta_sma20_pb"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, ">", IndicatorCode.SMA.getCode(), 50.0), "ta_sma50_pa"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, "<", IndicatorCode.SMA.getCode(), 50.0), "ta_sma50_pb"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, ">", IndicatorCode.SMA.getCode(), 200.0), "ta_sma200_pa"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, "<", IndicatorCode.SMA.getCode(), 200.0), "ta_sma200_pb"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, ">", IndicatorCode.CONSTANT.getCode(), null, true), "sh_price_o"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, ">", IndicatorCode.VALUE.getCode(), null, true), "sh_price_o"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, "<", IndicatorCode.CONSTANT.getCode(), null, true), "sh_price_u"),
+            Map.entry(RulePattern.of(IndicatorCode.PRICE.getCode(), null, "<", IndicatorCode.VALUE.getCode(), null, true), "sh_price_u"),
+            Map.entry(RulePattern.of(IndicatorCode.SMA.getCode(), 20.0, ">", IndicatorCode.SMA.getCode(), 50.0), "ta_sma20_sa50"),
+            Map.entry(RulePattern.of(IndicatorCode.SMA.getCode(), 20.0, "<", IndicatorCode.SMA.getCode(), 50.0), "ta_sma20_sb50"),
+            Map.entry(RulePattern.of(IndicatorCode.SMA.getCode(), 50.0, ">", IndicatorCode.SMA.getCode(), 200.0), "ta_sma50_sa200"),
+            Map.entry(RulePattern.of(IndicatorCode.SMA.getCode(), 50.0, "<", IndicatorCode.SMA.getCode(), 200.0), "ta_sma50_sb200"),
+            Map.entry(RulePattern.of(IndicatorCode.VOLUME.getCode(), null, ">", IndicatorCode.AVG_VOLUME.getCode(), null), "sh_relvol_o1"),
+            Map.entry(RulePattern.of(IndicatorCode.VOLUME.getCode(), null, "<", IndicatorCode.AVG_VOLUME.getCode(), null), "sh_relvol_u1"),
+            Map.entry(RulePattern.of(IndicatorCode.VOLUME.getCode(), null, ">", IndicatorCode.CONSTANT.getCode(), null, true), "sh_curvol_o"),
+            Map.entry(RulePattern.of(IndicatorCode.VOLUME.getCode(), null, ">", IndicatorCode.VALUE.getCode(), null, true), "sh_curvol_o"),
+            Map.entry(RulePattern.of(IndicatorCode.VOLUME.getCode(), null, "<", IndicatorCode.CONSTANT.getCode(), null, true), "sh_curvol_u"),
+            Map.entry(RulePattern.of(IndicatorCode.VOLUME.getCode(), null, "<", IndicatorCode.VALUE.getCode(), null, true), "sh_curvol_u"),
+            Map.entry(RulePattern.of(IndicatorCode.AVG_VOLUME.getCode(), null, ">", IndicatorCode.CONSTANT.getCode(), null, true), "sh_avgvol_o"),
+            Map.entry(RulePattern.of(IndicatorCode.AVG_VOLUME.getCode(), null, ">", IndicatorCode.VALUE.getCode(), null, true), "sh_avgvol_o"),
+            Map.entry(RulePattern.of(IndicatorCode.AVG_VOLUME.getCode(), null, "<", IndicatorCode.CONSTANT.getCode(), null, true), "sh_avgvol_u"),
+            Map.entry(RulePattern.of(IndicatorCode.AVG_VOLUME.getCode(), null, "<", IndicatorCode.VALUE.getCode(), null, true), "sh_avgvol_u"));
 
     @Override
     public FinvizFilterMappingResult map(Strategy strategy) {
@@ -75,8 +80,8 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
 
         for (Rule rule : rules) {
             if (rule == null) {
-                unmappableRules.add("NULL_RULE");
-                warnings.add("Rule 'NULL_RULE' cannot be mapped to Finviz filters.");
+                unmappableRules.add(NULL_RULE_LABEL);
+                warnings.add("Rule '" + NULL_RULE_LABEL + "' cannot be mapped to Finviz filters.");
                 continue;
             }
 
@@ -162,7 +167,7 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
 
     private String formatIndicator(String code, Double param) {
         if (code == null) {
-            return "UNKNOWN";
+            return IndicatorCode.UNKNOWN.getCode();
         }
         if (param == null) {
             return code.toUpperCase(Locale.ROOT).trim();
