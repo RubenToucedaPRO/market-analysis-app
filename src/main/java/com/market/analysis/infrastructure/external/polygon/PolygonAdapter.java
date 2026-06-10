@@ -45,30 +45,29 @@ public class PolygonAdapter implements HistoricalProviderPort {
 
     private static final long RATE_LIMIT_WINDOW = 62000; // 1 minute + margin
     private static final int MAX_CALLS_PER_MINUTE = 5;
-    private static final int SIZE_HISTORICAL = 300;
 
     /**
      * Deque to track call timestamps and enforce rate limiting in memory.
      */
     private final Deque<Instant> apiCallTimestamps = new ConcurrentLinkedDeque<>();
 
+    private static final int SIZE_HISTORICAL = 300;
+
     @Override
     public HistoricalData fetchHistoricalData(String ticker) {
         log.debug("Requesting historical data from Polygon for: {}", ticker);
 
-        // 1. Flow control (Adapter technical responsibility)
         waitForRateLimit();
 
-        // 2. URI construction
         URI uri = buildUri(ticker, SIZE_HISTORICAL);
 
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
-
             // Record successful call for rate limiting
             recordApiCall();
-
-            // 3. JSON response mapping (Infrastructure) to Domain model.
+            
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            
+            //  JSON response mapping (Infrastructure) to Domain model.
             //    Candle persistence is orchestrated by the Application Use Case.
             return parseApiResponse(ticker, response.getBody());
 
@@ -159,26 +158,33 @@ public class PolygonAdapter implements HistoricalProviderPort {
                 .toUri();
     }
 
-    private void waitForRateLimit() {
+    private synchronized void waitForRateLimit() {
         removeExpiredTimestamps();
-        if (apiCallTimestamps.size() >= MAX_CALLS_PER_MINUTE) {
-            Instant oldestCall = apiCallTimestamps.peekFirst();
-            if (oldestCall != null) {
-                long waitTime = oldestCall.toEpochMilli()
-                        - (Instant.now().minusMillis(RATE_LIMIT_WINDOW).toEpochMilli()) + 100;
-                if (waitTime > 0) {
-                    try {
-                        log.info("Rate limit reached. Waiting {}ms", waitTime);
-                        Thread.sleep(waitTime);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    removeExpiredTimestamps();
+        
+        // We fetch the oldest call snapshot to evaluate the loop condition cleanly
+        Instant oldestCall = apiCallTimestamps.peekFirst();
+        
+        while (apiCallTimestamps.size() >= MAX_CALLS_PER_MINUTE && oldestCall != null) {
+            long elapsed = Instant.now().toEpochMilli() - oldestCall.toEpochMilli();
+            long waitTime = RATE_LIMIT_WINDOW - elapsed;
+            
+            // If the window time has already passed, we can break naturally by clearing the condition
+            if (waitTime > 0) {
+                try {
+                    log.info("Polygon rate limit window saturated ({} calls). Waiting {}ms for safety...", apiCallTimestamps.size(), waitTime);
+                    this.wait(waitTime + 200);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return; // Standard pattern for handling InterruptedException
                 }
             }
+            
+            // Refresh state for the next loop iteration check
+            removeExpiredTimestamps();
+            oldestCall = apiCallTimestamps.peekFirst();
         }
     }
-
+    
     private void recordApiCall() {
         apiCallTimestamps.addLast(Instant.now());
     }

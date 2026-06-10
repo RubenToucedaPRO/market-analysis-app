@@ -32,4 +32,10 @@ public interface CandleHistoryRepository {
      * @return ordered list of candles; empty list if none found
      */
     List<Candle> findCandlesByTicker(String ticker);
+
+    /**
+     * Deletes candles that are not associated with any ticker.
+     * This is a cleanup operation to prevent orphaned records.
+     */
+    void purgeOrphanCandles();
 }

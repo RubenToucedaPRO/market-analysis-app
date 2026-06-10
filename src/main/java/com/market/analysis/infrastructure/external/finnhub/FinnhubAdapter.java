@@ -14,6 +14,7 @@ import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.external.finnhub.dto.CompanyData;
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +34,7 @@ public class FinnhubAdapter implements StockProviderPort {
     private String apiToken;
 
     @Override
+    @RateLimiter(name = "finnhubClient")
     public Stock getQuote(String ticker) {
         log.debug("Fetching quote for ticker: {}", ticker);
 
@@ -69,6 +71,7 @@ public class FinnhubAdapter implements StockProviderPort {
     }
 
     @Override
+    @RateLimiter(name = "finnhubClient")
     public CompanyProfile getCompanyProfile(String ticker) {
 
         try {
@@ -102,11 +105,6 @@ public class FinnhubAdapter implements StockProviderPort {
             log.warn("Error fetching profile for ticker {}: {}", ticker, e.getClass().getSimpleName());
             return null;
         }
-    }
-
-    @Override
-    public boolean hasUpComingEarnings(String ticker) {
-        return false;
     }
 
 }

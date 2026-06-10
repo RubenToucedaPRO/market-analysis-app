@@ -1,7 +1,7 @@
 package com.market.analysis.unit.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,8 +37,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("SMA")
                 .targetParam(50.0)
-                
-                .description("20-day SMA crossover")
                 .build()
         );
 
@@ -71,8 +69,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                
-                .description("Description")
                 .build());
 
         Strategy strategy = Strategy.builder()
@@ -95,8 +91,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                    
-                    .description("Description")
                     .build());
         });
     }
@@ -202,8 +196,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                
-                .description("Description")
                 .build()
         );
 
@@ -241,7 +233,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Description")
                 .build()
         );
 
@@ -272,7 +263,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Description")
                 .build()
         );
 
@@ -310,8 +300,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                
-                .description("Description")
                 .build()
         );
 
@@ -347,8 +335,6 @@ class StrategyTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                
-                .description("Description")
                 .build()
         );
 
@@ -367,7 +353,7 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        assertFalse(strategy1.equals(strategy2));
+        assertNotEquals(strategy1,strategy2);
     }
 
     @Test

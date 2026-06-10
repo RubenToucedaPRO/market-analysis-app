@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.domain.exception.EntityInUseException;
+import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.exception.RuleDefinitionNotFoundException;
+import com.market.analysis.domain.exception.RuleNotEvaluableException;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.market.analysis.infrastructure.exception.FinnhubException;
@@ -77,6 +79,30 @@ public class GlobalExceptionHandler {
         return redirectWithError(ex.getMessage(), ra, req);
     }
 
+    /**
+     * Handles MissingIndicatorException – domain exception for missing technical indicators.
+     */
+    @ExceptionHandler(MissingIndicatorException.class)
+    public String handleMissingIndicatorException(
+            MissingIndicatorException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.warn("Missing technical indicator: {}", ex.getMessage());
+        return redirectWithError("Faltan datos de indicadores técnicos para realizar el análisis.", ra, req);
+    }
+
+    /**
+     * Handles RuleNotEvaluableException – domain exception for invalid rules.
+     */
+    @ExceptionHandler(RuleNotEvaluableException.class)
+    public String handleRuleNotEvaluableException(
+            RuleNotEvaluableException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.warn("Rule not evaluable: {}", ex.getMessage());
+        return redirectWithError("La regla configurada no puede ser evaluada. Verifica la configuración.", ra, req);
+    }
+
     // -------------------------------------------------------------------------
     // Integrity errors – redirect with fixed user-friendly message
     // -------------------------------------------------------------------------
@@ -96,6 +122,30 @@ public class GlobalExceptionHandler {
     // -------------------------------------------------------------------------
     // External-service errors – redirect with fixed user-friendly message
     // -------------------------------------------------------------------------
+
+    /**
+     * Handles IllegalArgumentException – thrown when invalid parameters are provided.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public String handleIllegalArgumentException(
+            IllegalArgumentException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.error("Invalid argument provided: {}", ex.getMessage(), ex);
+        return redirectWithError("Se proporcionaron parámetros inválidos. Por favor, verifica e intenta de nuevo.", ra, req);
+    }
+
+    /**
+     * Handles IllegalStateException – thrown when entity state is inconsistent.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public String handleIllegalStateException(
+            IllegalStateException ex,
+            RedirectAttributes ra,
+            HttpServletRequest req) {
+        log.error("Illegal state: {}", ex.getMessage(), ex);
+        return redirectWithError("Error de estado interno. Por favor, contacta con soporte.", ra, req);
+    }
 
     /**
      * Handles FinnhubException – infrastructure exception for Finnhub API errors.
