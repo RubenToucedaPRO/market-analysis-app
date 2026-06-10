@@ -5,6 +5,31 @@ Identificar todos los strings hardcodeados en todas las capas del programa que d
 
 ---
 
+## Estado de Implementación
+
+| Estado | Descripción |
+|--------|-------------|
+| 🔴 Pendiente | No implementado |
+| 🟡 En progreso | Parcialmente implementado |
+| 🟢 Completado | Implementado y verificado |
+
+| Categoría | Estado | Notas |
+|-----------|--------|-------|
+| Enums de Dominio (IndicatorCode, HealthStatusCode, EvaluationStatus) | 🔴 Pendiente | Ningún enum creado aún |
+| DomainValidationException | 🔴 Pendiente | Excepción de negocio no creada |
+| StrategyNotFoundException | 🔴 Pendiente | Excepción de negocio no creada |
+| WebConstants.java (expansión) | 🔴 Pendiente | Solo contiene `UI_NOTIFICATION_KEY` |
+| messages.properties (i18n) | 🔴 Pendiente | Solo tiene 7 líneas de keywords prohibidas |
+| ApiConstants.java (Infrastructure) | 🔴 Pendiente | Fichero no creado |
+| Refactorización de Controllers | 🔴 Pendiente | Ningún controller refactorizado |
+| Refactorización de Domain Services | 🔴 Pendiente | Ningún servicio refactorizado |
+| Refactorización de Infrastructure Adapters | 🔴 Pendiente | Ningún adaptador refactorizado |
+| GlobalExceptionHandler (handlers para DomainValidationException) | 🔴 Pendiente | Solo maneja excepciones existentes |
+
+**Progreso general: ~0% - Solo existe el documento de planificación**
+
+---
+
 ## Ficheros de Constantes Recomendados
 
 | Fichero | Propósito | Capa |
@@ -1116,7 +1141,29 @@ Crear e inicializar el archivo `src/main/resources/messages.properties` con toda
 
 ---
 
-## 8. Notas Adicionales
+## 8. Cambios Recientes en el Codebase
+
+### Commits relevantes desde la creación del plan:
+
+| Commit | Descripción | Impacto en el Plan |
+|--------|-------------|-------------------|
+| `7cf0cc5` | Eliminada constante `SPANISH_LOCALE` no usada de `PromptBuilder` | ✅ Sin impacto - constante ya no existe |
+| `82c04f8` | Ajustado `DEFAULT_MAX_CANDIDATES` en `SuggestTickersService` | ✅ Sin impacto - constante local ya extraída |
+| `a1c2604` | Refactorizada estructura HTML en `list.html` | ✅ Sin impacto - solo templates |
+| `90f65df` | Actualizadas properties de logging y SQL | ✅ Sin impacto - configuración |
+
+### Archivos modified desde la creación del plan:
+
+- `PromptBuilder.java`: Eliminada constante `SPANISH_LOCALE` no usada
+- `SuggestTickersService.java`: Ajustado valor por defecto de `DEFAULT_MAX_CANDIDATES`
+- `config/application.properties`: Cambios en configuración de logging
+- `README.md`: Actualizaciones de documentación
+
+**Nota:** Ninguno de estos cambios afecta la implementación del plan de extracción de constantes. Todos los archivos target del plan siguen en su estado original.
+
+---
+
+## 9. Notas Adicionales
 
 - **Arquitectura Hexónica:** El dominio NUNCA debe importar `MessageSource` ni `messages.properties`. Los errores se comunican via `DomainValidationException` con claves tipadas.
 - **Enum vs Constants:** Se priorizan Enums para `IndicatorCode`, `HealthStatusCode` y `EvaluationStatus` por su tipo fuerte, capacidad de iteración y seguridad en compilación.
@@ -1124,3 +1171,4 @@ Crear e inicializar el archivo `src/main/resources/messages.properties` con toda
 - **Spring Headers:** Se reutilizan constantes nativas del framework (`HttpHeaders.REFERER`) en lugar de crear duplicados.
 - **Tests:** Se ejecutan tests de integración tras cada cambio mayor para detectar regresiones tempranas.
 - **Commit incremental:** Cada paso se commitea por separado para facilitar rollback si es necesario.
+- **Prioridad de implementación:** Seguir estrictamente el orden del Paso 0 al Paso 6 para evitar conflictos.
