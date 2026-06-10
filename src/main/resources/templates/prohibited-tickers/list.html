@@ -76,10 +76,16 @@
                   </thead>
                   <tbody>
                     <tr th:each="prohibitedTicker : ${prohibitedTickers}">
-                      <td class="fw-semibold" th:text="${prohibitedTicker.ticker}">
+                      <td
+                        class="fw-semibold"
+                        th:text="${prohibitedTicker.ticker}"
+                      >
                         XYZ
                       </td>
-                      <td class="text-muted" th:text="${prohibitedTicker.reason}">
+                      <td
+                        class="text-muted"
+                        th:text="${prohibitedTicker.reason}"
+                      >
                         Bloqueo manual
                       </td>
                       <td class="text-end">
@@ -122,10 +128,14 @@
 
         <aside class="col-lg-4">
           <div class="card">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div
+              class="card-header bg-light d-flex justify-content-between align-items-center"
+            >
               <h3 class="h6 mb-0">
                 <i class="bi bi-filter-circle me-1 text-primary"></i>
-                <span th:text="#{prohibited.tickers.keywords.title}">Keywords prohibidas</span>
+                <span th:text="#{prohibited.tickers.keywords.title}"
+                  >Keywords prohibidas</span
+                >
               </h3>
               <button
                 class="btn btn-sm btn-outline-secondary d-lg-none"
@@ -140,14 +150,22 @@
             </div>
             <div class="collapse show d-lg-block" id="keywordsSidebar">
               <div class="card-body">
-                <form th:action="@{/prohibited-tickers/keywords}" method="post" class="mb-3">
+                <form
+                  th:action="@{/prohibited-tickers/keywords}"
+                  method="post"
+                  class="mb-3"
+                >
                   <input
                     th:if="${_csrf != null}"
                     type="hidden"
                     th:name="${_csrf.parameterName}"
                     th:value="${_csrf.token}"
                   />
-                  <label for="keyword" class="form-label" th:text="#{prohibited.tickers.keywords.new}">
+                  <label
+                    for="keyword"
+                    class="form-label"
+                    th:text="#{prohibited.tickers.keywords.new}"
+                  >
                     Nueva keyword
                   </label>
                   <div class="input-group">
@@ -165,28 +183,52 @@
                   </div>
                 </form>
 
-                <div th:if="${prohibitedKeywords.isEmpty()}" class="text-muted small">
-                  <span th:text="#{prohibited.tickers.keywords.empty}">No hay keywords configuradas.</span>
+                <div
+                  th:if="${prohibitedKeywords.isEmpty()}"
+                  class="text-muted small"
+                >
+                  <span th:text="#{prohibited.tickers.keywords.empty}"
+                    >No hay keywords configuradas.</span
+                  >
                 </div>
 
-                <ul th:unless="${prohibitedKeywords.isEmpty()}" class="list-group list-group-flush">
+                <ul
+                  th:unless="${prohibitedKeywords.isEmpty()}"
+                  class="list-group list-group-flush"
+                >
                   <li
                     th:each="prohibitedKeyword : ${prohibitedKeywords}"
                     class="list-group-item d-flex justify-content-between align-items-center px-0"
                   >
-                    <span class="fw-semibold" th:text="${prohibitedKeyword.keyword}">ETF</span>
-                    <form th:action="@{/prohibited-tickers/keywords/delete}" method="post" class="ms-2">
+                    <span
+                      class="fw-semibold"
+                      th:text="${prohibitedKeyword.keyword}"
+                      >ETF</span
+                    >
+                    <form
+                      th:action="@{/prohibited-tickers/keywords/delete}"
+                      method="post"
+                      style="display: inline"
+                    >
                       <input
                         th:if="${_csrf != null}"
                         type="hidden"
                         th:name="${_csrf.parameterName}"
                         th:value="${_csrf.token}"
                       />
-                      <input type="hidden" name="keyword" th:value="${prohibitedKeyword.keyword}" />
+                      <input
+                        type="hidden"
+                        name="keyword"
+                        th:value="${prohibitedKeyword.keyword}"
+                      />
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-danger"
-                        th:aria-label="#{prohibited.tickers.keywords.delete.aria}"
+                        onclick="
+                          return confirm(
+                            '¿Estás seguro de que quieres eliminar esta keyword?',
+                          );
+                        "
                       >
                         <i class="bi bi-trash"></i>
                       </button>
