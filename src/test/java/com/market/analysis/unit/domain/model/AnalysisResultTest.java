@@ -36,7 +36,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()
@@ -88,7 +87,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()
@@ -160,7 +158,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()
@@ -198,7 +195,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()
@@ -236,7 +232,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Rule rule2 = Rule.builder()
@@ -247,7 +242,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()
@@ -291,7 +285,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()
@@ -333,7 +326,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Rule rule2 = Rule.builder()
@@ -344,7 +336,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()
@@ -387,7 +378,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Rule rule2 = Rule.builder()
@@ -398,7 +388,6 @@ class AnalysisResultTest {
                                 .operator(">")
                                 .targetCode("CONSTANT")
                                 .targetParam(100.0)
-                                .description("Description")
                                 .build();
 
                 Strategy strategy = Strategy.builder()

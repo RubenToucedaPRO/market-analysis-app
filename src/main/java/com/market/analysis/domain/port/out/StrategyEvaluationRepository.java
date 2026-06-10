@@ -21,5 +21,4 @@ public interface StrategyEvaluationRepository {
      * @return the persisted evaluation with ID set
      */
     StrategyEvaluation save(StrategyEvaluation evaluation, Stock stock);
-
 }

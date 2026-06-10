@@ -57,4 +57,16 @@ public class StrategyEvaluationEntity {
     @Column(name = "latest", nullable = false)
     private boolean latest;
 
+    @Column(name = "target_price", nullable = true, precision = 19, scale = 4)
+    private BigDecimal targetPrice;
+
+    @Column(name = "stop_loss_price", nullable = true, precision = 19, scale = 4)
+    private BigDecimal stopLossPrice;
+
+    @Column(name = "risk_reward_ratio", nullable = true, precision = 19, scale = 4)
+    private BigDecimal riskRewardRatio;
+
+    @Column(name = "recommended_shares", nullable = true)
+    private Integer recommendedShares;
+
 }

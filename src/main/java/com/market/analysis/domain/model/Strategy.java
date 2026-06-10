@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
+import com.market.analysis.domain.exception.DomainValidationException;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -38,12 +41,19 @@ public class Strategy {
      */
     private final List<Rule> rules;
 
+    /**
+     * Risk management objectives for this strategy.
+     * Defines target, stop-loss and capital risk parameters.
+     */
+    private final StrategyObjective objective;
+
     @Builder
-    public Strategy(Long id, String name, String description, List<Rule> rules) {
+    public Strategy(Long id, String name, String description, List<Rule> rules, StrategyObjective objective) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.rules = rules == null ? new ArrayList<>() : new ArrayList<>(rules);
+        this.objective = objective;
     }
 
     /**
@@ -63,22 +73,27 @@ public class Strategy {
      */
     public void validateConsistency() {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalStateException("Strategy name cannot be null or empty");
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_NAME_NULL);
         }
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalStateException("Strategy description cannot be null or empty");
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_DESC_NULL);
         }
         if (rules == null || rules.isEmpty()) {
-            throw new IllegalStateException("Strategy must contain at least one rule");
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_NO_RULES);
         }
 
         // Validate each rule
         for (Rule rule : rules) {
             if (rule == null) {
-                throw new IllegalStateException("Strategy cannot contain null rules");
+                throw new DomainValidationException(DomainErrorCodes.STRATEGY_NULL_RULE);
             }
-            // Rules will validate themselves when evaluated
+            rule.validate();
         }
+
+        if (objective == null) {
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
+        }
+        objective.validate();
     }
 
     @Override

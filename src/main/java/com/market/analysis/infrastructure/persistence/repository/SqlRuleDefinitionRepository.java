@@ -5,11 +5,13 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
+import com.market.analysis.domain.exception.EntityInUseException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.infrastructure.persistence.entity.RuleDefinitionEntity;
 import com.market.analysis.infrastructure.persistence.mapper.RuleDefinitionMapper;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,12 +61,19 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         log.debug("Deleting rule definition with ID: {}", id);
-        if (strategyRepository.findAll().stream()
-                .anyMatch(strategy -> strategy.getRules().stream()
-                        .anyMatch(rule -> rule.getId() != null && rule.getId().equals(id)))) {
-            throw new IllegalArgumentException("No se puede eliminar la definición de regla porque está asociada a una estrategia.");
+        String code = jpaRepository.findById(id)
+                .map(RuleDefinitionEntity::getCode)
+                .orElse(null);
+        if (code != null) {
+            boolean usedInStrategy = strategyRepository.findAll().stream()
+                    .flatMap(strategy -> strategy.getRules().stream())
+                    .anyMatch(rule -> code.equals(rule.getSubjectCode()) || code.equals(rule.getTargetCode()));
+            if (usedInStrategy) {
+                throw new EntityInUseException("entity.in_use", code);
+            }
         }
         jpaRepository.deleteById(id);
         log.debug("Rule definition deleted successfully with ID: {}", id);

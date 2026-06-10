@@ -1,5 +1,6 @@
 package com.market.analysis.infrastructure.external.polygon;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -19,8 +20,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.port.out.HistoricalProviderPort;
+import com.market.analysis.infrastructure.config.ApiConstants;
 import com.market.analysis.infrastructure.exception.PolygonException;
 
 import lombok.RequiredArgsConstructor;
@@ -43,31 +46,31 @@ public class PolygonAdapter implements HistoricalProviderPort {
 
     private static final long RATE_LIMIT_WINDOW = 62000; // 1 minute + margin
     private static final int MAX_CALLS_PER_MINUTE = 5;
-    private static final int SIZE_HISTORICAL = 300;
 
     /**
      * Deque to track call timestamps and enforce rate limiting in memory.
      */
     private final Deque<Instant> apiCallTimestamps = new ConcurrentLinkedDeque<>();
 
+    private static final int SIZE_HISTORICAL = 300;
+
     @Override
     public HistoricalData fetchHistoricalData(String ticker) {
         log.debug("Requesting historical data from Polygon for: {}", ticker);
 
-        // 1. Flow control (Adapter technical responsibility)
         waitForRateLimit();
 
-        // 2. URI construction
         URI uri = buildUri(ticker, SIZE_HISTORICAL);
 
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
-
             // Record successful call for rate limiting
             recordApiCall();
-
-            // 3. JSON response mapping (Infrastructure) to Domain model
-            return mapToHistoricalData(ticker, response.getBody());
+            
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            
+            //  JSON response mapping (Infrastructure) to Domain model.
+            //    Candle persistence is orchestrated by the Application Use Case.
+            return parseApiResponse(ticker, response.getBody());
 
         } catch (PolygonException e) {
             // Re-throw PolygonException as-is to preserve the original message
@@ -82,64 +85,107 @@ public class PolygonAdapter implements HistoricalProviderPort {
         }
     }
 
-    private HistoricalData mapToHistoricalData(String ticker, String jsonBody) {
+    /**
+     * Parses the Polygon JSON response into a {@link HistoricalData} object that
+     * contains both closing prices / volumes (for technical indicator calculations)
+     * and the full OHLCV candle list (for persistence by the Application layer).
+     *
+     * <p>Candles are only created when the result node contains a valid
+     * {@code t} timestamp field (epoch milliseconds &gt; 0). Nodes with no
+     * timestamp are still counted toward {@code closingPrices} and
+     * {@code volumes} to preserve the existing contract.</p>
+     */
+    private HistoricalData parseApiResponse(String ticker, String jsonBody) {
         List<Double> prices = new ArrayList<>();
         List<Long> volumes = new ArrayList<>();
+        List<Candle> candles = new ArrayList<>();
         try {
             JsonNode root = objectMapper.readTree(jsonBody);
-            JsonNode resultsNode = root.path("results");
+            JsonNode resultsNode = root.path(ApiConstants.JSON_RESULTS);
 
             if (resultsNode.isArray()) {
                 for (JsonNode node : resultsNode) {
                     // 'c' = close price, 'v' = volume en la API de Polygon
-                    prices.add(node.path("c").asDouble());
-                    volumes.add(node.path("v").asLong());
+                    double closePrice = node.path(ApiConstants.JSON_CLOSE).asDouble();
+                    long volume = node.path(ApiConstants.JSON_VOLUME).asLong();
+                    prices.add(closePrice);
+                    volumes.add(volume);
 
+                    // F1.6: extract full OHLCV + timestamp into domain Candle
+                    long timestampMs = node.path(ApiConstants.JSON_TIMESTAMP).asLong();
+                    if (timestampMs > 0) {
+                        candles.add(buildCandle(ticker, node, closePrice, volume, timestampMs));
+                    }
                 }
             }
         } catch (Exception e) {
-            throw new PolygonException("Error mapping historical data for " + ticker, e);
+            throw new PolygonException("Error parsing API response for ticker " + ticker, e);
         }
 
-        return new HistoricalData(ticker, prices, volumes, Instant.now());
+        return HistoricalData.builder()
+                .ticker(ticker)
+                .closingPrices(prices)
+                .volumes(volumes)
+                .lastUpdate(Instant.now())
+                .candles(candles)
+                .build();
+    }
+
+    private Candle buildCandle(String ticker, JsonNode node, double closePrice, long volume, long timestampMs) {
+        return Candle.builder()
+                .ticker(ticker)
+                .dateTime(Instant.ofEpochMilli(timestampMs))
+                .openPrice(BigDecimal.valueOf(node.path(ApiConstants.JSON_OPEN).asDouble()))
+                .highPrice(BigDecimal.valueOf(node.path(ApiConstants.JSON_HIGH).asDouble()))
+                .lowPrice(BigDecimal.valueOf(node.path(ApiConstants.JSON_LOW).asDouble()))
+                .closePrice(BigDecimal.valueOf(closePrice))
+                .volume(volume)
+                .build();
     }
 
     private URI buildUri(String ticker, int size) {
         LocalDate toDate = LocalDate.now();
         // Subtract 350 days to ensure we get enough trading days for SMA200
         LocalDate fromDate = toDate.minusDays(350);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ApiConstants.POLYGON_DATE_PATTERN);
 
         return UriComponentsBuilder.fromUriString(baseUrl)
-                .path("v2/aggs/ticker/{ticker}/range/1/day/{from}/{to}")
-                .queryParam("adjusted", "true")
-                .queryParam("sort", "desc")
-                .queryParam("limit", size)
-                .queryParam("apiKey", apiToken)
+                .path(ApiConstants.POLYGON_URI_AGGREGATES)
+                .queryParam(ApiConstants.POLYGON_QUERY_ADJUSTED, "true")
+                .queryParam(ApiConstants.POLYGON_QUERY_SORT, ApiConstants.POLYGON_SORT_DESC)
+                .queryParam(ApiConstants.POLYGON_QUERY_LIMIT, size)
+                .queryParam(ApiConstants.POLYGON_QUERY_API_KEY, apiToken)
                 .buildAndExpand(ticker.toUpperCase(), fromDate.format(formatter), toDate.format(formatter))
                 .toUri();
     }
 
-    private void waitForRateLimit() {
+    private synchronized void waitForRateLimit() {
         removeExpiredTimestamps();
-        if (apiCallTimestamps.size() >= MAX_CALLS_PER_MINUTE) {
-            Instant oldestCall = apiCallTimestamps.peekFirst();
-            if (oldestCall != null) {
-                long waitTime = oldestCall.toEpochMilli()
-                        - (Instant.now().minusMillis(RATE_LIMIT_WINDOW).toEpochMilli()) + 100;
-                if (waitTime > 0) {
-                    try {
-                        log.info("Rate limit reached. Waiting {}ms", waitTime);
-                        Thread.sleep(waitTime);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    removeExpiredTimestamps();
+        
+        // We fetch the oldest call snapshot to evaluate the loop condition cleanly
+        Instant oldestCall = apiCallTimestamps.peekFirst();
+        
+        while (apiCallTimestamps.size() >= MAX_CALLS_PER_MINUTE && oldestCall != null) {
+            long elapsed = Instant.now().toEpochMilli() - oldestCall.toEpochMilli();
+            long waitTime = RATE_LIMIT_WINDOW - elapsed;
+            
+            // If the window time has already passed, we can break naturally by clearing the condition
+            if (waitTime > 0) {
+                try {
+                    log.info("Polygon rate limit window saturated ({} calls). Waiting {}ms for safety...", apiCallTimestamps.size(), waitTime);
+                    this.wait(waitTime + 200);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return; // Standard pattern for handling InterruptedException
                 }
             }
+            
+            // Refresh state for the next loop iteration check
+            removeExpiredTimestamps();
+            oldestCall = apiCallTimestamps.peekFirst();
         }
     }
-
+    
     private void recordApiCall() {
         apiCallTimestamps.addLast(Instant.now());
     }

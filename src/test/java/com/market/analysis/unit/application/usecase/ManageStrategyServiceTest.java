@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,9 +27,12 @@ import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.ManageStrategyService;
+import com.market.analysis.domain.exception.DomainValidationException;
+import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyObjective;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
 
@@ -51,6 +55,12 @@ class ManageStrategyServiceTest {
     @Mock
     private RuleDefinitionDTOMapper ruleDefinitionDTOMapper;
 
+    @Mock
+    private com.market.analysis.domain.port.out.StockDataRepository stockDataRepository;
+
+    @Mock
+    private com.market.analysis.domain.service.EvaluateStrategyService evaluateStrategyService;
+
     @InjectMocks
     private ManageStrategyService manageStrategyService;
 
@@ -68,7 +78,6 @@ class ManageStrategyServiceTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Price above 100")
                 .build();
 
         testStrategy = Strategy.builder()
@@ -76,6 +85,14 @@ class ManageStrategyServiceTest {
                 .name("Test Strategy")
                 .description("Test Description")
                 .rules(List.of(testRule))
+                .objective(StrategyObjective.builder()
+                        .targetType(ObjectiveType.PERCENTAGE)
+                        .stopLossType(ObjectiveType.PERCENTAGE)
+                        .targetValue(BigDecimal.valueOf(5.0))
+                        .stopLossValue(BigDecimal.valueOf(2.0))
+                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                        .description("Test objective")
+                        .build())
                 .build();
 
         testRuleDTO = RuleDTO.builder()
@@ -100,6 +117,7 @@ class ManageStrategyServiceTest {
     @DisplayName("Should create strategy successfully")
     void testCreateStrategy() {
         // Arrange
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of());
         when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
         when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
         when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
@@ -150,16 +168,16 @@ class ManageStrategyServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw exception when strategy not found")
+    @DisplayName("Should throw DomainValidationException when strategy not found")
     void testGetStrategyByIdNotFound() {
         // Arrange
         when(strategyRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageStrategyService.getStrategyById(999L));
 
-        assertEquals("Strategy not found with id: 999", exception.getMessage());
+        assertEquals("strategy.not_found", exception.getErrorCode());
         verify(strategyRepository, times(1)).findById(999L);
     }
 
@@ -225,7 +243,85 @@ class ManageStrategyServiceTest {
         when(strategyDTOMapper.toDomain(invalidStrategy)).thenReturn(invalidStrategyDomain);
 
         // Act & Assert
-        assertThrows(IllegalStateException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageStrategyService.createStrategy(invalidStrategy));
+        assertEquals("validation.strategy_no_rules", exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Should update strategy successfully")
+    void testUpdateStrategy() {
+        // Arrange
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of());
+        when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
+        when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
+
+        // Act
+        StrategyDTO result = manageStrategyService.updateStrategy(testStrategyDTO);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(testStrategyDTO.getId(), result.getId());
+        assertEquals(testStrategyDTO.getName(), result.getName());
+        verify(strategyRepository, times(1)).save(any(Strategy.class));
+    }
+
+    @Test
+    @DisplayName("Should re-evaluate stocks after updating strategy")
+    void testUpdateStrategyReEvaluatesStocks() {
+        // Arrange
+        com.market.analysis.domain.model.Stock stock = com.market.analysis.domain.model.Stock.builder()
+                .id(1L)
+                .ticker("AAPL")
+                .strategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder()
+                        .id(10L)
+                        .build())
+                .build();
+        com.market.analysis.domain.model.StrategyEvaluation evaluation =
+                com.market.analysis.domain.model.StrategyEvaluation.builder()
+                        .id(10L)
+                        .evaluatedAt(java.time.Instant.now())
+                        .build();
+
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of(stock));
+        when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
+        when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
+        when(evaluateStrategyService.evaluateStrategy(any(), any())).thenReturn(evaluation);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
+
+        // Act
+        StrategyDTO result = manageStrategyService.updateStrategy(testStrategyDTO);
+
+        // Assert
+        assertNotNull(result);
+        verify(evaluateStrategyService, times(1)).evaluateStrategy(any(), any());
+        verify(stockDataRepository, times(1)).updateStockData(stock);
+    }
+
+    @Test
+    @DisplayName("Should fail validation when updating strategy with no rules")
+    void testUpdateStrategyValidation() {
+        // Arrange
+        StrategyDTO invalidStrategy = StrategyDTO.builder()
+                .id(2L)
+                .name("Invalid Strategy")
+                .description("No rules")
+                .rules(List.of())
+                .build();
+
+        Strategy invalidStrategyDomain = Strategy.builder()
+                .id(2L)
+                .name("Invalid Strategy")
+                .description("No rules")
+                .rules(List.of())
+                .build();
+
+        when(strategyDTOMapper.toDomain(invalidStrategy)).thenReturn(invalidStrategyDomain);
+
+        // Act & Assert
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
+                () -> manageStrategyService.updateStrategy(invalidStrategy));
+        assertEquals("validation.strategy_no_rules", exception.getErrorCode());
     }
 }

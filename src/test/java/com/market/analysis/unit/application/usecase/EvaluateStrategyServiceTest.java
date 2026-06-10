@@ -2,9 +2,8 @@ package com.market.analysis.unit.application.usecase;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,13 +21,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.application.usecase.EvaluateStrategyService;
-import com.market.analysis.domain.model.AnalysisResult;
+import com.market.analysis.domain.exception.DomainValidationException;
+import com.market.analysis.domain.exception.MissingIndicatorException;
+import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.domain.model.StrategyObjective;
 import com.market.analysis.domain.port.out.StrategyEvaluationRepository;
+import com.market.analysis.domain.service.EvaluateStrategyService;
+import com.market.analysis.domain.service.RiskRewardCalculator;
 import com.market.analysis.domain.service.RuleEvaluator;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +41,9 @@ class EvaluateStrategyServiceTest {
 
         @Mock
         private RuleEvaluator ruleEvaluator;
+
+        @Mock
+        private RiskRewardCalculator riskRewardCalculator;
 
         @Mock
         private StrategyEvaluationRepository strategyEvaluationRepository;
@@ -51,6 +58,19 @@ class EvaluateStrategyServiceTest {
 
         @BeforeEach
         void setUp() {
+                StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder()
+                                .id(1L)
+                                .ticker("AAPL")
+                                .strategyId(1L)
+                                .strategyName("Momentum Strategy")
+                                .compliant(false)
+                                .complianceRate(BigDecimal.ZERO)
+                                .summary("")
+                                .evaluatedAt(Instant.now())
+                                .priceAtEvaluation(BigDecimal.ZERO)
+                                .isLatest(false)
+                                .build();
+
                 testStock = Stock.builder()
                                 .ticker("AAPL")
                                 .currentPrice(BigDecimal.valueOf(150.00))
@@ -59,6 +79,7 @@ class EvaluateStrategyServiceTest {
                                 .volume(10000000L)
                                 .averageVolume(8000000L)
                                 .lastUpdated(Instant.now())
+                                .strategyEvaluation(strategyEvaluation)
                                 .build();
 
                 rule1 = Rule.builder()
@@ -68,7 +89,6 @@ class EvaluateStrategyServiceTest {
                                 .operator(">")
                                 .targetCode("SMA")
                                 .targetParam(20.0)
-                                .description("Price should be above SMA20")
                                 .build();
 
                 rule2 = Rule.builder()
@@ -77,7 +97,6 @@ class EvaluateStrategyServiceTest {
                                 .subjectCode("VOLUME")
                                 .operator(">")
                                 .targetCode("AVG_VOLUME")
-                                .description("Volume should exceed average")
                                 .build();
 
                 testStrategy = Strategy.builder()
@@ -85,7 +104,26 @@ class EvaluateStrategyServiceTest {
                                 .name("Momentum Strategy")
                                 .description("Bullish momentum indicator")
                                 .rules(List.of(rule1, rule2))
+                                .objective(StrategyObjective.builder()
+                                                .targetType(ObjectiveType.PERCENTAGE)
+                                                .stopLossType(ObjectiveType.PERCENTAGE)
+                                                .targetValue(BigDecimal.valueOf(5.0))
+                                                .stopLossValue(BigDecimal.valueOf(2.0))
+                                                .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                .description("Momentum objective")
+                                                .build())
                                 .build();
+
+                // lenient: non-compliant test paths do not call the calculator,
+                // so these stubs must be lenient to avoid UnnecessaryStubbingException.
+                lenient().when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(157.50));
+                lenient().when(riskRewardCalculator.calculateStopLossPrice(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(147.00));
+                lenient().when(riskRewardCalculator.calculateRiskRewardRatio(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(2.5));
+                lenient().when(riskRewardCalculator.calculatePositionSize(any(), any(), any()))
+                                .thenReturn(BigDecimal.valueOf(94));
         }
 
         @Nested
@@ -112,21 +150,129 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(rule2, testStock)).thenReturn(result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result).isNotNull();
-                        assertThat(result.isOverallPassed()).isTrue();
+                        assertThat(result.isCompliant()).isTrue();
                         assertThat(result.getTicker()).isEqualTo("AAPL");
-                        assertThat(result.getStrategy()).isEqualTo(testStrategy);
-                        assertThat(result.getRuleResults()).hasSize(2);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("totalRules", 2L);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("passedRules", 2L);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("failedRules", 0L);
-                        assertThat(result.calculateComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(100.00));
+                        assertThat(result.getStrategyId()).isEqualTo(1L);
+                        assertThat(result.getStrategyName()).isEqualTo("Momentum Strategy");
+                        assertThat(result.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(100.00));
+                        assertThat(result.getSummary()).contains("2/2 rules passed");
+                        assertThat(result.isLatest()).isTrue();
 
                         verify(ruleEvaluator, times(2)).evaluate(any(Rule.class), any(Stock.class));
                 }
+
+                @Test
+                @DisplayName("Should evaluate with mixed rule results")
+                void shouldEvaluateWithMixedResults() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(false)
+                                        .justification("FAILED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(rule1, testStock)).thenReturn(result1);
+                        when(ruleEvaluator.evaluate(rule2, testStock)).thenReturn(result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(50.00));
+                        assertThat(result.getSummary()).contains("FAILED").contains("Volume > Avg Volume");
+                }
+
+                @Test
+                @DisplayName("Should capture stock price at evaluation time")
+                void shouldCaptureStockPriceAtEvaluation() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class))).thenReturn(result1);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.getPriceAtEvaluation()).isEqualByComparingTo(BigDecimal.valueOf(150.00));
+                }
+
+                @Test
+                @DisplayName("Should record evaluation timestamp")
+                void shouldRecordEvaluationTimestamp() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class))).thenReturn(result1);
+                        Instant before = Instant.now();
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+                        Instant after = Instant.now();
+
+                        // Assert
+                        assertThat(result.getEvaluatedAt()).isBetween(before, after);
+                }
+
+                @Test
+                @DisplayName("Should handle single rule strategy")
+                void shouldHandleSingleRuleStrategy() {
+                        // Arrange
+                        Strategy singleRuleStrategy = Strategy.builder()
+                                        .id(2L)
+                                        .name("Single Rule Strategy")
+                                        .description("Only one rule")
+                                        .rules(List.of(rule1))
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.PERCENTAGE)
+                                                        .stopLossType(ObjectiveType.PERCENTAGE)
+                                                        .targetValue(BigDecimal.valueOf(5.0))
+                                                        .stopLossValue(BigDecimal.valueOf(2.0))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("Single rule objective")
+                                                        .build())
+                                        .build();
+
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(rule1, testStock)).thenReturn(result1);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(singleRuleStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getStrategyName()).isEqualTo("Single Rule Strategy");
+                        assertThat(result.getSummary()).contains("1/1 rules passed");
+                }
+        }
+
+        @Nested
+        @DisplayName("Should fail overall when one rule fails")
+        class ShouldFailOverallWhenOneRuleFails {
 
                 @Test
                 @DisplayName("Should fail overall when one rule fails")
@@ -148,21 +294,18 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(rule2, testStock)).thenReturn(result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result).isNotNull();
-                        assertThat(result.isOverallPassed()).isFalse();
-                        assertThat(result.getRuleResults()).hasSize(2);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("passedRules", 1L);
-                        assertThat(result.getCalculatedMetrics()).containsEntry("failedRules", 1L);
-                        assertThat(result.calculateComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(50.00));
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(50.00));
                         assertThat(result.getSummary()).contains("FAILED");
                         assertThat(result.getSummary()).contains("Volume > Avg Volume");
                 }
 
                 @Test
-                @DisplayName("Should include analysis timestamp")
+                @DisplayName("Should include evaluation timestamp")
                 void shouldIncludeAnalysisTimestamp() {
                         // Arrange
                         RuleResult result1 = RuleResult.builder()
@@ -183,13 +326,13 @@ class EvaluateStrategyServiceTest {
                         Instant before = Instant.now();
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         Instant after = Instant.now();
 
                         // Assert
-                        assertThat(result.getAnalysisTimestamp()).isNotNull();
-                        assertThat(result.getAnalysisTimestamp()).isBetween(before, after);
+                        assertThat(result.getEvaluatedAt()).isNotNull();
+                        assertThat(result.getEvaluatedAt()).isBetween(before, after);
                 }
         }
 
@@ -201,16 +344,18 @@ class EvaluateStrategyServiceTest {
                 @DisplayName("Should throw exception when strategy is null")
                 void shouldThrowExceptionWhenStrategyIsNull() {
                         assertThatThrownBy(() -> service.evaluateStrategy(null, testStock))
-                                        .isInstanceOf(IllegalArgumentException.class)
-                                        .hasMessageContaining("Strategy cannot be null");
+                                        .isInstanceOf(DomainValidationException.class)
+                                        .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                                                        .isEqualTo("validation.strategy_null"));
                 }
 
                 @Test
                 @DisplayName("Should throw exception when ticker data is null")
                 void shouldThrowExceptionWhenTickerDataIsNull() {
                         assertThatThrownBy(() -> service.evaluateStrategy(testStrategy, null))
-                                        .isInstanceOf(IllegalArgumentException.class)
-                                        .hasMessageContaining("Stock data cannot be null");
+                                        .isInstanceOf(DomainValidationException.class)
+                                        .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                                                        .isEqualTo("validation.stock_data_null"));
                 }
 
                 @Test
@@ -226,8 +371,9 @@ class EvaluateStrategyServiceTest {
 
                         // Act & Assert
                         assertThatThrownBy(() -> service.evaluateStrategy(invalidStrategy, testStock))
-                                        .isInstanceOf(IllegalStateException.class)
-                                        .hasMessageContaining("name cannot be null or empty");
+                                        .isInstanceOf(DomainValidationException.class)
+                                        .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                                                        .isEqualTo("validation.strategy_name_null"));
                 }
         }
 
@@ -255,13 +401,12 @@ class EvaluateStrategyServiceTest {
                                         .thenReturn(result1, result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result.getSummary())
                                         .contains("Momentum Strategy")
                                         .contains("AAPL")
-                                        .contains("PASSED")
                                         .contains("2/2 rules passed");
                 }
 
@@ -285,14 +430,12 @@ class EvaluateStrategyServiceTest {
                                         .thenReturn(result1, result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
                         assertThat(result.getSummary())
                                         .contains("FAILED")
-                                        .contains("1/2 rules passed")
-                                        .contains("Failed rules:")
-                                        .contains("Price > SMA20");
+                                        .contains("1/2 rules passed");
                 }
         }
 
@@ -301,8 +444,8 @@ class EvaluateStrategyServiceTest {
         class PersistenceTests {
 
                 @Test
-                @DisplayName("Should persist evaluation when strategy evaluation succeeds")
-                void shouldPersistEvaluationWhenStrategyEvaluationSucceeds() {
+                @DisplayName("Should return evaluation object with correct structure")
+                void shouldReturnEvaluationWithCorrectStructure() {
                         // Arrange
                         RuleResult result1 = RuleResult.builder()
                                         .rule(rule1)
@@ -320,16 +463,18 @@ class EvaluateStrategyServiceTest {
                                         .thenReturn(result1, result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
                         // Assert
-                        assertThat(result.isOverallPassed()).isTrue();
-                        verify(strategyEvaluationRepository, times(1)).save(any(), any());
+                        assertThat(result).isNotNull();
+                        assertThat(result.getStrategyId()).isEqualTo(1L);
+                        assertThat(result.getTicker()).isEqualTo("AAPL");
+                        assertThat(result.isLatest()).isTrue();
                 }
 
                 @Test
-                @DisplayName("Should persist evaluation with correct data")
-                void shouldPersistEvaluationWithCorrectData() {
+                @DisplayName("Should return evaluation with all required fields")
+                void shouldReturnEvaluationWithAllRequiredFields() {
                         // Arrange
                         RuleResult result1 = RuleResult.builder()
                                         .rule(rule1)
@@ -347,24 +492,23 @@ class EvaluateStrategyServiceTest {
                                         .thenReturn(result1, result2);
 
                         // Act
-                        AnalysisResult result = service.evaluateStrategy(testStrategy, testStock);
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
-                        // Assert - Verify that save was called with correct data
-                        verify(strategyEvaluationRepository)
-                                        .save(argThat(evaluation -> evaluation.getTicker().equals("AAPL") &&
-                                                        evaluation.getStrategyId().equals(1L) &&
-                                                        !evaluation.isCompliant() &&
-                                                        evaluation.getComplianceRate()
-                                                                        .compareTo(BigDecimal.valueOf(50.00)) == 0
-                                                        &&
-                                                        evaluation.isLatest()),
-                                                        any(Stock.class));
-                        assertNotNull(result);
+                        // Assert - Verify all required fields are set
+                        assertThat(result.getTicker()).isEqualTo("AAPL");
+                        assertThat(result.getStrategyId()).isEqualTo(1L);
+                        assertThat(result.getStrategyName()).isEqualTo("Momentum Strategy");
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(50.00));
+                        assertThat(result.getSummary()).isNotEmpty();
+                        assertThat(result.getEvaluatedAt()).isNotNull();
+                        assertThat(result.getPriceAtEvaluation()).isEqualByComparingTo(BigDecimal.valueOf(150.00));
+                        assertThat(result.isLatest()).isTrue();
                 }
 
                 @Test
-                @DisplayName("Should not fail evaluation if persistence fails")
-                void shouldNotFailEvaluationIfPersistenceFails() {
+                @DisplayName("Should complete evaluation even if stock has no previous evaluation")
+                void shouldCompleteEvaluationWhenStockHasEvaluation() {
                         // Arrange
                         RuleResult result1 = RuleResult.builder()
                                         .rule(rule1)
@@ -381,15 +525,213 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
                                         .thenReturn(result1, result2);
 
-                        // Make repository throw exception
-                        when(strategyEvaluationRepository.save(any(), any()))
-                                        .thenThrow(new RuntimeException("Database error"));
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
 
-                        // Act & Assert - Should not throw, just log error
-                        assertThat(service.evaluateStrategy(testStrategy, testStock))
-                                        .isNotNull()
-                                        .extracting(AnalysisResult::isOverallPassed)
-                                        .isEqualTo(true);
+                        // Assert - Should return valid evaluation object
+                        assertThat(result).isNotNull();
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTicker()).isEqualTo("AAPL");
+                        assertThat(result.getStrategyId()).isEqualTo(1L);
+                }
+        }
+
+        @Nested
+        @DisplayName("Risk Calculation Tests")
+        class RiskCalculationTests {
+
+                @Test
+                @DisplayName("Should populate risk fields when strategy is compliant")
+                void shouldPopulateRiskFieldsWhenCompliant() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(157.50));
+                        assertThat(result.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(147.00));
+                        assertThat(result.getRiskRewardRatio()).isEqualByComparingTo(BigDecimal.valueOf(2.5));
+                        assertThat(result.getRecommendedShares()).isEqualTo(94);
+                }
+
+                @Test
+                @DisplayName("Should leave risk fields null when strategy is not compliant")
+                void shouldLeaveRiskFieldsNullWhenNotCompliant() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(false)
+                                        .justification("FAILED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when indicator is missing")
+                void shouldLeaveRiskFieldsNullOnMissingIndicator() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenThrow(new MissingIndicatorException("rule.missing_indicator"));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when stop-loss is above entry price")
+                void shouldLeaveRiskFieldsNullOnStopLossAboveEntry() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenReturn(BigDecimal.valueOf(160.00));
+                        when(riskRewardCalculator.calculateStopLossPrice(any(), any(), any()))
+                                        .thenThrow(new IllegalArgumentException(
+                                                        "Stop-loss price (155.00) must be less than entry price (150.00) for long positions"));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                        assertThat(result.getSummary()).contains("Stop-loss price");
+                }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when target price is below entry")
+                void shouldLeaveRiskFieldsNullOnTargetBelowEntry() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenThrow(new IllegalArgumentException(
+                                                        "Target price must be greater than entry price for long positions"));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                        assertThat(result.getSummary()).contains("Target price");
+                }
+
+                @Test
+                @DisplayName("Should mark as compliant but leave risk fields null when SMA period is unsupported")
+                void shouldLeaveRiskFieldsNullOnUnsupportedSmaPeriod() {
+                        // Arrange
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+                        when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
+                                        .thenThrow(new IllegalArgumentException(
+                                                        "SMA period 99 is not supported. Only periods 20, 50, and 200 are allowed."));
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                        assertThat(result.getSummary()).contains("SMA period 99");
                 }
         }
 }

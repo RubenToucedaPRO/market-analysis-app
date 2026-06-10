@@ -336,4 +336,101 @@ class StrategyEvaluationMapperTest {
             assertThat(resultEntity.isLatest()).isEqualTo(originalEntity.isLatest());
         }
     }
+
+    @Nested
+    @DisplayName("Risk-Reward Fields Mapping Tests")
+    class RiskRewardFieldsTests {
+
+        @Test
+        @DisplayName("Should map risk-reward fields from domain to entity")
+        void shouldMapRiskRewardFieldsFromDomainToEntity() {
+            // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(1L);
+            stock.setTicker("AAPL");
+            stock.setStrategyId(10L);
+
+            StrategyEvaluation domain = StrategyEvaluation.builder()
+                    .id(1L)
+                    .ticker("AAPL")
+                    .strategyId(10L)
+                    .compliant(true)
+                    .complianceRate(BigDecimal.valueOf(80.00))
+                    .evaluatedAt(java.time.Instant.now())
+                    .isLatest(true)
+                    .targetPrice(BigDecimal.valueOf(160.0000))
+                    .stopLossPrice(BigDecimal.valueOf(140.0000))
+                    .riskRewardRatio(BigDecimal.valueOf(2.5000))
+                    .recommendedShares(10)
+                    .build();
+
+            // Act
+            StrategyEvaluationEntity entity = mapper.toEntity(domain, stock);
+
+            // Assert
+            assertThat(entity.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(160.0000));
+            assertThat(entity.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(140.0000));
+            assertThat(entity.getRiskRewardRatio()).isEqualByComparingTo(BigDecimal.valueOf(2.5000));
+            assertThat(entity.getRecommendedShares()).isEqualTo(10);
+        }
+
+        @Test
+        @DisplayName("Should map risk-reward fields from entity to domain")
+        void shouldMapRiskRewardFieldsFromEntityToDomain() {
+            // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(2L);
+            stock.setTicker("MSFT");
+            stock.setStrategyId(5L);
+
+            StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            entity.setId(2L);
+            entity.setStock(stock);
+            entity.setCompliant(true);
+            entity.setComplianceRate(BigDecimal.valueOf(90.00));
+            entity.setEvaluatedAt(java.time.Instant.now());
+            entity.setLatest(true);
+            entity.setTargetPrice(BigDecimal.valueOf(320.0000));
+            entity.setStopLossPrice(BigDecimal.valueOf(280.0000));
+            entity.setRiskRewardRatio(BigDecimal.valueOf(3.0000));
+            entity.setRecommendedShares(5);
+
+            // Act
+            StrategyEvaluation domain = mapper.toDomain(entity);
+
+            // Assert
+            assertThat(domain.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(320.0000));
+            assertThat(domain.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(280.0000));
+            assertThat(domain.getRiskRewardRatio()).isEqualByComparingTo(BigDecimal.valueOf(3.0000));
+            assertThat(domain.getRecommendedShares()).isEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("Should handle null risk-reward fields")
+        void shouldHandleNullRiskRewardFields() {
+            // Arrange
+            StockEntity stock = new StockEntity();
+            stock.setId(3L);
+            stock.setTicker("GOOGL");
+            stock.setStrategyId(7L);
+
+            StrategyEvaluationEntity entity = new StrategyEvaluationEntity();
+            entity.setId(3L);
+            entity.setStock(stock);
+            entity.setCompliant(false);
+            entity.setComplianceRate(BigDecimal.valueOf(40.00));
+            entity.setEvaluatedAt(java.time.Instant.now());
+            entity.setLatest(true);
+            // risk-reward fields are null
+
+            // Act
+            StrategyEvaluation domain = mapper.toDomain(entity);
+
+            // Assert
+            assertThat(domain.getTargetPrice()).isNull();
+            assertThat(domain.getStopLossPrice()).isNull();
+            assertThat(domain.getRiskRewardRatio()).isNull();
+            assertThat(domain.getRecommendedShares()).isNull();
+        }
+    }
 }

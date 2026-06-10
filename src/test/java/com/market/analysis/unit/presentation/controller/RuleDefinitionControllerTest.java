@@ -2,11 +2,13 @@ package com.market.analysis.unit.presentation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,12 +17,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.presentation.controller.RuleDefinitionController;
+import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.WebConstants;
 
 /**
  * Unit tests for RuleDefinitionController.
@@ -36,7 +42,13 @@ class RuleDefinitionControllerTest {
     private RuleDefinitionDTOMapper mapper;
 
     @Mock
+    private MessageSource messageSource;
+
+    @Mock
     private Model model;
+
+    @Mock
+    private RedirectAttributes redirectAttributes;
 
     @InjectMocks
     private RuleDefinitionController ruleDefinitionController;
@@ -109,14 +121,19 @@ class RuleDefinitionControllerTest {
                 .requiresParam(true)
                 .description("RSI indicator")
                 .build();
+        when(messageSource.getMessage("ruledefinition.created", null, Locale.getDefault()))
+                .thenReturn("Definición de regla creada correctamente.");
 
         // Act
-        String viewName = ruleDefinitionController.saveRuleDefinition(dtoWithoutId);
+        String viewName = ruleDefinitionController.saveRuleDefinition(dtoWithoutId, redirectAttributes);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).createRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).updateRuleDefinition(any());
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla creada correctamente."));
     }
 
     @Test
@@ -124,25 +141,50 @@ class RuleDefinitionControllerTest {
     void testSaveRuleDefinitionUpdate() {
         // Arrange
         // testRuleDefinitionDTO has id = 1L
+        when(messageSource.getMessage("ruledefinition.updated", null, Locale.getDefault()))
+                .thenReturn("Definición de regla actualizada correctamente.");
 
         // Act
-        String viewName = ruleDefinitionController.saveRuleDefinition(testRuleDefinitionDTO);
+        String viewName = ruleDefinitionController.saveRuleDefinition(testRuleDefinitionDTO, redirectAttributes);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).updateRuleDefinition(any(RuleDefinitionDTO.class));
         verify(manageRuleDefinitionUseCase, times(0)).createRuleDefinition(any());
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla actualizada correctamente."));
     }
 
     @Test
-    @DisplayName("Should delete rule definition and redirect")
+    @DisplayName("Should delete rule definition and redirect with success flash message")
     void testDeleteRuleDefinition() {
+        // Arrange
+        when(messageSource.getMessage("ruledefinition.deleted", null, Locale.getDefault()))
+                .thenReturn("Definición de regla eliminada con éxito.");
+
         // Act
-        String viewName = ruleDefinitionController.deleteRuleDefinition(1L);
+        String viewName = ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes);
 
         // Assert
         assertEquals("redirect:/rule-definitions", viewName);
         verify(manageRuleDefinitionUseCase, times(1)).deleteRuleDefinition(1L);
+        verify(redirectAttributes, times(1)).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success("Definición de regla eliminada con éxito."));
+    }
+
+    @Test
+    @DisplayName("Should propagate EntityInUseException to GlobalExceptionHandler when rule is in use")
+    void testDeleteRuleDefinitionUsedInStrategy() {
+        // Arrange
+        doThrow(new com.market.analysis.domain.exception.EntityInUseException("entity.in_use", "SMA"))
+                .when(manageRuleDefinitionUseCase).deleteRuleDefinition(1L);
+
+        // Act & Assert – exception propagates; GlobalExceptionHandler handles the redirect
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.market.analysis.domain.exception.EntityInUseException.class,
+                () -> ruleDefinitionController.deleteRuleDefinition(1L, redirectAttributes));
     }
 
     @Test

@@ -9,5 +9,4 @@ public interface StockProviderPort {
 
     CompanyProfile getCompanyProfile(String ticker);
 
-    boolean hasUpComingEarnings(String ticker);
 }

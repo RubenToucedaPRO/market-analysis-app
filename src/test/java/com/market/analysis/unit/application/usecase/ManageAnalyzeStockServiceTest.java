@@ -1,566 +1,360 @@
 package com.market.analysis.unit.application.usecase;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
+import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
+import com.market.analysis.application.usecase.AnalyzeAndPersistStockService;
 import com.market.analysis.application.usecase.ManageAnalyzeStockService;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
-import com.market.analysis.domain.model.CompanyProfile;
-import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.model.Stock;
-import com.market.analysis.domain.port.out.CompanyProfileRepository;
-import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
+import com.market.analysis.domain.model.StockOrigin;
+import com.market.analysis.domain.model.Strategy;
+import com.market.analysis.domain.model.StrategyEvaluation;
+import com.market.analysis.domain.port.out.ApiIAPort;
+import com.market.analysis.domain.port.out.CandleHistoryRepository;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StockProviderPort;
+import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.service.PromptBuilder;
+import com.market.analysis.domain.service.PromptResponseValidator;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ManageAnalyzeStockService Tests")
-@MockitoSettings(strictness = Strictness.LENIENT)
 class ManageAnalyzeStockServiceTest {
+
+    private static final int MAX_PROMPT_CHARS = 4000;
+    private static final int OVERSIZED_PROMPT_CHARS = 4500;
+    private static final String IA_FALLBACK_VALORATION =
+            "No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.";
 
     @Mock
     private StockDataRepository stockDataRepository;
-
     @Mock
-    private CompanyProfileRepository companyProfileRepository;
-
+    private CandleHistoryRepository candleHistoryRepository;
     @Mock
-    private ProhibitedTickerRepository prohibitedTickerRepository;
-
+    private StrategyRepository strategyRepository;
     @Mock
     private StockProviderPort stockProviderPort;
-
     @Mock
-    private com.market.analysis.domain.port.out.StrategyRepository strategyRepository;
-
-    @Mock
-    private com.market.analysis.domain.port.in.EvaluateStrategyUseCase evaluateStrategyUseCase;
-
+    private ApiIAPort apiIAPort;
     @Mock
     private StockDataDTOMapper stockDataDTOMapper;
-
     @Mock
-    private com.market.analysis.domain.port.out.ApiCallRateRepository apiCallRateRepository;
-
+    private CandleDTOMapper candleDTOMapper;
     @Mock
-    private com.market.analysis.domain.port.out.HistoricalProviderPort historicalProviderPort;
-
+    private AnalyzeAndPersistStockService analyzeAndPersistStockService;
     @Mock
-    private com.market.analysis.domain.service.StockHistoricalService stockHistoricalService;
-
+    private PromptBuilder promptBuilder;
     @Mock
-    private com.market.analysis.domain.port.out.ApiIAPort apiIAPort;
+    private PromptResponseValidator promptResponseValidator;
 
     @InjectMocks
     private ManageAnalyzeStockService service;
 
-    private Stock stock;
-    private CompanyProfile validCompanyProfile;
-    private CompanyProfile prohibitedCompanyProfile;
-    private com.market.analysis.domain.model.Strategy testStrategy;
-    private com.market.analysis.domain.model.AnalysisResult analysisResult;
+    @Test
+    @DisplayName("Should throw DomainValidationException when strategy id is null")
+    void shouldThrowWhenStrategyIdIsNull() {
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
+                () -> service.getStockData("AAPL", null));
 
-    @BeforeEach
-    void setUp() {
-        stock = Stock.builder()
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.00))
-                .build();
-
-        validCompanyProfile = CompanyProfile.builder()
-                .ticker("AAPL")
-                .name("Apple Inc.")
-                .country("US")
-                .exchange("NASDAQ")
-                .lastUpdated(Instant.now())
-                .build();
-
-        prohibitedCompanyProfile = CompanyProfile.builder()
-                .ticker("SPY")
-                .name("SPDR S&P 500 ETF Trust")
-                .country("US")
-                .exchange("NYSE")
-                .lastUpdated(Instant.now())
-                .build();
-
-        testStrategy = com.market.analysis.domain.model.Strategy.builder()
-                .id(1L)
-                .name("Test Strategy")
-                .description("A test strategy")
-                .rules(Arrays.asList(
-                        com.market.analysis.domain.model.Rule.builder()
-                                .id(1L)
-                                .name("Price > SMA20")
-                                .subjectCode("PRICE")
-                                .operator(">")
-                                .targetCode("SMA")
-                                .targetParam(20.0)
-                                .description("Price above SMA20")
-                                .build()))
-                .build();
-
-        analysisResult = com.market.analysis.domain.model.AnalysisResult.builder()
-                .strategy(testStrategy)
-                .ticker("AAPL")
-                .analysisTimestamp(Instant.now())
-                .ruleResults(Arrays.asList())
-                .calculatedMetrics(new java.util.HashMap<>())
-                .overallPassed(true)
-                .summary("Test passed")
-                .build();
-
-        // Setup default mocks for historical data flow
-        when(stockDataRepository.findByTickerAndLastUpdateBetween(anyString(), any(Instant.class), any(Instant.class)))
-                .thenReturn(null);
-
-        // Mock historical data
-        com.market.analysis.domain.model.HistoricalData historicalData = com.market.analysis.domain.model.HistoricalData
-                .builder()
-                .ticker("AAPL")
-                .lastUpdate(Instant.now())
-                .build();
-        when(historicalProviderPort.fetchHistoricalData(anyString())).thenReturn(historicalData);
-
-        // Mock technical indicators
-        com.market.analysis.domain.model.TechnicalIndicators technicalIndicators = com.market.analysis.domain.model.TechnicalIndicators
-                .builder()
-                .sma20(BigDecimal.valueOf(150.00))
-                .sma50(BigDecimal.valueOf(150.00))
-                .sma200(BigDecimal.valueOf(150.00))
-                .currentVolume(50000000L)
-                .averageVolume(50000000L)
-                .lastUpdated(Instant.now())
-                .build();
-        when(stockHistoricalService.calculateIndicators(any(), anyInt())).thenReturn(technicalIndicators);
+        assertThat(ex.getErrorCode()).isEqualTo("validation.strategy_id_required");
+        verify(strategyRepository, never()).findById(any());
     }
 
     @Test
-    @DisplayName("Should get stock data for valid ticker")
-    void shouldGetStockDataForValidTicker() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
+    @DisplayName("Should delegate deterministic evaluation to shared pipeline for valid tickers")
+    void shouldDelegateToPipelineForValidTickers() {
+        Long strategyId = 1L;
+        Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
 
-        // Act
-        service.getStockData("AAPL", 1L);
+        when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("AAPL")))
+            .thenReturn(List.of("AAPL"));
 
-        // Assert
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(strategyRepository, times(1)).findById(1L);
-        verify(evaluateStrategyUseCase, times(1)).evaluateStrategy(any(), any());
-        verify(stockDataRepository, times(1)).save(any());
+        service.getStockData("AAPL", strategyId);
+
+        verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist(
+                "AAPL",
+                strategy,
+                StockOrigin.ANALYSIS);
     }
 
     @Test
-    @DisplayName("Should get stock data for multiple tickers")
-    void shouldGetStockDataForMultipleTickers() {
-        // Arrange
-        Stock stock2 = Stock.builder().ticker("GOOGL").currentPrice(BigDecimal.valueOf(2800.00)).build();
-        CompanyProfile profile2 = CompanyProfile.builder()
-                .ticker("GOOGL")
-                .name("Alphabet Inc.")
-                .lastUpdated(Instant.now())
-                .build();
+    @DisplayName("Should skip analysis when pipeline returns no valid tickers")
+    void shouldSkipWhenPipelineReturnsNoValidTickers() {
+        Long strategyId = 1L;
+        Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
 
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
-        when(companyProfileRepository.findByTicker("GOOGL")).thenReturn(Optional.of(profile2));
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
-        when(stockProviderPort.getQuote("GOOGL")).thenReturn(stock2);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
+        when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("SPY")))
+                .thenReturn(List.of());
 
-        // Act
-        service.getStockData("AAPL,GOOGL", 1L);
+        service.getStockData("SPY", strategyId);
 
-        // Assert
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockProviderPort, times(1)).getQuote("GOOGL");
-        verify(stockDataRepository, times(2)).save(any());
+        verify(analyzeAndPersistStockService, never()).analyzeAndPersist(any(), any(), any());
     }
 
     @Test
-    @DisplayName("Should parse and normalize tickers")
-    void shouldParseAndNormalizeTickers() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
-        when(companyProfileRepository.findByTicker("GOOGL")).thenReturn(Optional.of(validCompanyProfile));
-        when(companyProfileRepository.findByTicker("TSLA")).thenReturn(Optional.of(validCompanyProfile));
-        when(stockProviderPort.getQuote(anyString())).thenReturn(stock);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
+    @DisplayName("Should throw DomainValidationException when strategy does not exist")
+    void shouldThrowWhenStrategyNotFound() {
+        when(strategyRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act
-        service.getStockData("  aapl  ,  googl  ,  TSLA  ", 1L);
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
+                () -> service.getStockData("AAPL", 1L));
 
-        // Assert
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockProviderPort, times(1)).getQuote("GOOGL");
-        verify(stockProviderPort, times(1)).getQuote("TSLA");
+        assertThat(ex.getErrorCode()).isEqualTo("strategy.not_found");
     }
 
     @Test
-    @DisplayName("Should skip empty tickers after parsing")
-    void shouldSkipEmptyTickersAfterParsing() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
+    @DisplayName("Should normalize and analyze multiple tickers")
+    void shouldNormalizeAndAnalyzeMultipleTickers() {
+        Long strategyId = 1L;
+        Strategy strategy = Strategy.builder().id(strategyId).name("Momentum").build();
 
-        // Act
-        service.getStockData("AAPL,,  ,", 1L);
+        when(strategyRepository.findById(strategyId)).thenReturn(Optional.of(strategy));
+        when(analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(List.of("AAPL", "MSFT")))
+                .thenReturn(List.of("AAPL", "MSFT"));
 
-        // Assert
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, times(1)).save(any());
+        service.getStockData(" aapl , msft ", strategyId);
+
+        verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist("AAPL", strategy, StockOrigin.ANALYSIS);
+        verify(analyzeAndPersistStockService, times(1)).analyzeAndPersist("MSFT", strategy, StockOrigin.ANALYSIS);
     }
 
     @Test
-    @DisplayName("Should update company profile when it does not exist")
-    void shouldUpdateCompanyProfileWhenItDoesNotExist() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.empty());
-        when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(false);
-        when(stockProviderPort.getCompanyProfile("AAPL")).thenReturn(validCompanyProfile);
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
+    @DisplayName("Should list only analysis-visible stocks")
+    void shouldListOnlyAnalysisVisibleStocks() {
+        Stock stock = Stock.builder().ticker("AAPL").build();
+        StockDataDTO dto = StockDataDTO.builder().ticker("AAPL").build();
 
-        // Act
-        service.getStockData("AAPL", 1L);
-
-        // Assert
-        verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
-        verify(companyProfileRepository, times(1)).save(validCompanyProfile);
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, times(1)).save(any());
-    }
-
-    @Test
-    @DisplayName("Should update company profile when it is outdated")
-    void shouldUpdateCompanyProfileWhenItIsOutdated() {
-        // Arrange
-        CompanyProfile outdatedProfile = CompanyProfile.builder()
-                .ticker("AAPL")
-                .name("Apple Inc.")
-                .lastUpdated(Instant.now().minus(31, java.time.temporal.ChronoUnit.DAYS))
-                .build();
-
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(outdatedProfile));
-        when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(false);
-        when(stockProviderPort.getCompanyProfile("AAPL")).thenReturn(validCompanyProfile);
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
-
-        // Act
-        service.getStockData("AAPL", 1L);
-
-        // Assert
-        verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
-        verify(companyProfileRepository, times(1)).save(validCompanyProfile);
-    }
-
-    @Test
-    @DisplayName("Should mark ticker as prohibited when company profile indicates it")
-    void shouldMarkTickerAsProhibitedWhenCompanyProfileIndicatesIt() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("SPY")).thenReturn(Optional.empty());
-        when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(false);
-        when(stockProviderPort.getCompanyProfile("SPY")).thenReturn(prohibitedCompanyProfile);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-
-        // Act
-        service.getStockData("SPY", 1L);
-
-        // Assert
-        verify(stockProviderPort, times(1)).getCompanyProfile("SPY");
-        verify(prohibitedTickerRepository, times(1)).save(any(ProhibitedTicker.class));
-        verify(stockProviderPort, never()).getQuote("SPY");
-        verify(stockDataRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should skip ticker when it is already marked as prohibited")
-    void shouldSkipTickerWhenItIsAlreadyMarkedAsProhibited() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("SPY")).thenReturn(Optional.empty());
-        when(prohibitedTickerRepository.existsByTicker("SPY")).thenReturn(true);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-
-        // Act
-        service.getStockData("SPY", 1L);
-
-        // Assert
-        verify(prohibitedTickerRepository, times(1)).existsByTicker("SPY");
-        verify(stockProviderPort, never()).getCompanyProfile("SPY");
-        verify(stockProviderPort, never()).getQuote("SPY");
-    }
-
-    @Test
-    @DisplayName("Should skip ticker when company profile is not found")
-    void shouldSkipTickerWhenCompanyProfileIsNotFound() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("INVALID")).thenReturn(Optional.empty());
-        when(prohibitedTickerRepository.existsByTicker("INVALID")).thenReturn(false);
-        when(stockProviderPort.getCompanyProfile("INVALID")).thenReturn(null);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-
-        // Act
-        service.getStockData("INVALID", 1L);
-
-        // Assert
-        verify(stockProviderPort, times(1)).getCompanyProfile("INVALID");
-        verify(stockProviderPort, never()).getQuote("INVALID");
-        verify(stockDataRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should not save stock data when quote is null")
-    void shouldNotSaveStockDataWhenQuoteIsNull() {
-        // Arrange
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(validCompanyProfile));
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(null);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-
-        // Act
-        service.getStockData("AAPL", 1L);
-
-        // Assert
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should find all stocks")
-    void shouldFindAllStocks() {
-        // Arrange
-        Stock stock2 = Stock.builder().ticker("GOOGL").currentPrice(BigDecimal.valueOf(2800.00)).build();
-        List<Stock> stocks = Arrays.asList(stock, stock2);
-        when(stockDataRepository.findAllStocks()).thenReturn(stocks);
-
-        StockDataDTO dto1 = StockDataDTO.builder().ticker("AAPL").currentPrice(BigDecimal.valueOf(150.00)).build();
-        StockDataDTO dto2 = StockDataDTO.builder().ticker("GOOGL").currentPrice(BigDecimal.valueOf(2800.00)).build();
-        when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto1);
-        when(stockDataDTOMapper.toDTO(stock2)).thenReturn(dto2);
-
-        // Act
-        List<StockDataDTO> result = service.findAllStocks();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(stockDataRepository, times(1)).findAllStocks();
-    }
-
-    @Test
-    @DisplayName("Should find stock data by ticker")
-    void shouldFindStockDataByTicker() {
-        // Arrange
-        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stock));
-
-        StockDataDTO dto = StockDataDTO.builder().ticker("AAPL").currentPrice(BigDecimal.valueOf(150.00)).build();
+        when(stockDataRepository.findAllStocksVisibleInAnalysis()).thenReturn(List.of(stock));
         when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto);
 
-        // Act
-        StockDataDTO result = service.findStockDataById(1L);
+        List<StockDataDTO> result = service.findAllStocks();
 
-        // Assert
-        assertNotNull(result);
-        assertEquals("AAPL", result.getTicker());
-        verify(stockDataRepository, times(1)).findById(1L);
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst()).isEqualTo(dto);
+        verify(stockDataRepository, times(1)).findAllStocksVisibleInAnalysis();
     }
 
     @Test
-    @DisplayName("Should throw StockDataNotFoundException when ticker not found")
-    void shouldThrowStockDataNotFoundExceptionWhenTickerNotFound() {
-        // Arrange
-        when(stockDataRepository.findById(999L)).thenReturn(Optional.empty());
+    @DisplayName("Should return mapped stock data by id")
+    void shouldReturnStockDataById() {
+        Stock stock = Stock.builder().id(10L).ticker("AAPL").build();
+        StockDataDTO dto = StockDataDTO.builder().id(10L).ticker("AAPL").build();
 
-        // Act & Assert
-        assertThrows(StockDataNotFoundException.class, () -> {
-            service.findStockDataById(999L);
-        });
-        verify(stockDataRepository, times(1)).findById(999L);
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.of(stock));
+        when(stockDataDTOMapper.toDTO(stock)).thenReturn(dto);
+
+        StockDataDTO result = service.findStockDataById(10L);
+
+        assertThat(result).isEqualTo(dto);
     }
 
     @Test
-    @DisplayName("Should update stock data for existing ticker")
-    void shouldUpdateStockDataForExistingTicker() {
-        // Arrange
-        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(stock));
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
+    @DisplayName("Should update stock prices when quote is available")
+    void shouldUpdateStockDataWhenQuoteExists() {
+        Stock existing = Stock.builder().id(10L).ticker("AAPL").build();
+        Stock quote = Stock.builder()
+                .ticker("AAPL")
+                .currentPrice(BigDecimal.valueOf(180))
+                .openPrice(BigDecimal.valueOf(178))
+                .highOfDay(BigDecimal.valueOf(181))
+                .lowOfDay(BigDecimal.valueOf(177))
+                .previousClose(BigDecimal.valueOf(176))
+                .build();
 
-        // Act
-        service.updateStockData(1L);
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.of(existing));
+        when(stockProviderPort.getQuote("AAPL")).thenReturn(quote);
 
-        // Assert
-        verify(stockDataRepository, times(1)).findById(1L);
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
-        verify(stockDataRepository, times(1)).save(any());
+        service.updateStockData(10L);
+
+        verify(stockDataRepository, times(1)).save(existing);
     }
 
     @Test
-    @DisplayName("Should not update stock data when quote is null")
-    void shouldNotUpdateStockDataWhenQuoteIsNull() {
-        // Arrange
-        Stock nullStock = Stock.builder().ticker("AAPL").build();
-        when(stockDataRepository.findById(1L)).thenReturn(Optional.of(nullStock));
+    @DisplayName("Should skip stock save when quote is not available")
+    void shouldSkipUpdateWhenQuoteDoesNotExist() {
+        Stock existing = Stock.builder().id(10L).ticker("AAPL").build();
+
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.of(existing));
         when(stockProviderPort.getQuote("AAPL")).thenReturn(null);
 
-        // Act
-        service.updateStockData(1L);
+        service.updateStockData(10L);
 
-        // Assert
-        verify(stockDataRepository, times(1)).findById(1L);
-        verify(stockProviderPort, times(1)).getQuote("AAPL");
         verify(stockDataRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Should handle company profile with null lastUpdated")
-    void shouldHandleCompanyProfileWithNullLastUpdated() {
-        // Arrange
-        CompanyProfile profileWithNullLastUpdated = CompanyProfile.builder()
-                .ticker("AAPL")
-                .name("Apple Inc.")
-                .lastUpdated(null)
-                .build();
+    @DisplayName("Should delete candles when removing the last stock for ticker")
+    void shouldDeleteCandlesWhenDeletingLastStockForTicker() {
+        when(stockDataRepository.existsByTicker("AAPL")).thenReturn(false);
 
-        when(companyProfileRepository.findByTicker("AAPL")).thenReturn(Optional.of(profileWithNullLastUpdated));
-        when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(false);
-        when(stockProviderPort.getCompanyProfile("AAPL")).thenReturn(validCompanyProfile);
-        when(stockProviderPort.getQuote("AAPL")).thenReturn(stock);
-        when(strategyRepository.findById(1L)).thenReturn(Optional.of(testStrategy));
-        when(evaluateStrategyUseCase.evaluateStrategy(any(), any())).thenReturn(analysisResult);
+        service.deleteById(10L, "AAPL");
 
-        // Act
-        service.getStockData("AAPL", 1L);
-
-        // Assert
-        verify(stockProviderPort, times(1)).getCompanyProfile("AAPL");
-        verify(companyProfileRepository, times(1)).save(validCompanyProfile);
+        verify(stockDataRepository, times(1)).deleteById(10L);
+        verify(candleHistoryRepository, times(1)).deleteCandlesByTicker("AAPL");
     }
 
     @Test
-    @DisplayName("Should successfully get AI valoration for existing stock")
-    void shouldGetAIValorationForExistingStock() {
-        // Arrange
-        Long stockId = 1L;
-        String expectedValoration = "Esta acción muestra indicadores técnicos fuertes con un momentum alcista.";
-        
-        com.market.analysis.domain.model.StrategyEvaluation strategyEvaluation = 
-            com.market.analysis.domain.model.StrategyEvaluation.builder()
-                .strategyName("Test Strategy")
-                .complianceRate(BigDecimal.valueOf(85.5))
-                .summary("Strategy evaluation passed")
-                .build();
-        
-        Stock stockWithEvaluation = Stock.builder()
-                .id(stockId)
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.00))
-                .sma20(BigDecimal.valueOf(148.00))
-                .sma50(BigDecimal.valueOf(145.00))
-                .sma200(BigDecimal.valueOf(140.00))
-                .volume(1000000L)
-                .averageVolume(950000L)
-                .strategyEvaluation(strategyEvaluation)
-                .build();
+    @DisplayName("Should keep candles when stock data still exists for ticker")
+    void shouldKeepCandlesWhenTickerStillExists() {
+        when(stockDataRepository.existsByTicker("AAPL")).thenReturn(true);
 
-        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
-        when(apiIAPort.getValoration(anyString())).thenReturn(expectedValoration);
-        when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
+        service.deleteById(10L, "AAPL");
 
-        // Act
-        service.getValorationIA(stockId);
-
-        // Assert
-        verify(stockDataRepository, times(1)).findById(stockId);
-        verify(apiIAPort, times(1)).getValoration(anyString());
-        verify(stockDataRepository, times(1)).save(any(Stock.class));
+        verify(candleHistoryRepository, never()).deleteCandlesByTicker(any());
     }
 
     @Test
-    @DisplayName("Should throw exception when stock not found for AI valoration")
-    void shouldThrowExceptionWhenStockNotFoundForAIValoration() {
-        // Arrange
-        Long stockId = 999L;
-        when(stockDataRepository.findById(stockId)).thenReturn(Optional.empty());
+    @DisplayName("Should build and return candle chart data")
+    void shouldFindCandlesByStockId() {
+        Stock stock = Stock.builder().id(10L).ticker("AAPL").build();
+        CandleChartDTO chartDTO = CandleChartDTO.builder().build();
 
-        // Act & Assert
-        assertThrows(StockDataNotFoundException.class, () -> {
-            service.getValorationIA(stockId);
-        });
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.of(stock));
+        when(candleHistoryRepository.findCandlesByTicker("AAPL")).thenReturn(List.of());
+        when(candleDTOMapper.toChartDTO(stock, List.of())).thenReturn(chartDTO);
 
-        verify(stockDataRepository, times(1)).findById(stockId);
-        verify(apiIAPort, never()).getValoration(anyString());
-        verify(stockDataRepository, never()).save(any(Stock.class));
+        CandleChartDTO result = service.findCandlesByStockId(10L);
+
+        assertThat(result).isEqualTo(chartDTO);
     }
 
     @Test
-    @DisplayName("Should save stock even when AI valoration returns null")
-    void shouldSaveStockWhenAIValorationReturnsNull() {
-        // Arrange
-        Long stockId = 1L;
-        
-        com.market.analysis.domain.model.StrategyEvaluation strategyEvaluation = 
-            com.market.analysis.domain.model.StrategyEvaluation.builder()
-                .strategyName("Test Strategy")
-                .complianceRate(BigDecimal.valueOf(85.5))
-                .summary("Strategy evaluation passed")
-                .build();
-        
-        Stock stockWithEvaluation = Stock.builder()
-                .id(stockId)
-                .ticker("AAPL")
-                .currentPrice(BigDecimal.valueOf(150.00))
-                .sma20(BigDecimal.valueOf(148.00))
-                .sma50(BigDecimal.valueOf(145.00))
-                .sma200(BigDecimal.valueOf(140.00))
-                .volume(1000000L)
-                .averageVolume(950000L)
-                .strategyEvaluation(strategyEvaluation)
-                .build();
+    @DisplayName("Should throw StockDataNotFoundException when candles stock does not exist")
+    void shouldThrowWhenFindingCandlesForMissingStock() {
+        when(stockDataRepository.findById(10L)).thenReturn(Optional.empty());
 
-        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stockWithEvaluation));
-        when(apiIAPort.getValoration(anyString())).thenReturn(null);
-        when(stockDataRepository.save(any(Stock.class))).thenReturn(stockWithEvaluation);
+        assertThrows(StockDataNotFoundException.class, () -> service.findCandlesByStockId(10L));
+    }
 
-        // Act
-        service.getValorationIA(stockId);
+    @Test
+    @DisplayName("Should save generated valoration when first AI response is valid")
+    void shouldSaveValorationWhenFirstResponseIsValid() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
 
-        // Assert
-        verify(stockDataRepository, times(1)).findById(stockId);
-        verify(apiIAPort, times(1)).getValoration(anyString());
-        verify(stockDataRepository, times(1)).save(any(Stock.class));
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn("valid");
+        when(promptResponseValidator.isValid("valid")).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isTrue();
+        assertThat(stock.getValorationIA()).isEqualTo("valid");
+    }
+
+    @Test
+    @DisplayName("Should save generated valoration when retry response is valid")
+    void shouldSaveValorationWhenRetryResponseIsValid() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn("invalid");
+        when(promptResponseValidator.isValid("invalid")).thenReturn(false);
+        when(promptResponseValidator.buildRetryPrompt("prompt")).thenReturn("retry-prompt");
+        when(apiIAPort.getValoration("retry-prompt")).thenReturn("valid-retry");
+        when(promptResponseValidator.isValid("valid-retry")).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isTrue();
+        assertThat(stock.getValorationIA()).isEqualTo("valid-retry");
+    }
+
+    @Test
+    @DisplayName("Should truncate oversized prompt before requesting AI valoration")
+    void shouldTruncatePromptBeforeRequestingAiValoration() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+        String oversizedPrompt = "x".repeat(OVERSIZED_PROMPT_CHARS);
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn(oversizedPrompt);
+        when(apiIAPort.getValoration(any())).thenReturn("valid");
+        when(promptResponseValidator.isValid("valid")).thenReturn(true);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isTrue();
+        verify(apiIAPort, times(1)).getValoration(eq(oversizedPrompt.substring(0, MAX_PROMPT_CHARS)));
+    }
+
+    @Test
+    @DisplayName("Should save fallback valoration when AI request throws exception")
+    void shouldSaveFallbackWhenAiRequestThrowsException() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenThrow(new RuntimeException("boom"));
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isFalse();
+        assertThat(stock.getValorationIA())
+                .isEqualTo(IA_FALLBACK_VALORATION);
+    }
+
+    @Test
+    @DisplayName("Should save fallback valoration when responses are invalid")
+    void shouldSaveFallbackValorationWhenInvalidResponses() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn("invalid");
+        when(promptResponseValidator.isValid("invalid")).thenReturn(false);
+        when(promptResponseValidator.buildRetryPrompt("prompt")).thenReturn("retry-prompt");
+        when(apiIAPort.getValoration("retry-prompt")).thenReturn("still-invalid");
+        when(promptResponseValidator.isValid("still-invalid")).thenReturn(false);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isFalse();
+        verify(stockDataRepository, times(1)).save(stock);
+        assertThat(stock.getValorationIA())
+                .isEqualTo(IA_FALLBACK_VALORATION);
+    }
+
+    @Test
+    @DisplayName("Should throw StockDataNotFoundException when stock does not exist")
+    void shouldThrowWhenStockNotFound() {
+        when(stockDataRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(StockDataNotFoundException.class, () -> service.findStockDataById(999L));
     }
 }

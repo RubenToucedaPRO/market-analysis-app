@@ -28,7 +28,6 @@ class RuleResultTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Test description")
                 .build();
 
         // Act
@@ -57,7 +56,6 @@ class RuleResultTest {
                 .operator("<")
                 .targetCode("CONSTANT")
                 .targetParam(30.0)
-                .description("RSI oversold check")
                 .build();
 
         // Act
@@ -86,7 +84,6 @@ class RuleResultTest {
                 .operator(">")
                 .targetCode("SMA")
                 .targetParam(200.0)
-                .description("Golden cross")
                 .build();
 
         // Act
@@ -113,7 +110,6 @@ class RuleResultTest {
                 .operator(">")
                 .targetCode("AVG_VOLUME")
                 .targetParam(20.0)
-                .description("High volume check")
                 .build();
 
         RuleResult result = RuleResult.builder()
@@ -142,7 +138,6 @@ class RuleResultTest {
                 .operator(">")
                 .targetCode("SMA")
                 .targetParam(200.0)
-                .description("Price above 200-day SMA")
                 .build();
 
         RuleResult result = RuleResult.builder()

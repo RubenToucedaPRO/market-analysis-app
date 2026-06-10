@@ -21,4 +21,5 @@ public class StrategyDTO {
     private String name;
     private String description;
     private List<RuleDTO> rules;
+    private StrategyObjectiveDTO objective;
 }

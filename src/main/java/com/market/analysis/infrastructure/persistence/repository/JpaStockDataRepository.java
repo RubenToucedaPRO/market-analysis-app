@@ -3,12 +3,14 @@ package com.market.analysis.infrastructure.persistence.repository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.infrastructure.persistence.entity.StockEntity;
 
 @Repository
@@ -19,8 +21,24 @@ public interface JpaStockDataRepository extends JpaRepository<StockEntity, Long>
             "LEFT JOIN FETCH s.strategyEvaluation")
     List<StockEntity> findAllWithProfile();
 
+    @Query("SELECT s FROM StockEntity s " +
+        "LEFT JOIN FETCH s.companyProfile " +
+        "LEFT JOIN FETCH s.strategyEvaluation " +
+        "WHERE s.origin IS NULL OR s.origin = :origin")
+    List<StockEntity> findAllVisibleInAnalysis(@Param("origin") StockOrigin excludedOrigin);
+
     @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.id = :id")
     Optional<StockEntity> findByIdWithProfile(@Param("id") Long id);
 
     StockEntity findFirstByTickerAndLastUpdateBetween(String ticker, Instant start, Instant end);
+
+    @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.strategyId = :strategyId")
+    List<StockEntity> findAllByStrategyId(@Param("strategyId") Long strategyId);
+
+    @Query("SELECT s.ticker FROM StockEntity s WHERE s.strategyId = :strategyId")
+    Set<String> findTickerByStrategyId(@Param("strategyId") Long strategyId);
+
+    boolean existsByTicker(String ticker);
+
+    void deleteAllByStrategyIdAndOrigin(Long strategyId, StockOrigin origin);
 }

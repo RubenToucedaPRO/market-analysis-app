@@ -20,7 +20,6 @@ public class RuleMapper {
                 .operator(entity.getOperator())
                 .targetCode(entity.getTargetCode())
                 .targetParam(entity.getTargetParam())
-                .description(entity.getDescription())
                 .build();
     }
 
@@ -36,7 +35,6 @@ public class RuleMapper {
         entity.setOperator(domain.getOperator());
         entity.setTargetCode(domain.getTargetCode());
         entity.setTargetParam(domain.getTargetParam());
-        entity.setDescription(domain.getDescription());
         return entity;
     }
 }

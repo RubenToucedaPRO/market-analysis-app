@@ -1,6 +1,7 @@
 package com.market.analysis.domain.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -21,4 +22,12 @@ public class HistoricalData {
     List<Long> volumes;
 
     Instant lastUpdate;
+
+    /**
+     * Full OHLCV candles extracted during the same parse pass as closingPrices /
+     * volumes. Populated by the infrastructure adapter; persisted by the
+     * Application Use Case. Defaults to an empty list when not populated.
+     */
+    @Builder.Default
+    List<Candle> candles = new ArrayList<>();
 }

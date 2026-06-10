@@ -10,10 +10,12 @@ import org.springframework.web.client.RestClient;
 import com.market.analysis.domain.model.CompanyProfile;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.port.out.StockProviderPort;
+import com.market.analysis.infrastructure.config.ApiConstants;
 import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.external.finnhub.dto.CompanyData;
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
 
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +35,7 @@ public class FinnhubAdapter implements StockProviderPort {
     private String apiToken;
 
     @Override
+    @RateLimiter(name = "finnhubClient")
     public Stock getQuote(String ticker) {
         log.debug("Fetching quote for ticker: {}", ticker);
 
@@ -40,7 +43,7 @@ public class FinnhubAdapter implements StockProviderPort {
             // Sintaxis fluida, limpia y SIN .block()
             QuoteData quote = restClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/quote")
+                            .path(ApiConstants.FINNHUB_ENDPOINT_QUOTE)
                             .queryParam(SYMBOL, ticker)
                             .queryParam(TOKEN, apiToken)
                             .build())
@@ -69,12 +72,13 @@ public class FinnhubAdapter implements StockProviderPort {
     }
 
     @Override
+    @RateLimiter(name = "finnhubClient")
     public CompanyProfile getCompanyProfile(String ticker) {
 
         try {
             CompanyData profile = restClient.get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/stock/profile2")
+                            .path(ApiConstants.FINNHUB_ENDPOINT_PROFILE)
                             .queryParam(SYMBOL, ticker)
                             .queryParam(TOKEN, apiToken)
                             .build())
@@ -102,11 +106,6 @@ public class FinnhubAdapter implements StockProviderPort {
             log.warn("Error fetching profile for ticker {}: {}", ticker, e.getClass().getSimpleName());
             return null;
         }
-    }
-
-    @Override
-    public boolean hasUpComingEarnings(String ticker) {
-        return false;
     }
 
 }

@@ -32,10 +32,11 @@ public class SqlStrategyEvaluationRepository implements StrategyEvaluationReposi
     @Override
     @Transactional
     public StrategyEvaluation save(StrategyEvaluation evaluation, Stock stock) {
-        log.debug("Saving strategy evaluation for ticker: {}, strategyId: {}", evaluation.getTicker(), evaluation.getStrategyId());
+        log.debug("Saving strategy evaluation for ticker: {}, strategyId: {}", evaluation.getTicker(),
+                evaluation.getStrategyId());
 
         StockEntity managedStock = jpaStockRepository.findById(stock.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Stock no encontrado con ID: " + stock.getId()));
+                .orElseThrow(() -> new EntityNotFoundException("Stock not found with ID: " + stock.getId()));
 
         StrategyEvaluationEntity savedEntity = jpaRepository
                 .save(entityMapper.toEntity(evaluation, managedStock));

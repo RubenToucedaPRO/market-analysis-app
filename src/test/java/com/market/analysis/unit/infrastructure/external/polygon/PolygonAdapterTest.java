@@ -8,7 +8,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.net.URI;
+import java.time.Instant;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +27,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.external.polygon.PolygonAdapter;
@@ -269,7 +273,7 @@ class PolygonAdapterTest {
             // Act & Assert
             assertThatThrownBy(() -> adapter.fetchHistoricalData(ticker))
                 .isInstanceOf(PolygonException.class)
-                .hasMessageContaining("Error mapping historical data");
+                .hasMessageContaining("Error parsing API response for ticker");
         }
 
         @Test
@@ -512,6 +516,202 @@ class PolygonAdapterTest {
             // Assert
             assertThat(result.getClosingPrices()).containsExactly(100.0, 101.0, 102.0, 103.0);
             assertThat(result.getVolumes()).containsExactly(1000000L, 1100000L, 1200000L, 1300000L);
+        }
+    }
+
+    @Nested
+    @DisplayName("OHLCV Candle Parsing Tests (F1.6)")
+    class OhlcvCandleParsingTests {
+
+        private static final String FULL_OHLCV_JSON = """
+                {
+                    "ticker": "AAPL",
+                    "results": [
+                        {
+                            "v": 50000000,
+                            "o": 149.0,
+                            "c": 151.0,
+                            "h": 152.0,
+                            "l": 148.5,
+                            "t": 1707868800000
+                        },
+                        {
+                            "v": 48000000,
+                            "o": 150.0,
+                            "c": 149.0,
+                            "h": 151.0,
+                            "l": 148.0,
+                            "t": 1707782400000
+                        }
+                    ],
+                    "status": "OK"
+                }
+                """;
+
+        @Test
+        @DisplayName("Should parse full OHLCV fields into candles returned in HistoricalData")
+        void testExtractsFullOhlcv() {
+            // Arrange
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenReturn(ResponseEntity.ok(FULL_OHLCV_JSON));
+
+            // Act
+            HistoricalData result = adapter.fetchHistoricalData("AAPL");
+
+            // Assert
+            List<Candle> candles = result.getCandles();
+            assertThat(candles).hasSize(2);
+
+            assertThat(candles.get(0))
+                    .satisfies(c -> {
+                        assertThat(c.getTicker()).isEqualTo("AAPL");
+                        assertThat(c.getOpenPrice()).isEqualByComparingTo(BigDecimal.valueOf(149.0));
+                        assertThat(c.getHighPrice()).isEqualByComparingTo(BigDecimal.valueOf(152.0));
+                        assertThat(c.getLowPrice()).isEqualByComparingTo(BigDecimal.valueOf(148.5));
+                        assertThat(c.getClosePrice()).isEqualByComparingTo(BigDecimal.valueOf(151.0));
+                        assertThat(c.getVolume()).isEqualTo(50000000L);
+                        assertThat(c.getDateTime()).isEqualTo(Instant.ofEpochMilli(1707868800000L));
+                    });
+        }
+
+        @Test
+        @DisplayName("Should convert timestamp millis to Instant correctly")
+        void testConvertsTimestampToInstant() {
+            // Arrange
+            String json = """
+                    {
+                        "results": [
+                            {"o": 100.0, "h": 101.0, "l": 99.0, "c": 100.5, "v": 1000000, "t": 1672531200000}
+                        ]
+                    }
+                    """;
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenReturn(ResponseEntity.ok(json));
+
+            // Act
+            HistoricalData result = adapter.fetchHistoricalData("MSFT");
+
+            // Assert
+            assertThat(result.getCandles()).hasSize(1);
+            assertThat(result.getCandles().get(0).getDateTime())
+                    .isEqualTo(Instant.ofEpochMilli(1672531200000L));
+        }
+
+        @Test
+        @DisplayName("Should skip candles when timestamp field is missing but still collect prices")
+        void testSkipsCandleWithoutTimestamp() {
+            // Arrange
+            String json = """
+                    {
+                        "results": [
+                            {"c": 150.0, "v": 1000000},
+                            {"o": 149.0, "h": 151.0, "l": 148.0, "c": 150.5, "v": 2000000, "t": 1707868800000}
+                        ]
+                    }
+                    """;
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenReturn(ResponseEntity.ok(json));
+
+            // Act
+            HistoricalData result = adapter.fetchHistoricalData("AAPL");
+
+            // Assert: HistoricalData collects both closing prices
+            assertThat(result.getClosingPrices()).containsExactly(150.0, 150.5);
+            // Only one candle (with timestamp) is returned
+            assertThat(result.getCandles()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("Should preserve HistoricalData closing prices and volumes alongside candle extraction")
+        void testPreservesHistoricalDataContract() {
+            // Arrange
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenReturn(ResponseEntity.ok(FULL_OHLCV_JSON));
+
+            // Act
+            HistoricalData result = adapter.fetchHistoricalData("AAPL");
+
+            // Assert: HistoricalData contract unchanged
+            assertThat(result.getTicker()).isEqualTo("AAPL");
+            assertThat(result.getClosingPrices()).containsExactly(151.0, 149.0);
+            assertThat(result.getVolumes()).containsExactly(50000000L, 48000000L);
+            assertThat(result.getCandles()).hasSize(2);
+        }
+    }
+
+    @Nested
+    @DisplayName("Candle Extraction Tests (F1.7 – adapter responsibility ends at returning candles)")
+    class CandleExtractionTests {
+
+        @Test
+        @DisplayName("Should return candles in HistoricalData when response contains valid timestamps")
+        void testReturnsCandles_whenResponseHasTimestamps() {
+            // Arrange
+            String ticker = "AAPL";
+            String jsonResponse = """
+                    {
+                        "results": [
+                            {"o": 149.0, "h": 152.0, "l": 148.5, "c": 151.0, "v": 50000000, "t": 1707868800000},
+                            {"o": 150.0, "h": 151.0, "l": 148.0, "c": 149.0, "v": 48000000, "t": 1707782400000}
+                        ],
+                        "status": "OK"
+                    }
+                    """;
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenReturn(ResponseEntity.ok(jsonResponse));
+
+            // Act
+            HistoricalData result = adapter.fetchHistoricalData(ticker);
+
+            // Assert: adapter returns candles inside HistoricalData; persistence is the Use Case's concern
+            assertThat(result.getCandles()).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("Should throw PolygonException and return no data when JSON parse fails")
+        void testThrowsException_whenJsonInvalid() {
+            // Arrange
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenReturn(ResponseEntity.ok("{ invalid json }"));
+
+            // Act & Assert
+            assertThatThrownBy(() -> adapter.fetchHistoricalData("AAPL"))
+                    .isInstanceOf(PolygonException.class);
+        }
+
+        @Test
+        @DisplayName("Should throw PolygonException and return no data when HTTP call fails")
+        void testThrowsException_whenHttpError() {
+            // Arrange
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Server error"));
+
+            // Act & Assert
+            assertThatThrownBy(() -> adapter.fetchHistoricalData("AAPL"))
+                    .isInstanceOf(PolygonException.class);
+        }
+
+        @Test
+        @DisplayName("Should return empty candle list when results have no timestamps")
+        void testReturnsEmptyCandles_whenNoTimestamps() {
+            // Arrange
+            String jsonResponse = """
+                    {
+                        "results": [
+                            {"c": 150.0, "v": 1000000}
+                        ],
+                        "status": "OK"
+                    }
+                    """;
+            when(restTemplate.getForEntity(any(URI.class), eq(String.class)))
+                    .thenReturn(ResponseEntity.ok(jsonResponse));
+
+            // Act
+            HistoricalData result = adapter.fetchHistoricalData("AAPL");
+
+            // Assert: no candle created when timestamp is absent; closing prices still collected
+            assertThat(result.getCandles()).isEmpty();
+            assertThat(result.getClosingPrices()).containsExactly(150.0);
         }
     }
 }

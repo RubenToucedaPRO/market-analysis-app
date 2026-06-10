@@ -1,13 +1,17 @@
 package com.market.analysis.unit.infrastructure.persistence.repository;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +27,8 @@ import org.mockito.quality.Strictness;
 
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.infrastructure.persistence.entity.RuleDefinitionEntity;
+import com.market.analysis.infrastructure.persistence.entity.RuleEntity;
+import com.market.analysis.infrastructure.persistence.entity.StrategyEntity;
 import com.market.analysis.infrastructure.persistence.mapper.RuleDefinitionMapper;
 import com.market.analysis.infrastructure.persistence.repository.JpaRuleDefinitionRepository;
 import com.market.analysis.infrastructure.persistence.repository.JpaStrategyRepository;
@@ -67,9 +73,6 @@ class SqlRuleDefinitionRepositoryTest {
         testEntity.setName("Simple Moving Average");
         testEntity.setRequiresParam(true);
         testEntity.setDescription("Moving average over a period");
-
-        // Mock strategyRepository to return empty list by default
-        when(strategyRepository.findAll()).thenReturn(java.util.Collections.emptyList());
     }
 
     @Test
@@ -175,13 +178,63 @@ class SqlRuleDefinitionRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should delete rule definition by id")
+    @DisplayName("Should delete rule definition by id when not used in any strategy")
     void testDeleteById() {
+        // Arrange
+        when(jpaRepository.findById(1L)).thenReturn(Optional.of(testEntity));
+        when(strategyRepository.findAll()).thenReturn(Collections.emptyList());
+
         // Act
         sqlRepository.deleteById(1L);
 
         // Assert
         verify(jpaRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when rule definition is used as subject in a strategy rule")
+    void testDeleteByIdUsedAsSubject() {
+        // Arrange
+        RuleEntity ruleEntity = new RuleEntity();
+        ruleEntity.setSubjectCode("SMA");
+        ruleEntity.setTargetCode("PRICE");
+
+        StrategyEntity strategyEntity = new StrategyEntity();
+        strategyEntity.addRule(ruleEntity);
+
+        when(jpaRepository.findById(1L)).thenReturn(Optional.of(testEntity));
+        when(strategyRepository.findAll()).thenReturn(List.of(strategyEntity));
+
+        // Act & Assert
+        com.market.analysis.domain.exception.EntityInUseException exception = assertThrows(
+                com.market.analysis.domain.exception.EntityInUseException.class,
+                () -> sqlRepository.deleteById(1L));
+        assertEquals("entity.in_use", exception.getErrorCode());
+        assertArrayEquals(new Object[]{"SMA"}, exception.getParams());
+        verify(jpaRepository, never()).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when rule definition is used as target in a strategy rule")
+    void testDeleteByIdUsedAsTarget() {
+        // Arrange
+        RuleEntity ruleEntity = new RuleEntity();
+        ruleEntity.setSubjectCode("PRICE");
+        ruleEntity.setTargetCode("SMA");
+
+        StrategyEntity strategyEntity = new StrategyEntity();
+        strategyEntity.addRule(ruleEntity);
+
+        when(jpaRepository.findById(1L)).thenReturn(Optional.of(testEntity));
+        when(strategyRepository.findAll()).thenReturn(List.of(strategyEntity));
+
+        // Act & Assert
+        com.market.analysis.domain.exception.EntityInUseException exception = assertThrows(
+                com.market.analysis.domain.exception.EntityInUseException.class,
+                () -> sqlRepository.deleteById(1L));
+        assertEquals("entity.in_use", exception.getErrorCode());
+        assertArrayEquals(new Object[]{"SMA"}, exception.getParams());
+        verify(jpaRepository, never()).deleteById(1L);
     }
 
     @Test

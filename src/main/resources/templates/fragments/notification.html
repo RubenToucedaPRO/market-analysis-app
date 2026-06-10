@@ -1,0 +1,65 @@
+<div
+  th:fragment="notification"
+  th:if="${uiNotification}"
+  class="position-fixed top-0 end-0 p-3"
+  style="z-index: 1060; min-width: 350px"
+>
+  <div
+    th:classappend="'alert-' + ${uiNotification.type}"
+    class="alert alert-dismissible fade show shadow-lg border-0 js-notification-alert"
+    role="alert"
+  >
+    <div class="d-flex align-items-center">
+      <i
+        class="bi fs-5 me-3 bi-check-circle-fill"
+        th:if="${uiNotification.type == 'success'}"
+      ></i>
+      <i
+        class="bi fs-5 me-3 bi-exclamation-circle-fill"
+        th:if="${uiNotification.type == 'warning'}"
+      ></i>
+      <i
+        class="bi fs-5 me-3 bi-exclamation-triangle-fill"
+        th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
+      ></i>
+      <div>
+        <strong th:if="${uiNotification.type == 'success'}">¡Éxito!</strong>
+        <strong th:if="${uiNotification.type == 'warning'}">Parcial</strong>
+        <strong th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}">Aviso</strong>
+        <div th:text="${uiNotification.text}" class="small"></div>
+      </div>
+      <button
+        type="button"
+        class="btn-close ms-auto"
+        data-bs-dismiss="alert"
+        aria-label="Cerrar"
+      ></button>
+    </div>
+
+    <div
+      class="progress mt-2"
+      style="
+        height: 3px;
+        background-color: rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      "
+    >
+      <div
+        class="progress-bar js-notification-progress bg-success"
+        style="width: 100%"
+        th:if="${uiNotification.type == 'success'}"
+      ></div>
+      <div
+        class="progress-bar js-notification-progress bg-warning"
+        style="width: 100%"
+        th:if="${uiNotification.type == 'warning'}"
+      ></div>
+      <div
+        class="progress-bar js-notification-progress bg-danger"
+        style="width: 100%"
+        th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
+      ></div>
+    </div>
+  </div>
+  <script th:src="@{/js/notification-alert.js}"></script>
+</div>

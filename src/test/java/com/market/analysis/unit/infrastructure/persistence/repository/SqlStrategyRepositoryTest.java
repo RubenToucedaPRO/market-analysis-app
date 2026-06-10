@@ -29,8 +29,8 @@ import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.infrastructure.persistence.entity.RuleEntity;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEntity;
 import com.market.analysis.infrastructure.persistence.mapper.StrategyMapper;
-import com.market.analysis.infrastructure.persistence.repository.JpaStrategyRepository;
 import com.market.analysis.infrastructure.persistence.repository.JpaStockDataRepository;
+import com.market.analysis.infrastructure.persistence.repository.JpaStrategyRepository;
 import com.market.analysis.infrastructure.persistence.repository.SqlStrategyRepository;
 
 /**
@@ -67,7 +67,6 @@ class SqlStrategyRepositoryTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Test")
                 .build();
 
         testStrategy = Strategy.builder()
@@ -92,7 +91,7 @@ class SqlStrategyRepositoryTest {
         testEntity.setRules(new ArrayList<>(List.of(testRuleEntity)));
 
         // Mock stockDataRepository to return empty list by default
-        when(stockDataRepository.findAll()).thenReturn(java.util.Collections.emptyList());
+        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(java.util.Collections.emptyList());
     }
 
     @Test

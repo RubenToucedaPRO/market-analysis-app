@@ -71,9 +71,66 @@ public class Stock {
      * This enables strategy evaluation when ticker is added/updated.
      */
     private Long strategyId;
+    private StockOrigin origin;
 
     private StrategyEvaluation strategyEvaluation;
 
     private String valorationIA;
+
+    // EMA
+    private BigDecimal ema9;
+    private BigDecimal ema12;
+    private BigDecimal ema20;
+    private BigDecimal ema26;
+    private BigDecimal ema50;
+    private BigDecimal ema200;
+
+    // RSI
+    private BigDecimal rsi14;
+    private BigDecimal rsi30;
+
+    // MACD (derived from EMA)
+    private BigDecimal macdLine;      // EMA(12) - EMA(26)
+    private BigDecimal macdSignal;    // EMA(9) of MACD line
+    private BigDecimal macdHistogram; // macdLine - macdSignal
+
+    // Bollinger Bands (period 20)
+    private BigDecimal bbUpper20;     // SMA20 + 2*StdDev20
+    private BigDecimal bbLower20;     // SMA20 - 2*StdDev20
+
+    // ATR
+    private BigDecimal atr14;
+
+    /**
+     * Applies technical indicators to this stock snapshot.
+     *
+     * @param indicators technical indicators calculated for the same ticker; if
+     *                   null, the stock remains unchanged.
+     */
+    public void applyTechnicalIndicators(TechnicalIndicators indicators) {
+        if (indicators == null) {
+            return;
+        }
+        this.sma20 = indicators.getSma20();
+        this.sma50 = indicators.getSma50();
+        this.sma200 = indicators.getSma200();
+        this.volume = indicators.getCurrentVolume();
+        this.averageVolume = indicators.getAverageVolume();
+        this.lastUpdated = indicators.getLastUpdated();
+        this.ema9 = indicators.getEma9();
+        this.ema12 = indicators.getEma12();
+        this.ema20 = indicators.getEma20();
+        this.ema26 = indicators.getEma26();
+        this.ema50 = indicators.getEma50();
+        this.ema200 = indicators.getEma200();
+        this.rsi14 = indicators.getRsi14();
+        this.rsi30 = indicators.getRsi30();
+        this.macdLine = indicators.getMacdLine();
+        this.macdSignal = indicators.getMacdSignal();
+        this.macdHistogram = indicators.getMacdHistogram();
+        this.bbUpper20 = indicators.getBbUpper20();
+        this.bbLower20 = indicators.getBbLower20();
+        this.atr14 = indicators.getAtr14();
+    }
 
 }

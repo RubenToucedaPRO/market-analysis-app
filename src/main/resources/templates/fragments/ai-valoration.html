@@ -1,0 +1,62 @@
+<div
+  th:fragment="aiValoration(valorationIA)"
+  class="card border-0 shadow-sm mb-5"
+  th:if="${valorationIA != null}"
+>
+  <div
+    class="card-header bg-white border-0 py-3 d-flex align-items-center gap-2"
+  >
+    <i class="bi bi-stars text-info"></i>
+    <h6 class="mb-0 fw-bold">Análisis técnico</h6>
+  </div>
+  <div
+    class="card-body bg-light bg-opacity-50 p-4"
+    th:with="
+          raw=${valorationIA},
+          resumenLabel='Resumen técnico:',
+          fortalezasLabel='Fortalezas:',
+          riesgosLabel='Riesgos:',
+          conclusionLabel='Conclusión interpretativa:',
+          structured=${#strings.contains(raw, resumenLabel) and #strings.contains(raw, fortalezasLabel) and #strings.contains(raw, riesgosLabel) and #strings.contains(raw, conclusionLabel)},
+          resumen=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, resumenLabel), fortalezasLabel))},
+          fortalezas=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, fortalezasLabel), riesgosLabel))},
+          riesgos=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, riesgosLabel), conclusionLabel))},
+          conclusion=${#strings.trim(#strings.substringAfter(raw, conclusionLabel))}
+        "
+  >
+    <div class="row g-3" th:if="${structured}">
+      <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border h-100">
+          <h6 class="text-primary text-uppercase fw-bold mb-2">
+            Resumen técnico
+          </h6>
+          <p class="mb-0 lh-lg text-muted" th:text="${resumen}">Resumen</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border h-100">
+          <h6 class="text-success text-uppercase fw-bold mb-2">Fortalezas</h6>
+          <p class="mb-0 lh-lg text-muted" th:text="${fortalezas}">
+            Fortalezas
+          </p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border h-100">
+          <h6 class="text-danger text-uppercase fw-bold mb-2">Riesgos</h6>
+          <p class="mb-0 lh-lg text-muted" th:text="${riesgos}">Riesgos</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="p-3 bg-white rounded-3 border h-100">
+          <h6 class="text-info text-uppercase fw-bold mb-2">
+            Conclusión interpretativa
+          </h6>
+          <p class="mb-0 lh-lg text-muted" th:text="${conclusion}">
+            Conclusión
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

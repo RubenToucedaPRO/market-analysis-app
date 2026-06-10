@@ -24,7 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
-import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 
@@ -91,10 +91,10 @@ class ManageRuleDefinitionServiceTest {
     @DisplayName("Should throw exception when creating rule definition with null object")
     void testCreateRuleDefinitionWithNull() {
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageRuleDefinitionService.createRuleDefinition(null));
 
-        assertEquals("RuleDefinition cannot be null", exception.getMessage());
+        assertEquals("validation.rd_null", exception.getMessage());
     }
 
     @Test
@@ -109,10 +109,10 @@ class ManageRuleDefinitionServiceTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageRuleDefinitionService.createRuleDefinition(invalidRuleDefinition));
 
-        assertEquals("RuleDefinition code cannot be null or empty", exception.getMessage());
+        assertEquals("validation.rd_code_null", exception.getMessage());
     }
 
     @Test
@@ -122,10 +122,10 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.existsByCode("SMA")).thenReturn(true);
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageRuleDefinitionService.createRuleDefinition(testRuleDefinitionDTO));
 
-        assertEquals("RuleDefinition with code 'SMA' already exists", exception.getMessage());
+        assertEquals("validation.rd_exists", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsByCode("SMA");
     }
 
@@ -202,10 +202,10 @@ class ManageRuleDefinitionServiceTest {
     @DisplayName("Should throw exception when updating rule definition with null object")
     void testUpdateRuleDefinitionWithNull() {
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageRuleDefinitionService.updateRuleDefinition(null));
 
-        assertEquals("RuleDefinition cannot be null", exception.getMessage());
+        assertEquals("validation.rd_null", exception.getMessage());
     }
 
     @Test
@@ -220,10 +220,10 @@ class ManageRuleDefinitionServiceTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageRuleDefinitionService.updateRuleDefinition(invalidRuleDefinition));
 
-        assertEquals("RuleDefinition ID cannot be null for update", exception.getMessage());
+        assertEquals("validation.rd_id_null", exception.getMessage());
     }
 
     @Test
@@ -233,10 +233,10 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.existsById(1L)).thenReturn(false);
 
         // Act & Assert
-        StockDataNotFoundException exception = assertThrows(StockDataNotFoundException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageRuleDefinitionService.updateRuleDefinition(testRuleDefinitionDTO));
 
-        assertEquals("RuleDefinition not found with id: 1", exception.getMessage());
+        assertEquals("ruledefinition.not_found", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsById(1L);
     }
 
@@ -261,10 +261,10 @@ class ManageRuleDefinitionServiceTest {
         when(ruleDefinitionRepository.existsById(999L)).thenReturn(false);
 
         // Act & Assert
-        StockDataNotFoundException exception = assertThrows(StockDataNotFoundException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
                 () -> manageRuleDefinitionService.deleteRuleDefinition(999L));
 
-        assertEquals("RuleDefinition not found with id: 999", exception.getMessage());
+        assertEquals("ruledefinition.not_found", exception.getMessage());
         verify(ruleDefinitionRepository, times(1)).existsById(999L);
     }
 }
