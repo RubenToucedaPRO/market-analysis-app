@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import com.market.analysis.application.dto.RuleCapabilityDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
-import com.market.analysis.domain.exception.StockDataNotFoundException;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.RuleCapability;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.RuleDefinition;
@@ -32,18 +32,17 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public RuleDefinitionDTO createRuleDefinition(RuleDefinitionDTO ruleDefinitionDto) {
         if (ruleDefinitionDto == null) {
-            throw new IllegalArgumentException("RuleDefinition cannot be null");
+            throw new DomainValidationException("validation.rd_null");
         }
 
         if (ruleDefinitionDto.getCode() == null || ruleDefinitionDto.getCode().isBlank()) {
-            throw new IllegalArgumentException("RuleDefinition code cannot be null or empty");
+            throw new DomainValidationException("validation.rd_code_null");
         }
 
         validateAgainstCatalog(ruleDefinitionDto);
 
         if (ruleDefinitionRepository.existsByCode(ruleDefinitionDto.getCode())) {
-            throw new IllegalArgumentException(
-                    "RuleDefinition with code '" + ruleDefinitionDto.getCode() + "' already exists");
+            throw new DomainValidationException("validation.rd_exists", ruleDefinitionDto.getCode());
         }
         log.info("Creating new rule definition: {}", ruleDefinitionDto.getCode());
         RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
@@ -72,15 +71,15 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public RuleDefinitionDTO updateRuleDefinition(RuleDefinitionDTO ruleDefinitionDto) {
         if (ruleDefinitionDto == null) {
-            throw new IllegalArgumentException("RuleDefinition cannot be null");
+            throw new DomainValidationException("validation.rd_null");
         }
 
         if (ruleDefinitionDto.getId() == null) {
-            throw new IllegalArgumentException("RuleDefinition ID cannot be null for update");
+            throw new DomainValidationException("validation.rd_id_null");
         }
 
         if (!ruleDefinitionRepository.existsById(ruleDefinitionDto.getId())) {
-            throw new StockDataNotFoundException("RuleDefinition not found with id: " + ruleDefinitionDto.getId());
+            throw new DomainValidationException("ruledefinition.not_found", ruleDefinitionDto.getId());
         }
         validateAgainstCatalog(ruleDefinitionDto);
         log.info("Updating rule definition with ID: {}", ruleDefinitionDto.getId());
@@ -93,7 +92,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public void deleteRuleDefinition(Long id) {
         if (!ruleDefinitionRepository.existsById(id)) {
-            throw new StockDataNotFoundException("RuleDefinition not found with id: " + id);
+            throw new DomainValidationException("ruledefinition.not_found", id);
         }
         log.info("Deleting rule definition with ID: {}", id);
         ruleDefinitionRepository.deleteById(id);
@@ -132,9 +131,8 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         if (!RuleCapabilityCatalog.isSupported(code)) {
             log.warn("Rejected rule definition with unsupported code='{}'. Supported: {}",
                     code, RuleCapabilityCatalog.getSupportedCodes());
-            throw new IllegalArgumentException(
-                    "Rule code '" + code + "' is not supported by the rule evaluator. "
-                            + "Supported codes: " + RuleCapabilityCatalog.getSupportedCodes());
+            throw new DomainValidationException(
+                    "validation.rd_unsupported_code", code);
         }
 
         boolean catalogRequiresParam = RuleCapabilityCatalog.getCapability(code)
@@ -143,9 +141,8 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         if (dto.isRequiresParam() != catalogRequiresParam) {
             log.warn("Rejected rule definition code='{}': requiresParam={} conflicts with catalog value={}",
                     code, dto.isRequiresParam(), catalogRequiresParam);
-            throw new IllegalArgumentException(
-                    "Rule code '" + code + "' requires requiresParam=" + catalogRequiresParam
-                            + " according to the canonical catalog, but got " + dto.isRequiresParam());
+            throw new DomainValidationException(
+                    "validation.rd_param_conflict", code, catalogRequiresParam);
         }
     }
 

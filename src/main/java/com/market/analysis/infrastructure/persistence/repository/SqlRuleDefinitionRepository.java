@@ -72,9 +72,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
                     .flatMap(strategy -> strategy.getRules().stream())
                     .anyMatch(rule -> code.equals(rule.getSubjectCode()) || code.equals(rule.getTargetCode()));
             if (usedInStrategy) {
-                throw new EntityInUseException(
-                        "No se puede eliminar la definición de regla '" + code
-                                + "' porque está siendo usada en una o más estrategias.");
+                throw new EntityInUseException("entity.in_use", code);
             }
         }
         jpaRepository.deleteById(id);

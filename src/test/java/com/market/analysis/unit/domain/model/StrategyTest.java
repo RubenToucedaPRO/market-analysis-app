@@ -13,6 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.Strategy;
@@ -107,9 +108,9 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, 
+        DomainValidationException exception = assertThrows(DomainValidationException.class, 
             strategy::validateConsistency);
-        assertTrue(exception.getMessage().contains("name"));
+        assertEquals("validation.strategy_name_null", exception.getErrorCode());
     }
 
     @Test
@@ -124,9 +125,9 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, 
+        DomainValidationException exception = assertThrows(DomainValidationException.class, 
             strategy::validateConsistency);
-        assertTrue(exception.getMessage().contains("name"));
+        assertEquals("validation.strategy_name_null", exception.getErrorCode());
     }
 
     @Test
@@ -141,9 +142,9 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, 
+        DomainValidationException exception = assertThrows(DomainValidationException.class, 
             strategy::validateConsistency);
-        assertTrue(exception.getMessage().contains("description"));
+        assertEquals("validation.strategy_desc_null", exception.getErrorCode());
     }
 
     @Test
@@ -158,9 +159,9 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, 
+        DomainValidationException exception = assertThrows(DomainValidationException.class, 
             strategy::validateConsistency);
-        assertTrue(exception.getMessage().contains("at least one rule"));
+        assertEquals("validation.strategy_no_rules", exception.getErrorCode());
     }
 
     @Test
@@ -178,9 +179,9 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class, 
+        DomainValidationException exception = assertThrows(DomainValidationException.class, 
             strategy::validateConsistency);
-        assertTrue(exception.getMessage().contains("null rules"));
+        assertEquals("validation.strategy_null_rule", exception.getErrorCode());
     }
 
     @Test
@@ -245,9 +246,9 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
             strategy::validateConsistency);
-        assertTrue(exception.getMessage().contains("objective"));
+        assertEquals("validation.strategy_objective_null", exception.getErrorCode());
     }
 
     @Test
@@ -284,7 +285,9 @@ class StrategyTest {
                 .build();
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, strategy::validateConsistency);
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
+            strategy::validateConsistency);
+        assertEquals("validation.stop_loss_type_null", exception.getErrorCode());
     }
 
     @Test

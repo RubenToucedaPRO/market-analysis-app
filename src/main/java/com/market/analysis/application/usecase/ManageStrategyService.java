@@ -6,6 +6,7 @@ import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
@@ -83,7 +84,7 @@ public class ManageStrategyService implements ManageStrategyUseCase {
         log.debug("Retrieving strategy with ID: {}", strategyId);
         return strategyRepository.findById(strategyId)
                 .map(strategyMapper::toDTO)
-                .orElseThrow(() -> new RuntimeException("Strategy not found with id: " + strategyId));
+                .orElseThrow(() -> new DomainValidationException("strategy.not_found", strategyId));
     }
 
     @Override

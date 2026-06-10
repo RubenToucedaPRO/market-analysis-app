@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.DomainValidationException;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -70,25 +72,25 @@ public class Strategy {
      */
     public void validateConsistency() {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalStateException("Strategy name cannot be null or empty");
+            throw new DomainValidationException("validation.strategy_name_null");
         }
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalStateException("Strategy description cannot be null or empty");
+            throw new DomainValidationException("validation.strategy_desc_null");
         }
         if (rules == null || rules.isEmpty()) {
-            throw new IllegalStateException("Strategy must contain at least one rule");
+            throw new DomainValidationException("validation.strategy_no_rules");
         }
 
         // Validate each rule
         for (Rule rule : rules) {
             if (rule == null) {
-                throw new IllegalStateException("Strategy cannot contain null rules");
+                throw new DomainValidationException("validation.strategy_null_rule");
             }
             rule.validate();
         }
 
         if (objective == null) {
-            throw new IllegalStateException("Strategy objective cannot be null");
+            throw new DomainValidationException("validation.strategy_objective_null");
         }
         objective.validate();
     }

@@ -3,6 +3,8 @@ package com.market.analysis.domain.model;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import com.market.analysis.domain.exception.DomainValidationException;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -66,32 +68,32 @@ public class StrategyObjective {
      */
     public void validate() {
         if (targetType == null) {
-            throw new IllegalArgumentException("targetType cannot be null");
+            throw new DomainValidationException("validation.target_type_null");
         }
         if (stopLossType == null) {
-            throw new IllegalArgumentException("stopLossType cannot be null");
+            throw new DomainValidationException("validation.stop_loss_type_null");
         }
         if (targetValue == null) {
-            throw new IllegalArgumentException("targetValue cannot be null");
+            throw new DomainValidationException("validation.target_value_null");
         }
         if (stopLossValue == null) {
-            throw new IllegalArgumentException("stopLossValue cannot be null");
+            throw new DomainValidationException("validation.stop_loss_value_null");
         }
         if (capitalToRisk == null) {
-            throw new IllegalArgumentException("capitalToRisk cannot be null");
+            throw new DomainValidationException("validation.capital_to_risk_null");
         }
         if (description == null || description.isBlank()) {
-            throw new IllegalArgumentException("description cannot be null or blank");
+            throw new DomainValidationException("validation.description_null");
         }
         
         if (targetValue.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("targetValue must be greater than zero");
+            throw new DomainValidationException("validation.target_value_zero");
         }
         if (stopLossValue.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("stopLossValue must be greater than zero");
+            throw new DomainValidationException("validation.stop_loss_value_zero");
         }
         if (capitalToRisk.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("capitalToRisk must be greater than zero");
+            throw new DomainValidationException("validation.capital_to_risk_zero");
         }
 
         validateSmaPeriod(targetType, targetValue, "targetValue");
@@ -116,9 +118,8 @@ public class StrategyObjective {
                 .orElse(Set.of());
         double period = value.doubleValue();
         if (!allowedPeriods.contains(period)) {
-            throw new IllegalArgumentException(
-                    String.format("%s %s is not a valid SMA period. Allowed periods: %s",
-                            fieldName, value.stripTrailingZeros().toPlainString(), allowedPeriods));
+            throw new DomainValidationException(
+                    "validation.sma_period_invalid", fieldName, value.stripTrailingZeros().toPlainString());
         }
     }
 }

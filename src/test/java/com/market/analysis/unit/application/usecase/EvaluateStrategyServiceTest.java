@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
@@ -343,16 +344,18 @@ class EvaluateStrategyServiceTest {
                 @DisplayName("Should throw exception when strategy is null")
                 void shouldThrowExceptionWhenStrategyIsNull() {
                         assertThatThrownBy(() -> service.evaluateStrategy(null, testStock))
-                                        .isInstanceOf(IllegalArgumentException.class)
-                                        .hasMessageContaining("Strategy cannot be null");
+                                        .isInstanceOf(DomainValidationException.class)
+                                        .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                                                        .isEqualTo("validation.strategy_null"));
                 }
 
                 @Test
                 @DisplayName("Should throw exception when ticker data is null")
                 void shouldThrowExceptionWhenTickerDataIsNull() {
                         assertThatThrownBy(() -> service.evaluateStrategy(testStrategy, null))
-                                        .isInstanceOf(IllegalArgumentException.class)
-                                        .hasMessageContaining("Stock data cannot be null");
+                                        .isInstanceOf(DomainValidationException.class)
+                                        .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                                                        .isEqualTo("validation.stock_data_null"));
                 }
 
                 @Test
@@ -368,8 +371,9 @@ class EvaluateStrategyServiceTest {
 
                         // Act & Assert
                         assertThatThrownBy(() -> service.evaluateStrategy(invalidStrategy, testStock))
-                                        .isInstanceOf(IllegalStateException.class)
-                                        .hasMessageContaining("name cannot be null or empty");
+                                        .isInstanceOf(DomainValidationException.class)
+                                        .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                                                        .isEqualTo("validation.strategy_name_null"));
                 }
         }
 
@@ -612,7 +616,7 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
                                         .thenReturn(result1, result2);
                         when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
-                                        .thenThrow(new MissingIndicatorException("SMA200 missing"));
+                                        .thenThrow(new MissingIndicatorException("rule.missing_indicator"));
 
                         // Act
                         StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);

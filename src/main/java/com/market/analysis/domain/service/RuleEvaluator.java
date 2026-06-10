@@ -73,9 +73,7 @@ public class RuleEvaluator {
      */
     private BigDecimal resolveIndicator(String indicatorCode, Double param, Stock stock) {
         RuleCapability cap = RuleCapabilityCatalog.getCapability(indicatorCode)
-                .orElseThrow(() -> new RuleNotEvaluableException(
-                        "Indicator '" + indicatorCode + "' is not supported by the rule evaluator. "
-                                + "Supported codes: " + RuleCapabilityCatalog.getSupportedCodes()));
+                .orElseThrow(() -> new RuleNotEvaluableException("rule.not_evaluable"));
         return cap.resolve(param, stock);
     }
 
@@ -86,12 +84,10 @@ public class RuleEvaluator {
      */
     private boolean evaluateOperator(String operator, BigDecimal subject, BigDecimal target) {
         if (operator == null) {
-            throw new RuleNotEvaluableException(
-                    "Rule operator is null; a comparison operator is required.");
+            throw new RuleNotEvaluableException("rule.not_evaluable");
         }
         if (!RuleCapabilityCatalog.isOperatorSupported(operator)) {
-            throw new RuleNotEvaluableException(
-                    "Operator '" + operator + "' is not supported by the rule evaluator.");
+            throw new RuleNotEvaluableException("rule.not_evaluable");
         }
 
         return switch (operator.toUpperCase()) {
@@ -101,8 +97,7 @@ public class RuleEvaluator {
             case "<=", "LESS_THAN_OR_EQUAL" -> subject.compareTo(target) <= 0;
             case "=", "==", "EQUALS" -> subject.compareTo(target) == 0;
             case "!=", "NOT_EQUALS" -> subject.compareTo(target) != 0;
-            default -> throw new RuleNotEvaluableException(
-                    "Operator '" + operator + "' is not supported by the rule evaluator.");
+            default -> throw new RuleNotEvaluableException("rule.not_evaluable");
         };
     }
 

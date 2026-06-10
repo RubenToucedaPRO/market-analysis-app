@@ -1,7 +1,7 @@
 package com.market.analysis.unit.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.usecase.ManageRuleDefinitionService;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.RuleDefinition;
 import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 
@@ -50,9 +51,9 @@ class ManageRuleDefinitionServiceP0Test {
                 .requiresParam(false)
                 .build();
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
                 () -> service.createRuleDefinition(dto));
-        assertTrue(ex.getMessage().contains("VWAP"));
+        assertEquals("validation.rd_unsupported_code", ex.getErrorCode());
         verify(ruleDefinitionRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
@@ -65,9 +66,9 @@ class ManageRuleDefinitionServiceP0Test {
                 .requiresParam(false) // wrong – SMA requires a param
                 .build();
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
                 () -> service.createRuleDefinition(dto));
-        assertTrue(ex.getMessage().contains("requiresParam"));
+        assertEquals("validation.rd_param_conflict", ex.getErrorCode());
     }
 
     @Test
@@ -79,9 +80,9 @@ class ManageRuleDefinitionServiceP0Test {
                 .requiresParam(true) // wrong – PRICE has no param
                 .build();
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
                 () -> service.createRuleDefinition(dto));
-        assertTrue(ex.getMessage().contains("requiresParam"));
+        assertEquals("validation.rd_param_conflict", ex.getErrorCode());
     }
 
     @Test
@@ -143,9 +144,9 @@ class ManageRuleDefinitionServiceP0Test {
 
         when(ruleDefinitionRepository.existsById(1L)).thenReturn(true);
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
                 () -> service.updateRuleDefinition(dto));
-        assertTrue(ex.getMessage().contains("STOCH"));
+        assertEquals("validation.rd_unsupported_code", ex.getErrorCode());
     }
 
     @Test
@@ -160,8 +161,8 @@ class ManageRuleDefinitionServiceP0Test {
 
         when(ruleDefinitionRepository.existsById(1L)).thenReturn(true);
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+        DomainValidationException ex = assertThrows(DomainValidationException.class,
                 () -> service.updateRuleDefinition(dto));
-        assertTrue(ex.getMessage().contains("requiresParam"));
+        assertEquals("validation.rd_param_conflict", ex.getErrorCode());
     }
 }

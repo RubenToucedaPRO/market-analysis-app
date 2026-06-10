@@ -65,7 +65,8 @@ class RuleEvaluatorP1Test {
 
             assertThatThrownBy(() -> ruleEvaluator.evaluate(rule, stock))
                     .isInstanceOf(RuleNotEvaluableException.class)
-                    .hasMessageContaining("VWAP");
+                    .satisfies(ex -> assertThat(((RuleNotEvaluableException) ex).getErrorCode())
+                            .isEqualTo("rule.not_evaluable"));
         }
 
         @Test
@@ -80,7 +81,8 @@ class RuleEvaluatorP1Test {
 
             assertThatThrownBy(() -> ruleEvaluator.evaluate(rule, stock))
                     .isInstanceOf(RuleNotEvaluableException.class)
-                    .hasMessageContaining("STOCH");
+                    .satisfies(ex -> assertThat(((RuleNotEvaluableException) ex).getErrorCode())
+                            .isEqualTo("rule.not_evaluable"));
         }
 
         @ParameterizedTest
@@ -124,7 +126,8 @@ class RuleEvaluatorP1Test {
 
             assertThatThrownBy(() -> ruleEvaluator.evaluate(rule, stock))
                     .isInstanceOf(RuleNotEvaluableException.class)
-                    .hasMessageContaining("CROSS_ABOVE");
+                    .satisfies(ex -> assertThat(((RuleNotEvaluableException) ex).getErrorCode())
+                            .isEqualTo("rule.not_evaluable"));
         }
 
         @Test
@@ -143,7 +146,8 @@ class RuleEvaluatorP1Test {
 
             assertThatThrownBy(() -> ruleEvaluator.evaluate(rule, stock))
                     .isInstanceOf(RuleNotEvaluableException.class)
-                    .hasMessageContaining("null");
+                    .satisfies(ex -> assertThat(((RuleNotEvaluableException) ex).getErrorCode())
+                            .isEqualTo("rule.not_evaluable"));
         }
 
         @ParameterizedTest

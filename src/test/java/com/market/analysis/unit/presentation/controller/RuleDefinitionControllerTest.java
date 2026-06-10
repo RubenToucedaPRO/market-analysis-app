@@ -165,8 +165,7 @@ class RuleDefinitionControllerTest {
     @DisplayName("Should propagate EntityInUseException to GlobalExceptionHandler when rule is in use")
     void testDeleteRuleDefinitionUsedInStrategy() {
         // Arrange
-        String errorMsg = "No se puede eliminar la definición de regla 'SMA' porque está siendo usada en una o más estrategias.";
-        doThrow(new com.market.analysis.domain.exception.EntityInUseException(errorMsg))
+        doThrow(new com.market.analysis.domain.exception.EntityInUseException("entity.in_use", "SMA"))
                 .when(manageRuleDefinitionUseCase).deleteRuleDefinition(1L);
 
         // Act & Assert – exception propagates; GlobalExceptionHandler handles the redirect

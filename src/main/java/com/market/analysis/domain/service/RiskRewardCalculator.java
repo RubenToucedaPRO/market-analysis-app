@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.Stock;
@@ -103,17 +104,17 @@ public class RiskRewardCalculator {
 
         // For long positions: target should be above entry, stop should be below entry
         if (targetPrice.compareTo(entryPrice) <= 0) {
-            throw new IllegalArgumentException("Target price must be greater than entry price for long positions");
+            throw new DomainValidationException("validation.target_below_entry");
         }
         if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new IllegalArgumentException("Stop price must be less than entry price for long positions");
+            throw new DomainValidationException("validation.stop_above_entry");
         }
 
         BigDecimal potentialReward = targetPrice.subtract(entryPrice);
         BigDecimal potentialRisk = entryPrice.subtract(stopPrice);
 
         if (potentialRisk.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Potential risk must be greater than zero");
+            throw new DomainValidationException("validation.risk_zero");
         }
 
         return potentialReward.divide(potentialRisk, RATIO_SCALE, PRICE_ROUNDING);
@@ -140,13 +141,13 @@ public class RiskRewardCalculator {
         validatePositivePrice(capitalToRisk, "Capital to risk");
 
         if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new IllegalArgumentException("Stop price must be less than entry price for long positions");
+            throw new DomainValidationException("validation.stop_above_entry");
         }
 
         BigDecimal riskPerShare = entryPrice.subtract(stopPrice);
 
         if (riskPerShare.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Risk per share must be greater than zero");
+            throw new DomainValidationException("validation.risk_per_share_zero");
         }
 
         // Round DOWN to ensure we never exceed the maximum risk
@@ -183,16 +184,11 @@ public class RiskRewardCalculator {
                     .orElse(false);
 
             if (!isPeriodSupported) {
-                throw new IllegalArgumentException(
-                        String.format("SMA period %d is not supported. Only periods %s are allowed.",
-                                period, RuleCapabilityCatalog.getCapability("SMA")
-                                        .map(cap -> cap.getAllowedParams().toString())
-                                        .orElse("[]")));
+                throw new DomainValidationException(
+                        "validation.sma_period_unsupported", period);
             }
 
-            throw new MissingIndicatorException(
-                    String.format("SMA%d value is required for %s calculation but is missing in stock data for %s",
-                            period, context, stock.getTicker()));
+            throw new MissingIndicatorException("rule.missing_indicator");
         }
 
         return smaValue.setScale(PRICE_SCALE, PRICE_ROUNDING);
@@ -211,7 +207,7 @@ public class RiskRewardCalculator {
         Objects.requireNonNull(percentageValue, "Percentage value cannot be null");
 
         if (percentageValue.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Percentage value must be greater than zero");
+            throw new DomainValidationException("validation.percentage_zero");
         }
 
         BigDecimal multiplier = percentageValue.divide(BigDecimal.valueOf(100), RATIO_SCALE, PRICE_ROUNDING);

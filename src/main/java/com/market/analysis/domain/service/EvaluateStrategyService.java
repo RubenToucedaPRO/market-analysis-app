@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.AnalysisResult;
 import com.market.analysis.domain.model.Rule;
@@ -40,10 +41,10 @@ public class EvaluateStrategyService {
 
     public StrategyEvaluation evaluateStrategy(Strategy strategy, Stock stock) {
         if (strategy == null) {
-            throw new IllegalArgumentException("Strategy cannot be null");
+            throw new DomainValidationException("validation.strategy_null");
         }
         if (stock == null) {
-            throw new IllegalArgumentException("Stock data cannot be null");
+            throw new DomainValidationException("validation.stock_data_null");
         }
 
         // Validate strategy consistency

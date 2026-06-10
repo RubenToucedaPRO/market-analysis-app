@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.StrategyObjective;
 
@@ -108,8 +109,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("targetType cannot be null", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.target_type_null", exception.getErrorCode());
     }
 
     @Test
@@ -126,8 +127,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("stopLossType cannot be null", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.stop_loss_type_null", exception.getErrorCode());
     }
 
     @Test
@@ -144,8 +145,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("targetValue cannot be null", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.target_value_null", exception.getErrorCode());
     }
 
     @Test
@@ -162,8 +163,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("stopLossValue cannot be null", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.stop_loss_value_null", exception.getErrorCode());
     }
 
     @Test
@@ -180,8 +181,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("capitalToRisk cannot be null", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.capital_to_risk_null", exception.getErrorCode());
     }
 
     @Test
@@ -198,8 +199,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("description cannot be null or blank", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.description_null", exception.getErrorCode());
     }
 
     @Test
@@ -216,8 +217,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("description cannot be null or blank", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.description_null", exception.getErrorCode());
     }
 
     @Test
@@ -234,8 +235,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("targetValue must be greater than zero", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.target_value_zero", exception.getErrorCode());
     }
 
     @Test
@@ -252,8 +253,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("targetValue must be greater than zero", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.target_value_zero", exception.getErrorCode());
     }
 
     @Test
@@ -270,8 +271,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("stopLossValue must be greater than zero", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.stop_loss_value_zero", exception.getErrorCode());
     }
 
     @Test
@@ -288,8 +289,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("stopLossValue must be greater than zero", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.stop_loss_value_zero", exception.getErrorCode());
     }
 
     @Test
@@ -306,8 +307,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("capitalToRisk must be greater than zero", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.capital_to_risk_zero", exception.getErrorCode());
     }
 
     @Test
@@ -324,8 +325,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Act & Assert
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertEquals("capitalToRisk must be greater than zero", exception.getMessage());
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.capital_to_risk_zero", exception.getErrorCode());
     }
 
     @Test
@@ -489,10 +490,8 @@ class StrategyObjectiveTest {
                 .description("Invalid SMA target")
                 .build();
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertTrue(exception.getMessage().contains("targetValue"));
-        assertTrue(exception.getMessage().contains("100"));
-        assertTrue(exception.getMessage().contains("not a valid SMA period"));
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.sma_period_invalid", exception.getErrorCode());
     }
 
     @Test
@@ -507,10 +506,8 @@ class StrategyObjectiveTest {
                 .description("Invalid SMA stop-loss")
                 .build();
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertTrue(exception.getMessage().contains("stopLossValue"));
-        assertTrue(exception.getMessage().contains("15"));
-        assertTrue(exception.getMessage().contains("not a valid SMA period"));
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.sma_period_invalid", exception.getErrorCode());
     }
 
     @Test
@@ -526,9 +523,8 @@ class StrategyObjectiveTest {
                 .build();
 
         // Should fail on targetValue first
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, objective::validate);
-        assertTrue(exception.getMessage().contains("targetValue"));
-        assertTrue(exception.getMessage().contains("99"));
+        DomainValidationException exception = assertThrows(DomainValidationException.class, objective::validate);
+        assertEquals("validation.sma_period_invalid", exception.getErrorCode());
     }
 
     @Test

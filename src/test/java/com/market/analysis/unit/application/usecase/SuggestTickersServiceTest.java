@@ -27,6 +27,7 @@ import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.application.usecase.SuggestTickersService;
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
 import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Rule;
@@ -181,8 +182,9 @@ class SuggestTickersServiceTest {
                 .build();
 
         assertThatThrownBy(() -> suggestTickersService.suggestTickers(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Strategy ID is required");
+                .isInstanceOf(DomainValidationException.class)
+                .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                        .isEqualTo("validation.strategy_id_required"));
     }
 
     @Test

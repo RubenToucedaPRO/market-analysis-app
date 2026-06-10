@@ -1,8 +1,8 @@
 package com.market.analysis.domain.exception;
 
 /**
- * Domain exception thrown when a required technical indicator is missing
- * from ticker stock data.
+ * Strongly-typed business exception for domain validation errors.
+ * Decouples the domain from rendering/i18n mechanisms.
  *
  * <p>The domain throws this exception with an {@code errorCode} (unique key)
  * and optional parameters. The {@code GlobalExceptionHandler} in Presentation
@@ -10,21 +10,22 @@ package com.market.analysis.domain.exception;
  *
  * <p>Usage example:</p>
  * <pre>
- *   throw new MissingIndicatorException("rule.missing_indicator");
+ *   throw new DomainValidationException("validation.target_price_null");
+ *   throw new DomainValidationException("strategy.not_found", strategyId);
  * </pre>
  */
-public class MissingIndicatorException extends RuntimeException {
+public class DomainValidationException extends RuntimeException {
 
     private final String errorCode;
     private final transient Object[] params;
 
-    public MissingIndicatorException(String errorCode) {
+    public DomainValidationException(String errorCode) {
         super(errorCode);
         this.errorCode = errorCode;
         this.params = new Object[0];
     }
 
-    public MissingIndicatorException(String errorCode, Object... params) {
+    public DomainValidationException(String errorCode, Object... params) {
         super(errorCode);
         this.errorCode = errorCode;
         this.params = params;

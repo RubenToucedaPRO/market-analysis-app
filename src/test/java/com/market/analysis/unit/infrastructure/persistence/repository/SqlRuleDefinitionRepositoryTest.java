@@ -1,5 +1,6 @@
 package com.market.analysis.unit.infrastructure.persistence.repository;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -208,7 +209,8 @@ class SqlRuleDefinitionRepositoryTest {
         com.market.analysis.domain.exception.EntityInUseException exception = assertThrows(
                 com.market.analysis.domain.exception.EntityInUseException.class,
                 () -> sqlRepository.deleteById(1L));
-        assertTrue(exception.getMessage().contains("SMA"));
+        assertEquals("entity.in_use", exception.getErrorCode());
+        assertArrayEquals(new Object[]{"SMA"}, exception.getParams());
         verify(jpaRepository, never()).deleteById(1L);
     }
 
@@ -230,7 +232,8 @@ class SqlRuleDefinitionRepositoryTest {
         com.market.analysis.domain.exception.EntityInUseException exception = assertThrows(
                 com.market.analysis.domain.exception.EntityInUseException.class,
                 () -> sqlRepository.deleteById(1L));
-        assertTrue(exception.getMessage().contains("SMA"));
+        assertEquals("entity.in_use", exception.getErrorCode());
+        assertArrayEquals(new Object[]{"SMA"}, exception.getParams());
         verify(jpaRepository, never()).deleteById(1L);
     }
 
