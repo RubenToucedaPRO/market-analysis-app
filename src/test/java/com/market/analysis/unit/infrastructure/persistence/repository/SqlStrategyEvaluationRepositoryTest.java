@@ -133,7 +133,7 @@ class SqlStrategyEvaluationRepositoryTest {
                 repository.save(testDomainEvaluation, unknownStock);
                 org.junit.jupiter.api.Assertions.fail("Should have thrown EntityNotFoundException");
             } catch (jakarta.persistence.EntityNotFoundException e) {
-                assertThat(e.getMessage()).contains("Stock no encontrado");
+                assertThat(e.getMessage()).contains("Stock not found");
             }
         }
 

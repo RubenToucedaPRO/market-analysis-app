@@ -20,13 +20,13 @@ Identificar todos los strings hardcodeados en todas las capas del programa que d
 | StrategyNotFoundException | 🟢 Completado | Integrada en StockDataNotFoundException |
 | WebConstants.java (expansión) | 🟢 Completado | 29 constantes: model attrs, templates, redirects, error attrs |
 | messages.properties (i18n) | 🟢 Completado | ~130 líneas con todas las claves |
-| ApiConstants.java (Infrastructure) | 🔴 Pendiente | Fichero no creado |
+| ApiConstants.java (Infrastructure) | 🟢 Completado | 25+ constantes: endpoints, query params, JSON fields, CSS selectors |
 | Refactorización de Controllers | 🟢 Completado | 5 controllers refactorizados con MessageSource + WebConstants |
 | Refactorización de Domain Services | 🟢 Completado | Enums tipados integrados |
-| Refactorización de Infrastructure Adapters | 🔴 Pendiente | Ningún adaptador refactorizado |
+| Refactorización de Infrastructure Adapters | 🟢 Completado | 7 clases refactorizadas: Finnhub, Polygon, Finviz, BeanConfig, SlowQuery, ApiKeyObf, HealthCheck |
 | GlobalExceptionHandler (handlers para DomainValidationException) | 🟢 Completado | Todos los handlers usan WebConstants |
 
-**Progreso general: ~0% - Solo existe el documento de planificación**
+**Progreso general: Steps 1-4 completados (~60%). Pendiente: Domain services, Application layer, DTO migration**
 
 ---
 

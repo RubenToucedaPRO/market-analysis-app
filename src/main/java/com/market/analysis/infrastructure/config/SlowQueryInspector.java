@@ -38,26 +38,29 @@ import lombok.extern.slf4j.Slf4j;
 public class SlowQueryInspector implements StatementInspector {
 
     private static final int MAX_SQL_LOG_LENGTH = 2000;
+    private static final String SQL_WHITESPACE_PATTERN = "\\s+";
+    private static final String SENSITIVE_FIELD_PATTERN = "(?i)(password|token|secret|api[_-]?key)\\s*=\\s*['\"][^'\"]*['\"]";
+    private static final String OBFUSCATION_REPLACEMENT = "$1='*****'";
+    private static final String TRUNCATION_SUFFIX = "...";
 
     @Override
     @NonNull
     public String inspect(@NonNull String sql) {
         if (log.isDebugEnabled()) {
-            log.debug("SQL a ejecutar: {}", sanitizeSql(sql));
+            log.debug("SQL to execute: {}", sanitizeSql(sql));
         }
         return sql;
     }
 
     public String sanitizeSql(@NonNull String sql) {
-        // 1. Limpieza de espacios (Java 21 optimized)
-        String sanitized = sql.replaceAll("\\s+", " ").trim();
+        // 1. Whitespace cleanup (Java 21 optimized)
+        String sanitized = sql.replaceAll(SQL_WHITESPACE_PATTERN, " ").trim();
 
-        // 2. Ofuscación de seguridad (Clave para cumplir con la LOPD en el TFM)
-        sanitized = sanitized.replaceAll("(?i)(password|token|secret|api[_-]?key)\\s*=\\s*['\"][^'\"]*['\"]",
-                "$1='*****'");
+        // 2. Security obfuscation (Key for LOPD compliance in TFM)
+        sanitized = sanitized.replaceAll(SENSITIVE_FIELD_PATTERN, OBFUSCATION_REPLACEMENT);
 
         return sanitized.length() > MAX_SQL_LOG_LENGTH
-                ? sanitized.substring(0, MAX_SQL_LOG_LENGTH) + "..."
+                ? sanitized.substring(0, MAX_SQL_LOG_LENGTH) + TRUNCATION_SUFFIX
                 : sanitized;
     }
 }

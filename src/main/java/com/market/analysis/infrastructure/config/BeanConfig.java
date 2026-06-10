@@ -239,9 +239,9 @@ public class BeanConfig {
     public OpenAIClient openAIClient(
             @Value("${openrouter.api.key}") String apiKey) {
         return OpenAIOkHttpClient.builder()
-                .baseUrl("https://openrouter.ai/api/v1")
+                .baseUrl(ApiConstants.OPENROUTER_BASE_URL)
                 .apiKey(apiKey)
-                .putHeader("HTTP-Referer", "http://localhost:8080")
+                .putHeader(ApiConstants.OPENROUTER_HEADER_REFERER, ApiConstants.OPENROUTER_DEFAULT_REFERER)
                 .build();
     }
 }
