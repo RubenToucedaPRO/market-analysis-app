@@ -11,6 +11,7 @@ import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
 import com.market.analysis.domain.model.Stock;
@@ -53,7 +54,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
 
         int maxCandidates = resolveMaxCandidates(request.getMaxCandidates());
         Strategy strategy = strategyRepository.findById(request.getStrategyId())
-                .orElseThrow(() -> new DomainValidationException("strategy.not_found", request.getStrategyId()));
+                .orElseThrow(() -> new DomainValidationException(DomainErrorCodes.STRATEGY_NOT_FOUND, request.getStrategyId()));
 
         stockDataRepository.deleteAllByStrategyIdAndOrigin(strategy.getId(), StockOrigin.SUGGESTION_SNAPSHOT);
         suggestionSnapshotRepository.deleteAllByStrategyId(strategy.getId());
@@ -246,10 +247,10 @@ public class SuggestTickersService implements SuggestTickersUseCase {
 
     private void validateRequest(SuggestTickersRequestDTO request) {
         if (request == null) {
-            throw new DomainValidationException("validation.request_null");
+            throw new DomainValidationException(DomainErrorCodes.REQUEST_NULL);
         }
         if (request.getStrategyId() == null) {
-            throw new DomainValidationException("validation.strategy_id_required");
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_ID_REQUIRED);
         }
     }
 

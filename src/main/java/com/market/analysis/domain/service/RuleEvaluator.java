@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.RuleNotEvaluableException;
 import com.market.analysis.domain.model.EvaluationStatus;
 import com.market.analysis.domain.model.IndicatorCode;
@@ -75,7 +76,7 @@ public class RuleEvaluator {
      */
     private BigDecimal resolveIndicator(String indicatorCode, Double param, Stock stock) {
         RuleCapability cap = RuleCapabilityCatalog.getCapability(indicatorCode)
-                .orElseThrow(() -> new RuleNotEvaluableException("rule.not_evaluable"));
+                .orElseThrow(() -> new RuleNotEvaluableException(DomainErrorCodes.RULE_NOT_EVALUABLE));
         return cap.resolve(param, stock);
     }
 
@@ -86,10 +87,10 @@ public class RuleEvaluator {
      */
     private boolean evaluateOperator(String operator, BigDecimal subject, BigDecimal target) {
         if (operator == null) {
-            throw new RuleNotEvaluableException("rule.not_evaluable");
+            throw new RuleNotEvaluableException(DomainErrorCodes.RULE_NOT_EVALUABLE);
         }
         if (!RuleCapabilityCatalog.isOperatorSupported(operator)) {
-            throw new RuleNotEvaluableException("rule.not_evaluable");
+            throw new RuleNotEvaluableException(DomainErrorCodes.RULE_NOT_EVALUABLE);
         }
 
         return switch (operator.toUpperCase()) {
@@ -99,7 +100,7 @@ public class RuleEvaluator {
             case "<=", "LESS_THAN_OR_EQUAL" -> subject.compareTo(target) <= 0;
             case "=", "==", "EQUALS" -> subject.compareTo(target) == 0;
             case "!=", "NOT_EQUALS" -> subject.compareTo(target) != 0;
-            default -> throw new RuleNotEvaluableException("rule.not_evaluable");
+            default -> throw new RuleNotEvaluableException(DomainErrorCodes.RULE_NOT_EVALUABLE);
         };
     }
 

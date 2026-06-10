@@ -11,6 +11,7 @@ import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.StockDataNotFoundException;
 import com.market.analysis.domain.model.Candle;
@@ -33,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
-    private static final String TICKER_NOT_FOUND = "ticker.not_found";
     private static final String IA_FALLBACK_VALORATION = "No se pudo generar una valoración interpretativa válida en este momento. Reintenta más tarde.";
     private static final int MAX_PROMPT_CHARS = 4000;
 
@@ -56,12 +56,12 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     @Override
     public void getStockData(String tickers, Long strategyId) {
         if (strategyId == null) {
-            throw new DomainValidationException("validation.strategy_id_required");
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_ID_REQUIRED);
         }
 
         // Load the strategy
         Strategy strategy = strategyRepository.findById(strategyId)
-                .orElseThrow(() -> new DomainValidationException("strategy.not_found", strategyId));
+                .orElseThrow(() -> new DomainValidationException(DomainErrorCodes.STRATEGY_NOT_FOUND, strategyId));
 
         List<String> tickerList = parseTickers(tickers);
         List<String> validTickers = analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(tickerList);
@@ -81,13 +81,13 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     @Override
     public StockDataDTO findStockDataById(Long id) {
         return stockDataRepository.findById(id).map(stockMapper::toDTO)
-                .orElseThrow(() -> new StockDataNotFoundException(TICKER_NOT_FOUND, id));
+                .orElseThrow(() -> new StockDataNotFoundException(DomainErrorCodes.TICKER_NOT_FOUND, id));
     }
 
     @Override
     public void updateStockData(Long id) {
         Stock existingStockData = stockDataRepository.findById(id)
-                .orElseThrow(() -> new StockDataNotFoundException(TICKER_NOT_FOUND, id));
+                .orElseThrow(() -> new StockDataNotFoundException(DomainErrorCodes.TICKER_NOT_FOUND, id));
         String ticker = existingStockData.getTicker();
         Stock stock = stockProviderPort.getQuote(ticker);
         if (stock != null) {
@@ -132,7 +132,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     @Override
     public CandleChartDTO findCandlesByStockId(Long id) {
         Stock stock = stockDataRepository.findById(id)
-                .orElseThrow(() -> new StockDataNotFoundException(TICKER_NOT_FOUND, id));
+                .orElseThrow(() -> new StockDataNotFoundException(DomainErrorCodes.TICKER_NOT_FOUND, id));
         List<Candle> candles = candleHistoryRepository.findCandlesByTicker(stock.getTicker());
         return candleDTOMapper.toChartDTO(stock, candles);
     }
@@ -140,7 +140,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     @Override
     public boolean getValorationIA(Long id) {
         Stock stock = stockDataRepository.findById(id)
-                .orElseThrow(() -> new StockDataNotFoundException(TICKER_NOT_FOUND, id));
+                .orElseThrow(() -> new StockDataNotFoundException(DomainErrorCodes.TICKER_NOT_FOUND, id));
         String ticker = stock.getTicker();
         String prompt = enforcePromptSize(
                 promptBuilder.buildAnalysisPrompt(stock, stock.getStrategyEvaluation()),
@@ -194,7 +194,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
 
     private String enforcePromptSize(String prompt, String ticker, String stage) {
         if (prompt == null) {
-            throw new DomainValidationException("validation.prompt_null");
+            throw new DomainValidationException(DomainErrorCodes.PROMPT_NULL);
         }
         String safePrompt = prompt;
         if (safePrompt.length() <= MAX_PROMPT_CHARS) {

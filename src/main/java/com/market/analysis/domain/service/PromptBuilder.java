@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyEvaluation;
@@ -33,7 +34,7 @@ public class PromptBuilder {
 
     public String buildAnalysisPrompt(Stock stock, StrategyEvaluation evaluation) {
         if (stock == null) {
-            throw new DomainValidationException("validation.stock_null");
+            throw new DomainValidationException(DomainErrorCodes.STOCK_NULL);
         }
         String ticker = safe(stock.getTicker());
 

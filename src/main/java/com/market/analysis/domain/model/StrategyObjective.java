@@ -3,6 +3,7 @@ package com.market.analysis.domain.model;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 
 import lombok.Builder;
@@ -68,32 +69,32 @@ public class StrategyObjective {
      */
     public void validate() {
         if (targetType == null) {
-            throw new DomainValidationException("validation.target_type_null");
+            throw new DomainValidationException(DomainErrorCodes.TARGET_TYPE_NULL);
         }
         if (stopLossType == null) {
-            throw new DomainValidationException("validation.stop_loss_type_null");
+            throw new DomainValidationException(DomainErrorCodes.STOP_LOSS_TYPE_NULL);
         }
         if (targetValue == null) {
-            throw new DomainValidationException("validation.target_value_null");
+            throw new DomainValidationException(DomainErrorCodes.TARGET_VALUE_NULL);
         }
         if (stopLossValue == null) {
-            throw new DomainValidationException("validation.stop_loss_value_null");
+            throw new DomainValidationException(DomainErrorCodes.STOP_LOSS_VALUE_NULL);
         }
         if (capitalToRisk == null) {
-            throw new DomainValidationException("validation.capital_to_risk_null");
+            throw new DomainValidationException(DomainErrorCodes.CAPITAL_TO_RISK_NULL);
         }
         if (description == null || description.isBlank()) {
-            throw new DomainValidationException("validation.description_null");
+            throw new DomainValidationException(DomainErrorCodes.DESCRIPTION_NULL);
         }
         
         if (targetValue.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DomainValidationException("validation.target_value_zero");
+            throw new DomainValidationException(DomainErrorCodes.TARGET_VALUE_ZERO);
         }
         if (stopLossValue.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DomainValidationException("validation.stop_loss_value_zero");
+            throw new DomainValidationException(DomainErrorCodes.STOP_LOSS_VALUE_ZERO);
         }
         if (capitalToRisk.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DomainValidationException("validation.capital_to_risk_zero");
+            throw new DomainValidationException(DomainErrorCodes.CAPITAL_TO_RISK_ZERO);
         }
 
         validateSmaPeriod(targetType, targetValue, "targetValue");
@@ -119,7 +120,7 @@ public class StrategyObjective {
         double period = value.doubleValue();
         if (!allowedPeriods.contains(period)) {
             throw new DomainValidationException(
-                    "validation.sma_period_invalid", fieldName, value.stripTrailingZeros().toPlainString());
+                    DomainErrorCodes.SMA_PERIOD_INVALID, fieldName, value.stripTrailingZeros().toPlainString());
         }
     }
 }

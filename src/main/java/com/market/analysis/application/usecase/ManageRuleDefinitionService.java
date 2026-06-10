@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.market.analysis.application.dto.RuleCapabilityDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.RuleCapability;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
@@ -32,17 +33,17 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public RuleDefinitionDTO createRuleDefinition(RuleDefinitionDTO ruleDefinitionDto) {
         if (ruleDefinitionDto == null) {
-            throw new DomainValidationException("validation.rd_null");
+            throw new DomainValidationException(DomainErrorCodes.RD_NULL);
         }
 
         if (ruleDefinitionDto.getCode() == null || ruleDefinitionDto.getCode().isBlank()) {
-            throw new DomainValidationException("validation.rd_code_null");
+            throw new DomainValidationException(DomainErrorCodes.RD_CODE_NULL);
         }
 
         validateAgainstCatalog(ruleDefinitionDto);
 
         if (ruleDefinitionRepository.existsByCode(ruleDefinitionDto.getCode())) {
-            throw new DomainValidationException("validation.rd_exists", ruleDefinitionDto.getCode());
+            throw new DomainValidationException(DomainErrorCodes.RD_EXISTS, ruleDefinitionDto.getCode());
         }
         log.info("Creating new rule definition: {}", ruleDefinitionDto.getCode());
         RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
@@ -71,15 +72,15 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public RuleDefinitionDTO updateRuleDefinition(RuleDefinitionDTO ruleDefinitionDto) {
         if (ruleDefinitionDto == null) {
-            throw new DomainValidationException("validation.rd_null");
+            throw new DomainValidationException(DomainErrorCodes.RD_NULL);
         }
 
         if (ruleDefinitionDto.getId() == null) {
-            throw new DomainValidationException("validation.rd_id_null");
+            throw new DomainValidationException(DomainErrorCodes.RD_ID_NULL);
         }
 
         if (!ruleDefinitionRepository.existsById(ruleDefinitionDto.getId())) {
-            throw new DomainValidationException("ruledefinition.not_found", ruleDefinitionDto.getId());
+            throw new DomainValidationException(DomainErrorCodes.RD_NOT_FOUND, ruleDefinitionDto.getId());
         }
         validateAgainstCatalog(ruleDefinitionDto);
         log.info("Updating rule definition with ID: {}", ruleDefinitionDto.getId());
@@ -92,7 +93,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     @Override
     public void deleteRuleDefinition(Long id) {
         if (!ruleDefinitionRepository.existsById(id)) {
-            throw new DomainValidationException("ruledefinition.not_found", id);
+            throw new DomainValidationException(DomainErrorCodes.RD_NOT_FOUND, id);
         }
         log.info("Deleting rule definition with ID: {}", id);
         ruleDefinitionRepository.deleteById(id);
@@ -132,7 +133,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
             log.warn("Rejected rule definition with unsupported code='{}'. Supported: {}",
                     code, RuleCapabilityCatalog.getSupportedCodes());
             throw new DomainValidationException(
-                    "validation.rd_unsupported_code", code);
+                    DomainErrorCodes.RD_UNSUPPORTED_CODE, code);
         }
 
         boolean catalogRequiresParam = RuleCapabilityCatalog.getCapability(code)
@@ -142,7 +143,7 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
             log.warn("Rejected rule definition code='{}': requiresParam={} conflicts with catalog value={}",
                     code, dto.isRequiresParam(), catalogRequiresParam);
             throw new DomainValidationException(
-                    "validation.rd_param_conflict", code, catalogRequiresParam);
+                    DomainErrorCodes.RD_PARAM_CONFLICT, code, catalogRequiresParam);
         }
     }
 

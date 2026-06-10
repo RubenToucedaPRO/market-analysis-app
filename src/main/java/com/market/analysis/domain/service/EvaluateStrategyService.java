@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.AnalysisResult;
@@ -48,10 +49,10 @@ public class EvaluateStrategyService {
 
     public StrategyEvaluation evaluateStrategy(Strategy strategy, Stock stock) {
         if (strategy == null) {
-            throw new DomainValidationException("validation.strategy_null");
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_NULL);
         }
         if (stock == null) {
-            throw new DomainValidationException("validation.stock_data_null");
+            throw new DomainValidationException(DomainErrorCodes.STOCK_DATA_NULL);
         }
 
         strategy.validateConsistency();

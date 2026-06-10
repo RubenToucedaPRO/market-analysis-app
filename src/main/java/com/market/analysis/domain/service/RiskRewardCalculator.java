@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.Locale;
 import java.util.Objects;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.IndicatorCode;
@@ -45,9 +46,9 @@ public class RiskRewardCalculator {
      * @throws MissingIndicatorException if required SMA indicator is missing
      */
     public BigDecimal calculateTargetPrice(BigDecimal entryPrice, StrategyObjective objective, Stock stock) {
-        requireNonNull(entryPrice, "validation.entry_price_null");
-        requireNonNull(objective, "validation.strategy_objective_null");
-        requireNonNull(stock, "validation.stock_null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(objective, DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
+        requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
         validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
 
@@ -70,9 +71,9 @@ public class RiskRewardCalculator {
      * @throws MissingIndicatorException if required SMA indicator is missing
      */
     public BigDecimal calculateStopLossPrice(BigDecimal entryPrice, StrategyObjective objective, Stock stock) {
-        requireNonNull(entryPrice, "validation.entry_price_null");
-        requireNonNull(objective, "validation.strategy_objective_null");
-        requireNonNull(stock, "validation.stock_null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(objective, DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
+        requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
         validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
 
@@ -98,26 +99,26 @@ public class RiskRewardCalculator {
      *                                  mathematically inconsistent
      */
     public BigDecimal calculateRiskRewardRatio(BigDecimal entryPrice, BigDecimal targetPrice, BigDecimal stopPrice) {
-        requireNonNull(entryPrice, "validation.entry_price_null");
-        requireNonNull(targetPrice, "validation.target_price_null");
-        requireNonNull(stopPrice, "validation.stop_price_null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(targetPrice, DomainErrorCodes.TARGET_PRICE_NULL);
+        requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
 
         validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
         validatePositivePrice(targetPrice, FIELD_TARGET_PRICE);
         validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
 
         if (targetPrice.compareTo(entryPrice) <= 0) {
-            throw new DomainValidationException("validation.target_below_entry");
+            throw new DomainValidationException(DomainErrorCodes.TARGET_BELOW_ENTRY);
         }
         if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new DomainValidationException("validation.stop_above_entry");
+            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
         }
 
         BigDecimal potentialReward = targetPrice.subtract(entryPrice);
         BigDecimal potentialRisk = entryPrice.subtract(stopPrice);
 
         if (potentialRisk.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DomainValidationException("validation.risk_zero");
+            throw new DomainValidationException(DomainErrorCodes.RISK_ZERO);
         }
 
         return potentialReward.divide(potentialRisk, RATIO_SCALE, PRICE_ROUNDING);
@@ -135,22 +136,22 @@ public class RiskRewardCalculator {
      *                                  mathematically inconsistent
      */
     public BigDecimal calculatePositionSize(BigDecimal entryPrice, BigDecimal stopPrice, BigDecimal capitalToRisk) {
-        requireNonNull(entryPrice, "validation.entry_price_null");
-        requireNonNull(stopPrice, "validation.stop_price_null");
-        requireNonNull(capitalToRisk, "validation.capital_null");
+        requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
+        requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
+        requireNonNull(capitalToRisk, DomainErrorCodes.CAPITAL_NULL);
 
         validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
         validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
         validatePositivePrice(capitalToRisk, FIELD_CAPITAL_TO_RISK);
 
         if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new DomainValidationException("validation.stop_above_entry");
+            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
         }
 
         BigDecimal riskPerShare = entryPrice.subtract(stopPrice);
 
         if (riskPerShare.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DomainValidationException("validation.risk_per_share_zero");
+            throw new DomainValidationException(DomainErrorCodes.RISK_PER_SHARE_ZERO);
         }
 
         return capitalToRisk.divide(riskPerShare, 0, POSITION_ROUNDING);
@@ -171,7 +172,7 @@ public class RiskRewardCalculator {
      *                                   data
      */
     private BigDecimal resolveSmaValue(BigDecimal periodValue, Stock stock, String context) {
-        requireNonNull(periodValue, "validation.sma_period_null");
+        requireNonNull(periodValue, DomainErrorCodes.SMA_PERIOD_NULL);
 
         int period = periodValue.intValue();
 
@@ -186,10 +187,10 @@ public class RiskRewardCalculator {
 
             if (!isPeriodSupported) {
                 throw new DomainValidationException(
-                        "validation.sma_period_unsupported", period);
+                        DomainErrorCodes.SMA_PERIOD_UNSUPPORTED, period);
             }
 
-            throw new MissingIndicatorException("rule.missing_indicator");
+            throw new MissingIndicatorException(DomainErrorCodes.RULE_MISSING_INDICATOR);
         }
 
         return smaValue.setScale(PRICE_SCALE, PRICE_ROUNDING);
@@ -205,10 +206,10 @@ public class RiskRewardCalculator {
      * @return the calculated price
      */
     private BigDecimal calculatePercentagePrice(BigDecimal entryPrice, BigDecimal percentageValue, boolean isTarget) {
-        requireNonNull(percentageValue, "validation.percentage_null");
+        requireNonNull(percentageValue, DomainErrorCodes.PERCENTAGE_NULL);
 
         if (percentageValue.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DomainValidationException("validation.percentage_zero");
+            throw new DomainValidationException(DomainErrorCodes.PERCENTAGE_ZERO);
         }
 
         BigDecimal multiplier = percentageValue.divide(BigDecimal.valueOf(100), RATIO_SCALE, PRICE_ROUNDING);
@@ -226,7 +227,7 @@ public class RiskRewardCalculator {
      * @return the fixed price with proper scaling
      */
     private BigDecimal validateAndReturnFixedPrice(BigDecimal fixedPrice, String context) {
-        requireNonNull(fixedPrice, "validation.fixed_price_null");
+        requireNonNull(fixedPrice, DomainErrorCodes.FIXED_PRICE_NULL);
         validatePositivePrice(fixedPrice, context + " fixed price");
         return fixedPrice.setScale(PRICE_SCALE, PRICE_ROUNDING);
     }
