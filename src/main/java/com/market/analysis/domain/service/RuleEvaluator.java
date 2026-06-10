@@ -1,6 +1,7 @@
 package com.market.analysis.domain.service;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.util.Objects;
 
 import com.market.analysis.domain.exception.RuleNotEvaluableException;
@@ -110,7 +111,7 @@ public class RuleEvaluator {
      */
     private String buildJustification(Rule rule, BigDecimal subjectValue, BigDecimal targetValue, boolean passed) {
         String status = passed ? "PASSED" : "FAILED";
-        return String.format("%s: %s (%.2f) %s %s (%.2f)",
+        return String.format(Locale.ENGLISH, "%s: %s (%.2f) %s %s (%.2f)",
                 status,
                 formatIndicatorName(rule.getSubjectCode(), rule.getSubjectParam()),
                 subjectValue,
@@ -150,7 +151,7 @@ public class RuleEvaluator {
             case "SMA" -> String.format("SMA%d", param.intValue());
             case "EMA" -> String.format("EMA%d", param.intValue());
             case "RSI" -> String.format("RSI%d", param.intValue());
-            case "CONSTANT" -> String.format("%.2f", param);
+            case "CONSTANT" -> String.format(Locale.ENGLISH, "%.2f", param);
             default -> code;
         };
     }

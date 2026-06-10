@@ -2,6 +2,7 @@ package com.market.analysis.domain.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Locale;
 import java.util.Objects;
 
 import com.market.analysis.domain.exception.MissingIndicatorException;
@@ -256,7 +257,7 @@ public class RiskRewardCalculator {
     private void validateStopLossPrice(BigDecimal entryPrice, BigDecimal stopLossPrice) {
         if (stopLossPrice.compareTo(entryPrice) >= 0) {
             throw new IllegalArgumentException(
-                    String.format("Stop-loss price (%.2f) must be less than entry price (%.2f) for long positions",
+                    String.format(Locale.ENGLISH, "Stop-loss price (%.2f) must be less than entry price (%.2f) for long positions",
                             stopLossPrice.doubleValue(), entryPrice.doubleValue()));
         }
     }

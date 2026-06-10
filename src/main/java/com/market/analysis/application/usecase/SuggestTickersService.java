@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
@@ -20,6 +21,7 @@ import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.port.out.SuggestedTickerRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 
@@ -30,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SuggestTickersService implements SuggestTickersUseCase {
 
-    private static final int DEFAULT_MAX_CANDIDATES = 5;
+    private static final int DEFAULT_MAX_CANDIDATES = 10;
     private static final String EMPTY_FILTERS_WARNING =
             "No Finviz filters could be generated for this strategy.";
     private static final String FINVIZ_DEGRADED_WARNING =
@@ -41,6 +43,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     private final FinvizScreenerPort finvizScreenerPort;
     private final AnalyzeAndPersistStockService analyzeAndPersistStockService;
     private final SuggestionSnapshotRepository suggestionSnapshotRepository;
+    private final SuggestedTickerRepository suggestedTickerRepository;
     private final StockDataRepository stockDataRepository;
 
     @Override
@@ -86,7 +89,13 @@ public class SuggestTickersService implements SuggestTickersUseCase {
         log.info("suggest_tickers_candidates strategyId={} candidatesCount={}",
                 request.getStrategyId(),
                 Optional.ofNullable(candidates).orElse(List.of()).size());
-        List<String> validTickers = analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(candidates);
+
+        Set<String> existing = stockDataRepository.findTickerByStrategyId(strategy.getId());
+        List<String> filteredCandidates = candidates.stream()
+        .filter(ticker -> !existing.contains(ticker))
+        .toList();
+             
+        List<String> validTickers = analyzeAndPersistStockService.validateAndUpdateCompanyProfiles(filteredCandidates);
         List<SuggestedTickerDTO> suggestedTickers = Optional.ofNullable(validTickers).orElse(List.of()).stream()
                 .filter(Objects::nonNull)
                 .map(String::trim)
@@ -116,6 +125,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
                             || stock.getOrigin() == StockOrigin.STRATEGY_SUGGESTION) && stock.getStrategyEvaluation().isCompliant()) {
                 stock.setOrigin(StockOrigin.ANALYSIS);
                 stockDataRepository.save(stock);
+                suggestedTickerRepository.deleteByStrategyIdAndTicker(strategyId, stock.getTicker());
                 switched++;
             }
         }

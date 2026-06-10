@@ -3,6 +3,7 @@ package com.market.analysis.infrastructure.persistence.repository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -49,6 +50,12 @@ public class SqlStockDataRepository implements StockDataRepository {
         return jpaRepository.findAllWithProfile().stream()
                 .map(mapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<String> findTickerByStrategyId(Long strategyId) {
+        return jpaRepository.findTickerByStrategyId(strategyId);
     }
 
     @Override

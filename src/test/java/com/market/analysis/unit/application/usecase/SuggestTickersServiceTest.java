@@ -39,6 +39,7 @@ import com.market.analysis.domain.model.SuggestionSnapshot;
 import com.market.analysis.domain.port.out.FinvizScreenerPort;
 import com.market.analysis.domain.port.out.StockDataRepository;
 import com.market.analysis.domain.port.out.StrategyRepository;
+import com.market.analysis.domain.port.out.SuggestedTickerRepository;
 import com.market.analysis.domain.port.out.SuggestionSnapshotRepository;
 import com.market.analysis.domain.service.FinvizFilterMapper;
 
@@ -57,6 +58,9 @@ class SuggestTickersServiceTest {
 
     @Mock
     private StockDataRepository stockDataRepository;
+
+    @Mock
+    private SuggestedTickerRepository suggestedTickerRepository;
 
     @Mock
     private com.market.analysis.application.usecase.AnalyzeAndPersistStockService analyzeAndPersistStockService;
@@ -243,9 +247,9 @@ class SuggestTickersServiceTest {
                 Stock snapshotStock = stockWithOrigin("AAPL", StockOrigin.SUGGESTION_SNAPSHOT);
                 Stock strategySuggestionStock = stockWithOrigin("TSLA", StockOrigin.STRATEGY_SUGGESTION);
                 Stock externalStock = stockWithOrigin("MSFT", StockOrigin.ANALYSIS);
-                snapshotStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().compliant(true).build());
-                strategySuggestionStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().compliant(true).build());
-                externalStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().compliant(true).build());
+                snapshotStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().strategyId(7L).compliant(true).build());
+                strategySuggestionStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().strategyId(7L).compliant(true).build());
+                externalStock.setStrategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder().strategyId(7L).compliant(true).build());
                 when(stockDataRepository.findAllByStrategyId(7L)).thenReturn(List.of(snapshotStock, strategySuggestionStock, externalStock));
 
                 int switched = suggestTickersService.convertSuggestedTickersToAnalysis(7L);
