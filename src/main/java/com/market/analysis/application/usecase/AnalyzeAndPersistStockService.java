@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
+import com.market.analysis.domain.model.EvaluationStatus;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.model.ProhibitedTicker;
@@ -80,7 +81,7 @@ public class AnalyzeAndPersistStockService {
                     ticker,
                     strategy.getName(),
                     origin,
-                    evaluationResult.isCompliant() ? "PASSED" : "FAILED");
+                    evaluationResult.isCompliant() ? EvaluationStatus.PASSED.getStatus() : EvaluationStatus.FAILED.getStatus());
         } else {
             log.warn("No strategy evaluation generated for ticker {} and strategy '{}'", ticker, strategy.getName());
         }

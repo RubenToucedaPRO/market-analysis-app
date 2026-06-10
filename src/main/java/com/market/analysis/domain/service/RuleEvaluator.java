@@ -5,6 +5,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 import com.market.analysis.domain.exception.RuleNotEvaluableException;
+import com.market.analysis.domain.model.EvaluationStatus;
+import com.market.analysis.domain.model.IndicatorCode;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleCapability;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
@@ -105,7 +107,7 @@ public class RuleEvaluator {
      * Builds a human-readable justification for the rule evaluation result.
      */
     private String buildJustification(Rule rule, BigDecimal subjectValue, BigDecimal targetValue, boolean passed) {
-        String status = passed ? "PASSED" : "FAILED";
+        String status = passed ? EvaluationStatus.PASSED.getStatus() : EvaluationStatus.FAILED.getStatus();
         return String.format(Locale.ENGLISH, "%s: %s (%.2f) %s %s (%.2f)",
                 status,
                 formatIndicatorName(rule.getSubjectCode(), rule.getSubjectParam()),
@@ -135,7 +137,7 @@ public class RuleEvaluator {
      */
     private String formatIndicatorName(String code, Double param) {
         if (code == null) {
-            return "UNKNOWN";
+            return IndicatorCode.UNKNOWN.getCode();
         }
 
         if (param == null) {

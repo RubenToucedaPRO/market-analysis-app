@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
+import com.market.analysis.domain.model.IndicatorCode;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyObjective;
@@ -173,13 +174,13 @@ public class RiskRewardCalculator {
 
         int period = periodValue.intValue();
 
-        BigDecimal smaValue = RuleCapabilityCatalog.getCapability("SMA")
+        BigDecimal smaValue = RuleCapabilityCatalog.getCapability(IndicatorCode.SMA.getCode())
                 .map(cap -> cap.resolve((double) period, stock))
                 .orElse(null);
 
         if (smaValue == null) {
             // Distinguish between unsupported period and missing data
-            boolean isPeriodSupported = RuleCapabilityCatalog.getCapability("SMA")
+            boolean isPeriodSupported = RuleCapabilityCatalog.getCapability(IndicatorCode.SMA.getCode())
                     .map(cap -> cap.isParamAllowed((double) period))
                     .orElse(false);
 

@@ -113,7 +113,7 @@ public class StrategyObjective {
         if (type != ObjectiveType.SMA) {
             return;
         }
-        Set<Double> allowedPeriods = RuleCapabilityCatalog.getCapability("SMA")
+        Set<Double> allowedPeriods = RuleCapabilityCatalog.getCapability(IndicatorCode.SMA.getCode())
                 .map(RuleCapability::getAllowedParams)
                 .orElse(Set.of());
         double period = value.doubleValue();

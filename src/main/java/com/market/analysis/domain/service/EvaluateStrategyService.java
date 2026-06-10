@@ -10,6 +10,7 @@ import java.util.Map;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.AnalysisResult;
+import com.market.analysis.domain.model.EvaluationStatus;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
 import com.market.analysis.domain.model.Stock;
@@ -27,9 +28,6 @@ import com.market.analysis.domain.model.StrategyEvaluation;
  */
 
 public class EvaluateStrategyService {
-
-    private static final String PASSED = "PASSED";
-    private static final String FAILED = "FAILED";
 
     private final RuleEvaluator ruleEvaluator;
     private final RiskRewardCalculator riskRewardCalculator;
@@ -152,7 +150,7 @@ public class EvaluateStrategyService {
         summary.append(String.format("Strategy '%s' evaluation for %s: %s. ",
                 strategy.getName(),
                 ticker,
-                overallPassed ? PASSED : FAILED));
+                overallPassed ? EvaluationStatus.PASSED.getStatus() : EvaluationStatus.FAILED.getStatus()));
         summary.append(String.format("%d/%d rules passed.", passedCount, totalCount));
 
         if (!overallPassed) {

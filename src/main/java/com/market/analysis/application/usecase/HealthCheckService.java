@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.market.analysis.application.dto.HealthCheckResponse;
 import com.market.analysis.application.mapper.HealthCheckMapper;
 import com.market.analysis.domain.model.HealthStatus;
+import com.market.analysis.domain.model.HealthStatusCode;
 import com.market.analysis.domain.port.out.HealthCheckPort;
 
 import lombok.RequiredArgsConstructor;
@@ -71,9 +72,9 @@ public class HealthCheckService {
     private String determineOverallStatus(boolean databaseHealthy) {
         if (!databaseHealthy) {
             log.warn("Database is not healthy. Overall status: DOWN");
-            return "DOWN";
+            return HealthStatusCode.DOWN.getStatus();
         }
-        return "UP";
+        return HealthStatusCode.UP.getStatus();
     }
 
     /**
