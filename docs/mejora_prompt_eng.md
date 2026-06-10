@@ -70,7 +70,7 @@ Separar, estandarizar y robustecer la capa de análisis interpretativo por IA pa
 
 Añadir propiedades en `config/application.properties` y bindearlas en el adaptador:
 
-- `openrouter.model=google/gemma-3-4b-it:free` (o modelo objetivo)
+- `openrouter.model=google/gemma-4-31b-it:free` (o modelo objetivo)
 - `openrouter.temperature=0.7` (rango típico: 0.0–2.0; menor = más determinista)
 - `openrouter.max-tokens=500` (límite de longitud de salida para mantener concisión y coste)
 - `openrouter.top-p=0.9` (rango: 0.0–1.0; controla muestreo por núcleo)

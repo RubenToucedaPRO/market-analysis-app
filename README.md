@@ -16,7 +16,7 @@ El núcleo de la aplicación concentra la lógica de negocio y actúa como orque
 
 - **Filtrado dinámico de activos**: Mecanismo previo de selección que procesa los tickers a analizar, descartando activos de alto riesgo mediante una lista negra configurable y criterios sectoriales predefinidos.
 - **Motor de estrategias declarativas**: Motor basado en reglas técnicas (medias móviles, volumen, indicadores y patrones de velas) que permite definir y evaluar estrategias de inversión de forma desacoplada de la persistencia y de las fuentes de datos.
-- **Integración de IA generativa**: Uso de modelos de lenguaje vía OpenRouter (modelo por defecto `google/gemma-3-4b-it:free`) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
+- **Integración de IA generativa**: Uso de modelos de lenguaje vía OpenRouter (modelo por defecto `google/gemma-4-31b-it:free`) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
 - **Arquitectura Hexagonal**: Separación clara entre dominio, lógica de aplicación y adaptadores de infraestructura, incluyendo Spring Boot, la capa de persistencia con MariaDB y la integración con APIs externas.
 - **Interfaz web ligera**: Frontend desarrollado con Thymeleaf y Bootstrap 5, con apoyo puntual de JavaScript vanilla para interacciones específicas, manteniendo la lógica de presentación separada del núcleo del sistema.
 
@@ -28,7 +28,7 @@ La aplicación está construida para ser desplegada en **Railway**, enfocándose
 - **Gestión de Datos:** Integración híbrida de APIs:
     - **Finnhub:** Datos de perfil, precios en tiempo real y calendario de ganancias.
     - **Polygon.io:** Extracción de indicadores técnicos y métricas de volumen.
-    - **OpenRouter (modelo `google/gemma-3-4b-it:free`):** Análisis cualitativo avanzado.
+    - **OpenRouter (modelo `google/gemma-4-31b-it:free`):** Análisis cualitativo avanzado.
 
 
 ### Flujo de Procesamiento y Análisis
@@ -79,7 +79,7 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
   Sistema gestor de base de datos relacional destinado al entorno productivo.
 
 ### Integración de IA
-- **OpenRouter (modelo `google/gemma-3-4b-it:free`)**  
+- **OpenRouter (modelo `google/gemma-4-31b-it:free`)**  
   Servicio externo utilizado para la generación de análisis interpretativo.
 - **Prompt engineering controlado**  
   Construcción de prompts basada exclusivamente en resultados cuantitativos generados por el sistema, sin impacto en la lógica de evaluación determinista.

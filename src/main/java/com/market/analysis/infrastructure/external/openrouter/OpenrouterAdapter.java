@@ -24,7 +24,7 @@ public class OpenrouterAdapter implements ApiIAPort {
     private final OpenAIClient client;
 
     public OpenrouterAdapter(
-            @Value("${openrouter.model:google/gemma-3-4b-it:free}") String model,
+            @Value("${openrouter.model:google/gemma-4-31b-it:free}") String model,
             @Value("${openrouter.temperature:0.7}") double temperature,
             @Value("${openrouter.max-tokens:500}") long maxTokens,
             @Value("${openrouter.top-p:0.9}") double topP,

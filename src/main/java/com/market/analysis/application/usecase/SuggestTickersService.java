@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SuggestTickersService implements SuggestTickersUseCase {
 
-    private static final int DEFAULT_MAX_CANDIDATES = 100;
+    private static final int DEFAULT_MAX_CANDIDATES = 10;
     private static final String EMPTY_FILTERS_WARNING =
             "No Finviz filters could be generated for this strategy.";
     private static final String FINVIZ_DEGRADED_WARNING =

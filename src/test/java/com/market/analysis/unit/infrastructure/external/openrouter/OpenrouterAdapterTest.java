@@ -32,7 +32,7 @@ import com.openai.models.chat.completions.ChatCompletionCreateParams;
 @ExtendWith(MockitoExtension.class)
 class OpenrouterAdapterTest {
 
-    private static final String TEST_MODEL = "google/gemma-3-4b-it:free";
+    private static final String TEST_MODEL = "google/gemma-4-31b-it:free";
     private static final double TEST_TEMPERATURE = 0.7d;
     private static final long TEST_MAX_TOKENS = 500L;
     private static final double TEST_TOP_P = 0.9d;
