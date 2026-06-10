@@ -47,4 +47,12 @@ public interface JpaCandleRepository extends JpaRepository<CandleEntity, Long> {
      */
     boolean existsByTicker(String ticker);
 
+    /**
+     * Deletes candles that are not associated with any ticker analysis.
+     * This is a cleanup operation to prevent orphaned records.
+     */
+    @Modifying(clearAutomatically = true)
+    @Query(value = "DELETE FROM candles WHERE ticker NOT IN (SELECT DISTINCT ticker FROM stocks)", nativeQuery = true)
+    void deleteOrphans();
+
 }

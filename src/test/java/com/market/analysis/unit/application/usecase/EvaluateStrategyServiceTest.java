@@ -88,7 +88,6 @@ class EvaluateStrategyServiceTest {
                                 .operator(">")
                                 .targetCode("SMA")
                                 .targetParam(20.0)
-                                .description("Price should be above SMA20")
                                 .build();
 
                 rule2 = Rule.builder()
@@ -97,7 +96,6 @@ class EvaluateStrategyServiceTest {
                                 .subjectCode("VOLUME")
                                 .operator(">")
                                 .targetCode("AVG_VOLUME")
-                                .description("Volume should exceed average")
                                 .build();
 
                 testStrategy = Strategy.builder()

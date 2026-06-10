@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.market.analysis.domain.exception.EntityInUseException;
 import com.market.analysis.domain.model.Strategy;
 import com.market.analysis.domain.port.out.StrategyRepository;
 import com.market.analysis.infrastructure.persistence.entity.StrategyEntity;
@@ -21,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SqlStrategyRepository implements StrategyRepository { // Tu interfaz de dominio
 
     private final JpaStrategyRepository jpaRepository;
-    private final JpaStockDataRepository stockDataRepository;
     private final StrategyMapper mapper;
 
     @Override
@@ -65,10 +63,6 @@ public class SqlStrategyRepository implements StrategyRepository { // Tu interfa
     @Transactional
     public void deleteById(Long id) {
         log.debug("Deleting strategy with ID: {}", id);
-        if (stockDataRepository.findAll().stream()
-                .anyMatch(stock -> stock.getStrategyId() != null && stock.getStrategyId().equals(id))) {
-            throw new EntityInUseException("No se puede eliminar la estrategia porque tiene stocks asociados.");
-        }
         jpaRepository.deleteById(id);
         log.debug("Strategy deleted successfully with ID: {}", id);
     }

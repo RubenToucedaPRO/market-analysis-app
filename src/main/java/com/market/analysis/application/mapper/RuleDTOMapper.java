@@ -33,7 +33,6 @@ public class RuleDTOMapper {
                 .operator(rule.getOperator())
                 .targetCode(rule.getTargetCode())
                 .targetParam(rule.getTargetParam())
-                .description(rule.getDescription())
                 .build();
     }
 
@@ -56,7 +55,6 @@ public class RuleDTOMapper {
                 .operator(dto.getOperator())
                 .targetCode(dto.getTargetCode())
                 .targetParam(dto.getTargetParam())
-                .description(dto.getDescription())
                 .build();
     }
 

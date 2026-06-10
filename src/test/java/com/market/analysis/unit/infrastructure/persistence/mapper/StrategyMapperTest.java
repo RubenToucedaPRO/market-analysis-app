@@ -53,7 +53,6 @@ class StrategyMapperTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                .description("Test")
                 .build();
 
         testRuleEntity = new RuleEntity();
@@ -63,7 +62,6 @@ class StrategyMapperTest {
         testRuleEntity.setOperator(">");
         testRuleEntity.setTargetCode("CONSTANT");
         testRuleEntity.setTargetParam(100.0);
-        testRuleEntity.setDescription("Test");
     }
 
     @Test

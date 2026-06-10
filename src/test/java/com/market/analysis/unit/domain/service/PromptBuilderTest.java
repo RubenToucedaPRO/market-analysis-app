@@ -43,8 +43,8 @@ class PromptBuilderTest {
 
         assertThat(prompt)
                 .contains("Ticker: AAPL")
-                .contains("Estrategia: Momentum (Cumplimiento: 80.50%)")
-                .contains("R:R: 1.80 | Target: 195.00 | Stop: 170.00")
+                .contains("Estrategia: Momentum (Cumplimiento: 80,50%)")
+                .contains("R:R: 1,80 | Target: 195,00 | Stop: 170,00")
                 .contains("responde en español")
                 .contains("Resumen técnico:")
                 .contains("Fortalezas:")

@@ -52,11 +52,6 @@ public class Rule {
     private final Double targetParam;
 
     /**
-     * Description of the rule and its purpose.
-     */
-    private final String description;
-
-    /**
      * Validates that this rule is evaluable by the rule engine.
      * Checks that subject code, target code, their respective parameters,
      * the operator, and the role constraints (subject / target allowed) are
