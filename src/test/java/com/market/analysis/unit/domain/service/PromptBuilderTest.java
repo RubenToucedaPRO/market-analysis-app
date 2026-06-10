@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyEvaluation;
 import com.market.analysis.domain.service.PromptBuilder;
@@ -73,7 +74,8 @@ class PromptBuilderTest {
     @DisplayName("Should throw exception when stock is null")
     void shouldThrowExceptionWhenStockIsNull() {
         assertThatThrownBy(() -> promptBuilder.buildAnalysisPrompt(null, null))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessage("Stock cannot be null");
+                .isInstanceOf(DomainValidationException.class)
+                .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                        .isEqualTo("validation.stock_null"));
     }
 }

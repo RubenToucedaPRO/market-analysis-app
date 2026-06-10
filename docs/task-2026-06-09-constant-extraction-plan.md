@@ -22,11 +22,11 @@ Identificar todos los strings hardcodeados en todas las capas del programa que d
 | messages.properties (i18n) | 🟢 Completado | ~130 líneas con todas las claves |
 | ApiConstants.java (Infrastructure) | 🟢 Completado | 25+ constantes: endpoints, query params, JSON fields, CSS selectors |
 | Refactorización de Controllers | 🟢 Completado | 5 controllers refactorizados con MessageSource + WebConstants |
-| Refactorización de Domain Services | 🟢 Completado | Enums tipados integrados |
+| Refactorización de Domain Services | 🟢 Completado | Todos los services usan DomainValidationException + Enums |
 | Refactorización de Infrastructure Adapters | 🟢 Completado | 7 clases refactorizadas: Finnhub, Polygon, Finviz, BeanConfig, SlowQuery, ApiKeyObf, HealthCheck |
 | GlobalExceptionHandler (handlers para DomainValidationException) | 🟢 Completado | Todos los handlers usan WebConstants |
 
-**Progreso general: Steps 1-4 completados (~60%). Pendiente: Domain services, Application layer, DTO migration**
+**Progreso general: Steps 1-5 completados (~75%). Pendiente: Application layer refactoring (sections 3.1-3.8)**
 
 ---
 

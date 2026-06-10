@@ -18,6 +18,8 @@ import com.market.analysis.domain.model.Strategy;
  */
 public class FinvizFilterMapperImpl implements FinvizFilterMapper {
 
+    private static final String NULL_RULE_LABEL = "NULL_RULE";
+
     private static final Set<String> THOUSAND_SCALED_SUBJECTS = Set.of(
             IndicatorCode.VOLUME.getCode(), IndicatorCode.AVG_VOLUME.getCode());
     private static final Set<String> STATIC_VALUE_TARGETS = Set.of(
@@ -78,8 +80,8 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
 
         for (Rule rule : rules) {
             if (rule == null) {
-                unmappableRules.add("NULL_RULE");
-                warnings.add("Rule 'NULL_RULE' cannot be mapped to Finviz filters.");
+                unmappableRules.add(NULL_RULE_LABEL);
+                warnings.add("Rule '" + NULL_RULE_LABEL + "' cannot be mapped to Finviz filters.");
                 continue;
             }
 

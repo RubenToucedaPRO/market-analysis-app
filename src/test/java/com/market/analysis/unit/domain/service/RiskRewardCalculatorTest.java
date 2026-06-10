@@ -222,8 +222,9 @@ class RiskRewardCalculatorTest {
 
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateTargetPrice(null, objective, testStock))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Entry price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.entry_price_null"));
         }
 
         @Test
@@ -466,8 +467,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(null, 
                     BigDecimal.valueOf(110), BigDecimal.valueOf(95)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Entry price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.entry_price_null"));
         }
 
         @Test
@@ -476,8 +478,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(BigDecimal.valueOf(100), 
                     null, BigDecimal.valueOf(95)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Target price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.target_price_null"));
         }
 
         @Test
@@ -564,8 +567,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(null, 
                     BigDecimal.valueOf(95), BigDecimal.valueOf(1000)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Entry price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.entry_price_null"));
         }
 
         @Test
@@ -574,8 +578,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(BigDecimal.valueOf(100), 
                     null, BigDecimal.valueOf(1000)))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Stop price cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.stop_price_null"));
         }
 
         @Test
@@ -584,8 +589,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(BigDecimal.valueOf(100), 
                     BigDecimal.valueOf(95), null))
-                    .isInstanceOf(NullPointerException.class)
-                    .hasMessageContaining("Capital to risk cannot be null");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.capital_null"));
         }
 
         @Test
