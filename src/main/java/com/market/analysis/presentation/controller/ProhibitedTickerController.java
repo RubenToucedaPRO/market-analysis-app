@@ -1,6 +1,5 @@
 package com.market.analysis.presentation.controller;
 
-import java.util.List;
 import java.util.Locale;
 
 import org.springframework.context.MessageSource;
@@ -15,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.ProhibitedKeywordDTO;
 import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.presentation.dto.UiNotification;
@@ -38,17 +38,28 @@ public class ProhibitedTickerController {
     private final MessageSource messageSource;
 
     @GetMapping
-    public String listProhibitedTickers(Model model) {
-        List<ProhibitedTickerDTO> prohibitedTickers = manageProhibitedTickerUseCase.getAllProhibitedTickers();
-        List<ProhibitedKeywordDTO> prohibitedKeywords = manageProhibitedKeywordUseCase.getAllProhibitedKeywords();
+    public String listProhibitedTickers(
+            @RequestParam(value = "tickerPage", defaultValue = "0") int tickerPage,
+            @RequestParam(value = "keywordPage", defaultValue = "0") int keywordPage,
+            Model model) {
+        tickerPage = Math.max(0, tickerPage);
+        keywordPage = Math.max(0, keywordPage);
+        int pageSize = WebConstants.DEFAULT_PAGE_SIZE;
+        PageResult<ProhibitedTickerDTO> tickerPageResult =
+                manageProhibitedTickerUseCase.getProhibitedTickers(tickerPage, pageSize);
+        PageResult<ProhibitedKeywordDTO> keywordPageResult =
+                manageProhibitedKeywordUseCase.getProhibitedKeywords(keywordPage, pageSize);
 
-        model.addAttribute(WebConstants.ATTR_PROHIBITED_TICKERS, prohibitedTickers);
-        model.addAttribute(WebConstants.ATTR_PROHIBITED_KEYWORDS, prohibitedKeywords);
+        model.addAttribute(WebConstants.ATTR_TICKER_PAGE, tickerPageResult);
+        model.addAttribute(WebConstants.ATTR_KEYWORD_PAGE, keywordPageResult);
         return WebConstants.TEMPLATE_PROHIBITED_TICKERS_LIST;
     }
 
     @PostMapping("/delete")
-    public String deleteProhibitedTicker(@RequestParam("ticker") String ticker,
+    public String deleteProhibitedTicker(
+            @RequestParam("ticker") String ticker,
+            @RequestParam(value = "tickerPage", defaultValue = "0") int tickerPage,
+            @RequestParam(value = "keywordPage", defaultValue = "0") int keywordPage,
             RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
         manageProhibitedTickerUseCase.removeProhibitedTicker(ticker);
@@ -56,38 +67,41 @@ public class ProhibitedTickerController {
                 new Object[] { ticker }, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success(message));
-        return WebConstants.REDIRECT_PROHIBITED_TICKERS;
+        return WebConstants.REDIRECT_PROHIBITED_TICKERS
+                + "?tickerPage=" + tickerPage + "&keywordPage=" + keywordPage;
     }
 
     @PostMapping("/keywords")
-    public String addProhibitedKeyword(@RequestParam("keyword") String keyword, RedirectAttributes redirectAttributes) {
+    public String addProhibitedKeyword(
+            @RequestParam("keyword") String keyword,
+            @RequestParam(value = "tickerPage", defaultValue = "0") int tickerPage,
+            @RequestParam(value = "keywordPage", defaultValue = "0") int keywordPage,
+            RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
-        String displayKeyword = keyword == null ? "" : keyword.trim();
-        try {
-            manageProhibitedKeywordUseCase
-                    .addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword(displayKeyword).build());
-            String message = messageSource.getMessage("prohibited.tickers.keyword.added",
-                    new Object[] { displayKeyword }, locale);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success(message));
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.error(ex.getMessage()));
-        }
-        return WebConstants.REDIRECT_PROHIBITED_TICKERS;
+        manageProhibitedKeywordUseCase
+                .addProhibitedKeyword(ProhibitedKeywordDTO.builder().keyword(keyword).build());
+        String message = messageSource.getMessage("prohibited.tickers.keyword.added",
+                new Object[] { keyword }, locale);
+        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_PROHIBITED_TICKERS
+                + "?tickerPage=" + tickerPage + "&keywordPage=" + keywordPage;
     }
 
     @PostMapping("/keywords/delete")
-    public String deleteProhibitedKeyword(@RequestParam("keyword") String keyword,
+    public String deleteProhibitedKeyword(
+            @RequestParam("keyword") String keyword,
+            @RequestParam(value = "tickerPage", defaultValue = "0") int tickerPage,
+            @RequestParam(value = "keywordPage", defaultValue = "0") int keywordPage,
             RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
-        String displayKeyword = keyword == null ? "" : keyword.trim();
-        manageProhibitedKeywordUseCase.removeProhibitedKeyword(displayKeyword);
+        manageProhibitedKeywordUseCase.removeProhibitedKeyword(keyword);
         String message = messageSource.getMessage("prohibited.tickers.keyword.removed",
-                new Object[] { displayKeyword }, locale);
+                new Object[] { keyword }, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success(message));
-        return WebConstants.REDIRECT_PROHIBITED_TICKERS;
+        return WebConstants.REDIRECT_PROHIBITED_TICKERS
+                + "?tickerPage=" + tickerPage + "&keywordPage=" + keywordPage;
     }
 
 }

@@ -1,8 +1,6 @@
 package com.market.analysis.unit.application.usecase;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -10,8 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,49 +49,6 @@ class ManageProhibitedTickerServiceTest {
                 .reason("Inappropriate content")
                 .createdAt(Instant.now().minus(40, ChronoUnit.DAYS))
                 .build();
-    }
-
-    @Test
-    @DisplayName("Should get all prohibited tickers")
-    void testGetAllProhibitedTickers() {
-        // Arrange
-        ProhibitedTicker ticker1 = new ProhibitedTicker("AAPL", "Inappropriate content",
-                Instant.now().minus(40, ChronoUnit.DAYS));
-        ProhibitedTicker ticker2 = new ProhibitedTicker("GOOGL", "Inappropriate content",
-                Instant.now().minus(2, ChronoUnit.DAYS));
-
-        ProhibitedTickerDTO dto1 = ProhibitedTickerDTO.builder().ticker("AAPL").build();
-        ProhibitedTickerDTO dto2 = ProhibitedTickerDTO.builder().ticker("GOOGL").build();
-
-        List<ProhibitedTicker> tickers = Arrays.asList(ticker1, ticker2);
-        when(prohibitedTickerRepository.findAll()).thenReturn(tickers);
-        when(prohibitedTickerDTOMapper.toDTO(ticker1)).thenReturn(dto1);
-        when(prohibitedTickerDTOMapper.toDTO(ticker2)).thenReturn(dto2);
-
-        // Act
-        List<ProhibitedTickerDTO> result = manageProhibitedTickerService.getAllProhibitedTickers();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertEquals("AAPL", result.get(0).getTicker());
-        assertEquals("GOOGL", result.get(1).getTicker());
-        verify(prohibitedTickerRepository, times(1)).findAll();
-    }
-
-    @Test
-    @DisplayName("Should return empty list when no prohibited tickers exist")
-    void testGetAllProhibitedTickersEmpty() {
-        // Arrange
-        when(prohibitedTickerRepository.findAll()).thenReturn(Arrays.asList());
-
-        // Act
-        List<ProhibitedTickerDTO> result = manageProhibitedTickerService.getAllProhibitedTickers();
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(0, result.size());
-        verify(prohibitedTickerRepository, times(1)).findAll();
     }
 
     @Test

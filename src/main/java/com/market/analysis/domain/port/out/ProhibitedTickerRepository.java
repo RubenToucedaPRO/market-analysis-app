@@ -2,6 +2,7 @@ package com.market.analysis.domain.port.out;
 
 import java.util.List;
 
+import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedTicker;
 
 /**
@@ -28,6 +29,15 @@ public interface ProhibitedTickerRepository {
      * @return List of ProhibitedTicker representing prohibited tickers.
      */
     public List<ProhibitedTicker> findAll();
+
+    /**
+     * Retrieves a paginated subset of prohibited tickers from the database.
+     *
+     * @param pageNumber zero-based page index
+     * @param pageSize   number of items per page
+     * @return PageResult containing the page content and pagination metadata
+     */
+    public PageResult<ProhibitedTicker> findAll(int pageNumber, int pageSize);
 
     /**
      * Checks if a ticker is prohibited by searching for it in the database.

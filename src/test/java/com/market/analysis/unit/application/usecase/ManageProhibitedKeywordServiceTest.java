@@ -11,7 +11,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,22 +39,6 @@ class ManageProhibitedKeywordServiceTest {
 
     @InjectMocks
     private ManageProhibitedKeywordService manageProhibitedKeywordService;
-
-    @Test
-    @DisplayName("Should get all prohibited keywords")
-    void shouldGetAllProhibitedKeywords() {
-        ProhibitedKeyword domain = ProhibitedKeyword.builder().keyword("ETF").active(true).build();
-        ProhibitedKeywordDTO dto = ProhibitedKeywordDTO.builder().keyword("ETF").active(true).build();
-        when(prohibitedKeywordRepository.findAll()).thenReturn(List.of(domain));
-        when(prohibitedKeywordMapper.toDTO(domain)).thenReturn(dto);
-
-        List<ProhibitedKeywordDTO> result = manageProhibitedKeywordService.getAllProhibitedKeywords();
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("ETF", result.getFirst().getKeyword());
-        verify(prohibitedKeywordRepository, times(1)).findAll();
-    }
 
     @Test
     @DisplayName("Should normalize keyword when checking if prohibited")

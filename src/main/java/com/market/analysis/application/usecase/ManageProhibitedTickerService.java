@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.market.analysis.application.dto.ProhibitedTickerDTO;
 import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
+import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
@@ -24,8 +25,13 @@ public class ManageProhibitedTickerService implements ManageProhibitedTickerUseC
     private final ProhibitedTickerDTOMapper prohibitedTickerMapper;
 
     @Override
-    public List<ProhibitedTickerDTO> getAllProhibitedTickers() {
-        return prohibitedTickerRepository.findAll().stream() .map(prohibitedTickerMapper::toDTO) .toList();
+    public PageResult<ProhibitedTickerDTO> getProhibitedTickers(int pageNumber, int pageSize) {
+        PageResult<ProhibitedTicker> page = prohibitedTickerRepository.findAll(pageNumber, pageSize);
+        List<ProhibitedTickerDTO> dtos = page.content().stream()
+                .map(prohibitedTickerMapper::toDTO)
+                .toList();
+        return new PageResult<>(dtos, page.pageNumber(), page.pageSize(),
+                page.totalElements(), page.totalPages());
     }
 
     @Override

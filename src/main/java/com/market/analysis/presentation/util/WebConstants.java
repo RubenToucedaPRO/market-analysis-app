@@ -22,6 +22,9 @@ public final class WebConstants {
     public static final String ATTR_SUGGESTED_AT = "suggestedAt";
     public static final String ATTR_PROHIBITED_TICKERS = "prohibitedTickers";
     public static final String ATTR_PROHIBITED_KEYWORDS = "prohibitedKeywords";
+    public static final String ATTR_TICKER_PAGE = "tickerPage";
+    public static final String ATTR_KEYWORD_PAGE = "keywordPage";
+    public static final int DEFAULT_PAGE_SIZE = 10;
 
     // ── Flash Attributes ────────────────────────────────────────────────
     public static final String UI_NOTIFICATION_KEY = "uiNotification";
