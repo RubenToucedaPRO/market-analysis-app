@@ -32,7 +32,6 @@ import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
 import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.model.PageResult;
-import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.presentation.controller.ProhibitedTickerController;
@@ -59,8 +58,6 @@ class ProhibitedTickerControllerTest {
     @MockitoBean
     private ProhibitedTickerDTOMapper mapper;
 
-    private ProhibitedTicker testProhibitedTicker1;
-    private ProhibitedTicker testProhibitedTicker2;
     private ProhibitedTickerDTO testDTO1;
     private ProhibitedTickerDTO testDTO2;
     private ProhibitedKeywordDTO testKeywordDTO1;
@@ -68,9 +65,6 @@ class ProhibitedTickerControllerTest {
 
     @BeforeEach
     void setUp() {
-        testProhibitedTicker1 = new ProhibitedTicker("AAPL", "Test reason 1", Instant.now());
-        testProhibitedTicker2 = new ProhibitedTicker("GOOGL", "Test reason 2", Instant.now());
-
         testDTO1 = ProhibitedTickerDTO.builder()
                 .id(1L)
                 .ticker("AAPL")

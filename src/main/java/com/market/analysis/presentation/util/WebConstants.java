@@ -50,6 +50,10 @@ public final class WebConstants {
     public static final String REDIRECT_RULE_DEFINITIONS = "redirect:/rule-definitions";
     public static final String REDIRECT_PROHIBITED_TICKERS = "redirect:/prohibited-tickers";
 
+    // ── Pagination Query Params ────────────────────────────────────────
+    public static final String PARAM_TICKER_PAGE = "?tickerPage=";
+    public static final String PARAM_KEYWORD_PAGE = "&keywordPage=";
+
     // ── Error View Attributes ───────────────────────────────────────────
     public static final String ATTR_ERROR_MESSAGE = "errorMessage";
     public static final String ATTR_ERROR_DETAILS = "errorDetails";

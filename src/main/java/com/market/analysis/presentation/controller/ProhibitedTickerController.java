@@ -68,7 +68,8 @@ public class ProhibitedTickerController {
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success(message));
         return WebConstants.REDIRECT_PROHIBITED_TICKERS
-                + "?tickerPage=" + tickerPage + "&keywordPage=" + keywordPage;
+                + WebConstants.PARAM_TICKER_PAGE + tickerPage
+                + WebConstants.PARAM_KEYWORD_PAGE + keywordPage;
     }
 
     @PostMapping("/keywords")
@@ -85,7 +86,8 @@ public class ProhibitedTickerController {
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success(message));
         return WebConstants.REDIRECT_PROHIBITED_TICKERS
-                + "?tickerPage=" + tickerPage + "&keywordPage=" + keywordPage;
+                + WebConstants.PARAM_TICKER_PAGE + tickerPage
+                + WebConstants.PARAM_KEYWORD_PAGE + keywordPage;
     }
 
     @PostMapping("/keywords/delete")
@@ -101,7 +103,8 @@ public class ProhibitedTickerController {
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success(message));
         return WebConstants.REDIRECT_PROHIBITED_TICKERS
-                + "?tickerPage=" + tickerPage + "&keywordPage=" + keywordPage;
+                + WebConstants.PARAM_TICKER_PAGE + tickerPage
+                + WebConstants.PARAM_KEYWORD_PAGE + keywordPage;
     }
 
 }
