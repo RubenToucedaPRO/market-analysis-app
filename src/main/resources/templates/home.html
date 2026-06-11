@@ -127,6 +127,7 @@
                 <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="6" aria-label="Slide 7"></button>
                 <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="7" aria-label="Slide 8"></button>
                 <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="8" aria-label="Slide 9"></button>
+                <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="9" aria-label="Slide 10"></button>
               </div>
 
               <!-- Slides -->
@@ -147,61 +148,69 @@
                   </div>
                   <img th:src="@{/images/screenshot-ticker-ok.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide2.title}" />
                 </div>
-                <!-- Slide 3: Ticker No Apto -->
+                <!-- Slide 3: Ticker Apto -->
                 <div class="carousel-item">
                   <div class="home-carousel-slide-caption">
-                    <h5 class="fw-bold" th:text="#{home.screenshots.slide3.title}">Ticker No Apto</h5>
-                    <p th:text="#{home.screenshots.slide3.description}">Resultado de evaluación cuando el activo no cumple la estrategia.</p>
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide3.title}">Ticker Apto para Trade</h5>
+                    <p th:text="#{home.screenshots.slide3.description}">Evaluación exitosa con plan de ejecución y ratio riesgo/beneficio.</p>
                   </div>
-                  <img th:src="@{/images/screenshot-ticker-nook.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide3.title}" />
+                  <img th:src="@{/images/screenshot-graphic-ticker.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide3.title}" />
                 </div>
-                <!-- Slide 4: Lista de Estrategias -->
+                <!-- Slide 4: Ticker No Apto -->
                 <div class="carousel-item">
                   <div class="home-carousel-slide-caption">
-                    <h5 class="fw-bold" th:text="#{home.screenshots.slide4.title}">Tus Estrategias de Trading</h5>
-                    <p th:text="#{home.screenshots.slide4.description}">Gestiona todas tus estrategias de inversión.</p>
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide4.title}">Ticker No Apto</h5>
+                    <p th:text="#{home.screenshots.slide4.description}">Resultado de evaluación cuando el activo no cumple la estrategia.</p>
                   </div>
-                  <img th:src="@{/images/screenshot-strategies.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide4.title}" />
+                  <img th:src="@{/images/screenshot-ticker-nook.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide4.title}" />
                 </div>
-                <!-- Slide 5: Tickers Sugeridos -->
+                <!-- Slide 5: Lista de Estrategias -->
                 <div class="carousel-item">
                   <div class="home-carousel-slide-caption">
-                    <h5 class="fw-bold" th:text="#{home.screenshots.slide5.title}">Tickers Sugeridos</h5>
-                    <p th:text="#{home.screenshots.slide5.description}">Tickers sugeridos acordes a las reglas de la estrategia.</p>
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide5.title}">Tus Estrategias de Trading</h5>
+                    <p th:text="#{home.screenshots.slide5.description}">Gestiona todas tus estrategias de inversión.</p>
                   </div>
-                  <img th:src="@{/images/screenshot-suggestions.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide5.title}" />
+                  <img th:src="@{/images/screenshot-strategies.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide5.title}" />
                 </div>
-                <!-- Slide 6: Nueva Estrategia -->
+                <!-- Slide 6: Tickers Sugeridos -->
                 <div class="carousel-item">
                   <div class="home-carousel-slide-caption">
-                    <h5 class="fw-bold" th:text="#{home.screenshots.slide6.title}">Crear Nueva Estrategia</h5>
-                    <p th:text="#{home.screenshots.slide6.description}">Define reglas de ejecución, gestión de riesgo y parámetros.</p>
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide6.title}">Tickers Sugeridos</h5>
+                    <p th:text="#{home.screenshots.slide6.description}">Tickers sugeridos acordes a las reglas de la estrategia.</p>
                   </div>
-                  <img th:src="@{/images/screenshot-new-strategy.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide6.title}" />
+                  <img th:src="@{/images/screenshot-suggestions.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide6.title}" />
                 </div>
-                <!-- Slide 7: Definiciones de Reglas -->
+                <!-- Slide 7: Nueva Estrategia -->
                 <div class="carousel-item">
                   <div class="home-carousel-slide-caption">
-                    <h5 class="fw-bold" th:text="#{home.screenshots.slide7.title}">Definiciones de Reglas</h5>
-                    <p th:text="#{home.screenshots.slide7.description}">Gestiona los indicadores técnicos disponibles para las estrategias.</p>
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide7.title}">Crear Nueva Estrategia</h5>
+                    <p th:text="#{home.screenshots.slide7.description}">Define reglas de ejecución, gestión de riesgo y parámetros.</p>
                   </div>
-                  <img th:src="@{/images/screenshot-rules-definitions.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide7.title}" />
+                  <img th:src="@{/images/screenshot-new-strategy.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide7.title}" />
                 </div>
-                <!-- Slide 8: Detalle Definición de Regla -->
+                <!-- Slide 8: Definiciones de Reglas -->
                 <div class="carousel-item">
                   <div class="home-carousel-slide-caption">
-                    <h5 class="fw-bold" th:text="#{home.screenshots.slide8.title}">Definición de Regla</h5>
-                    <p th:text="#{home.screenshots.slide8.description}">Configuración individual de indicadores como SMA, RSI y EMA.</p>
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide8.title}">Definiciones de Reglas</h5>
+                    <p th:text="#{home.screenshots.slide8.description}">Gestiona los indicadores técnicos disponibles para las estrategias.</p>
                   </div>
-                  <img th:src="@{/images/screenshot-rule-definition.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide8.title}" />
+                  <img th:src="@{/images/screenshot-rules-definitions.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide8.title}" />
                 </div>
-                <!-- Slide 9: Tickers Prohibidos -->
+                <!-- Slide 9: Detalle Definición de Regla -->
                 <div class="carousel-item">
                   <div class="home-carousel-slide-caption">
-                    <h5 class="fw-bold" th:text="#{home.screenshots.slide9.title}">Tickers Prohibidos</h5>
-                    <p th:text="#{home.screenshots.slide9.description}">Filtra automáticamente activos no deseados por keywords.</p>
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide9.title}">Definición de Regla</h5>
+                    <p th:text="#{home.screenshots.slide9.description}">Configuración individual de indicadores como SMA, RSI y EMA.</p>
                   </div>
-                  <img th:src="@{/images/screenshot-prohibitions.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide9.title}" />
+                  <img th:src="@{/images/screenshot-rule-definition.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide9.title}" />
+                </div>
+                <!-- Slide 10: Tickers Prohibidos -->
+                <div class="carousel-item">
+                  <div class="home-carousel-slide-caption">
+                    <h5 class="fw-bold" th:text="#{home.screenshots.slide10.title}">Tickers Prohibidos</h5>
+                    <p th:text="#{home.screenshots.slide10.description}">Filtra automáticamente activos no deseados por keywords.</p>
+                  </div>
+                  <img th:src="@{/images/screenshot-prohibitions.webp}" class="d-block w-100" th:alt="#{home.screenshots.slide10.title}" />
                 </div>
               </div>
 
