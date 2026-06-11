@@ -37,6 +37,8 @@ public final class WebConstants {
     public static final String TEMPLATE_RULE_DEFINITIONS_CREATE = "rule-definitions/create";
     public static final String TEMPLATE_PROHIBITED_TICKERS_LIST = "prohibited-tickers/list";
     public static final String TEMPLATE_ERROR = "error";
+    public static final String TEMPLATE_HOME = "home";
+    public static final String TEMPLATE_LOGIN = "login";
 
     // ── Redirect URLs ───────────────────────────────────────────────────
     public static final String REDIRECT_ANALYSIS = "redirect:/analysis";

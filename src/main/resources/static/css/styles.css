@@ -582,3 +582,118 @@ footer {
     gap: 0.5rem;
   }
 }
+
+/* ============================================
+   Home / Landing Page
+   ============================================ */
+.home-hero {
+  padding: 5rem 0 4rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f0f4ff 100%);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.home-hero-icon {
+  font-size: 8rem;
+  color: var(--primary-color);
+  opacity: 0.15;
+}
+
+.home-section-divider {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+  border-radius: 2px;
+  margin: 1rem auto 0;
+}
+
+/* Feature Cards */
+.home-feature-card {
+  transition: var(--transition-base);
+  border-radius: 0.75rem;
+}
+
+.home-feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.home-feature-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 1.75rem;
+  transition: var(--transition-base);
+}
+
+.home-feature-card:hover .home-feature-icon {
+  transform: scale(1.1);
+}
+
+/* Screenshot Cards */
+.home-screenshot-card {
+  transition: var(--transition-base);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.home-screenshot-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.home-screenshot {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--border-color);
+  transition: var(--transition-base);
+}
+
+.home-screenshot-card:hover .home-screenshot {
+  border-color: var(--primary-color);
+}
+
+/* CTA Section */
+.home-cta {
+  background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+}
+
+/* Navbar Public - Login Button */
+.navbar-nav .btn-primary {
+  border-radius: 0.5rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  transition: var(--transition-base);
+}
+
+.navbar-nav .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+/* Login Page */
+.login-container {
+  max-width: 420px;
+}
+
+/* Responsive Home */
+@media (max-width: 768px) {
+  .home-hero {
+    padding: 3rem 0 2rem;
+  }
+
+  .home-hero-icon {
+    font-size: 4rem;
+    display: none;
+  }
+
+  .home-feature-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,37 @@
+<!-- templates/fragments/navbar-public.html -->
+<nav
+  th:fragment="navbar-public"
+  class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top"
+>
+  <div class="container-fluid">
+    <!-- Logo and Title -->
+    <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
+      <i class="bi bi-graph-up-arrow text-primary"></i>
+      <span class="fw-bold text-primary">AlphaSeeker</span>
+    </a>
+
+    <!-- Mobile Toggle Button -->
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarPublicNav"
+      aria-controls="navbarPublicNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navigation Links -->
+    <div class="collapse navbar-collapse" id="navbarPublicNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="btn btn-primary px-4" th:href="@{/login}">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Acceder
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
