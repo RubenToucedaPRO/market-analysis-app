@@ -22,6 +22,9 @@ public final class WebConstants {
     public static final String ATTR_SUGGESTED_AT = "suggestedAt";
     public static final String ATTR_PROHIBITED_TICKERS = "prohibitedTickers";
     public static final String ATTR_PROHIBITED_KEYWORDS = "prohibitedKeywords";
+    public static final String ATTR_TICKER_PAGE = "tickerPage";
+    public static final String ATTR_KEYWORD_PAGE = "keywordPage";
+    public static final int DEFAULT_PAGE_SIZE = 10;
 
     // ── Flash Attributes ────────────────────────────────────────────────
     public static final String UI_NOTIFICATION_KEY = "uiNotification";
@@ -46,6 +49,10 @@ public final class WebConstants {
     public static final String REDIRECT_STRATEGIES_PREFIX = "redirect:/strategies/";
     public static final String REDIRECT_RULE_DEFINITIONS = "redirect:/rule-definitions";
     public static final String REDIRECT_PROHIBITED_TICKERS = "redirect:/prohibited-tickers";
+
+    // ── Pagination Query Params ────────────────────────────────────────
+    public static final String PARAM_TICKER_PAGE = "?tickerPage=";
+    public static final String PARAM_KEYWORD_PAGE = "&keywordPage=";
 
     // ── Error View Attributes ───────────────────────────────────────────
     public static final String ATTR_ERROR_MESSAGE = "errorMessage";

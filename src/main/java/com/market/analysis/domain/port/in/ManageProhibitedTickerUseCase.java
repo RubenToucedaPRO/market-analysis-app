@@ -1,12 +1,11 @@
 package com.market.analysis.domain.port.in;
 
-import java.util.List;
-
 import com.market.analysis.application.dto.ProhibitedTickerDTO;
+import com.market.analysis.domain.model.PageResult;
 
 public interface ManageProhibitedTickerUseCase {
 
-    List<ProhibitedTickerDTO> getAllProhibitedTickers();
+    PageResult<ProhibitedTickerDTO> getProhibitedTickers(int pageNumber, int pageSize);
 
     boolean isTickerProhibited(String ticker);
 

@@ -9,12 +9,16 @@
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HNXGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+"
+      crossorigin="anonymous"
     />
 
     <!-- Bootstrap Icons -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
       rel="stylesheet"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
     />
 
     <!-- Custom CSS -->
@@ -43,9 +47,9 @@
             </p>
           </div>
           <div class="d-flex align-items-center gap-3">
-            <span class="stats-badge" th:if="${!prohibitedTickers.isEmpty()}">
+            <span class="stats-badge" th:if="${!tickerPage.isEmpty()}">
               <i class="bi bi-collection me-1"></i>
-              <span th:text="${prohibitedTickers.size()}">0</span> tickers
+              <span th:text="${tickerPage.totalElements()}">0</span> tickers
               prohibidos
             </span>
           </div>
@@ -55,7 +59,7 @@
       <div class="row g-4">
         <div class="col-lg-8">
           <!-- Empty State -->
-          <div th:if="${prohibitedTickers.isEmpty()}" class="text-center py-5">
+          <div th:if="${tickerPage.isEmpty()}" class="text-center py-5">
             <i class="bi bi-shield-x text-muted" style="font-size: 4rem"></i>
             <p class="text-muted fs-5 mt-3">
               No se encontraron tickers prohibidos.
@@ -63,7 +67,7 @@
           </div>
 
           <!-- Prohibited Tickers Table -->
-          <div th:unless="${prohibitedTickers.isEmpty()}" class="card">
+          <div th:unless="${tickerPage.isEmpty()}" class="card">
             <div class="card-body p-0">
               <div class="table-responsive">
                 <table class="table table-hover mb-0">
@@ -75,7 +79,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr th:each="prohibitedTicker : ${prohibitedTickers}">
+                    <tr th:each="prohibitedTicker : ${tickerPage.content()}">
                       <td
                         class="fw-semibold"
                         th:text="${prohibitedTicker.ticker}"
@@ -105,6 +109,16 @@
                             name="ticker"
                             th:value="${prohibitedTicker.ticker}"
                           />
+                          <input
+                            type="hidden"
+                            name="tickerPage"
+                            th:value="${tickerPage.pageNumber()}"
+                          />
+                          <input
+                            type="hidden"
+                            name="keywordPage"
+                            th:value="${keywordPage.pageNumber()}"
+                          />
                           <button
                             type="submit"
                             class="btn btn-sm btn-outline-danger"
@@ -122,6 +136,52 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            <!-- Tickers Pagination -->
+            <div
+              th:if="${tickerPage.totalPages() > 1}"
+              class="card-footer bg-light"
+            >
+              <nav aria-label="Paginación de tickers prohibidos">
+                <ul class="pagination pagination-sm mb-0 justify-content-center">
+                  <li
+                    class="page-item"
+                    th:classappend="${!tickerPage.hasPrevious()} ? 'disabled'"
+                  >
+                    <a
+                      class="page-link"
+                      th:href="@{/prohibited-tickers(tickerPage=${tickerPage.pageNumber() - 1}, keywordPage=${keywordPage.pageNumber()})}"
+                      aria-label="Anterior"
+                    >
+                      <i class="bi bi-chevron-left"></i>
+                    </a>
+                  </li>
+                  <li
+                    th:each="i : ${#numbers.sequence(0, tickerPage.totalPages() - 1)}"
+                    class="page-item"
+                    th:classappend="${i == tickerPage.pageNumber()} ? 'active'"
+                  >
+                    <a
+                      class="page-link"
+                      th:href="@{/prohibited-tickers(tickerPage=${i}, keywordPage=${keywordPage.pageNumber()})}"
+                      th:text="${i + 1}"
+                    ></a>
+                  </li>
+                  <li
+                    class="page-item"
+                    th:classappend="${!tickerPage.hasNext()} ? 'disabled'"
+                  >
+                    <a
+                      class="page-link"
+                      th:href="@{/prohibited-tickers(tickerPage=${tickerPage.pageNumber() + 1}, keywordPage=${keywordPage.pageNumber()})}"
+                      aria-label="Siguiente"
+                    >
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -161,6 +221,16 @@
                     th:name="${_csrf.parameterName}"
                     th:value="${_csrf.token}"
                   />
+                  <input
+                    type="hidden"
+                    name="tickerPage"
+                    th:value="${tickerPage.pageNumber()}"
+                  />
+                  <input
+                    type="hidden"
+                    name="keywordPage"
+                    th:value="${keywordPage.pageNumber()}"
+                  />
                   <label
                     for="keyword"
                     class="form-label"
@@ -184,7 +254,7 @@
                 </form>
 
                 <div
-                  th:if="${prohibitedKeywords.isEmpty()}"
+                  th:if="${keywordPage.isEmpty()}"
                   class="text-muted small"
                 >
                   <span th:text="#{prohibited.tickers.keywords.empty}"
@@ -193,11 +263,11 @@
                 </div>
 
                 <ul
-                  th:unless="${prohibitedKeywords.isEmpty()}"
+                  th:unless="${keywordPage.isEmpty()}"
                   class="list-group list-group-flush"
                 >
                   <li
-                    th:each="prohibitedKeyword : ${prohibitedKeywords}"
+                    th:each="prohibitedKeyword : ${keywordPage.content()}"
                     class="list-group-item d-flex justify-content-between align-items-center px-0"
                   >
                     <span
@@ -221,6 +291,16 @@
                         name="keyword"
                         th:value="${prohibitedKeyword.keyword}"
                       />
+                      <input
+                        type="hidden"
+                        name="tickerPage"
+                        th:value="${tickerPage.pageNumber()}"
+                      />
+                      <input
+                        type="hidden"
+                        name="keywordPage"
+                        th:value="${keywordPage.pageNumber()}"
+                      />
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-danger"
@@ -235,6 +315,52 @@
                     </form>
                   </li>
                 </ul>
+
+                <!-- Keywords Pagination -->
+                <div
+                  th:if="${keywordPage.totalPages() > 1}"
+                  class="mt-3"
+                >
+                  <nav aria-label="Paginación de keywords prohibidas">
+                    <ul class="pagination pagination-sm mb-0 justify-content-center">
+                      <li
+                        class="page-item"
+                        th:classappend="${!keywordPage.hasPrevious()} ? 'disabled'"
+                      >
+                        <a
+                          class="page-link"
+                          th:href="@{/prohibited-tickers(tickerPage=${tickerPage.pageNumber()}, keywordPage=${keywordPage.pageNumber() - 1})}"
+                          aria-label="Anterior"
+                        >
+                          <i class="bi bi-chevron-left"></i>
+                        </a>
+                      </li>
+                      <li
+                        th:each="i : ${#numbers.sequence(0, keywordPage.totalPages() - 1)}"
+                        class="page-item"
+                        th:classappend="${i == keywordPage.pageNumber()} ? 'active'"
+                      >
+                        <a
+                          class="page-link"
+                          th:href="@{/prohibited-tickers(tickerPage=${tickerPage.pageNumber()}, keywordPage=${i})}"
+                          th:text="${i + 1}"
+                        ></a>
+                      </li>
+                      <li
+                        class="page-item"
+                        th:classappend="${!keywordPage.hasNext()} ? 'disabled'"
+                      >
+                        <a
+                          class="page-link"
+                          th:href="@{/prohibited-tickers(tickerPage=${tickerPage.pageNumber()}, keywordPage=${keywordPage.pageNumber() + 1})}"
+                          aria-label="Siguiente"
+                        >
+                          <i class="bi bi-chevron-right"></i>
+                        </a>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
               </div>
             </div>
           </div>
@@ -252,6 +378,10 @@
     </footer>
 
     <!-- Bootstrap 5 JS Bundle (includes Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

@@ -2,8 +2,11 @@ package com.market.analysis.infrastructure.persistence.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 import com.market.analysis.infrastructure.persistence.entity.ProhibitedTickerEntity;
@@ -26,6 +29,18 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
         return jpaProhibitedTickerRepository.findAll().stream()
                 .map(prohibitedTickerMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public PageResult<ProhibitedTicker> findAll(int pageNumber, int pageSize) {
+        log.debug("Retrieving prohibited tickers page {} size {}", pageNumber, pageSize);
+        Page<ProhibitedTickerEntity> page = jpaProhibitedTickerRepository
+                .findAll(PageRequest.of(pageNumber, pageSize));
+        List<ProhibitedTicker> content = page.getContent().stream()
+                .map(prohibitedTickerMapper::toDomain)
+                .toList();
+        return new PageResult<>(content, page.getNumber(), page.getSize(),
+                page.getTotalElements(), page.getTotalPages());
     }
 
     @Override

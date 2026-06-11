@@ -7,6 +7,7 @@ import com.market.analysis.application.dto.ProhibitedKeywordDTO;
 import com.market.analysis.application.mapper.ProhibitedKeywordDTOMapper;
 import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
+import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
@@ -25,10 +26,13 @@ public class ManageProhibitedKeywordService implements ManageProhibitedKeywordUs
     private final ProhibitedKeywordDTOMapper prohibitedKeywordMapper;
 
     @Override
-    public List<ProhibitedKeywordDTO> getAllProhibitedKeywords() {
-        return prohibitedKeywordRepository.findAll().stream()
+    public PageResult<ProhibitedKeywordDTO> getProhibitedKeywords(int pageNumber, int pageSize) {
+        PageResult<ProhibitedKeyword> page = prohibitedKeywordRepository.findAll(pageNumber, pageSize);
+        List<ProhibitedKeywordDTO> dtos = page.content().stream()
                 .map(prohibitedKeywordMapper::toDTO)
                 .toList();
+        return new PageResult<>(dtos, page.pageNumber(), page.pageSize(),
+                page.totalElements(), page.totalPages());
     }
 
     @Override

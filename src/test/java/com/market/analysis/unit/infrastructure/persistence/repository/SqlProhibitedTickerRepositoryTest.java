@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -19,7 +20,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.infrastructure.persistence.entity.ProhibitedTickerEntity;
 import com.market.analysis.infrastructure.persistence.mapper.ProhibitedTickerMapper;
@@ -149,5 +154,54 @@ class SqlProhibitedTickerRepositoryTest {
 
         // Assert
         verify(jpaRepository, times(1)).deleteByTicker("AAPL");
+    }
+
+    @Test
+    @DisplayName("Should return paginated prohibited tickers")
+    void shouldReturnPaginatedProhibitedTickers() {
+        ProhibitedTickerEntity entity2 = new ProhibitedTickerEntity();
+        entity2.setId(2L);
+        entity2.setTicker("GOOGL");
+        entity2.setReason("Test reason 2");
+
+        Page<ProhibitedTickerEntity> page = new PageImpl<>(Arrays.asList(testEntity, entity2), PageRequest.of(0, 10), 2);
+        when(jpaRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
+        when(mapper.toDomain(testEntity)).thenReturn(testProhibitedTicker);
+        when(mapper.toDomain(entity2)).thenReturn(new ProhibitedTicker("GOOGL", "Test reason 2", null));
+
+        PageResult<ProhibitedTicker> result = sqlRepository.findAll(0, 10);
+
+        assertNotNull(result);
+        assertEquals(2, result.content().size());
+        assertEquals("AAPL", result.content().get(0).getTicker());
+        assertEquals("GOOGL", result.content().get(1).getTicker());
+        assertEquals(0, result.pageNumber());
+        assertEquals(10, result.pageSize());
+        assertEquals(2, result.totalElements());
+        assertEquals(1, result.totalPages());
+    }
+
+    @Test
+    @DisplayName("Should return empty paginated result when no tickers exist")
+    void shouldReturnEmptyPaginatedResult() {
+        Page<ProhibitedTickerEntity> emptyPage = new PageImpl<>(Arrays.asList(), PageRequest.of(0, 10), 0);
+        when(jpaRepository.findAll(PageRequest.of(0, 10))).thenReturn(emptyPage);
+
+        PageResult<ProhibitedTicker> result = sqlRepository.findAll(0, 10);
+
+        assertNotNull(result);
+        assertEquals(0, result.content().size());
+        assertEquals(0, result.totalElements());
+    }
+
+    @Test
+    @DisplayName("Should skip save when ticker already exists")
+    void shouldSkipSaveWhenTickerAlreadyExists() {
+        when(jpaRepository.existsByTicker("AAPL")).thenReturn(true);
+
+        sqlRepository.save(testProhibitedTicker);
+
+        verify(mapper, never()).toEntity(testProhibitedTicker);
+        verify(jpaRepository, never()).save(testEntity);
     }
 }
