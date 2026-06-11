@@ -20,7 +20,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
+import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.infrastructure.persistence.entity.ProhibitedKeywordEntity;
 import com.market.analysis.infrastructure.persistence.mapper.ProhibitedKeywordMapper;
@@ -112,5 +116,101 @@ class SqlProhibitedKeywordRepositoryTest {
 
         assertThrows(IllegalArgumentException.class, () -> sqlRepository.save(prohibitedKeyword));
         verify(mapper, never()).toEntity(any(ProhibitedKeyword.class));
+    }
+
+    @Test
+    @DisplayName("Should return paginated prohibited keywords")
+    void shouldReturnPaginatedProhibitedKeywords() {
+        ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
+        entity.setKeyword("ETF");
+        ProhibitedKeyword domain = ProhibitedKeyword.builder().keyword("ETF").active(true).build();
+
+        Page<ProhibitedKeywordEntity> page = new PageImpl<>(List.of(entity), PageRequest.of(0, 10), 1);
+        when(jpaRepository.findAll(PageRequest.of(0, 10))).thenReturn(page);
+        when(mapper.toDomain(entity)).thenReturn(domain);
+
+        PageResult<ProhibitedKeyword> result = sqlRepository.findAll(0, 10);
+
+        assertNotNull(result);
+        assertEquals(1, result.content().size());
+        assertEquals("ETF", result.content().get(0).getKeyword());
+        assertEquals(0, result.pageNumber());
+        assertEquals(10, result.pageSize());
+        assertEquals(1, result.totalElements());
+        assertEquals(1, result.totalPages());
+    }
+
+    @Test
+    @DisplayName("Should return empty paginated result")
+    void shouldReturnEmptyPaginatedResult() {
+        Page<ProhibitedKeywordEntity> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+        when(jpaRepository.findAll(PageRequest.of(0, 10))).thenReturn(emptyPage);
+
+        PageResult<ProhibitedKeyword> result = sqlRepository.findAll(0, 10);
+
+        assertNotNull(result);
+        assertTrue(result.content().isEmpty());
+        assertEquals(0, result.totalElements());
+    }
+
+    @Test
+    @DisplayName("Should save keyword when createdAt is null using Instant.now()")
+    void shouldSaveKeywordWhenCreatedAtIsNull() {
+        ProhibitedKeyword prohibitedKeyword = ProhibitedKeyword.builder()
+                .keyword("etf")
+                .active(true)
+                .createdAt(null)
+                .updatedAt(null)
+                .build();
+
+        ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
+        entity.setKeyword("ETF");
+
+        when(jpaRepository.existsByKeyword("ETF")).thenReturn(false);
+        when(mapper.toEntity(any(ProhibitedKeyword.class))).thenReturn(entity);
+
+        sqlRepository.save(prohibitedKeyword);
+
+        ArgumentCaptor<ProhibitedKeyword> captor = ArgumentCaptor.forClass(ProhibitedKeyword.class);
+        verify(mapper, times(1)).toEntity(captor.capture());
+        assertNotNull(captor.getValue().getCreatedAt());
+        assertNotNull(captor.getValue().getUpdatedAt());
+    }
+
+    @Test
+    @DisplayName("Should save keyword using createdAt when updatedAt is null")
+    void shouldSaveKeywordUsingCreatedAtWhenUpdatedAtIsNull() {
+        Instant createdAt = Instant.parse("2025-01-01T00:00:00Z");
+        ProhibitedKeyword prohibitedKeyword = ProhibitedKeyword.builder()
+                .keyword("etf")
+                .active(true)
+                .createdAt(createdAt)
+                .updatedAt(null)
+                .build();
+
+        ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
+        entity.setKeyword("ETF");
+
+        when(jpaRepository.existsByKeyword("ETF")).thenReturn(false);
+        when(mapper.toEntity(any(ProhibitedKeyword.class))).thenReturn(entity);
+
+        sqlRepository.save(prohibitedKeyword);
+
+        ArgumentCaptor<ProhibitedKeyword> captor = ArgumentCaptor.forClass(ProhibitedKeyword.class);
+        verify(mapper, times(1)).toEntity(captor.capture());
+        assertEquals(createdAt, captor.getValue().getCreatedAt());
+        assertEquals(createdAt, captor.getValue().getUpdatedAt());
+    }
+
+    @Test
+    @DisplayName("Should reject blank keyword on existsByKeyword")
+    void shouldRejectBlankKeywordOnExistsByKeyword() {
+        assertThrows(IllegalArgumentException.class, () -> sqlRepository.existsByKeyword("   "));
+    }
+
+    @Test
+    @DisplayName("Should reject blank keyword on deleteByKeyword")
+    void shouldRejectBlankKeywordOnDeleteByKeyword() {
+        assertThrows(IllegalArgumentException.class, () -> sqlRepository.deleteByKeyword("   "));
     }
 }
