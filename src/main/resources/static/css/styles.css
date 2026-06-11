@@ -494,21 +494,6 @@ footer {
 }
 
 /* ============================================
-   Utility Classes
-   ============================================ */
-.small {
-  font-size: 0.875rem;
-}
-
-.bi {
-  vertical-align: middle;
-}
-
-.text-center i[class*="bi-"] {
-  opacity: 0.5;
-}
-
-/* ============================================
    Custom Scrollbar
    ============================================ */
 ::-webkit-scrollbar {
@@ -581,6 +566,38 @@ footer {
     display: flex;
     gap: 0.5rem;
   }
+
+  /* Home / Landing */
+  .home-hero {
+    padding: 3rem 0 2rem;
+  }
+
+  .home-hero-icon {
+    font-size: 4rem;
+    display: none;
+  }
+
+  .home-feature-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+
+  .home-carousel .carousel-item img {
+    height: 280px;
+  }
+
+  .home-carousel-slide-caption {
+    padding: 0.75rem 1rem 0.5rem;
+  }
+
+  .home-carousel-slide-caption h5 {
+    font-size: 1rem;
+  }
+
+  .home-carousel-slide-caption p {
+    font-size: 0.8rem;
+  }
 }
 
 /* ============================================
@@ -637,37 +654,13 @@ footer {
   transform: scale(1.1);
 }
 
-/* Screenshot Cards */
-.home-screenshot-card {
-  transition: var(--transition-base);
-  border-radius: 0.75rem;
-  overflow: hidden;
-}
-
-.home-screenshot-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg) !important;
-}
-
-.home-screenshot {
-  width: 100%;
-  height: auto;
-  display: block;
-  border: 1px solid var(--border-color);
-  transition: var(--transition-base);
-}
-
-.home-screenshot-card:hover .home-screenshot {
-  border-color: var(--primary-color);
-}
-
 /* Screenshot Carousel */
 .home-carousel {
   background: var(--white);
 }
 
 .home-carousel .carousel-item img {
-  height: 480px;
+  height: 680px;
   object-fit: contain;
   padding: 1rem;
   background: var(--white);
@@ -726,43 +719,4 @@ footer {
 .navbar-nav .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
-}
-
-/* Login Page */
-.login-container {
-  max-width: 420px;
-}
-
-/* Responsive Home */
-@media (max-width: 768px) {
-  .home-hero {
-    padding: 3rem 0 2rem;
-  }
-
-  .home-hero-icon {
-    font-size: 4rem;
-    display: none;
-  }
-
-  .home-feature-icon {
-    width: 56px;
-    height: 56px;
-    font-size: 1.5rem;
-  }
-
-  .home-carousel .carousel-item img {
-    height: 280px;
-  }
-
-  .home-carousel-slide-caption {
-    padding: 0.75rem 1rem 0.5rem;
-  }
-
-  .home-carousel-slide-caption h5 {
-    font-size: 1rem;
-  }
-
-  .home-carousel-slide-caption p {
-    font-size: 0.8rem;
-  }
 }
