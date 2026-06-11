@@ -601,7 +601,11 @@ footer {
 .home-section-divider {
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+  background: linear-gradient(
+    90deg,
+    var(--primary-color),
+    var(--success-color)
+  );
   border-radius: 2px;
   margin: 1rem auto 0;
 }
@@ -657,6 +661,58 @@ footer {
   border-color: var(--primary-color);
 }
 
+/* Screenshot Carousel */
+.home-carousel {
+  background: var(--white);
+}
+
+.home-carousel .carousel-item img {
+  height: 480px;
+  object-fit: contain;
+  padding: 1rem;
+  background: var(--white);
+}
+
+.home-carousel-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem 2rem;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.95));
+}
+
+.home-carousel-caption h5 {
+  color: var(--text-dark);
+  font-size: 1.15rem;
+  margin-bottom: 0.25rem;
+}
+
+.home-carousel-caption p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.home-carousel .carousel-indicators {
+  margin-bottom: 0.75rem;
+}
+
+.home-carousel .carousel-indicators button {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 0 5px;
+}
+
+.home-carousel .carousel-control-prev-icon,
+.home-carousel .carousel-control-next-icon {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  padding: 1.25rem;
+  background-size: 50%;
+}
+
 /* CTA Section */
 .home-cta {
   background: linear-gradient(135deg, var(--primary-color), #0a58ca);
@@ -695,5 +751,21 @@ footer {
     width: 56px;
     height: 56px;
     font-size: 1.5rem;
+  }
+
+  .home-carousel .carousel-item img {
+    height: 280px;
+  }
+
+  .home-carousel-caption {
+    padding: 0.75rem 1rem;
+  }
+
+  .home-carousel-caption h5 {
+    font-size: 1rem;
+  }
+
+  .home-carousel-caption p {
+    font-size: 0.8rem;
   }
 }
