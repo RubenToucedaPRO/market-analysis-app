@@ -8,12 +8,8 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
 import com.market.analysis.domain.model.StockOrigin;
 import com.market.analysis.infrastructure.persistence.entity.StockEntity;
-
-@Repository
 public interface JpaStockDataRepository extends JpaRepository<StockEntity, Long> {
 
     @Query("SELECT s FROM StockEntity s " +
