@@ -188,6 +188,13 @@ DB_PORT_EXTERNAL=3306
 APP_PORT_EXTERNAL=8080
 ```
 
+#### Configuración de Seguridad (Login)
+```env
+APP_SECURITY_USERNAME=admin
+APP_SECURITY_PASSWORD=admin
+```
+Credenciales de acceso a la aplicación. Se recomienda cambiar los valores por defecto en producción.
+
 
 
 ### Ejecución Local con Docker

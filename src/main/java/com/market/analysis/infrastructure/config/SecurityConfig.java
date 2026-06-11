@@ -1,5 +1,6 @@
 package com.market.analysis.infrastructure.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -48,11 +49,12 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-        @SuppressWarnings("deprecation")
-        var user = User.withDefaultPasswordEncoder()
-                .username("admin")
-                .password("admin")
+    public UserDetailsService userDetailsService(
+            @Value("${app.security.username}") String username,
+            @Value("${app.security.password}") String password) {
+        var user = User.builder()
+                .username(username)
+                .password("{noop}" + password)
                 .roles("USER")
                 .build();
         return new InMemoryUserDetailsManager(user);
