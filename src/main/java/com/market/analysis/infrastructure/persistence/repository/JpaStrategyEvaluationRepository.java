@@ -1,15 +1,12 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import com.market.analysis.infrastructure.persistence.entity.StrategyEvaluationEntity;
 
 /**
  * Spring Data JPA repository for StrategyEvaluationEntity.
  * Provides automatic CRUD and query operations.
  */
-@Repository
 public interface JpaStrategyEvaluationRepository extends JpaRepository<StrategyEvaluationEntity, Long> {
 
 }
