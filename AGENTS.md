@@ -58,6 +58,8 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 | `POLYGON_API_TOKEN`     | Datos históricos y OHLCV                      |
 | `OPENAI_API_KEY`        | Análisis interpretativo de estrategias       |
 | `SPRING_PROFILES_ACTIVE`| Perfil de Spring Boot (dev, prod)            |
+| `APP_SECURITY_USERNAME` | Usuario para login de la aplicación          |
+| `APP_SECURITY_PASSWORD` | Contraseña para login de la aplicación       |
 
 ---
 
