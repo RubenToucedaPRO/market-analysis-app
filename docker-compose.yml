@@ -19,6 +19,8 @@ services:
       FINNHUB_API_TOKEN: ${FINNHUB_API_TOKEN}
       POLYGON_API_TOKEN: ${POLYGON_API_TOKEN}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      APP_SECURITY_USERNAME: ${APP_SECURITY_USERNAME}
+      APP_SECURITY_PASSWORD: ${APP_SECURITY_PASSWORD}
     depends_on:
       mysql:
         condition: service_healthy
