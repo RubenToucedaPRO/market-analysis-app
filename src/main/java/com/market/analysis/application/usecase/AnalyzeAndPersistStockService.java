@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.CompanyProfile;
@@ -160,6 +161,66 @@ public class AnalyzeAndPersistStockService {
         }
 
         applyTechnicalIndicators(stock, technicalIndicators);
+    }
+
+    /**
+     * Refreshes historical candle data and recalculates technical indicators for a
+     * ticker. Only calls the external API if the latest cached candle is older than
+     * yesterday (New York timezone), avoiding unnecessary API consumption.
+     *
+     * @param ticker the ticker symbol
+     * @param stock  the stock domain object to update with indicators
+     */
+    public void refreshHistoricalData(String ticker, Stock stock) {
+        Optional<Candle> latestCandle = candleHistoryRepository.findLatestCandleByTicker(ticker);
+
+        if (latestCandle.isPresent()) {
+            LocalDate latestDate = latestCandle.get().getDateTime()
+                    .atZone(NEW_YORK_ZONE).toLocalDate();
+            LocalDate yesterday = LocalDate.now(NEW_YORK_ZONE).minusDays(1);
+
+            if (!latestDate.isBefore(yesterday)) {
+                log.debug("Candles for {} are fresh (latest={}, yesterday={}), recalculating indicators",
+                        ticker, latestDate, yesterday);
+                recalculateIndicatorsFromExistingCandles(ticker, stock);
+                return;
+            }
+            log.info("Candles for {} are outdated (latest={}, yesterday={}), fetching from API",
+                    ticker, latestDate, yesterday);
+        } else {
+            log.info("No candles found for {}, fetching from API", ticker);
+        }
+
+        enrichWithFreshHistoricalIndicators(ticker, stock);
+    }
+
+    private void recalculateIndicatorsFromExistingCandles(String ticker, Stock stock) {
+        List<Candle> candles = candleHistoryRepository.findCandlesByTicker(ticker);
+        if (candles.isEmpty()) {
+            log.warn("No candles available to recalculate indicators for ticker={}", ticker);
+            return;
+        }
+
+        List<Double> closingPrices = candles.stream()
+                .map(c -> c.getClosePrice().doubleValue())
+                .toList();
+        List<Long> volumes = candles.stream()
+                .map(Candle::getVolume)
+                .toList();
+
+        HistoricalData historicalData = HistoricalData.builder()
+                .ticker(ticker)
+                .closingPrices(closingPrices)
+                .volumes(volumes)
+                .candles(candles)
+                .lastUpdate(Instant.now())
+                .build();
+
+        TechnicalIndicators indicators = stockHistoricalService
+                .calculateIndicators(historicalData, DEFAULT_INDICATOR_PERIOD);
+        if (indicators != null) {
+            applyTechnicalIndicators(stock, indicators);
+        }
     }
 
     private void persistCandlesIfPresent(String ticker, List<Candle> candles) {

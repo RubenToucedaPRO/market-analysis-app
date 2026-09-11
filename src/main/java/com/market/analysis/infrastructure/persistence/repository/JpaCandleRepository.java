@@ -23,6 +23,14 @@ public interface JpaCandleRepository extends JpaRepository<CandleEntity, Long> {
     List<CandleEntity> findByTickerOrderByDateTimeAsc(String ticker);
 
     /**
+     * Finds the most recent candle for a given ticker.
+     *
+     * @param ticker the ticker symbol
+     * @return the latest candle entity, or null if none found
+     */
+    CandleEntity findTopByTickerOrderByDateTimeDesc(String ticker);
+
+    /**
      * Bulk-deletes all candles for a given ticker using a JPQL statement.
      *
      * <p>Using {@code @Modifying} with {@code clearAutomatically = true} ensures

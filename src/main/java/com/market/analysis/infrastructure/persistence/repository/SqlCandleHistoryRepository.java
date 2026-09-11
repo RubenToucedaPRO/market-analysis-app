@@ -1,6 +1,7 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +82,16 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
                 .toList();
         log.debug("findCandlesByTicker: found {} candle(s) for ticker={}", candles.size(), ticker);
         return candles;
+    }
+
+    @Override
+    public Optional<Candle> findLatestCandleByTicker(String ticker) {
+        Assert.hasText(ticker, "ticker must not be null or blank");
+        log.debug("findLatestCandleByTicker: querying latest candle for ticker={}", ticker);
+        CandleEntity entity = jpaCandleRepository.findTopByTickerOrderByDateTimeDesc(ticker);
+        Optional<Candle> result = Optional.ofNullable(entity).map(candleMapper::toDomain);
+        log.debug("findLatestCandleByTicker: found candle for ticker={}={}", ticker, result.isPresent());
+        return result;
     }
 
     @Override
