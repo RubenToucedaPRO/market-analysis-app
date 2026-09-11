@@ -13,12 +13,12 @@ public class PromptResponseValidator {
 
     private static final String STRICT_RETRY_SUFFIX = """
             IMPORTANTE:
-            Devuelve exactamente estas secciones y en este orden:
+            Responde SOLO con estas 4 líneas, sin ningún otro texto:
             Resumen técnico:
             Fortalezas:
             Riesgos:
             Conclusión interpretativa:
-            No añadas texto fuera de esas secciones.
+            No añadas razonamiento, cadenas de pensamiento, ni texto fuera de esas secciones.
             """;
 
     public boolean isValid(String response) {

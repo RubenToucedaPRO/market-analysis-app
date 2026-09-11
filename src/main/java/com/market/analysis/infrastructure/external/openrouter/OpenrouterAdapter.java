@@ -9,6 +9,7 @@ import com.openai.client.OpenAIClient;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -24,7 +25,7 @@ public class OpenrouterAdapter implements ApiIAPort {
     private final OpenAIClient client;
 
     public OpenrouterAdapter(
-            @Value("${openrouter.model:google/gemma-4-31b-it:free}") String model,
+            @Value("${openrouter.model:google/gemma-4-26b-a4b-it:free}") String model,
             @Value("${openrouter.temperature:0.7}") double temperature,
             @Value("${openrouter.max-tokens:500}") long maxTokens,
             @Value("${openrouter.top-p:0.9}") double topP,
@@ -38,6 +39,7 @@ public class OpenrouterAdapter implements ApiIAPort {
     }
 
     @Override
+    @Retry(name = "openrouterClient")
     public String getValoration(String datosAccion) {
         log.debug(
                 "Requesting AI valoration model={} promptLength={} temperature={} maxTokens={} topP={} frequencyPenalty={}",
@@ -66,6 +68,7 @@ public class OpenrouterAdapter implements ApiIAPort {
             return content;
 
         } catch (Exception e) {
+            log.warn("OpenRouter API error model={} exceptionType={}: {}", model, e.getClass().getSimpleName(), e.getMessage());
             throw new AIServiceException("Error calling OpenRouter API", e);
         }
     }

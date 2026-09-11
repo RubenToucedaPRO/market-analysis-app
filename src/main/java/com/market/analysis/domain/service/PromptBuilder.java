@@ -13,22 +13,21 @@ public class PromptBuilder {
     private static final String NOT_AVAILABLE = "N/A";
 
     private static final String PROMPT_TEMPLATE = """
-            Actúa como experto analista financiero. Análisis interpretativo, no consejo financiero.
-            Analiza este snapshot y responde en español.
+            Eres un analista financiero experto. Responde en español, sin texto introductorio ni despedida.
 
-            DATOS:
+            Datos:
             Ticker: %s | Precio: %s
-            Medias: SMA20:%s, SMA50:%s, SMA200:%s
+            SMA20: %s | SMA50: %s | SMA200: %s
             Volumen: %s (Media: %s)
-            Estrategia: %s (Cumplimiento: %s%%)
-            Resumen Estrategia: %s
+            Estrategia: %s | Cumplimiento: %s%%
+            Resumen estrategia: %s
             R:R: %s | Target: %s | Stop: %s
 
-            REGLAS DE RESPUESTA:
-            1. Usa exactamente las secciones: "Resumen técnico:", "Fortalezas:", "Riesgos:" y "Conclusión interpretativa:".
-            2. Sé breve (máximo 2 frases por sección).
-            3. Justifica cada punto con los datos numéricos provistos.
-            4. No añadas introducciones ni despedidas.
+            Responde con exactamente estas 4 secciones:
+            Resumen técnico: breve análisis del precio y tendencia.
+            Fortalezas: factores positivos con datos numéricos.
+            Riesgos: factores negativos con datos numéricos.
+            Conclusión interpretativa: valoración general.
             """;
 
     public String buildAnalysisPrompt(Stock stock, StrategyEvaluation evaluation) {
