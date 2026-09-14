@@ -11,6 +11,7 @@ import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.AnalysisResult;
+import com.market.analysis.domain.model.EntryPrice;
 import com.market.analysis.domain.model.EvaluationStatus;
 import com.market.analysis.domain.model.Rule;
 import com.market.analysis.domain.model.RuleResult;
@@ -84,7 +85,7 @@ public class EvaluateStrategyService {
 
         if (overallPassed) {
             try {
-                BigDecimal entryPrice = stock.getCurrentPrice();
+                EntryPrice entryPrice = EntryPrice.of(stock.getCurrentPrice());
                 targetPrice = riskRewardCalculator.calculateTargetPrice(entryPrice, strategy.getObjective(), stock);
                 stopLossPrice = riskRewardCalculator.calculateStopLossPrice(entryPrice, strategy.getObjective(), stock);
                 riskRewardRatio = riskRewardCalculator.calculateRiskRewardRatio(entryPrice, targetPrice, stopLossPrice);

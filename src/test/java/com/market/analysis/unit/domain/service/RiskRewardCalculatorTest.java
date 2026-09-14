@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
+import com.market.analysis.domain.model.EntryPrice;
 import com.market.analysis.domain.model.ObjectiveType;
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyObjective;
@@ -56,7 +57,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate target price using SMA20")
         void shouldCalculateTargetPriceUsingSma20() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(20))
@@ -77,7 +78,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate target price using SMA50")
         void shouldCalculateTargetPriceUsingSma50() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(50))
@@ -98,7 +99,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate target price using SMA200")
         void shouldCalculateTargetPriceUsingSma200() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(200))
@@ -119,7 +120,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should throw exception for unsupported SMA period")
         void shouldThrowExceptionForUnsupportedSmaPeriod() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(100))
@@ -148,7 +149,7 @@ class RiskRewardCalculatorTest {
                     .sma200(BigDecimal.valueOf(130.00))
                     .build();
 
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(20))
@@ -169,7 +170,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate target price using percentage (5%)")
         void shouldCalculateTargetPriceUsingPercentage() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -190,7 +191,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate target price using fixed price")
         void shouldCalculateTargetPriceUsingFixedPrice() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.FIXED_PRICE)
                     .targetValue(BigDecimal.valueOf(110.50))
@@ -220,11 +221,10 @@ class RiskRewardCalculatorTest {
                     .description("Test objective")
                     .build();
 
-            // Act & Assert
-            assertThatThrownBy(() -> calculator.calculateTargetPrice(null, objective, testStock))
-                    .isInstanceOf(DomainValidationException.class)
-                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
-                            .isEqualTo("validation.entry_price_null"));
+            // Act & Assert — EntryPrice.of(null) throws NullPointerException via Objects.requireNonNull
+            assertThatThrownBy(() -> calculator.calculateTargetPrice(EntryPrice.of(null), objective, testStock))
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessage("validation.entry_price_null");
         }
 
         @Test
@@ -241,7 +241,7 @@ class RiskRewardCalculatorTest {
                     .build();
 
             // Act & Assert
-            assertThatThrownBy(() -> calculator.calculateTargetPrice(BigDecimal.ZERO, objective, testStock))
+            assertThatThrownBy(() -> calculator.calculateTargetPrice(EntryPrice.of(BigDecimal.ZERO), objective, testStock))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Entry price must be greater than zero");
         }
@@ -260,7 +260,7 @@ class RiskRewardCalculatorTest {
                     .build();
 
             // Act & Assert
-            assertThatThrownBy(() -> calculator.calculateTargetPrice(BigDecimal.valueOf(-100), objective, testStock))
+            assertThatThrownBy(() -> calculator.calculateTargetPrice(EntryPrice.of(BigDecimal.valueOf(-100)), objective, testStock))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Entry price must be greater than zero");
         }
@@ -274,7 +274,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate stop-loss price using SMA20")
         void shouldCalculateStopLossPriceUsingSma20() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -295,7 +295,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate stop-loss price using percentage (2%)")
         void shouldCalculateStopLossPriceUsingPercentage() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -316,7 +316,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate stop-loss price using fixed price")
         void shouldCalculateStopLossPriceUsingFixedPrice() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -337,7 +337,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should throw exception when stop-loss equals entry price")
         void shouldThrowExceptionWhenStopLossEqualsEntryPrice() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -357,7 +357,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should throw exception when stop-loss is greater than entry price")
         void shouldThrowExceptionWhenStopLossGreaterThanEntryPrice() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -385,7 +385,7 @@ class RiskRewardCalculatorTest {
                     .sma200(BigDecimal.valueOf(280.00))
                     .build();
 
-            BigDecimal entryPrice = BigDecimal.valueOf(300.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(300.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -411,7 +411,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate risk-reward ratio for 2:1 scenario")
         void shouldCalculateRiskRewardRatioFor2To1Scenario() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             BigDecimal targetPrice = BigDecimal.valueOf(110.00);
             BigDecimal stopPrice = BigDecimal.valueOf(95.00);
 
@@ -429,7 +429,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate risk-reward ratio for 3:1 scenario")
         void shouldCalculateRiskRewardRatioFor3To1Scenario() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             BigDecimal targetPrice = BigDecimal.valueOf(115.00);
             BigDecimal stopPrice = BigDecimal.valueOf(95.00);
 
@@ -447,7 +447,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate risk-reward ratio with decimal precision")
         void shouldCalculateRiskRewardRatioWithDecimalPrecision() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.25);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.25));
             BigDecimal targetPrice = BigDecimal.valueOf(157.75);
             BigDecimal stopPrice = BigDecimal.valueOf(147.00);
 
@@ -464,19 +464,18 @@ class RiskRewardCalculatorTest {
         @Test
         @DisplayName("Should throw exception when entry price is null")
         void shouldThrowExceptionWhenEntryPriceIsNull() {
-            // Act & Assert
-            assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(null, 
+            // Act & Assert — EntryPrice.of(null) throws NullPointerException via Objects.requireNonNull
+            assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(EntryPrice.of(null),
                     BigDecimal.valueOf(110), BigDecimal.valueOf(95)))
-                    .isInstanceOf(DomainValidationException.class)
-                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
-                            .isEqualTo("validation.entry_price_null"));
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessage("validation.entry_price_null");
         }
 
         @Test
         @DisplayName("Should throw exception when target price is null")
         void shouldThrowExceptionWhenTargetPriceIsNull() {
             // Act & Assert
-            assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(BigDecimal.valueOf(100), 
+            assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(EntryPrice.of(BigDecimal.valueOf(100)),
                     null, BigDecimal.valueOf(95)))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
@@ -488,7 +487,7 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenTargetPriceLessThanOrEqualToEntryPrice() {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(
-                    BigDecimal.valueOf(100), BigDecimal.valueOf(100), BigDecimal.valueOf(95)))
+                    EntryPrice.of(BigDecimal.valueOf(100)), BigDecimal.valueOf(100), BigDecimal.valueOf(95)))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.target_below_entry"));
@@ -499,7 +498,7 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenStopPriceGreaterThanOrEqualToEntryPrice() {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(
-                    BigDecimal.valueOf(100), BigDecimal.valueOf(110), BigDecimal.valueOf(100)))
+                    EntryPrice.of(BigDecimal.valueOf(100)), BigDecimal.valueOf(110), BigDecimal.valueOf(100)))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.stop_above_entry"));
@@ -514,7 +513,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate position size correctly")
         void shouldCalculatePositionSizeCorrectly() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             BigDecimal stopPrice = BigDecimal.valueOf(95.00);
             BigDecimal capitalToRisk = BigDecimal.valueOf(1000.00);
 
@@ -531,7 +530,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should round position size DOWN to avoid exceeding risk")
         void shouldRoundPositionSizeDown() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             BigDecimal stopPrice = BigDecimal.valueOf(97.00);
             BigDecimal capitalToRisk = BigDecimal.valueOf(1000.00);
 
@@ -548,7 +547,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate small position size for high-risk trades")
         void shouldCalculateSmallPositionSizeForHighRiskTrades() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(100.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100.00));
             BigDecimal stopPrice = BigDecimal.valueOf(80.00);
             BigDecimal capitalToRisk = BigDecimal.valueOf(500.00);
 
@@ -564,19 +563,18 @@ class RiskRewardCalculatorTest {
         @Test
         @DisplayName("Should throw exception when entry price is null")
         void shouldThrowExceptionWhenEntryPriceIsNull() {
-            // Act & Assert
-            assertThatThrownBy(() -> calculator.calculatePositionSize(null, 
+            // Act & Assert — EntryPrice.of(null) throws NullPointerException via Objects.requireNonNull
+            assertThatThrownBy(() -> calculator.calculatePositionSize(EntryPrice.of(null),
                     BigDecimal.valueOf(95), BigDecimal.valueOf(1000)))
-                    .isInstanceOf(DomainValidationException.class)
-                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
-                            .isEqualTo("validation.entry_price_null"));
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessage("validation.entry_price_null");
         }
 
         @Test
         @DisplayName("Should throw exception when stop price is null")
         void shouldThrowExceptionWhenStopPriceIsNull() {
             // Act & Assert
-            assertThatThrownBy(() -> calculator.calculatePositionSize(BigDecimal.valueOf(100), 
+            assertThatThrownBy(() -> calculator.calculatePositionSize(EntryPrice.of(BigDecimal.valueOf(100)),
                     null, BigDecimal.valueOf(1000)))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
@@ -587,7 +585,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should throw exception when capital to risk is null")
         void shouldThrowExceptionWhenCapitalToRiskIsNull() {
             // Act & Assert
-            assertThatThrownBy(() -> calculator.calculatePositionSize(BigDecimal.valueOf(100), 
+            assertThatThrownBy(() -> calculator.calculatePositionSize(EntryPrice.of(BigDecimal.valueOf(100)),
                     BigDecimal.valueOf(95), null))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
@@ -599,7 +597,7 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenStopPriceGreaterThanOrEqualToEntryPrice() {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(
-                    BigDecimal.valueOf(100), BigDecimal.valueOf(100), BigDecimal.valueOf(1000)))
+                    EntryPrice.of(BigDecimal.valueOf(100)), BigDecimal.valueOf(100), BigDecimal.valueOf(1000)))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.stop_above_entry"));
@@ -610,7 +608,7 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenCapitalToRiskIsZero() {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(
-                    BigDecimal.valueOf(100), BigDecimal.valueOf(95), BigDecimal.ZERO))
+                    EntryPrice.of(BigDecimal.valueOf(100)), BigDecimal.valueOf(95), BigDecimal.ZERO))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Capital to risk must be greater than zero");
         }
@@ -620,7 +618,7 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenCapitalToRiskIsNegative() {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(
-                    BigDecimal.valueOf(100), BigDecimal.valueOf(95), BigDecimal.valueOf(-1000)))
+                    EntryPrice.of(BigDecimal.valueOf(100)), BigDecimal.valueOf(95), BigDecimal.valueOf(-1000)))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Capital to risk must be greater than zero");
         }
@@ -634,7 +632,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should calculate all metrics for a complete trading strategy")
         void shouldCalculateAllMetricsForCompleteTradingStrategy() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(10.0))
@@ -661,7 +659,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should validate SMA-based strategy with invalid target below entry")
         void shouldValidateSmaBasedStrategyWithInvalidTarget() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(200))
@@ -695,7 +693,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should resolve SMA20 target via catalog delegation")
         void shouldResolveSma20TargetViaCatalog() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(20))
@@ -716,7 +714,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should resolve SMA50 stop-loss via catalog delegation")
         void shouldResolveSma50StopLossViaCatalog() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.PERCENTAGE)
                     .targetValue(BigDecimal.valueOf(5.0))
@@ -737,7 +735,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should resolve SMA200 target via catalog delegation")
         void shouldResolveSma200TargetViaCatalog() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(200))
@@ -758,7 +756,7 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should throw IllegalArgumentException for SMA period not in catalog")
         void shouldThrowForSmaPeriodNotInCatalog() {
             // Arrange
-            BigDecimal entryPrice = BigDecimal.valueOf(150.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(150.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(75))
@@ -787,7 +785,7 @@ class RiskRewardCalculatorTest {
                     .sma200(null)
                     .build();
 
-            BigDecimal entryPrice = BigDecimal.valueOf(250.00);
+            EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(250.00));
             StrategyObjective objective = StrategyObjective.builder()
                     .targetType(ObjectiveType.SMA)
                     .targetValue(BigDecimal.valueOf(200))
