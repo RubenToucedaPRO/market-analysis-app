@@ -313,29 +313,7 @@
                             <span th:text="#{analysis.refresh}">Refrescar</span>
                           </button>
                         </form>
-                        <form
-                          th:action="@{/analysis/getValorationIA}"
-                          method="post"
-                          class="w-100 ai-form"
-                        >
-                          <input
-                            type="hidden"
-                            name="id"
-                            th:value="${ticker.id}"
-                          />
-                          <button
-                            type="submit"
-                            class="btn btn-sm btn-outline-primary w-100 btn-ai"
-                          >
-                            <span class="btn-content">
-                              <i class="bi bi-stars me-1"></i> <span th:text="#{analysis.generate_analysis}">Generar análisis</span>
-                            </span>
-                            <output
-                              class="spinner-border spinner-border-sm d-none"
-                              aria-hidden="true"
-                            ></output>
-                          </button>
-                        </form>
+                        <th:block th:replace="~{fragments/ai-analysis-button :: aiButton(actionUrl=@{/analysis/getValorationIA}, itemId=${ticker.id})}"></th:block>
                         <form
                           th:action="@{/analysis/delete}"
                           method="post"
