@@ -1,8 +1,6 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-  <head th:replace="~{fragments/head :: head(${ticker.ticker} + ' - Detalle Análisis | AlphaSeeker')}">
-    <title>Detalle Análisis - AlphaSeeker</title>
-  </head>
+  <head th:replace="~{fragments/head :: head(${ticker.ticker} + ' - Detalle Análisis | AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100 bg-light">
     <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
     <div th:replace="~{fragments/notification :: notification}"></div>
