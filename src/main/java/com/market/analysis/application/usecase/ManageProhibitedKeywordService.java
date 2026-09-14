@@ -12,7 +12,7 @@ import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

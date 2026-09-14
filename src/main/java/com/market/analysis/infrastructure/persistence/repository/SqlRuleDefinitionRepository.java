@@ -11,7 +11,7 @@ import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.infrastructure.persistence.entity.RuleDefinitionEntity;
 import com.market.analysis.infrastructure.persistence.mapper.RuleDefinitionMapper;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
