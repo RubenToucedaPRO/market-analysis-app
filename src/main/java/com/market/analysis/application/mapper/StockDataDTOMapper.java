@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.domain.model.Stock;
+import com.market.analysis.domain.model.StrategyEvaluation;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +16,8 @@ public class StockDataDTOMapper {
                 if (stock == null) {
                         return null;
                 }
+
+                StrategyEvaluation se = stock.getStrategyEvaluation();
 
                 return StockDataDTO.builder()
                                 .id(stock.getId())
@@ -32,39 +35,15 @@ public class StockDataDTOMapper {
                                 .averageVolume(stock.getAverageVolume())
                                 .lastUpdated(stock.getLastUpdated())
                                 .strategyId(stock.getStrategyId())
-                                .strategyName(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().getStrategyName()
-                                                                : null)
-                                .complianceRate(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().getComplianceRate()
-                                                                : null)
-                                .evaluationPassed(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().isCompliant()
-                                                                : null)
-                                .evaluationSummary(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().getSummary()
-                                                                : null)
+                                .strategyName(se != null ? se.getStrategyName() : null)
+                                .complianceRate(se != null ? se.getComplianceRate() : null)
+                                .evaluationPassed(se != null ? se.isCompliant() : null)
+                                .evaluationSummary(se != null ? se.getSummary() : null)
                                 .valorationIA(stock.getValorationIA())
-                                .targetPrice(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().getTargetPrice()
-                                                                : null)
-                                .stopLossPrice(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().getStopLossPrice()
-                                                                : null)
-                                .riskRewardRatio(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().getRiskRewardRatio()
-                                                                : null)
-                                .recommendedShares(
-                                                stock.getStrategyEvaluation() != null
-                                                                ? stock.getStrategyEvaluation().getRecommendedShares()
-                                                                : null)
+                                .targetPrice(se != null ? se.getTargetPrice() : null)
+                                .stopLossPrice(se != null ? se.getStopLossPrice() : null)
+                                .riskRewardRatio(se != null ? se.getRiskRewardRatio() : null)
+                                .recommendedShares(se != null ? se.getRecommendedShares() : null)
                                 .build();
         }
 

@@ -61,22 +61,22 @@ public class AnalyzeTickerController {
 
     @PostMapping("/update")
     public String updateTicker(@RequestParam Long id, RedirectAttributes redirectAttributes) {
-        Locale locale = LocaleContextHolder.getLocale();
-        manageAnalyzeTickerUseCase.updateStockData(id);
-        String message = messageSource.getMessage("ticker.updated", null, locale);
-        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success(message));
+        performUpdate(id, redirectAttributes);
         return WebConstants.REDIRECT_ANALYSIS;
     }
 
     @PostMapping("/ticker/{id}/update")
     public String updateTickerFromDetail(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        performUpdate(id, redirectAttributes);
+        return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
+    }
+
+    private void performUpdate(Long id, RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
         manageAnalyzeTickerUseCase.updateStockData(id);
         String message = messageSource.getMessage("ticker.updated", null, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success(message));
-        return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
     }
 
     @PostMapping("/delete")

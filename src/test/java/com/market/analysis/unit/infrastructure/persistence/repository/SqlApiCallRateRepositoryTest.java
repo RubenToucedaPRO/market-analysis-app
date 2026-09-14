@@ -6,8 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,42 +59,6 @@ class SqlApiCallRateRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should find API call log by ticker")
-    void testFindByTicker() {
-        // Arrange
-        String ticker = "AAPL";
-        when(jpaRepository.findByTicker(ticker)).thenReturn(testEntity);
-        when(mapper.toDomain(testEntity)).thenReturn(testDomain);
-
-        // Act
-        Optional<ApiCallLog> result = repository.findByTicker(ticker);
-
-        // Assert
-        assertThat(result).isPresent();
-        assertThat(result.get().getTicker()).isEqualTo(ticker);
-        assertThat(result.get().getOcurredAt()).isEqualTo(testTimestamp);
-        verify(jpaRepository, times(1)).findByTicker(ticker);
-        verify(mapper, times(1)).toDomain(testEntity);
-    }
-
-    @Test
-    @DisplayName("Should return empty optional when ticker not found")
-    void testFindByTickerNotFound() {
-        // Arrange
-        String ticker = "UNKNOWN";
-        when(jpaRepository.findByTicker(ticker)).thenReturn(null);
-        when(mapper.toDomain(null)).thenReturn(null);
-
-        // Act
-        Optional<ApiCallLog> result = repository.findByTicker(ticker);
-
-        // Assert
-        assertThat(result).isEmpty();
-        verify(jpaRepository, times(1)).findByTicker(ticker);
-        verify(mapper, times(1)).toDomain(null);
-    }
-
-    @Test
     @DisplayName("Should save API call log with ticker and timestamp")
     void testSave() {
         // Arrange
@@ -118,19 +80,6 @@ class SqlApiCallRateRepositoryTest {
         // Assert
         verify(mapper, times(1)).toEntity(ticker, timestampString);
         verify(jpaRepository, times(1)).save(entityToSave);
-    }
-
-    @Test
-    @DisplayName("Should delete API call log by ticker")
-    void testDeleteByTicker() {
-        // Arrange
-        String ticker = "AAPL";
-
-        // Act
-        repository.deleteByTicker(ticker);
-
-        // Assert
-        verify(jpaRepository, times(1)).deleteByTicker(ticker);
     }
 
     @Test
@@ -220,16 +169,4 @@ class SqlApiCallRateRepositoryTest {
         verify(jpaRepository, times(1)).save(entity2);
     }
 
-    @Test
-    @DisplayName("Should handle delete for non-existing ticker")
-    void testDeleteNonExistingTicker() {
-        // Arrange
-        String ticker = "UNKNOWN";
-
-        // Act
-        repository.deleteByTicker(ticker);
-
-        // Assert
-        verify(jpaRepository, times(1)).deleteByTicker(ticker);
-    }
 }

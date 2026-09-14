@@ -146,38 +146,6 @@ class SqlStrategyRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should find strategy by name")
-    void testFindByName() {
-        // Arrange
-        when(jpaRepository.findAll()).thenReturn(List.of(testEntity));
-        when(mapper.toDomain(any(StrategyEntity.class))).thenReturn(testStrategy);
-
-        // Act
-        Optional<Strategy> result = sqlStrategyRepository.findByName("Test Strategy");
-
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals("Test Strategy", result.get().getName());
-        verify(jpaRepository, times(1)).findAll();
-        verify(mapper, times(1)).toDomain(testEntity);
-    }
-
-    @Test
-    @DisplayName("Should return empty when strategy not found by name")
-    void testFindByNameNotFound() {
-        // Arrange
-        when(jpaRepository.findAll()).thenReturn(List.of(testEntity));
-        when(mapper.toDomain(any(StrategyEntity.class))).thenReturn(testStrategy);
-
-        // Act
-        Optional<Strategy> result = sqlStrategyRepository.findByName("Nonexistent Strategy");
-
-        // Assert
-        assertFalse(result.isPresent());
-        verify(jpaRepository, times(1)).findAll();
-    }
-
-    @Test
     @DisplayName("Should find all strategies")
     void testFindAll() {
         // Arrange

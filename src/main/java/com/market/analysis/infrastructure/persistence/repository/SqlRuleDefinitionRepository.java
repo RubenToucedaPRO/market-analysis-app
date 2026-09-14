@@ -48,14 +48,6 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<RuleDefinition> findByCode(String code) {
-        log.debug("Finding rule definition by code: {}", code);
-        RuleDefinitionEntity entity = jpaRepository.findByCode(code);
-        return Optional.ofNullable(mapper.toDomain(entity));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<RuleDefinition> findAll() {
         log.debug("Retrieving all rule definitions");
         return jpaRepository.findAll().stream()

@@ -109,9 +109,7 @@ public class RiskRewardCalculator {
         if (targetPrice.compareTo(entryPrice) <= 0) {
             throw new DomainValidationException(DomainErrorCodes.TARGET_BELOW_ENTRY);
         }
-        if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
-        }
+        validateStopBelowEntry(entryPrice, stopPrice);
 
         BigDecimal potentialReward = targetPrice.subtract(entryPrice);
         BigDecimal potentialRisk = entryPrice.subtract(stopPrice);
@@ -143,9 +141,7 @@ public class RiskRewardCalculator {
         validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
         validatePositivePrice(capitalToRisk, FIELD_CAPITAL_TO_RISK);
 
-        if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
-        }
+        validateStopBelowEntry(entryPrice, stopPrice);
 
         BigDecimal riskPerShare = entryPrice.subtract(stopPrice);
 
@@ -246,7 +242,7 @@ public class RiskRewardCalculator {
 
     /**
      * Validates that stop-loss price is less than entry price for long positions.
-     * 
+     *
      * @param entryPrice    the entry price
      * @param stopLossPrice the stop-loss price
      * @throws IllegalArgumentException if stop-loss price is >= entry price
@@ -256,6 +252,19 @@ public class RiskRewardCalculator {
             throw new IllegalArgumentException(
                     String.format(Locale.ENGLISH, "Stop-loss price (%.2f) must be less than entry price (%.2f) for long positions",
                             stopLossPrice.doubleValue(), entryPrice.doubleValue()));
+        }
+    }
+
+    /**
+     * Validates that stop price is below entry price.
+     *
+     * @param entryPrice the entry price
+     * @param stopPrice  the stop price
+     * @throws DomainValidationException if stop price is >= entry price
+     */
+    private void validateStopBelowEntry(BigDecimal entryPrice, BigDecimal stopPrice) {
+        if (stopPrice.compareTo(entryPrice) >= 0) {
+            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
         }
     }
 

@@ -37,14 +37,6 @@ public interface RuleDefinitionRepository {
     Optional<RuleDefinition> findById(Long id);
 
     /**
-     * Finds a rule definition by its code.
-     * 
-     * @param code the rule definition code
-     * @return Optional containing the rule definition if found, empty otherwise
-     */
-    Optional<RuleDefinition> findByCode(String code);
-
-    /**
      * Retrieves all rule definitions from the repository.
      * 
      * @return list of all rule definitions

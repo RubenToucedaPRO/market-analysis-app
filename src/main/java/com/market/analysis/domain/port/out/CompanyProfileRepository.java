@@ -9,8 +9,4 @@ public interface CompanyProfileRepository {
     void save(CompanyProfile companyProfile);
 
     Optional<CompanyProfile> findByTicker(String ticker);
-
-    void update(CompanyProfile companyProfile);
-
-    void deleteByTicker(String ticker);
 }

@@ -47,19 +47,4 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
         return entity != null ? Optional.of(mapper.toDomain(entity)) : Optional.empty();
     }
 
-    @Override
-    public void update(CompanyProfile profile) {
-        log.debug("Updating company profile for ticker: {}", profile.getTicker());
-        jpaRepository.save(mapper.toEntity(profile));
-        log.debug("Company profile updated successfully for ticker: {}", profile.getTicker());
-    }
-
-    @Override
-    @Transactional
-    public void deleteByTicker(String ticker) {
-        log.debug("Deleting company profile for ticker: {}", ticker);
-        jpaRepository.deleteByTicker(ticker);
-        log.debug("Company profile deleted successfully for ticker: {}", ticker);
-    }
-
 }

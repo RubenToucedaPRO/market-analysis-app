@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.market.analysis.application.dto.HealthCheckResponse;
 import com.market.analysis.application.usecase.HealthCheckService;
-import com.market.analysis.domain.model.HealthStatusCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +42,8 @@ public class HealthCheckController {
         log.debug("Health check endpoint called");
 
          HealthCheckResponse response = healthCheckService.performHealthCheck();
-        
 
-        HttpStatus httpStatus = HealthStatusCode.UP.getStatus().equals(response.getStatus()) ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
+        HttpStatus httpStatus = HttpStatus.resolve(response.getHttpStatusCode());
 
         log.debug("Returning health check response with status: {}", httpStatus);
         return ResponseEntity.status(httpStatus).body(response);

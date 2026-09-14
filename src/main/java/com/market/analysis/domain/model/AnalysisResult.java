@@ -66,38 +66,6 @@ public class AnalysisResult {
     }
 
     /**
-     * Validates the consistency of the analysis result.
-     * Ensures all required fields are present and valid.
-     *
-     * @throws IllegalStateException if the analysis result is not properly
-     *                               configured
-     */
-    public void validateConsistency() {
-        if (strategy == null) {
-            throw new IllegalStateException("Strategy cannot be null");
-        }
-        if (ticker == null || ticker.trim().isEmpty()) {
-            throw new IllegalStateException("Ticker cannot be null or empty");
-        }
-        if (analysisTimestamp == null) {
-            throw new IllegalStateException("Analysis timestamp cannot be null");
-        }
-        if (ruleResults == null) {
-            throw new IllegalStateException("Rule results cannot be null");
-        }
-        if (calculatedMetrics == null) {
-            throw new IllegalStateException("Calculated metrics cannot be null");
-        }
-
-        // Validate that number of rule results matches number of rules in strategy
-        if (ruleResults.size() != strategy.getRules().size()) {
-            throw new IllegalStateException(
-                    String.format("Number of rule results (%d) does not match number of rules in strategy (%d)",
-                            ruleResults.size(), strategy.getRules().size()));
-        }
-    }
-
-    /**
      * Calculates the percentage of rules that passed.
      *
      * @return compliance rate as a percentage (0-100)

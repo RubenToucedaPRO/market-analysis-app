@@ -12,8 +12,6 @@ public interface StockDataRepository {
 
     public Stock save(Stock stockData);
 
-    public List<Stock> findAllStocks();
-
     Set<String> findTickerByStrategyId(Long strategyId);
 
     public List<Stock> findAllStocksVisibleInAnalysis();

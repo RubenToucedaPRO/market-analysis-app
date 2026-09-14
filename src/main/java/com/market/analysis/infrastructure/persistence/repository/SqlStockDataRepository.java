@@ -44,15 +44,6 @@ public class SqlStockDataRepository implements StockDataRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Stock> findAllStocks() {
-        log.debug("Retrieving all stock data");
-        return jpaRepository.findAllWithProfile().stream()
-                .map(mapper::toDomain)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Set<String> findTickerByStrategyId(Long strategyId) {
         return jpaRepository.findTickerByStrategyId(strategyId);
     }
