@@ -37,6 +37,7 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<CompanyProfile> findByTicker(String ticker) {
         log.debug("Finding company profile by ticker: {}", ticker);
         CompanyProfileEntity entity = jpaRepository.findAll().stream()

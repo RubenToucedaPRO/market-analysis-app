@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +66,8 @@ public class SqlStockDataRepository implements StockDataRepository {
                 .toList();
     }
 
-    @Query("SELECT s FROM StockEntity s LEFT JOIN FETCH s.companyProfile WHERE s.id = :id")
+    @Override
+    @Transactional(readOnly = true)
     public Optional<Stock> findById(@Param("id") Long id) {
         return jpaRepository.findByIdWithProfile(id).map(mapper::toDomain);
 

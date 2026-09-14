@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.ApiCallLog;
 import com.market.analysis.domain.port.out.ApiCallRateRepository;
@@ -22,6 +23,7 @@ public class SqlApiCallRateRepository implements ApiCallRateRepository {
     private final ApiCallLogMapper mapper;
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<ApiCallLog> findByTicker(String ticker) {
         log.debug("Finding API call log for ticker: {}", ticker);
         ApiCallLogEntity entity = jpaRepository.findByTicker(ticker);

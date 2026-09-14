@@ -39,6 +39,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<RuleDefinition> findById(Long id) {
         log.debug("Finding rule definition by ID: {}", id);
         return jpaRepository.findById(id)
@@ -46,6 +47,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<RuleDefinition> findByCode(String code) {
         log.debug("Finding rule definition by code: {}", code);
         RuleDefinitionEntity entity = jpaRepository.findByCode(code);
@@ -53,6 +55,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RuleDefinition> findAll() {
         log.debug("Retrieving all rule definitions");
         return jpaRepository.findAll().stream()
@@ -80,12 +83,14 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsById(Long id) {
         log.debug("Checking if rule definition exists with ID: {}", id);
         return jpaRepository.existsById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByCode(String code) {
         log.debug("Checking if rule definition exists with code: {}", code);
         return jpaRepository.existsByCode(code);

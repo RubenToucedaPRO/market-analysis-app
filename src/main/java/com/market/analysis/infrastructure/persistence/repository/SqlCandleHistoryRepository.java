@@ -72,8 +72,9 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
         jpaCandleRepository.deleteByTicker(ticker);
     }
 
-    @Override
-    public List<Candle> findCandlesByTicker(String ticker) {
+     @Override
+     @Transactional(readOnly = true)
+     public List<Candle> findCandlesByTicker(String ticker) {
         Assert.hasText(ticker, "ticker must not be null or blank");
         log.debug("findCandlesByTicker: querying candles for ticker={}", ticker);
         List<Candle> candles = jpaCandleRepository.findByTickerOrderByDateTimeAsc(ticker)
@@ -84,8 +85,9 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
         return candles;
     }
 
-    @Override
-    public Optional<Candle> findLatestCandleByTicker(String ticker) {
+     @Override
+     @Transactional(readOnly = true)
+     public Optional<Candle> findLatestCandleByTicker(String ticker) {
         Assert.hasText(ticker, "ticker must not be null or blank");
         log.debug("findLatestCandleByTicker: querying latest candle for ticker={}", ticker);
         CandleEntity entity = jpaCandleRepository.findTopByTickerOrderByDateTimeDesc(ticker);

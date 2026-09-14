@@ -4,9 +4,10 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Component;
+  import org.springframework.data.domain.Page;
+  import org.springframework.data.domain.PageRequest;
+  import org.springframework.stereotype.Component;
+  import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedKeyword;
@@ -25,16 +26,18 @@ public class SqlProhibitedKeywordRepository implements ProhibitedKeywordReposito
     private final JpaProhibitedKeywordRepository jpaProhibitedKeywordRepository;
     private final ProhibitedKeywordMapper prohibitedKeywordMapper;
 
-    @Override
-    public List<ProhibitedKeyword> findAll() {
+     @Override
+     @Transactional(readOnly = true)
+     public List<ProhibitedKeyword> findAll() {
         log.debug("Retrieving all prohibited keywords");
         return jpaProhibitedKeywordRepository.findAll().stream()
                 .map(prohibitedKeywordMapper::toDomain)
                 .toList();
     }
 
-    @Override
-    public PageResult<ProhibitedKeyword> findAll(int pageNumber, int pageSize) {
+     @Override
+     @Transactional(readOnly = true)
+     public PageResult<ProhibitedKeyword> findAll(int pageNumber, int pageSize) {
         log.debug("Retrieving prohibited keywords page {} size {}", pageNumber, pageSize);
         Page<ProhibitedKeywordEntity> page = jpaProhibitedKeywordRepository
                 .findAll(PageRequest.of(pageNumber, pageSize));
@@ -45,8 +48,9 @@ public class SqlProhibitedKeywordRepository implements ProhibitedKeywordReposito
                 page.getTotalElements(), page.getTotalPages());
     }
 
-    @Override
-    public boolean existsByKeyword(String keyword) {
+     @Override
+     @Transactional(readOnly = true)
+     public boolean existsByKeyword(String keyword) {
         String normalizedKeyword = normalizeKeyword(keyword);
         log.debug("Checking if keyword exists: {}", normalizedKeyword);
         return jpaProhibitedKeywordRepository.existsByKeyword(normalizedKeyword);
