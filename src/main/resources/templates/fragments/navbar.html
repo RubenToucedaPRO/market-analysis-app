@@ -7,7 +7,7 @@
   <div class="container-fluid">
     <a
       class="navbar-brand d-flex align-items-center gap-2"
-      th:href="${isAuthenticated ? @{/analysis} : @{/}}"
+      th:href="${isAuthenticated} ? '/analysis' : '/'"
     >
       <i class="bi bi-graph-up-arrow text-primary"></i>
       <span class="fw-bold text-primary">AlphaSeeker</span>
