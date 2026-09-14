@@ -22,7 +22,7 @@
   </head>
   <body class="d-flex flex-column min-vh-100 bg-light">
     <!-- Public Navigation Bar -->
-    <div th:replace="~{fragments/navbar-public :: navbar-public}"></div>
+    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${false})}"></div>
 
     <!-- Main Content -->
     <main class="container flex-grow-1 d-flex align-items-center justify-content-center py-5">

@@ -26,7 +26,7 @@
   </head>
   <body class="d-flex flex-column min-vh-100">
     <!-- Public Navigation Bar -->
-    <div th:replace="~{fragments/navbar-public :: navbar-public}"></div>
+    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${false})}"></div>
 
     <!-- Hero Section -->
     <section class="home-hero">
