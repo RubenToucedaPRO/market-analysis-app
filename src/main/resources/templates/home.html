@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-  <head th:replace="~{fragments/head :: head('AlphaSeeker - Análisis Técnico Determinista')}"></head>
+  <head th:replace="~{fragments/head :: head('AlphaSeeker - Análisis Técnico Determinista')}">
+    <title>AlphaSeeker - Análisis Técnico Determinista</title>
+  </head>
   <body class="d-flex flex-column min-vh-100">
     <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${false})}"></div>
 

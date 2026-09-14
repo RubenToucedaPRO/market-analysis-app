@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-  <head th:replace="~{fragments/head :: head('Error - AlphaSeeker')}"></head>
+  <head th:replace="~{fragments/head :: head('Error - AlphaSeeker')}">
+    <title>Error - AlphaSeeker</title>
+  </head>
   <body class="d-flex flex-column min-vh-100">
     <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
 
