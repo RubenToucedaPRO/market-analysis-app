@@ -1,32 +1,10 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Análisis - AlphaSeeker</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Bootstrap Icons -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Custom CSS -->
-    <link th:href="@{/css/styles.css}" rel="stylesheet" />
-  </head>
+  <head th:replace="~{fragments/head :: head('Análisis - AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100">
-    <!-- Navigation Bar -->
     <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
-    <!-- Message Alert -->
     <div th:replace="~{fragments/notification :: notification}"></div>
 
-    <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <div class="page-header">
         <div
@@ -100,7 +78,6 @@
         </div>
       </div>
 
-      <!-- Tickers Grid -->
       <div id="tickersGridContainer">
         <div th:if="${tickers.isEmpty()}" class="text-center py-5">
           <i class="bi bi-inbox display-1 text-muted mb-3"></i>
@@ -120,7 +97,6 @@
                   class="text-decoration-none text-reset"
                 >
                   <div class="row align-items-start">
-                    <!-- Ticker Info Section -->
                     <div class="col-lg-3 col-md-4 mb-3 mb-md-0">
                       <div class="d-flex align-items-center gap-3">
                         <img
@@ -160,7 +136,6 @@
                       </div>
                     </div>
 
-                    <!-- Status Section -->
                     <div class="col-lg-2 col-md-3 col-6 mb-3 mb-lg-0">
                       <div class="data-label">Estado</div>
                       <span
@@ -218,7 +193,6 @@
                       </div>
                     </div>
 
-                    <!-- Price Data Section -->
                     <div class="col-lg-5 col-md-5 col-12 mb-3 mb-lg-0">
                       <div class="row g-3">
                         <div class="col-4">
@@ -313,7 +287,6 @@
                       </div>
                     </div>
 
-                    <!-- Actions Section -->
                     <div class="col-lg-2 col-md-12">
                       <div class="data-label mb-2 d-none d-lg-block">
                         Acciones
@@ -398,16 +371,8 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light border-top text-center py-3 mt-5">
-      <p class="text-muted mb-0">
-        <small>&copy; 2026 AlphaSeeker. Todos los derechos reservados.</small>
-      </p>
-    </footer>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
     <script th:src="@{/js/validation-ia.js}"></script>
   </body>
 </html>

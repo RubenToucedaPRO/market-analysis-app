@@ -1,32 +1,10 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Definiciones de Reglas - AlphaSeeker</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Bootstrap Icons -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Custom CSS -->
-    <link th:href="@{/css/styles.css}" rel="stylesheet" />
-  </head>
+  <head th:replace="~{fragments/head :: head('Definiciones de Reglas - AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100">
-    <!-- Navigation Bar -->
     <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
-    <!-- Message Alert -->
     <div th:replace="~{fragments/notification :: notification}"></div>
 
-    <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <div class="page-header">
         <div
@@ -54,7 +32,6 @@
         </div>
       </div>
 
-      <!-- Empty State -->
       <div th:if="${ruleDefinitions.isEmpty()}" class="text-center py-5">
         <i class="bi bi-collection text-muted" style="font-size: 4rem"></i>
         <p class="text-muted fs-5 mt-3">
@@ -66,9 +43,7 @@
         </a>
       </div>
 
-      <!-- Rule Definitions Table -->
       <div th:unless="${ruleDefinitions.isEmpty()}" class="card">
-        <!-- Desktop Table View (visible on screens > 768px) -->
         <div class="rule-table-view">
           <div class="table-responsive">
             <table class="table table-hover mb-0">
@@ -157,12 +132,10 @@
           </div>
         </div>
 
-        <!-- Mobile Card View (visible on screens <= 768px) -->
         <div class="rule-card-view">
           <div th:each="ruleDefinition : ${ruleDefinitions}">
             <div class="card rule-definition-card mb-3">
               <div class="card-body">
-                <!-- Header with Code and Parameter Badge -->
                 <div
                   class="d-flex justify-content-between align-items-start mb-2"
                 >
@@ -183,12 +156,10 @@
                   </span>
                 </div>
 
-                <!-- Rule Name -->
                 <h6 class="rule-name" th:text="${ruleDefinition.name}">
                   Precio Actual
                 </h6>
 
-                <!-- Description -->
                 <p
                   class="rule-description"
                   th:text="${ruleDefinition.description}"
@@ -196,7 +167,6 @@
                   El precio actual del mercado
                 </p>
 
-                <!-- Actions -->
                 <div class="rule-actions">
                   <form
                     th:action="@{/rule-definitions/edit}"
@@ -244,16 +214,7 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light border-top py-3 mt-auto">
-      <div class="container text-center">
-        <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
-        >
-      </div>
-    </footer>
-
-    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
   </body>
 </html>
