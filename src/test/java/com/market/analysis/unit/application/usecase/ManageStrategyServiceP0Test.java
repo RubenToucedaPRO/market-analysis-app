@@ -209,8 +209,6 @@ class ManageStrategyServiceP0Test {
         when(strategyMapper.toDomain(dto)).thenReturn(strategy);
         when(strategyRepository.save(strategy)).thenReturn(strategy);
         when(strategyMapper.toDTO(strategy)).thenReturn(dto);
-        when(stockDataRepository.findAllByStrategyId(org.mockito.ArgumentMatchers.anyLong()))
-                .thenReturn(List.of());
 
         // Should not throw
         service.createStrategy(dto);
@@ -232,8 +230,6 @@ class ManageStrategyServiceP0Test {
         when(strategyMapper.toDomain(dto)).thenReturn(strategy);
         when(strategyRepository.save(strategy)).thenReturn(strategy);
         when(strategyMapper.toDTO(strategy)).thenReturn(dto);
-        when(stockDataRepository.findAllByStrategyId(org.mockito.ArgumentMatchers.anyLong()))
-                .thenReturn(List.of());
 
         // Should not throw
         service.createStrategy(dto);

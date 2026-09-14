@@ -117,7 +117,6 @@ class ManageStrategyServiceTest {
     @DisplayName("Should create strategy successfully")
     void testCreateStrategy() {
         // Arrange
-        when(stockDataRepository.findAllByStrategyId(anyLong())).thenReturn(List.of());
         when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
         when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
         when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
