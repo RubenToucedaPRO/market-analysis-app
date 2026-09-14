@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
@@ -49,6 +51,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     private final StockDataRepository stockDataRepository;
 
     @Override
+    @Transactional
     public SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request) {
         validateRequest(request);
 

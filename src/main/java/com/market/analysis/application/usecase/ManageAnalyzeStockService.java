@@ -7,6 +7,8 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.CandleDTOMapper;
@@ -107,6 +109,7 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id, String ticker) {
         stockDataRepository.deleteById(id);
         if (!stockDataRepository.existsByTicker(ticker)) {

@@ -31,6 +31,8 @@ import com.market.analysis.domain.service.EvaluateStrategyService;
 import com.market.analysis.domain.service.ProhibitedKeywordMatcher;
 import com.market.analysis.domain.service.StockHistoricalService;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,6 +66,7 @@ public class AnalyzeAndPersistStockService {
         return validTickers;
     }
 
+    @Transactional
     public Stock analyzeAndPersist(String ticker, Strategy strategy, StockOrigin origin) {
         Stock stock = getDataFromProvider(ticker);
         if (stock == null) {
