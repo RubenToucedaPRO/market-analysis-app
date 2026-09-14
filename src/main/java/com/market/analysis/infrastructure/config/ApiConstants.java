@@ -46,7 +46,4 @@ public final class ApiConstants {
     public static final String OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
     public static final String OPENROUTER_HEADER_REFERER = "HTTP-Referer";
     public static final String OPENROUTER_DEFAULT_REFERER = "http://localhost:8080";
-
-    // ── HTTP Headers ──────────────────────────────────────────────────
-    public static final String HEADER_REFERER = "Referer";
 }

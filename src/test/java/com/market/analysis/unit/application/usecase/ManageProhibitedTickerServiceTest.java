@@ -1,7 +1,6 @@
 package com.market.analysis.unit.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,34 +51,6 @@ class ManageProhibitedTickerServiceTest {
                 .reason("Inappropriate content")
                 .createdAt(Instant.now().minus(40, ChronoUnit.DAYS))
                 .build();
-    }
-
-    @Test
-    @DisplayName("Should return true when ticker is prohibited")
-    void testIsTickerProhibited() {
-        // Arrange
-        when(prohibitedTickerRepository.existsByTicker("AAPL")).thenReturn(true);
-
-        // Act
-        boolean result = manageProhibitedTickerService.isTickerProhibited("AAPL");
-
-        // Assert
-        assertTrue(result);
-        verify(prohibitedTickerRepository, times(1)).existsByTicker("AAPL");
-    }
-
-    @Test
-    @DisplayName("Should return false when ticker is not prohibited")
-    void testIsTickerNotProhibited() {
-        // Arrange
-        when(prohibitedTickerRepository.existsByTicker("MSFT")).thenReturn(false);
-
-        // Act
-        boolean result = manageProhibitedTickerService.isTickerProhibited("MSFT");
-
-        // Assert
-        assertFalse(result);
-        verify(prohibitedTickerRepository, times(1)).existsByTicker("MSFT");
     }
 
     @Test

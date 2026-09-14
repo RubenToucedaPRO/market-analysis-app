@@ -7,8 +7,6 @@ public interface ManageProhibitedKeywordUseCase {
 
     PageResult<ProhibitedKeywordDTO> getProhibitedKeywords(int pageNumber, int pageSize);
 
-    boolean isKeywordProhibited(String keyword);
-
     void addProhibitedKeyword(ProhibitedKeywordDTO prohibitedKeyword);
 
     void removeProhibitedKeyword(String keyword);

@@ -35,11 +35,6 @@ public class ManageProhibitedTickerService implements ManageProhibitedTickerUseC
     }
 
     @Override
-    public boolean isTickerProhibited(String ticker) {
-        return prohibitedTickerRepository.existsByTicker(ticker);
-    }
-
-    @Override
     public void addProhibitedTicker(ProhibitedTickerDTO ticker) {
         log.info("Adding prohibited ticker: {}", ticker.getTicker());
         ProhibitedTicker stock = prohibitedTickerMapper.toDomain(ticker);

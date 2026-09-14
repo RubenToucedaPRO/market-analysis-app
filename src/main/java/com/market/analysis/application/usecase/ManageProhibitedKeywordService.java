@@ -36,12 +36,6 @@ public class ManageProhibitedKeywordService implements ManageProhibitedKeywordUs
     }
 
     @Override
-    public boolean isKeywordProhibited(String keyword) {
-        String normalizedKeyword = normalizeKeyword(keyword);
-        return prohibitedKeywordRepository.existsByKeyword(normalizedKeyword);
-    }
-
-    @Override
     public void addProhibitedKeyword(ProhibitedKeywordDTO prohibitedKeyword) {
         if (prohibitedKeyword == null) {
             throw new DomainValidationException(DomainErrorCodes.KEYWORD_NULL);
