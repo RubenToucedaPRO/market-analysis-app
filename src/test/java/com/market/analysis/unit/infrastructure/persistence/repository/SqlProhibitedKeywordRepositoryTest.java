@@ -2,7 +2,6 @@ package com.market.analysis.unit.infrastructure.persistence.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -10,7 +9,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -63,24 +61,22 @@ class SqlProhibitedKeywordRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should normalize keyword when checking existence")
-    void shouldNormalizeKeywordOnExists() {
+    @DisplayName("Should pass keyword directly to JPA when checking existence")
+    void shouldPassKeywordDirectlyOnExists() {
         when(jpaRepository.existsByKeyword("ETF")).thenReturn(true);
 
-        boolean exists = sqlRepository.existsByKeyword(" etf ");
+        boolean exists = sqlRepository.existsByKeyword("ETF");
 
         assertTrue(exists);
         verify(jpaRepository, times(1)).existsByKeyword("ETF");
     }
 
     @Test
-    @DisplayName("Should save keyword normalized and skip duplicates")
-    void shouldSaveNormalizedAndSkipDuplicates() {
+    @DisplayName("Should save keyword and skip duplicates")
+    void shouldSaveAndSkipDuplicates() {
         ProhibitedKeyword prohibitedKeyword = ProhibitedKeyword.builder()
-                .keyword(" etf ")
+                .keyword("ETF")
                 .active(true)
-                .createdAt(Instant.now())
-                .updatedAt(Instant.now())
                 .build();
 
         ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
@@ -99,23 +95,34 @@ class SqlProhibitedKeywordRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should normalize keyword when deleting")
-    void shouldNormalizeKeywordOnDelete() {
-        sqlRepository.deleteByKeyword(" warrants ");
+    @DisplayName("Should pass keyword directly to JPA when deleting")
+    void shouldPassKeywordDirectlyOnDelete() {
+        sqlRepository.deleteByKeyword("WARRANTS");
 
         verify(jpaRepository, times(1)).deleteByKeyword("WARRANTS");
     }
 
     @Test
-    @DisplayName("Should reject blank keyword on save")
-    void shouldRejectBlankKeywordOnSave() {
+    @DisplayName("Should save keyword as-is when createdAt is null")
+    void shouldSaveKeywordWhenCreatedAtIsNull() {
         ProhibitedKeyword prohibitedKeyword = ProhibitedKeyword.builder()
-                .keyword("   ")
+                .keyword("ETF")
                 .active(true)
+                .createdAt(null)
+                .updatedAt(null)
                 .build();
 
-        assertThrows(IllegalArgumentException.class, () -> sqlRepository.save(prohibitedKeyword));
-        verify(mapper, never()).toEntity(any(ProhibitedKeyword.class));
+        ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
+        entity.setKeyword("ETF");
+
+        when(jpaRepository.existsByKeyword("ETF")).thenReturn(false);
+        when(mapper.toEntity(any(ProhibitedKeyword.class))).thenReturn(entity);
+
+        sqlRepository.save(prohibitedKeyword);
+
+        ArgumentCaptor<ProhibitedKeyword> captor = ArgumentCaptor.forClass(ProhibitedKeyword.class);
+        verify(mapper, times(1)).toEntity(captor.capture());
+        assertEquals("ETF", captor.getValue().getKeyword());
     }
 
     @Test
@@ -151,66 +158,5 @@ class SqlProhibitedKeywordRepositoryTest {
         assertNotNull(result);
         assertTrue(result.content().isEmpty());
         assertEquals(0, result.totalElements());
-    }
-
-    @Test
-    @DisplayName("Should save keyword when createdAt is null using Instant.now()")
-    void shouldSaveKeywordWhenCreatedAtIsNull() {
-        ProhibitedKeyword prohibitedKeyword = ProhibitedKeyword.builder()
-                .keyword("etf")
-                .active(true)
-                .createdAt(null)
-                .updatedAt(null)
-                .build();
-
-        ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
-        entity.setKeyword("ETF");
-
-        when(jpaRepository.existsByKeyword("ETF")).thenReturn(false);
-        when(mapper.toEntity(any(ProhibitedKeyword.class))).thenReturn(entity);
-
-        sqlRepository.save(prohibitedKeyword);
-
-        ArgumentCaptor<ProhibitedKeyword> captor = ArgumentCaptor.forClass(ProhibitedKeyword.class);
-        verify(mapper, times(1)).toEntity(captor.capture());
-        assertNotNull(captor.getValue().getCreatedAt());
-        assertNotNull(captor.getValue().getUpdatedAt());
-    }
-
-    @Test
-    @DisplayName("Should save keyword using createdAt when updatedAt is null")
-    void shouldSaveKeywordUsingCreatedAtWhenUpdatedAtIsNull() {
-        Instant createdAt = Instant.parse("2025-01-01T00:00:00Z");
-        ProhibitedKeyword prohibitedKeyword = ProhibitedKeyword.builder()
-                .keyword("etf")
-                .active(true)
-                .createdAt(createdAt)
-                .updatedAt(null)
-                .build();
-
-        ProhibitedKeywordEntity entity = new ProhibitedKeywordEntity();
-        entity.setKeyword("ETF");
-
-        when(jpaRepository.existsByKeyword("ETF")).thenReturn(false);
-        when(mapper.toEntity(any(ProhibitedKeyword.class))).thenReturn(entity);
-
-        sqlRepository.save(prohibitedKeyword);
-
-        ArgumentCaptor<ProhibitedKeyword> captor = ArgumentCaptor.forClass(ProhibitedKeyword.class);
-        verify(mapper, times(1)).toEntity(captor.capture());
-        assertEquals(createdAt, captor.getValue().getCreatedAt());
-        assertEquals(createdAt, captor.getValue().getUpdatedAt());
-    }
-
-    @Test
-    @DisplayName("Should reject blank keyword on existsByKeyword")
-    void shouldRejectBlankKeywordOnExistsByKeyword() {
-        assertThrows(IllegalArgumentException.class, () -> sqlRepository.existsByKeyword("   "));
-    }
-
-    @Test
-    @DisplayName("Should reject blank keyword on deleteByKeyword")
-    void shouldRejectBlankKeywordOnDeleteByKeyword() {
-        assertThrows(IllegalArgumentException.class, () -> sqlRepository.deleteByKeyword("   "));
     }
 }
