@@ -93,7 +93,7 @@
                           <button
                             type="submit"
                             class="btn btn-sm btn-outline-danger"
-                            th:onclick="'return confirm(\'' + #{prohibited.tickers.confirm_delete} + '\')'"
+                            th:onclick="'return confirm(\'' + #{prohibited.tickers.confirm_delete_ticker} + '\')'"
                           >
                             <i class="bi bi-trash"></i> <span th:text="#{prohibited.tickers.delete}">Eliminar</span>
                           </button>
@@ -270,11 +270,7 @@
                       <button
                         type="submit"
                         class="btn btn-sm btn-outline-danger"
-                        onclick="
-                          return confirm(
-                            '¿Estás seguro de que quieres eliminar esta keyword?',
-                          );
-                        "
+                        th:onclick="'return confirm(\'' + #{prohibited.tickers.confirm_delete_keyword} + '\')'"
                       >
                         <i class="bi bi-trash"></i>
                       </button>
