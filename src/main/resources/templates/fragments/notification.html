@@ -23,16 +23,16 @@
         th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
       ></i>
       <div>
-        <strong th:if="${uiNotification.type == 'success'}">¡Éxito!</strong>
-        <strong th:if="${uiNotification.type == 'warning'}">Parcial</strong>
-        <strong th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}">Aviso</strong>
+        <strong th:if="${uiNotification.type == 'success'}" th:text="#{notification.success}">¡Éxito!</strong>
+        <strong th:if="${uiNotification.type == 'warning'}" th:text="#{notification.warning}">Parcial</strong>
+        <strong th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}" th:text="#{notification.error}">Aviso</strong>
         <div th:text="${uiNotification.text}" class="small"></div>
       </div>
       <button
         type="button"
         class="btn-close ms-auto"
         data-bs-dismiss="alert"
-        aria-label="Cerrar"
+        aria-label="#{notification.close.aria}"
       ></button>
     </div>
 

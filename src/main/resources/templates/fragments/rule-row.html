@@ -8,13 +8,13 @@
       <!-- Rule Name -->
       <div class="col-md-2">
         <label class="form-label small text-muted">
-          Nombre de la Regla
+          <span th:text="#{rule.name}">Nombre de la Regla</span>
           <input
             type="text"
             class="form-control form-control-sm"
             th:name="|rules[${index}].name|"
             th:value="${rule != null ? rule.name : ''}"
-            placeholder="Nombre de la Regla"
+            th:placeholder="#{rule.name}"
             required
           />
         </label>

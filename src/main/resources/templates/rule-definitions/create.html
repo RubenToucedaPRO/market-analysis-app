@@ -58,7 +58,7 @@
                     required
                     onchange="syncRequiresParam(this)"
                   >
-                    <option value="">-- Seleccionar indicador --</option>
+                    <option value="" th:text="#{ruledefinition.form.select_indicator}">-- Seleccionar indicador --</option>
                     <option
                       th:each="cap : ${capabilities}"
                       th:value="${cap.code}"

@@ -6,15 +6,15 @@
   <div class="card-header bg-light">
     <h6 class="mb-0">
       <i class="bi bi-diagram-3 me-2 text-primary"></i>
-      Trazabilidad de sugerencias
+      <span th:text="#{traceability.title}">Trazabilidad de sugerencias</span>
     </h6>
-    <p class="text-muted small mb-0 mt-1" th:if="${suggestedAt != null}">
-      Última sugerencia: <span th:text="${suggestedAt}">2026-04-18T12:00:00Z</span>
+      <p class="text-muted small mb-0 mt-1" th:if="${suggestedAt != null}">
+      <span th:text="#{traceability.last_suggestion}">Última sugerencia:</span> <span th:text="${suggestedAt}">2026-04-18T12:00:00Z</span>
     </p>
   </div>
   <div class="card-body">
     <div class="mb-3">
-      <p class="form-label fw-semibold small text-muted mb-1">Sugeridos</p>
+      <p class="form-label fw-semibold small text-muted mb-1" th:text="#{traceability.suggested}">Sugeridos</p>
       <div
         id="suggested-tickers-traceability"
         th:if="${suggestedTickers != null and !suggestedTickers.isEmpty()}"
@@ -36,22 +36,22 @@
         <button
           type="submit"
           class="btn btn-sm btn-outline-primary"
-          aria-label="Añadir todos los tickers sugeridos a analizados"
+          aria-label="#{traceability.add_suggested.aria}"
         >
           <i class="bi bi-plus-circle me-1"></i>
-          Añadir sugeridos a análisis
+          <span th:text="#{traceability.add_suggested}">Añadir sugeridos a análisis</span>
         </button>
       </form>
       <p
         class="text-muted small mb-0"
         th:if="${suggestedTickers == null or suggestedTickers.isEmpty()}"
       >
-        Sin sugerencias aptas.
+        th:text="#{traceability.no_suggested}">Sin sugerencias aptas.
       </p>
     </div>
 
     <div class="mb-3">
-      <p class="form-label fw-semibold small text-muted mb-1">Descartes</p>
+      <p class="form-label fw-semibold small text-muted mb-1" th:text="#{traceability.discarded}">Descartes</p>
       <div
         id="discarded-tickers-traceability"
         th:if="${discardedTickers != null and !discardedTickers.isEmpty()}"
@@ -67,12 +67,12 @@
         class="text-muted small mb-0"
         th:if="${discardedTickers == null or discardedTickers.isEmpty()}"
       >
-        Sin descartes.
+        th:text="#{traceability.no_discarded}">Sin descartes.
       </p>
     </div>
 
     <div>
-      <p class="form-label fw-semibold small text-muted mb-1">
+      <p class="form-label fw-semibold small text-muted mb-1" th:text="#{traceability.unmappable_rules}">
         Reglas no mapeables
       </p>
       <ul
@@ -86,7 +86,7 @@
         class="text-muted small mb-0"
         th:if="${unmappableRules == null or unmappableRules.isEmpty()}"
       >
-        Sin reglas no mapeables.
+        th:text="#{traceability.no_unmappable}">Sin reglas no mapeables.
       </p>
     </div>
   </div>
