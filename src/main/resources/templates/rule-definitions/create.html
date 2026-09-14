@@ -11,7 +11,7 @@
       >
         <div>
           <h2
-            th:text="${isEdit} ? 'Editar Definición de Regla' : 'Crear Nueva Definición de Regla'"
+            th:text="${isEdit} ? #{ruledefinition.form.edit} : #{ruledefinition.form.create}"
           >
             Crear Nueva Definición de Regla
           </h2>
@@ -24,7 +24,7 @@
             class="btn btn-primary"
           >
             <i class="bi bi-save me-1"></i>
-            Guardar Definición de Regla
+            <span th:text="#{ruledefinition.form.save}">Guardar Definición de Regla</span>
           </button>
         </div>
       </div>
@@ -39,7 +39,7 @@
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="bi bi-gear text-primary me-2"></i>
-                Detalles de la Definición de Regla
+                <span th:text="#{ruledefinition.form.details}">Detalles de la Definición de Regla</span>
               </h5>
             </div>
             <div class="card-body">
@@ -48,7 +48,7 @@
 
                 <div class="col-md-6">
                   <label for="code" class="form-label fw-semibold">
-                    Código <span class="text-danger">*</span>
+                    <span th:text="#{ruledefinition.form.code}">Código</span> <span class="text-danger">*</span>
                   </label>
                   <select
                     th:if="${!isEdit}"
@@ -76,14 +76,14 @@
                   />
                   <input th:if="${isEdit}" type="hidden" th:field="*{code}" />
 
-                  <small class="form-text text-muted">
+                  <small class="form-text text-muted" th:text="#{ruledefinition.form.code.help}">
                     Identificador asociado a indicador declarado en el catálogo.
                   </small>
                 </div>
 
                 <div class="col-md-6">
                   <label for="name" class="form-label fw-semibold">
-                    Nombre <span class="text-danger">*</span>
+                    <span th:text="#{ruledefinition.form.name}">Nombre</span> <span class="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -93,7 +93,7 @@
                     placeholder="ej., Media Móvil Simple"
                     required
                   />
-                  <small class="form-text text-muted">
+                  <small class="form-text text-muted" th:text="#{ruledefinition.form.name.help}">
                     Nombre legible para humanos mostrado en la interfaz.
                   </small>
                 </div>
@@ -111,9 +111,9 @@
                       class="form-check-label fw-semibold"
                       for="requiresParam"
                     >
-                      Requiere Parámetro
+                      <span th:text="#{ruledefinition.form.requires_param}">Requiere Parámetro</span>
                     </label>
-                    <small class="form-text text-muted d-block">
+                    <small class="form-text text-muted d-block" th:text="#{ruledefinition.form.requires_param.help}">
                       Se establece automáticamente según el indicador
                       seleccionado.
                     </small>
@@ -122,7 +122,7 @@
 
                 <div class="col-md-12">
                   <label for="description" class="form-label fw-semibold">
-                    Descripción
+                    <span th:text="#{ruledefinition.form.description}">Descripción</span>
                   </label>
                   <textarea
                     class="form-control"
@@ -131,7 +131,7 @@
                     rows="3"
                     placeholder="Describe la definición de regla y su propósito..."
                   ></textarea>
-                  <small class="form-text text-muted">
+                  <small class="form-text text-muted" th:text="#{ruledefinition.form.description.help}">
                     Descripción opcional explicando qué representa esta regla.
                   </small>
                 </div>
@@ -141,11 +141,11 @@
           <div class="alert alert-info mt-4" role="alert">
             <h6 class="alert-heading">
               <i class="bi bi-info-circle me-2"></i>
-              Acerca de las Definiciones de Reglas
+              <span th:text="#{ruledefinition.form.about}">Acerca de las Definiciones de Reglas</span>
             </h6>
             <p class="mb-0">
-              Las definiciones de reglas representan los indicadores y valores
-              disponibles que se pueden usar en las reglas de estrategia.
+              <span th:text="#{ruledefinition.form.about.description}">Las definiciones de reglas representan los indicadores y valores
+              disponibles que se pueden usar en las reglas de estrategia.</span>
             </p>
           </div>
         </form>

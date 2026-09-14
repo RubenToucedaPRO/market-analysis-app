@@ -76,7 +76,7 @@
             <div
               class="card-body text-center d-flex flex-column justify-content-center py-2"
             >
-              <h6 class="text-muted text-uppercase fw-semibold mb-3">
+              <h6 class="text-muted text-uppercase fw-semibold mb-3" th:text="#{ticker.detail.evaluation_status}">
                 Estado de Evaluación
               </h6>
               <div class="mb-2">
@@ -95,14 +95,14 @@
                 th:class="${ticker.evaluationPassed ? 'text-success fw-bold' : 'text-danger fw-bold'}"
               >
                 <span
-                  th:text="${ticker.evaluationPassed ? 'APTO PARA TRADE' : 'NO CUMPLE REGLAS'}"
+                  th:text="${ticker.evaluationPassed ? #{ticker.detail.status.passed} : #{ticker.detail.status.failed}}"
                   >Evaluation Status</span
                 >
               </h4>
 
               <div class="mt-2 px-3">
                 <div class="d-flex justify-content-between mb-1">
-                  <small class="text-muted">Tasa de Cumplimiento</small>
+                  <small class="text-muted" th:text="#{ticker.detail.compliance_rate}">Tasa de Cumplimiento</small>
                   <small
                     class="fw-bold"
                     th:text="${ticker.complianceRate} + '%'"
@@ -125,14 +125,14 @@
           <div class="card h-100 border-0 shadow-sm overflow-hidden">
             <div class="card-body p-4">
               <h6 class="text-info text-uppercase fw-bold mb-4">
-                <i class="bi bi-lightning-charge-fill me-2"></i>Plan de
-                Ejecución Sugerido
+                <i class="bi bi-lightning-charge-fill me-2"></i><span th:text="#{ticker.detail.execution_plan}">Plan de
+                Ejecución Sugerido</span>
               </h6>
               <div class="row text-center g-3">
                 <div
                   class="col-md-3 border-end border-secondary border-opacity-50"
                 >
-                  <div class="text-secondary mb-1">PRECIO ACTUAL</div>
+                  <div class="text-secondary mb-1" th:text="#{ticker.detail.current_price}">PRECIO ACTUAL</div>
                   <div
                     class="h3 mb-0"
                     th:text="'$' + ${#numbers.formatDecimal(ticker.currentPrice, 1, 2)}"
@@ -143,7 +143,7 @@
                 <div
                   class="col-md-3 border-end border-secondary border-opacity-50"
                 >
-                  <div class="text-success mb-1">TARGET</div>
+                  <div class="text-success mb-1" th:text="#{ticker.detail.target}">TARGET</div>
                   <div
                     class="h3 mb-0 text-success"
                     th:text="'$' + ${#numbers.formatDecimal(ticker.targetPrice, 1, 2)}"
@@ -154,7 +154,7 @@
                 <div
                   class="col-md-3 border-end border-secondary border-opacity-50"
                 >
-                  <div class="text-danger mb-1">STOP LOSS</div>
+                  <div class="text-danger mb-1" th:text="#{ticker.detail.stop_loss}">STOP LOSS</div>
                   <div
                     class="h3 mb-0 text-danger"
                     th:text="'$' + ${#numbers.formatDecimal(ticker.stopLossPrice, 1, 2)}"
@@ -163,7 +163,7 @@
                   </div>
                 </div>
                 <div class="col-md-3">
-                  <div class="text-info mb-1">TÍTULOS</div>
+                  <div class="text-info mb-1" th:text="#{ticker.detail.shares}">TÍTULOS</div>
                   <div
                     class="h3 mb-0 text-info"
                     th:text="${ticker.recommendedShares}"
@@ -175,7 +175,7 @@
               <div
                 class="mt-4 p-3 bg-white bg-opacity-10 rounded-3 text-center d-flex align-items-center justify-content-center gap-3"
               >
-                <span class="text-secondary fw-semibold"
+                <span class="text-secondary fw-semibold" th:text="#{ticker.detail.rr_ratio}"
                   >RATIO RIESGO/RECOMPENSA</span
                 >
                 <span
@@ -196,13 +196,13 @@
           <div class="card h-100 border-0 shadow-sm">
             <div class="card-body p-4 d-flex flex-column h-100">
               <h6 class="text-warning text-uppercase fw-bold mb-3">
-                <i class="bi bi-exclamation-triangle me-2"></i>Plan de Riesgo No
-                Disponible
+                <i class="bi bi-exclamation-triangle me-2"></i><span th:text="#{ticker.detail.risk_plan_unavailable}">Plan de Riesgo No
+                Disponible</span>
               </h6>
               <div
                 class="p-4 bg-light rounded-3 flex-grow-1 d-flex align-items-center"
               >
-                <p class="text-muted mb-0">
+                <p class="text-muted mb-0" th:text="#{ticker.detail.risk_plan_unavailable.description}">
                   La estrategia cumple las reglas pero el plan de riesgo no se
                   pudo calcular por incongruencia en los parámetros de
                   RiskReward con los datos actuales del ticker.
@@ -215,7 +215,7 @@
         <div class="col-lg-8" th:if="${!ticker.evaluationPassed}">
           <div class="card h-100 border-0 shadow-sm">
             <div class="card-body p-4 d-flex flex-column h-100">
-              <h6 class="text-muted text-uppercase fw-bold mb-3">
+              <h6 class="text-muted text-uppercase fw-bold mb-3" th:text="#{ticker.detail.rejection_reason}">
                 Motivo del Rechazo
               </h6>
               <div
@@ -235,14 +235,14 @@
           class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center"
         >
           <h6 class="mb-0 fw-bold">
-            <i class="bi bi-bar-chart-line me-2 text-primary"></i>Gráfico de
-            Velas
+            <i class="bi bi-bar-chart-line me-2 text-primary"></i><span th:text="#{ticker.detail.candle_chart}">Gráfico de
+            Velas</span>
           </h6>
           <a
             th:href="@{/analysis/ticker/{id}/chart(id=${ticker.id})}"
             class="btn btn-sm btn-outline-primary"
           >
-            <i class="bi bi-arrows-fullscreen me-1"></i>Ver completo
+            <i class="bi bi-arrows-fullscreen me-1"></i><span th:text="#{ticker.detail.view_full}">Ver completo</span>
           </a>
         </div>
         <div class="card-body p-2">
@@ -258,14 +258,14 @@
         <div class="col-md-6">
           <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white border-0 py-3">
-              <h6 class="mb-0 fw-bold">Indicadores Técnicos</h6>
+              <h6 class="mb-0 fw-bold" th:text="#{ticker.detail.technical_indicators}">Indicadores Técnicos</h6>
             </div>
             <div class="card-body">
               <ul class="list-group list-group-flush">
                 <li
                   class="list-group-item d-flex justify-content-between align-items-center px-0"
                 >
-                  <span>Media Móvil (SMA 20)</span>
+                  <span th:text="#{ticker.detail.sma20}">Media Móvil (SMA 20)</span>
                   <span
                     class="fw-bold"
                     th:text="'$' + ${#numbers.formatDecimal(ticker.sma20, 1, 2)}"
@@ -274,7 +274,7 @@
                 <li
                   class="list-group-item d-flex justify-content-between align-items-center px-0"
                 >
-                  <span>Media Móvil (SMA 50)</span>
+                  <span th:text="#{ticker.detail.sma50}">Media Móvil (SMA 50)</span>
                   <span
                     class="fw-bold"
                     th:text="'$' + ${#numbers.formatDecimal(ticker.sma50, 1, 2)}"
@@ -283,7 +283,7 @@
                 <li
                   class="list-group-item d-flex justify-content-between align-items-center px-0 border-0"
                 >
-                  <span>Media Móvil (SMA 200)</span>
+                  <span th:text="#{ticker.detail.sma200}">Media Móvil (SMA 200)</span>
                   <span
                     class="fw-bold"
                     th:text="'$' + ${#numbers.formatDecimal(ticker.sma200, 1, 2)}"
@@ -297,19 +297,19 @@
         <div class="col-md-6">
           <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white border-0 py-3">
-              <h6 class="mb-0 fw-bold">Sesión y Volumen</h6>
+              <h6 class="mb-0 fw-bold" th:text="#{ticker.detail.session_volume}">Sesión y Volumen</h6>
             </div>
             <div class="card-body">
               <div class="row g-3">
                 <div class="col-6">
-                  <small class="text-muted d-block">Máximo / Mínimo Día</small>
+                  <small class="text-muted d-block" th:text="#{ticker.detail.high_low}">Máximo / Mínimo Día</small>
                   <span
                     class="fw-bold"
                     th:text="'$' + ${#numbers.formatDecimal(ticker.highOfDay, 1, 2)} + ' / $' + ${#numbers.formatDecimal(ticker.lowOfDay, 1, 2)}"
                   ></span>
                 </div>
                 <div class="col-6">
-                  <small class="text-muted d-block"
+                  <small class="text-muted d-block" th:text="#{ticker.detail.open_close}"
                     >Apertura / Cierre Ant.</small
                   >
                   <span
@@ -318,14 +318,14 @@
                   ></span>
                 </div>
                 <div class="col-6">
-                  <small class="text-muted d-block">Volumen Actual</small>
+                  <small class="text-muted d-block" th:text="#{ticker.detail.current_volume}">Volumen Actual</small>
                   <span
                     class="fw-bold"
                     th:text="${#numbers.formatInteger(ticker.volume, 0, 'POINT')}"
                   ></span>
                 </div>
                 <div class="col-6">
-                  <small class="text-muted d-block">Vol. Promedio (60d)</small>
+                  <small class="text-muted d-block" th:text="#{ticker.detail.avg_volume}">Vol. Promedio (60d)</small>
                   <span
                     class="fw-bold"
                     th:text="${#numbers.formatInteger(ticker.averageVolume, 0, 'POINT')}"
@@ -346,7 +346,7 @@
       >
         <div class="d-flex gap-2">
           <a th:href="@{/analysis}" class="btn btn-outline-secondary px-4"
-            ><i class="bi bi-arrow-left me-2"></i>Volver</a
+            ><i class="bi bi-arrow-left me-2"></i><span th:text="#{ticker.detail.back}">Volver</span></a
           >
           <form
             th:action="@{/analysis/ticker/{id}/update(id=${ticker.id})}"
@@ -354,18 +354,18 @@
           >
             <input type="hidden" name="id" th:value="${ticker.id}" />
             <button type="submit" class="btn btn-primary px-4">
-              <i class="bi bi-arrow-repeat me-2"></i>Actualizar Datos
+              <i class="bi bi-arrow-repeat me-2"></i><span th:text="#{ticker.detail.update_data}">Actualizar Datos</span>
             </button>
           </form>
           <form
             th:action="@{/analysis/delete}"
             method="post"
-            onsubmit="return confirm('¿Eliminar este ticker del análisis?');"
+            th:onclick="'return confirm(\'' + #{ticker.detail.confirm_delete} + '\')'"
           >
             <input type="hidden" name="id" th:value="${ticker.id}" />
             <input type="hidden" name="ticker" th:value="${ticker.ticker}" />
             <button type="submit" class="btn btn-danger px-4">
-              <i class="bi bi-trash me-2"></i>Eliminar
+              <i class="bi bi-trash me-2"></i><span th:text="#{ticker.detail.delete}">Eliminar</span>
             </button>
           </form>
           <form
@@ -379,7 +379,7 @@
               class="btn btn-none btn-outline-primary w-100 btn-ai"
             >
               <span class="btn-content">
-                <i class="bi bi-stars me-1"></i> Generar análisis
+                <i class="bi bi-stars me-1"></i> <span th:text="#{analysis.generate_analysis}">Generar análisis</span>
               </span>
               <output
                 class="spinner-border spinner-border-sm d-none"

@@ -12,9 +12,9 @@
         >
           <div>
             <h2 class="mb-2">
-              <i class="bi bi-collection me-1"></i>Definiciones de Reglas
+              <i class="bi bi-collection me-1"></i><span th:text="#{ruledefinitions.list.title}">Definiciones de Reglas</span>
             </h2>
-            <p class="text-muted mb-0">
+            <p class="text-muted mb-0" th:text="#{ruledefinitions.list.subtitle}">
               Gestiona las definiciones de reglas disponibles que se pueden usar
               en las estrategias.
             </p>
@@ -22,11 +22,11 @@
           <div class="d-flex align-items-center gap-3">
             <span class="stats-badge" th:if="${!ruleDefinitions.isEmpty()}">
               <i class="bi bi-collection me-1"></i>
-              <span th:text="${ruleDefinitions.size()}">0</span> definiciones
+              <span th:text="#{ruledefinitions.list.count(${ruleDefinitions.size()})}">0 definiciones</span>
             </span>
             <a th:href="@{/rule-definitions/new}" class="btn btn-primary">
               <i class="bi bi-plus-circle me-1"></i>
-              Nueva Definición
+              <span th:text="#{ruledefinitions.list.new}">Nueva Definición</span>
             </a>
           </div>
         </div>
@@ -35,11 +35,11 @@
       <div th:if="${ruleDefinitions.isEmpty()}" class="text-center py-5">
         <i class="bi bi-collection text-muted" style="font-size: 4rem"></i>
         <p class="text-muted fs-5 mt-3">
-          No se encontraron definiciones de reglas. ¡Vamos a crear una!
+          <span th:text="#{ruledefinitions.list.empty}">No se encontraron definiciones de reglas. ¡Vamos a crear una!</span>
         </p>
         <a th:href="@{/rule-definitions/new}" class="btn btn-primary mt-3">
           <i class="bi bi-plus me-1"></i>
-          Crear Definición de Regla
+          <span th:text="#{ruledefinitions.list.create}">Crear Definición de Regla</span>
         </a>
       </div>
 
@@ -49,11 +49,11 @@
             <table class="table table-hover mb-0">
               <thead class="table-light">
                 <tr>
-                  <th scope="col">Código</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Requiere Parámetro</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col" class="text-end">Acciones</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.code}">Código</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.name}">Nombre</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.requires_param}">Requiere Parámetro</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.description}">Descripción</th>
+                  <th scope="col" class="text-end" th:text="#{ruledefinitions.list.table.actions}">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -67,13 +67,13 @@
                       th:if="${ruleDefinition.requiresParam}"
                       class="badge bg-success"
                     >
-                      <i class="bi bi-check-circle"></i> Sí
+                      <i class="bi bi-check-circle"></i> <span th:text="#{ruledefinitions.list.yes}">Sí</span>
                     </span>
                     <span
                       th:unless="${ruleDefinition.requiresParam}"
                       class="badge bg-secondary"
                     >
-                      <i class="bi bi-x-circle"></i> No
+                      <i class="bi bi-x-circle"></i> <span th:text="#{ruledefinitions.list.no}">No</span>
                     </span>
                   </td>
                   <td
@@ -99,7 +99,7 @@
                           class="btn btn-outline-primary w-100"
                         >
                           <i class="bi bi-pencil-square me-1"></i>
-                          Editar
+                          <span th:text="#{ruledefinitions.list.edit}">Editar</span>
                         </button>
                       </form>
                       <form
@@ -115,13 +115,9 @@
                         <button
                           type="submit"
                           class="btn btn-outline-danger w-100"
-                          onclick="
-                            return confirm(
-                              '¿Estás seguro de que quieres eliminar esta definición de regla?',
-                            );
-                          "
+                          th:onclick="'return confirm(\'' + #{ruledefinitions.list.confirm_delete} + '\')'"
                         >
-                          <i class="bi bi-trash me-1"></i> Eliminar
+                          <i class="bi bi-trash me-1"></i> <span th:text="#{ruledefinitions.list.delete}">Eliminar</span>
                         </button>
                       </form>
                     </div>
@@ -146,13 +142,13 @@
                     th:if="${ruleDefinition.requiresParam}"
                     class="badge bg-success rule-param-badge"
                   >
-                    <i class="bi bi-check-circle"></i> Parámetro
+                    <i class="bi bi-check-circle"></i> <span th:text="#{ruledefinitions.list.param}">Parámetro</span>
                   </span>
                   <span
                     th:unless="${ruleDefinition.requiresParam}"
                     class="badge bg-secondary rule-param-badge"
                   >
-                    <i class="bi bi-x-circle"></i> Sin parámetro
+                    <i class="bi bi-x-circle"></i> <span th:text="#{ruledefinitions.list.no_param}">Sin parámetro</span>
                   </span>
                 </div>
 
@@ -180,7 +176,7 @@
                     />
                     <button type="submit" class="btn btn-outline-primary w-100">
                       <i class="bi bi-pencil me-1"></i>
-                      Editar
+                      <span th:text="#{ruledefinitions.list.edit}">Editar</span>
                     </button>
                   </form>
                   <form
@@ -196,14 +192,10 @@
                     <button
                       type="submit"
                       class="btn btn-outline-danger w-100"
-                      onclick="
-                        return confirm(
-                          '¿Estás seguro de que quieres eliminar esta definición de regla?',
-                        );
-                      "
+                      th:onclick="'return confirm(\'' + #{ruledefinitions.list.confirm_delete} + '\')'"
                     >
                       <i class="bi bi-trash me-1"></i>
-                      Eliminar
+                      <span th:text="#{ruledefinitions.list.delete}">Eliminar</span>
                     </button>
                   </form>
                 </div>

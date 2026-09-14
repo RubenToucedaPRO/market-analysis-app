@@ -23,14 +23,14 @@
           />
           <div>
             <h1 class="h3 fw-bold mb-0" th:text="${ticker.ticker}">AAPL</h1>
-            <small class="text-muted">Gráfico de Velas · SMA 20/50/200</small>
+            <small class="text-muted" th:text="#{ticker.chart.subtitle}">Gráfico de Velas · SMA 20/50/200</small>
           </div>
         </div>
         <a
           th:href="@{/analysis/ticker/{id}(id=${ticker.id})}"
           class="btn btn-outline-secondary"
         >
-          <i class="bi bi-arrow-left me-1"></i>Volver al Detalle
+          <i class="bi bi-arrow-left me-1"></i><span th:text="#{ticker.chart.back}">Volver al Detalle</span>
         </a>
       </div>
 
@@ -44,7 +44,7 @@
               display: inline-block;
             "
           ></span>
-          Alcista
+          <span th:text="#{ticker.chart.bullish}">Alcista</span>
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
@@ -55,7 +55,7 @@
               display: inline-block;
             "
           ></span>
-          Bajista
+          <span th:text="#{ticker.chart.bearish}">Bajista</span>
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
@@ -104,7 +104,7 @@
 
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 py-3">
-          <h6 class="mb-0 fw-bold">Medias Móviles Actuales (referencia)</h6>
+          <h6 class="mb-0 fw-bold" th:text="#{ticker.chart.sma_reference}">Medias Móviles Actuales (referencia)</h6>
         </div>
         <div class="card-body">
           <div class="row text-center g-3">
