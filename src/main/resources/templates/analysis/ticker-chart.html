@@ -1,29 +1,11 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${ticker.ticker} + ' - Gráfico | AlphaSeeker'">
-      Candlestick Chart
-    </title>
-
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-    <link th:href="@{/css/styles.css}" rel="stylesheet" />
-  </head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/head :: head(${ticker.ticker} + ' - Gráfico | AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100 bg-light">
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
-    <!-- Message Alert -->
+    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
     <div th:replace="~{fragments/notification :: notification}"></div>
 
     <main class="container my-5 flex-grow-1">
-      <!-- Header row -->
       <div
         class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3"
       >
@@ -31,101 +13,72 @@
           <img
             th:src="${ticker.logoUrl}"
             th:alt="${ticker.ticker + ' logo'}"
-            class="shadow-sm border"
-            style="
-              width: 48px;
-              height: 48px;
-              border-radius: 12px;
-              object-fit: contain;
-            "
+            class="shadow-sm border ticker-logo"
           />
           <div>
             <h1 class="h3 fw-bold mb-0" th:text="${ticker.ticker}">AAPL</h1>
-            <small class="text-muted">Gráfico de Velas · SMA 20/50/200</small>
+            <small class="text-muted" th:text="#{ticker.chart.subtitle}">Gráfico de Velas · SMA 20/50/200</small>
           </div>
         </div>
         <a
           th:href="@{/analysis/ticker/{id}(id=${ticker.id})}"
           class="btn btn-outline-secondary"
         >
-          <i class="bi bi-arrow-left me-1"></i>Volver al Detalle
+          <i class="bi bi-arrow-left me-1"></i><span th:text="#{ticker.chart.back}">Volver al Detalle</span>
         </a>
       </div>
 
-      <!-- Legend -->
       <div class="d-flex gap-3 mb-2 flex-wrap">
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #26a69a;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #26a69a"
           ></span>
-          Alcista
+          <span th:text="#{ticker.chart.bullish}">Alcista</span>
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #ef5350;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #ef5350"
           ></span>
-          Bajista
+          <span th:text="#{ticker.chart.bearish}">Bajista</span>
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #2196f3;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #2196f3"
           ></span>
           SMA 20
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #ff9800;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #ff9800"
           ></span>
           SMA 50
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #9c27b0;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #9c27b0"
           ></span>
           SMA 200
         </span>
       </div>
 
-      <!-- Chart card -->
       <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-0" style="height: 540px; overflow: hidden">
+        <div class="card-body p-0 chart-container">
           <div
             id="candle-chart"
             th:attr="data-ticker-id=${ticker.id}"
-            style="width: 100%; height: 100%"
+            class="chart-inner"
           ></div>
         </div>
       </div>
 
-      <!-- SMA scalar reference -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 py-3">
-          <h6 class="mb-0 fw-bold">Medias Móviles Actuales (referencia)</h6>
+          <h6 class="mb-0 fw-bold" th:text="#{ticker.chart.sma_reference}">Medias Móviles Actuales (referencia)</h6>
         </div>
         <div class="card-body">
           <div class="row text-center g-3">
@@ -158,16 +111,8 @@
       </div>
     </main>
 
-    <footer class="bg-white border-top text-center py-4 mt-auto shadow-sm">
-      <p class="text-muted mb-0">
-        <small
-          >&copy; 2026 AlphaSeeker - Terminal de Análisis Cuantitativo</small
-        >
-      </p>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- TradingView Lightweight Charts v4 (Apache 2.0) -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
     <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
     <script th:src="@{/js/candle-chart.js}"></script>
   </body>

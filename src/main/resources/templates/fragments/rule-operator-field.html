@@ -1,6 +1,6 @@
 <div th:fragment="operatorField(fieldName, value)" class="col-md-1">
   <label class="form-label small text-muted">
-    Operador
+    <span th:text="#{rule.operator}">Operador</span>
     <select class="form-select form-select-sm" th:name="${fieldName}">
       <option value=">" th:selected="${value == '>'}">&gt;</option>
       <option value="<" th:selected="${value == '<'}">&lt;</option>

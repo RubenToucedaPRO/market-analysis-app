@@ -1,4 +1,11 @@
-<!-- templates/fragments/rule-row.html -->
+<!-- templates/fragments/rule-row.html
+     Fragment para una fila de regla condicional en la estrategia.
+     Parámetros esperados:
+       - index: número de fila (0-based) para naming único de campos (rules[0].subjectCode, etc.)
+       - rule: objeto Rule opcional con valores actuales (null = nueva fila)
+       - ruleDefinitions: lista de definiciones para poblar selects de indicadores
+     Genera: fila con subject/target/operator/parameter + botón eliminar.
+     JS: addRuleRow()/removeRuleRow() en strategy-manager.js manejan índices dinámicos. -->
 <div
   th:fragment="ruleRow(index, rule, ruleDefinitions)"
   class="rule-row card mb-2"
@@ -8,13 +15,13 @@
       <!-- Rule Name -->
       <div class="col-md-2">
         <label class="form-label small text-muted">
-          Nombre de la Regla
+          <span th:text="#{rule.name}">Nombre de la Regla</span>
           <input
             type="text"
             class="form-control form-control-sm"
             th:name="|rules[${index}].name|"
             th:value="${rule != null ? rule.name : ''}"
-            placeholder="Nombre de la Regla"
+            th:placeholder="#{rule.name}"
             required
           />
         </label>
@@ -47,16 +54,13 @@
 
       <!-- Remove Button -->
       <div class="col-md-1 text-end">
-        <!-- Remove Button -->
-        <div class="col-md-1 text-end">
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-danger"
-            onclick="removeRuleRow(this)"
-          >
-            <i class="bi bi-trash"></i>
-          </button>
-        </div>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-danger"
+          data-action="remove-rule"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
       </div>
     </div>
   </div>

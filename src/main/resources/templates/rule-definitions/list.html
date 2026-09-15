@@ -1,32 +1,10 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Definiciones de Reglas - AlphaSeeker</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Bootstrap Icons -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Custom CSS -->
-    <link th:href="@{/css/styles.css}" rel="stylesheet" />
-  </head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/head :: head('Definiciones de Reglas - AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100">
-    <!-- Navigation Bar -->
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
-    <!-- Message Alert -->
+    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
     <div th:replace="~{fragments/notification :: notification}"></div>
 
-    <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <div class="page-header">
         <div
@@ -34,9 +12,9 @@
         >
           <div>
             <h2 class="mb-2">
-              <i class="bi bi-collection me-1"></i>Definiciones de Reglas
+              <i class="bi bi-collection me-1"></i><span th:text="#{ruledefinitions.list.title}">Definiciones de Reglas</span>
             </h2>
-            <p class="text-muted mb-0">
+            <p class="text-muted mb-0" th:text="#{ruledefinitions.list.subtitle}">
               Gestiona las definiciones de reglas disponibles que se pueden usar
               en las estrategias.
             </p>
@@ -44,41 +22,38 @@
           <div class="d-flex align-items-center gap-3">
             <span class="stats-badge" th:if="${!ruleDefinitions.isEmpty()}">
               <i class="bi bi-collection me-1"></i>
-              <span th:text="${ruleDefinitions.size()}">0</span> definiciones
+              <span th:text="#{ruledefinitions.list.count(${ruleDefinitions.size()})}">0 definiciones</span>
             </span>
             <a th:href="@{/rule-definitions/new}" class="btn btn-primary">
               <i class="bi bi-plus-circle me-1"></i>
-              Nueva Definición
+              <span th:text="#{ruledefinitions.list.new}">Nueva Definición</span>
             </a>
           </div>
         </div>
       </div>
 
-      <!-- Empty State -->
       <div th:if="${ruleDefinitions.isEmpty()}" class="text-center py-5">
-        <i class="bi bi-collection text-muted" style="font-size: 4rem"></i>
+        <i class="bi bi-collection text-muted fs-1"></i>
         <p class="text-muted fs-5 mt-3">
-          No se encontraron definiciones de reglas. ¡Vamos a crear una!
+          <span th:text="#{ruledefinitions.list.empty}">No se encontraron definiciones de reglas. ¡Vamos a crear una!</span>
         </p>
         <a th:href="@{/rule-definitions/new}" class="btn btn-primary mt-3">
           <i class="bi bi-plus me-1"></i>
-          Crear Definición de Regla
+          <span th:text="#{ruledefinitions.list.create}">Crear Definición de Regla</span>
         </a>
       </div>
 
-      <!-- Rule Definitions Table -->
-      <div th:unless="${ruleDefinitions.isEmpty()}" class="card">
-        <!-- Desktop Table View (visible on screens > 768px) -->
+      <div th:if="${not(ruleDefinitions.isEmpty())}" class="card">
         <div class="rule-table-view">
           <div class="table-responsive">
             <table class="table table-hover mb-0">
               <thead class="table-light">
                 <tr>
-                  <th scope="col">Código</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Requiere Parámetro</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col" class="text-end">Acciones</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.code}">Código</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.name}">Nombre</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.requires_param}">Requiere Parámetro</th>
+                  <th scope="col" th:text="#{ruledefinitions.list.table.description}">Descripción</th>
+                  <th scope="col" class="text-end" th:text="#{ruledefinitions.list.table.actions}">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -92,13 +67,13 @@
                       th:if="${ruleDefinition.requiresParam}"
                       class="badge bg-success"
                     >
-                      <i class="bi bi-check-circle"></i> Sí
+                      <i class="bi bi-check-circle"></i> <span th:text="#{ruledefinitions.list.yes}">Sí</span>
                     </span>
                     <span
-                      th:unless="${ruleDefinition.requiresParam}"
+                      th:if="${not(ruleDefinition.requiresParam)}"
                       class="badge bg-secondary"
                     >
-                      <i class="bi bi-x-circle"></i> No
+                      <i class="bi bi-x-circle"></i> <span th:text="#{ruledefinitions.list.no}">No</span>
                     </span>
                   </td>
                   <td
@@ -124,7 +99,7 @@
                           class="btn btn-outline-primary w-100"
                         >
                           <i class="bi bi-pencil-square me-1"></i>
-                          Editar
+                          <span th:text="#{ruledefinitions.list.edit}">Editar</span>
                         </button>
                       </form>
                       <form
@@ -140,13 +115,9 @@
                         <button
                           type="submit"
                           class="btn btn-outline-danger w-100"
-                          onclick="
-                            return confirm(
-                              '¿Estás seguro de que quieres eliminar esta definición de regla?',
-                            );
-                          "
+                          th:data-confirm="#{ruledefinitions.list.confirm_delete}"
                         >
-                          <i class="bi bi-trash me-1"></i> Eliminar
+                          <i class="bi bi-trash me-1"></i> <span th:text="#{ruledefinitions.list.delete}">Eliminar</span>
                         </button>
                       </form>
                     </div>
@@ -157,12 +128,10 @@
           </div>
         </div>
 
-        <!-- Mobile Card View (visible on screens <= 768px) -->
         <div class="rule-card-view">
           <div th:each="ruleDefinition : ${ruleDefinitions}">
             <div class="card rule-definition-card mb-3">
               <div class="card-body">
-                <!-- Header with Code and Parameter Badge -->
                 <div
                   class="d-flex justify-content-between align-items-start mb-2"
                 >
@@ -173,22 +142,20 @@
                     th:if="${ruleDefinition.requiresParam}"
                     class="badge bg-success rule-param-badge"
                   >
-                    <i class="bi bi-check-circle"></i> Parámetro
+                    <i class="bi bi-check-circle"></i> <span th:text="#{ruledefinitions.list.param}">Parámetro</span>
                   </span>
                   <span
-                    th:unless="${ruleDefinition.requiresParam}"
+                    th:if="${not(ruleDefinition.requiresParam)}"
                     class="badge bg-secondary rule-param-badge"
                   >
-                    <i class="bi bi-x-circle"></i> Sin parámetro
+                    <i class="bi bi-x-circle"></i> <span th:text="#{ruledefinitions.list.no_param}">Sin parámetro</span>
                   </span>
                 </div>
 
-                <!-- Rule Name -->
                 <h6 class="rule-name" th:text="${ruleDefinition.name}">
                   Precio Actual
                 </h6>
 
-                <!-- Description -->
                 <p
                   class="rule-description"
                   th:text="${ruleDefinition.description}"
@@ -196,7 +163,6 @@
                   El precio actual del mercado
                 </p>
 
-                <!-- Actions -->
                 <div class="rule-actions">
                   <form
                     th:action="@{/rule-definitions/edit}"
@@ -210,7 +176,7 @@
                     />
                     <button type="submit" class="btn btn-outline-primary w-100">
                       <i class="bi bi-pencil me-1"></i>
-                      Editar
+                      <span th:text="#{ruledefinitions.list.edit}">Editar</span>
                     </button>
                   </form>
                   <form
@@ -226,14 +192,10 @@
                     <button
                       type="submit"
                       class="btn btn-outline-danger w-100"
-                      onclick="
-                        return confirm(
-                          '¿Estás seguro de que quieres eliminar esta definición de regla?',
-                        );
-                      "
+                      th:data-confirm="#{ruledefinitions.list.confirm_delete}"
                     >
                       <i class="bi bi-trash me-1"></i>
-                      Eliminar
+                      <span th:text="#{ruledefinitions.list.delete}">Eliminar</span>
                     </button>
                   </form>
                 </div>
@@ -244,16 +206,7 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light border-top py-3 mt-auto">
-      <div class="container text-center">
-        <small class="text-muted"
-          >&copy; 2023 AlphaSeeker. Todos los derechos reservados.</small
-        >
-      </div>
-    </footer>
-
-    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
   </body>
 </html>

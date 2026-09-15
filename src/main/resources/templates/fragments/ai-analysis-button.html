@@ -1,0 +1,15 @@
+<!-- fragments/ai-analysis-button.html -->
+<form
+  th:fragment="aiButton(actionUrl, itemId)"
+  th:action="${actionUrl}"
+  method="post"
+  class="ai-form"
+>
+  <input type="hidden" name="id" th:value="${itemId}" />
+  <button type="submit" class="btn btn-outline-primary w-100 btn-ai">
+    <span class="btn-content">
+      <i class="bi bi-stars me-1"></i> <span th:text="#{analysis.generate_analysis}">Generar análisis</span>
+    </span>
+    <output class="spinner-border spinner-border-sm d-none" aria-hidden="true"></output>
+  </button>
+</form>
