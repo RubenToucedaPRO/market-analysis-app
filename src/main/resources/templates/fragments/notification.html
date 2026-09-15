@@ -1,8 +1,7 @@
 <div
   th:fragment="notification"
   th:if="${uiNotification}"
-  class="position-fixed top-0 end-0 p-3"
-  style="z-index: 1060; min-width: 350px"
+  class="position-fixed top-0 end-0 p-3 notification-container"
 >
   <div
     th:classappend="'alert-' + ${uiNotification.type}"
@@ -37,26 +36,18 @@
     </div>
 
     <div
-      class="progress mt-2"
-      style="
-        height: 3px;
-        background-color: rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-      "
+      class="progress mt-2 notification-progress"
     >
       <div
         class="progress-bar js-notification-progress bg-success"
-        style="width: 100%"
         th:if="${uiNotification.type == 'success'}"
       ></div>
       <div
         class="progress-bar js-notification-progress bg-warning"
-        style="width: 100%"
         th:if="${uiNotification.type == 'warning'}"
       ></div>
       <div
         class="progress-bar js-notification-progress bg-danger"
-        style="width: 100%"
         th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
       ></div>
     </div>

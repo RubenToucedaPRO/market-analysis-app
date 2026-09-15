@@ -32,7 +32,7 @@
       <div class="row g-4">
         <div class="col-lg-8">
           <div th:if="${tickerPage.isEmpty()}" class="text-center py-5">
-            <i class="bi bi-shield-x text-muted" style="font-size: 4rem"></i>
+            <i class="bi bi-shield-x text-muted fs-1"></i>
             <p class="text-muted fs-5 mt-3" th:text="#{prohibited.tickers.empty}">
               No se encontraron tickers prohibidos.
             </p>
@@ -67,7 +67,7 @@
                         <form
                           th:action="@{/prohibited-tickers/delete}"
                           method="post"
-                          style="display: inline"
+                          class="d-inline"
                         >
                           <input
                             th:if="${_csrf != null}"
@@ -244,7 +244,7 @@
                     <form
                       th:action="@{/prohibited-tickers/keywords/delete}"
                       method="post"
-                      style="display: inline"
+                      class="d-inline"
                     >
                       <input
                         th:if="${_csrf != null}"

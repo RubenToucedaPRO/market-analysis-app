@@ -13,13 +13,7 @@
           <img
             th:src="${ticker.logoUrl}"
             th:alt="${ticker.ticker + ' logo'}"
-            class="shadow-sm border"
-            style="
-              width: 48px;
-              height: 48px;
-              border-radius: 12px;
-              object-fit: contain;
-            "
+            class="shadow-sm border ticker-logo"
           />
           <div>
             <h1 class="h3 fw-bold mb-0" th:text="${ticker.ticker}">AAPL</h1>
@@ -37,67 +31,47 @@
       <div class="d-flex gap-3 mb-2 flex-wrap">
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #26a69a;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #26a69a"
           ></span>
           <span th:text="#{ticker.chart.bullish}">Alcista</span>
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #ef5350;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #ef5350"
           ></span>
           <span th:text="#{ticker.chart.bearish}">Bajista</span>
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #2196f3;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #2196f3"
           ></span>
           SMA 20
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #ff9800;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #ff9800"
           ></span>
           SMA 50
         </span>
         <span class="d-flex align-items-center gap-1 small">
           <span
-            style="
-              width: 16px;
-              height: 3px;
-              background: #9c27b0;
-              display: inline-block;
-            "
+            class="chart-legend-dot"
+            style="background: #9c27b0"
           ></span>
           SMA 200
         </span>
       </div>
 
       <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-0" style="height: 540px; overflow: hidden">
+        <div class="card-body p-0 chart-container">
           <div
             id="candle-chart"
             th:attr="data-ticker-id=${ticker.id}"
-            style="width: 100%; height: 100%"
+            class="chart-inner"
           ></div>
         </div>
       </div>

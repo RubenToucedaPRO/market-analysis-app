@@ -54,7 +54,7 @@
         </div>
         <div class="card-body">
           <div th:if="${strategy.objective == null}" class="text-center py-4">
-            <i class="bi bi-info-circle text-muted" style="font-size: 2rem"></i>
+            <i class="bi bi-info-circle text-muted fs-1"></i>
             <p class="text-muted mt-3 mb-0" th:text="#{strategy.detail.no_risk_objective}">
               No hay objetivos de riesgo definidos para esta estrategia.
             </p>
@@ -140,7 +140,7 @@
         </div>
         <div class="card-body">
           <div th:if="${strategy.rules.isEmpty()}" class="text-center py-4">
-            <i class="bi bi-info-circle text-muted" style="font-size: 3rem"></i>
+            <i class="bi bi-info-circle text-muted icon-xl"></i>
             <p class="text-muted mt-3" th:text="#{strategy.detail.no_rules}">
               No hay reglas definidas para esta estrategia.
             </p>

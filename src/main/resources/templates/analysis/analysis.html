@@ -120,7 +120,7 @@
                               data-bs-toggle="tooltip"
                               data-bs-placement="top"
                               th:title="${ticker.valorationIA}"
-                              style="cursor: help"
+                              class="cursor-help"
                             >
                               <i class="bi bi-stars"></i>
                             </span>
@@ -185,7 +185,7 @@
                               class="w-100"
                               th:value="${ticker.complianceRate}"
                               max="100"
-                              style="height: 6px"
+                              class="progress-thin"
                               th:attr="title=${ticker.complianceRate + '%'}"
                             ></progress>
                           </div>

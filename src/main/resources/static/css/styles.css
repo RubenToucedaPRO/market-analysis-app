@@ -720,3 +720,79 @@ footer {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
 }
+
+/* ============================================
+   Inline Style Extractions
+   ============================================ */
+
+/* Ticker logos */
+.ticker-logo-lg {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+.ticker-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+/* Chart legend */
+.chart-legend-dot {
+  width: 16px;
+  height: 3px;
+  display: inline-block;
+}
+
+/* Chart containers */
+.chart-container {
+  height: 540px;
+  overflow: hidden;
+}
+
+.chart-inner {
+  width: 100%;
+  height: 100%;
+}
+
+/* Mini chart */
+.mini-chart-container {
+  width: 100%;
+  height: 150px;
+}
+
+/* Notification */
+.notification-container {
+  z-index: 1060;
+  min-width: 350px;
+}
+
+.notification-progress {
+  height: 3px;
+  background-color: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.notification-progress .progress-bar {
+  width: 100%;
+}
+
+/* Utilities */
+.cursor-help {
+  cursor: help;
+}
+
+.progress-thin {
+  height: 6px;
+}
+
+.text-max-width {
+  max-width: 500px;
+}
+
+.icon-xl {
+  font-size: 3rem;
+}
