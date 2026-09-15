@@ -547,6 +547,15 @@ footer {
     gap: 0.5rem;
   }
 
+  /* Detail actions: stack full-width below md */
+  .actions-stack > * {
+    flex: 1 1 100%;
+  }
+
+  .actions-stack .btn {
+    width: 100%;
+  }
+
   /* Home / Landing */
   .home-hero {
     padding: 3rem 0 2rem;
