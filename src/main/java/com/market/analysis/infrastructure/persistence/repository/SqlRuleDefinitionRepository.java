@@ -11,7 +11,7 @@ import com.market.analysis.domain.port.out.RuleDefinitionRepository;
 import com.market.analysis.infrastructure.persistence.entity.RuleDefinitionEntity;
 import com.market.analysis.infrastructure.persistence.mapper.RuleDefinitionMapper;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +39,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<RuleDefinition> findById(Long id) {
         log.debug("Finding rule definition by ID: {}", id);
         return jpaRepository.findById(id)
@@ -46,13 +47,7 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
-    public Optional<RuleDefinition> findByCode(String code) {
-        log.debug("Finding rule definition by code: {}", code);
-        RuleDefinitionEntity entity = jpaRepository.findByCode(code);
-        return Optional.ofNullable(mapper.toDomain(entity));
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public List<RuleDefinition> findAll() {
         log.debug("Retrieving all rule definitions");
         return jpaRepository.findAll().stream()
@@ -80,12 +75,14 @@ public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsById(Long id) {
         log.debug("Checking if rule definition exists with ID: {}", id);
         return jpaRepository.existsById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByCode(String code) {
         log.debug("Checking if rule definition exists with code: {}", code);
         return jpaRepository.existsByCode(code);

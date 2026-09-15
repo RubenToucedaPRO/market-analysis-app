@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,48 +92,6 @@ class SqlStockDataRepositoryTest {
         evaluation.setPriceAtEvaluation(new BigDecimal("150.50"));
         evaluation.setLatest(true);
         testEntity.setStrategyEvaluation(evaluation);
-    }
-
-    @Test
-    @DisplayName("Should find all stocks with profiles")
-    void testFindAllStocks() {
-        // Arrange
-        StockEntity entity2 = new StockEntity();
-        entity2.setTicker("GOOGL");
-        entity2.setCompanyProfile(testCompanyProfile);
-
-        Stock stock2 = Stock.builder()
-                .ticker("GOOGL")
-                .logoUrl("https://example.com/logo.png")
-                .currentPrice(new BigDecimal("100.00"))
-                .build();
-
-        when(jpaRepository.findAllWithProfile()).thenReturn(Arrays.asList(testEntity, entity2));
-        when(mapper.toDomain(testEntity)).thenReturn(testStock);
-        when(mapper.toDomain(entity2)).thenReturn(stock2);
-
-        // Act
-        List<Stock> result = sqlRepository.findAllStocks();
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(2).extracting(Stock::getTicker).containsExactlyInAnyOrder("AAPL", "GOOGL");
-        assertThat(result.get(0).getLogoUrl()).isEqualTo("https://example.com/logo.png");
-        verify(jpaRepository, times(1)).findAllWithProfile();
-    }
-
-    @Test
-    @DisplayName("Should return empty list when no stocks exist")
-    void testFindAllStocksEmpty() {
-        // Arrange
-        when(jpaRepository.findAllWithProfile()).thenReturn(Arrays.asList());
-
-        // Act
-        List<Stock> result = sqlRepository.findAllStocks();
-
-        // Assert
-        assertThat(result).isNotNull().isEmpty();
-        verify(jpaRepository, times(1)).findAllWithProfile();
     }
 
     @Test

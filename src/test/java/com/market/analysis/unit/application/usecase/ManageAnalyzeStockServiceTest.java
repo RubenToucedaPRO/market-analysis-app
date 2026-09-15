@@ -174,7 +174,7 @@ class ManageAnalyzeStockServiceTest {
     }
 
     @Test
-    @DisplayName("Should update stock prices when quote is available")
+    @DisplayName("Should update stock prices and refresh historical data when quote is available")
     void shouldUpdateStockDataWhenQuoteExists() {
         Stock existing = Stock.builder().id(10L).ticker("AAPL").build();
         Stock quote = Stock.builder()
@@ -191,6 +191,7 @@ class ManageAnalyzeStockServiceTest {
 
         service.updateStockData(10L);
 
+        verify(analyzeAndPersistStockService, times(1)).refreshHistoricalData("AAPL", existing);
         verify(stockDataRepository, times(1)).save(existing);
     }
 

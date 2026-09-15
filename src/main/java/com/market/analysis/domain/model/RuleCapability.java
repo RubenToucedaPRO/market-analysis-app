@@ -131,20 +131,6 @@ public final class RuleCapability {
     }
 
     /**
-     * Returns whether the given operator is valid for this capability.
-     *
-     * @param operator comparison operator string
-     * @return true if the operator is accepted by this capability
-     */
-    public boolean isOperatorAllowed(String operator) {
-        if (operator == null) {
-            return false;
-        }
-        String upper = operator.toUpperCase();
-        return allowedOperators.contains(operator) || allowedOperators.contains(upper);
-    }
-
-    /**
      * Returns whether this indicator may be used as the subject of a rule.
      */
     public boolean isSubjectAllowed() {
@@ -172,12 +158,5 @@ public final class RuleCapability {
      */
     public boolean isAnyParamAllowed() {
         return anyParamAllowed;
-    }
-
-    /**
-     * Returns the set of operators valid for this indicator.
-     */
-    public Set<String> getAllowedOperators() {
-        return allowedOperators;
     }
 }

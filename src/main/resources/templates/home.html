@@ -8,11 +8,29 @@
       <div class="container">
         <div class="row align-items-center min-vh-50">
           <div class="col-lg-7 text-center text-lg-start">
-            <h1 class="display-4 fw-bold text-primary mb-3" th:text="#{home.hero.title}">AlphaSeeker</h1>
-            <p class="lead fw-semibold text-dark mb-3" th:text="#{home.hero.subtitle}">Análisis Técnico Determinista para Estrategias de Trading</p>
-            <p class="text-muted mb-4 fs-5" th:text="#{home.hero.description}">Evalúa estrategias de inversión basadas en reglas técnicas configurables sobre datos históricos y actuales del mercado.</p>
-            <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
-              <a th:href="@{/login}" class="btn btn-primary btn-lg px-5 py-3 shadow">
+            <h1
+              class="display-4 fw-bold text-primary mb-3"
+              th:text="#{home.hero.title}"
+            >
+              AlphaSeeker
+            </h1>
+            <p
+              class="lead fw-semibold text-dark mb-3"
+              th:text="#{home.hero.subtitle}"
+            >
+              Análisis Técnico Determinista para Estrategias de Trading
+            </p>
+            <p class="text-muted mb-4 fs-5" th:text="#{home.hero.description}">
+              Evalúa estrategias de inversión basadas en reglas técnicas
+              configurables sobre datos históricos y actuales del mercado.
+            </p>
+            <div
+              class="d-flex gap-3 justify-content-center justify-content-lg-start"
+            >
+              <a
+                th:href="@{/login}"
+                class="btn btn-primary btn-lg px-5 py-3 shadow"
+              >
                 <i class="bi bi-box-arrow-in-right me-2"></i>
                 <span th:text="#{home.hero.cta}">Acceder</span>
               </a>

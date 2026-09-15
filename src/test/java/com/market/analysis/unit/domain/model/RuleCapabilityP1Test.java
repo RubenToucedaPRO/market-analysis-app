@@ -228,49 +228,6 @@ class RuleCapabilityP1Test {
     }
 
     // =========================================================================
-    // Per-capability operator constraints
-    // =========================================================================
-
-    @Nested
-    @DisplayName("Per-capability operator constraints (isOperatorAllowed)")
-    class OperatorConstraintTests {
-
-        @ParameterizedTest
-        @ValueSource(strings = {">", ">=", "<", "<=", "=", "==", "!=",
-                "GREATER_THAN", "GREATER_THAN_OR_EQUAL",
-                "LESS_THAN", "LESS_THAN_OR_EQUAL",
-                "EQUALS", "NOT_EQUALS"})
-        @DisplayName("All VALID_OPERATORS are allowed for PRICE")
-        void allValidOperatorsAllowedForPrice(String operator) {
-            var cap = RuleCapabilityCatalog.getCapability("PRICE").orElseThrow();
-            assertTrue(cap.isOperatorAllowed(operator));
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {"CROSS_ABOVE", "CROSS_BELOW", "AND", "OR"})
-        @DisplayName("Unsupported operators not allowed for PRICE")
-        void unsupportedOperatorsNotAllowedForPrice(String operator) {
-            var cap = RuleCapabilityCatalog.getCapability("PRICE").orElseThrow();
-            assertFalse(cap.isOperatorAllowed(operator));
-        }
-
-        @Test
-        @DisplayName("isOperatorAllowed returns false for null")
-        void nullOperatorNotAllowed() {
-            var cap = RuleCapabilityCatalog.getCapability("SMA").orElseThrow();
-            assertFalse(cap.isOperatorAllowed(null));
-        }
-
-        @Test
-        @DisplayName("getAllowedOperators returns non-empty set")
-        void getAllowedOperatorsNotEmpty() {
-            var cap = RuleCapabilityCatalog.getCapability("RSI").orElseThrow();
-            assertNotNull(cap.getAllowedOperators());
-            assertFalse(cap.getAllowedOperators().isEmpty());
-        }
-    }
-
-    // =========================================================================
     // Role constraints
     // =========================================================================
 

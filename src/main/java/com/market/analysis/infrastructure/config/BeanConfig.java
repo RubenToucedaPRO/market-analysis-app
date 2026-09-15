@@ -61,9 +61,6 @@ public class BeanConfig {
     @Value("${finnhub.base.url:https:}")
     private String finnhubBaseUrl;
 
-    @Value("${finnhub.api.token:}")
-    private String finnhubToken;
-
     @Bean
     public ManageStrategyUseCase manageStrategyUseCase(
             StrategyRepository strategyRepository,

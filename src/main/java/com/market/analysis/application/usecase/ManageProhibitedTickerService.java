@@ -9,7 +9,7 @@ import com.market.analysis.domain.model.ProhibitedTicker;
 import com.market.analysis.domain.port.in.ManageProhibitedTickerUseCase;
 import com.market.analysis.domain.port.out.ProhibitedTickerRepository;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,11 +32,6 @@ public class ManageProhibitedTickerService implements ManageProhibitedTickerUseC
                 .toList();
         return new PageResult<>(dtos, page.pageNumber(), page.pageSize(),
                 page.totalElements(), page.totalPages());
-    }
-
-    @Override
-    public boolean isTickerProhibited(String ticker) {
-        return prohibitedTickerRepository.existsByTicker(ticker);
     }
 
     @Override

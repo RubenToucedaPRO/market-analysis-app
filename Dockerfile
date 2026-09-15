@@ -32,4 +32,11 @@ USER spring
 EXPOSE 8080
 
 # 8. Comando de ejecución optimizado para contenedores
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# JAVA_DEBUG_ENABLED=true activa debug remoto en puerto 5005
+# JAVA_OPTS permite inyectar flags JVM adicionales
+ENTRYPOINT ["sh", "-c", "\
+  DEBUG_FLAG=\"\"; \
+  if [ \"$JAVA_DEBUG_ENABLED\" = \"true\" ]; then \
+    DEBUG_FLAG=\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005\"; \
+  fi; \
+  java $DEBUG_FLAG $JAVA_OPTS -jar app.jar"]

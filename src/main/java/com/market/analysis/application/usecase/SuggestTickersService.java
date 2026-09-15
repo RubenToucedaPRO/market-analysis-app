@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
@@ -34,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SuggestTickersService implements SuggestTickersUseCase {
 
-    private static final int DEFAULT_MAX_CANDIDATES = 10;
+    private static final int DEFAULT_MAX_CANDIDATES = 100;
     private static final String EMPTY_FILTERS_WARNING =
             "No Finviz filters could be generated for this strategy.";
     private static final String FINVIZ_DEGRADED_WARNING =
@@ -49,6 +51,7 @@ public class SuggestTickersService implements SuggestTickersUseCase {
     private final StockDataRepository stockDataRepository;
 
     @Override
+    @Transactional
     public SuggestTickersResponseDTO suggestTickers(SuggestTickersRequestDTO request) {
         validateRequest(request);
 

@@ -12,7 +12,7 @@ import com.market.analysis.domain.model.ProhibitedKeyword;
 import com.market.analysis.domain.port.in.ManageProhibitedKeywordUseCase;
 import com.market.analysis.domain.port.out.ProhibitedKeywordRepository;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,12 +33,6 @@ public class ManageProhibitedKeywordService implements ManageProhibitedKeywordUs
                 .toList();
         return new PageResult<>(dtos, page.pageNumber(), page.pageSize(),
                 page.totalElements(), page.totalPages());
-    }
-
-    @Override
-    public boolean isKeywordProhibited(String keyword) {
-        String normalizedKeyword = normalizeKeyword(keyword);
-        return prohibitedKeywordRepository.existsByKeyword(normalizedKeyword);
     }
 
     @Override

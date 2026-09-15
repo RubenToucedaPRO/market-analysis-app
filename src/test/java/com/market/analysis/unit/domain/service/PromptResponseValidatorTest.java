@@ -44,7 +44,7 @@ class PromptResponseValidatorTest {
 
         assertThat(retryPrompt)
                 .contains("Base prompt")
-                .contains("Devuelve exactamente estas secciones")
+                .contains("Responde SOLO con estas 4 líneas")
                 .contains("Conclusión interpretativa:");
     }
 

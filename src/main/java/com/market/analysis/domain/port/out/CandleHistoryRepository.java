@@ -1,6 +1,7 @@
 package com.market.analysis.domain.port.out;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.market.analysis.domain.model.Candle;
 
@@ -32,6 +33,14 @@ public interface CandleHistoryRepository {
      * @return ordered list of candles; empty list if none found
      */
     List<Candle> findCandlesByTicker(String ticker);
+
+    /**
+     * Returns the most recent candle for the given ticker.
+     *
+     * @param ticker the ticker symbol (must not be blank)
+     * @return the latest candle ordered by date descending, or empty if none found
+     */
+    Optional<Candle> findLatestCandleByTicker(String ticker);
 
     /**
      * Deletes candles that are not associated with any ticker.

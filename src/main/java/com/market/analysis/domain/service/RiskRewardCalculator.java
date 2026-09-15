@@ -7,6 +7,7 @@ import java.util.Locale;
 import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
+import com.market.analysis.domain.model.EntryPrice;
 import com.market.analysis.domain.model.IndicatorCode;
 import com.market.analysis.domain.model.RuleCapabilityCatalog;
 import com.market.analysis.domain.model.Stock;
@@ -29,7 +30,6 @@ public class RiskRewardCalculator {
     private static final RoundingMode PRICE_ROUNDING = RoundingMode.HALF_UP;
     private static final RoundingMode POSITION_ROUNDING = RoundingMode.DOWN;
 
-    private static final String FIELD_ENTRY_PRICE = "Entry price";
     private static final String FIELD_TARGET_PRICE = "Target price";
     private static final String FIELD_STOP_PRICE = "Stop price";
     private static final String FIELD_CAPITAL_TO_RISK = "Capital to risk";
@@ -37,23 +37,21 @@ public class RiskRewardCalculator {
     /**
      * Calculates the target price for a strategy based on the objective type.
      * 
-     * @param entryPrice the entry price for the position
+     * @param entryPrice EntryPrice entryPrice the entry price (validated on construction)
      * @param objective  the strategy objective containing target configuration
      * @param stock      the stock data containing technical indicators
      * @return the calculated target price
      * @throws DomainValidationException if parameters are null or invalid
      * @throws MissingIndicatorException if required SMA indicator is missing
      */
-    public BigDecimal calculateTargetPrice(BigDecimal entryPrice, StrategyObjective objective, Stock stock) {
+    public BigDecimal calculateTargetPrice(EntryPrice entryPrice, StrategyObjective objective, Stock stock) {
         requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
         requireNonNull(objective, DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
         requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
-        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
-
         return switch (objective.getTargetType()) {
             case SMA -> resolveSmaValue(objective.getTargetValue(), stock, "target");
-            case PERCENTAGE -> calculatePercentagePrice(entryPrice, objective.getTargetValue(), true);
+            case PERCENTAGE -> calculatePercentagePrice(entryPrice.value(), objective.getTargetValue(), true);
             case FIXED_PRICE -> validateAndReturnFixedPrice(objective.getTargetValue(), "Target");
         };
     }
@@ -61,7 +59,7 @@ public class RiskRewardCalculator {
     /**
      * Calculates the stop-loss price for a strategy based on the objective type.
      * 
-     * @param entryPrice the entry price for the position
+     * @param entryPrice EntryPrice entryPrice the entry price (validated on construction)
      * @param objective  the strategy objective containing stop-loss configuration
      * @param stock      the stock data containing technical indicators
      * @return the calculated stop-loss price
@@ -69,20 +67,18 @@ public class RiskRewardCalculator {
      *                                   stop-loss >= entry price
      * @throws MissingIndicatorException if required SMA indicator is missing
      */
-    public BigDecimal calculateStopLossPrice(BigDecimal entryPrice, StrategyObjective objective, Stock stock) {
+    public BigDecimal calculateStopLossPrice(EntryPrice entryPrice, StrategyObjective objective, Stock stock) {
         requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
         requireNonNull(objective, DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
         requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
-        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
-
         BigDecimal stopLossPrice = switch (objective.getStopLossType()) {
             case SMA -> resolveSmaValue(objective.getStopLossValue(), stock, "stop-loss");
-            case PERCENTAGE -> calculatePercentagePrice(entryPrice, objective.getStopLossValue(), false);
+            case PERCENTAGE -> calculatePercentagePrice(entryPrice.value(), objective.getStopLossValue(), false);
             case FIXED_PRICE -> validateAndReturnFixedPrice(objective.getStopLossValue(), "Stop-loss");
         };
 
-        validateStopLossPrice(entryPrice, stopLossPrice);
+        validateStopLossPrice(entryPrice.value(), stopLossPrice);
 
         return stopLossPrice;
     }
@@ -90,31 +86,28 @@ public class RiskRewardCalculator {
     /**
      * Calculates the risk-reward ratio for a trading position.
      * 
-     * @param entryPrice  the entry price for the position
+     * @param entryPrice  EntryPrice entryPrice the entry price (validated on construction)
      * @param targetPrice the target price for taking profit
      * @param stopPrice   the stop-loss price for risk management
      * @return the risk-reward ratio (potential reward / potential risk)
      * @throws DomainValidationException if parameters are null, invalid, or
      *                                  mathematically inconsistent
      */
-    public BigDecimal calculateRiskRewardRatio(BigDecimal entryPrice, BigDecimal targetPrice, BigDecimal stopPrice) {
+    public BigDecimal calculateRiskRewardRatio(EntryPrice entryPrice, BigDecimal targetPrice, BigDecimal stopPrice) {
         requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
         requireNonNull(targetPrice, DomainErrorCodes.TARGET_PRICE_NULL);
         requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
 
-        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
         validatePositivePrice(targetPrice, FIELD_TARGET_PRICE);
         validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
 
-        if (targetPrice.compareTo(entryPrice) <= 0) {
+        if (targetPrice.compareTo(entryPrice.value()) <= 0) {
             throw new DomainValidationException(DomainErrorCodes.TARGET_BELOW_ENTRY);
         }
-        if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
-        }
+        validateStopBelowEntry(entryPrice.value(), stopPrice);
 
-        BigDecimal potentialReward = targetPrice.subtract(entryPrice);
-        BigDecimal potentialRisk = entryPrice.subtract(stopPrice);
+        BigDecimal potentialReward = targetPrice.subtract(entryPrice.value());
+        BigDecimal potentialRisk = entryPrice.value().subtract(stopPrice);
 
         if (potentialRisk.compareTo(BigDecimal.ZERO) <= 0) {
             throw new DomainValidationException(DomainErrorCodes.RISK_ZERO);
@@ -127,27 +120,24 @@ public class RiskRewardCalculator {
      * Calculates the position size (number of shares) based on capital at risk.
      * Position size is rounded DOWN to ensure we never exceed the maximum risk.
      * 
-     * @param entryPrice    the entry price for the position
+     * @param entryPrice    EntryPrice entryPrice the entry price (validated on construction)
      * @param stopPrice     the stop-loss price
      * @param capitalToRisk the total capital amount to risk on this position
      * @return the number of shares to buy (rounded down)
      * @throws DomainValidationException if parameters are null, invalid, or
      *                                  mathematically inconsistent
      */
-    public BigDecimal calculatePositionSize(BigDecimal entryPrice, BigDecimal stopPrice, BigDecimal capitalToRisk) {
+    public BigDecimal calculatePositionSize(EntryPrice entryPrice, BigDecimal stopPrice, BigDecimal capitalToRisk) {
         requireNonNull(entryPrice, DomainErrorCodes.ENTRY_PRICE_NULL);
         requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
         requireNonNull(capitalToRisk, DomainErrorCodes.CAPITAL_NULL);
 
-        validatePositivePrice(entryPrice, FIELD_ENTRY_PRICE);
         validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
         validatePositivePrice(capitalToRisk, FIELD_CAPITAL_TO_RISK);
 
-        if (stopPrice.compareTo(entryPrice) >= 0) {
-            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
-        }
+        validateStopBelowEntry(entryPrice.value(), stopPrice);
 
-        BigDecimal riskPerShare = entryPrice.subtract(stopPrice);
+        BigDecimal riskPerShare = entryPrice.value().subtract(stopPrice);
 
         if (riskPerShare.compareTo(BigDecimal.ZERO) <= 0) {
             throw new DomainValidationException(DomainErrorCodes.RISK_PER_SHARE_ZERO);
@@ -246,7 +236,7 @@ public class RiskRewardCalculator {
 
     /**
      * Validates that stop-loss price is less than entry price for long positions.
-     * 
+     *
      * @param entryPrice    the entry price
      * @param stopLossPrice the stop-loss price
      * @throws IllegalArgumentException if stop-loss price is >= entry price
@@ -256,6 +246,19 @@ public class RiskRewardCalculator {
             throw new IllegalArgumentException(
                     String.format(Locale.ENGLISH, "Stop-loss price (%.2f) must be less than entry price (%.2f) for long positions",
                             stopLossPrice.doubleValue(), entryPrice.doubleValue()));
+        }
+    }
+
+    /**
+     * Validates that stop price is below entry price.
+     *
+     * @param entryPrice the entry price
+     * @param stopPrice  the stop price
+     * @throws DomainValidationException if stop price is >= entry price
+     */
+    private void validateStopBelowEntry(BigDecimal entryPrice, BigDecimal stopPrice) {
+        if (stopPrice.compareTo(entryPrice) >= 0) {
+            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
         }
     }
 

@@ -42,16 +42,6 @@ public class SqlStrategyRepository implements StrategyRepository { // Tu interfa
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Strategy> findByName(String name) {
-        log.debug("Finding strategy by name: {}", name);
-        return jpaRepository.findAll().stream()
-                .map(mapper::toDomain)
-                .filter(strategy -> strategy.getName().equals(name))
-                .findFirst();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<Strategy> findAll() {
         log.debug("Retrieving all strategies");
         return jpaRepository.findAll().stream()

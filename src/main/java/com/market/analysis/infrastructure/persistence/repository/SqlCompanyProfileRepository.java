@@ -37,6 +37,7 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<CompanyProfile> findByTicker(String ticker) {
         log.debug("Finding company profile by ticker: {}", ticker);
         CompanyProfileEntity entity = jpaRepository.findAll().stream()
@@ -44,21 +45,6 @@ public class SqlCompanyProfileRepository implements CompanyProfileRepository {
                 .findFirst()
                 .orElse(null);
         return entity != null ? Optional.of(mapper.toDomain(entity)) : Optional.empty();
-    }
-
-    @Override
-    public void update(CompanyProfile profile) {
-        log.debug("Updating company profile for ticker: {}", profile.getTicker());
-        jpaRepository.save(mapper.toEntity(profile));
-        log.debug("Company profile updated successfully for ticker: {}", profile.getTicker());
-    }
-
-    @Override
-    @Transactional
-    public void deleteByTicker(String ticker) {
-        log.debug("Deleting company profile for ticker: {}", ticker);
-        jpaRepository.deleteByTicker(ticker);
-        log.debug("Company profile deleted successfully for ticker: {}", ticker);
     }
 
 }

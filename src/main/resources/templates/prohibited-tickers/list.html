@@ -219,10 +219,7 @@
                   </div>
                 </form>
 
-                <div
-                  th:if="${keywordPage.isEmpty()}"
-                  class="text-muted small"
-                >
+                <div th:if="${keywordPage.isEmpty()}" class="text-muted small">
                   <span th:text="#{prohibited.tickers.keywords.empty}"
                     >No hay keywords configuradas.</span
                   >

@@ -1,7 +1,6 @@
 package com.market.analysis.unit.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,17 +42,6 @@ class ManageProhibitedKeywordServiceTest {
     private ManageProhibitedKeywordService manageProhibitedKeywordService;
 
     @Test
-    @DisplayName("Should normalize keyword when checking if prohibited")
-    void shouldNormalizeKeywordWhenCheckingIfProhibited() {
-        when(prohibitedKeywordRepository.existsByKeyword("ETF")).thenReturn(true);
-
-        boolean result = manageProhibitedKeywordService.isKeywordProhibited(" etf ");
-
-        assertTrue(result);
-        verify(prohibitedKeywordRepository, times(1)).existsByKeyword("ETF");
-    }
-
-    @Test
     @DisplayName("Should add prohibited keyword with normalized value")
     void shouldAddProhibitedKeywordWithNormalizedValue() {
         ProhibitedKeywordDTO inputDto = ProhibitedKeywordDTO.builder()
@@ -85,15 +73,6 @@ class ManageProhibitedKeywordServiceTest {
 
         assertEquals("validation.keyword_exists", exception.getMessage());
         verify(prohibitedKeywordRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should reject blank keyword")
-    void shouldRejectBlankKeyword() {
-        DomainValidationException exception = assertThrows(DomainValidationException.class,
-                () -> manageProhibitedKeywordService.isKeywordProhibited("   "));
-
-        assertEquals("validation.keyword_blank", exception.getMessage());
     }
 
     @Test
@@ -153,26 +132,6 @@ class ManageProhibitedKeywordServiceTest {
 
         assertEquals("validation.keyword_null", exception.getMessage());
         verify(prohibitedKeywordRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should reject null keyword when checking if prohibited")
-    void shouldRejectNullKeywordWhenCheckingIfProhibited() {
-        DomainValidationException exception = assertThrows(DomainValidationException.class,
-                () -> manageProhibitedKeywordService.isKeywordProhibited(null));
-
-        assertEquals("validation.keyword_blank", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should return false when keyword is not prohibited")
-    void shouldReturnFalseWhenKeywordIsNotProhibited() {
-        when(prohibitedKeywordRepository.existsByKeyword("ETF")).thenReturn(false);
-
-        boolean result = manageProhibitedKeywordService.isKeywordProhibited("etf");
-
-        assertFalse(result);
-        verify(prohibitedKeywordRepository, times(1)).existsByKeyword("ETF");
     }
 
     @Test

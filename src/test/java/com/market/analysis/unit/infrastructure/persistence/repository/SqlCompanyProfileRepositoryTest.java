@@ -152,28 +152,4 @@ class SqlCompanyProfileRepositoryTest {
         assertThat(result.get().getTicker()).isEqualTo("AAPL");
     }
 
-    @Test
-    @DisplayName("Should update company profile")
-    void testUpdate() {
-        // Arrange
-        when(mapper.toEntity(testProfile)).thenReturn(testEntity);
-        when(jpaRepository.save(testEntity)).thenReturn(testEntity);
-
-        // Act
-        sqlRepository.update(testProfile);
-
-        // Assert
-        verify(mapper, times(1)).toEntity(testProfile);
-        verify(jpaRepository, times(1)).save(testEntity);
-    }
-
-    @Test
-    @DisplayName("Should delete company profile by ticker")
-    void testDeleteByTicker() {
-        // Act
-        sqlRepository.deleteByTicker("AAPL");
-
-        // Assert
-        verify(jpaRepository, times(1)).deleteByTicker("AAPL");
-    }
 }

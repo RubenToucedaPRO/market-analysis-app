@@ -37,14 +37,6 @@ public interface StrategyRepository {
     Optional<Strategy> findById(Long id);
 
     /**
-     * Finds a strategy by its name.
-     * 
-     * @param name the strategy name
-     * @return Optional containing the strategy if found, empty otherwise
-     */
-    Optional<Strategy> findByName(String name);
-
-    /**
      * Retrieves all strategies from the repository.
      * 
      * @return list of all strategies

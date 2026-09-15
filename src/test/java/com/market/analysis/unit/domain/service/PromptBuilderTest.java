@@ -44,14 +44,13 @@ class PromptBuilderTest {
 
         assertThat(prompt)
                 .contains("Ticker: AAPL")
-                .contains("Estrategia: Momentum (Cumplimiento: 80.50%)")
+                .contains("Estrategia: Momentum | Cumplimiento: 80.50%")
                 .contains("R:R: 1.80 | Target: 195.00 | Stop: 170.00")
-                .contains("responde en español")
+                .contains("Responde en español")
                 .contains("Resumen técnico:")
                 .contains("Fortalezas:")
                 .contains("Riesgos:")
-                .contains("Conclusión interpretativa:")
-                .contains("Justifica cada punto con los datos numéricos provistos.");
+                .contains("Conclusión interpretativa:");
     }
 
     @Test
@@ -65,9 +64,8 @@ class PromptBuilderTest {
 
         assertThat(prompt)
                 .contains("Ticker: AAPL")
-                .contains("Estrategia: N/A (Cumplimiento: N/A%)")
-                .contains("R:R: N/A | Target: N/A | Stop: N/A")
-                .contains("Justifica cada punto con los datos numéricos provistos.");
+                .contains("Estrategia: N/A | Cumplimiento: N/A%")
+                .contains("R:R: N/A | Target: N/A | Stop: N/A");
     }
 
     @Test

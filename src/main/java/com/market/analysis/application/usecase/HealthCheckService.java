@@ -67,7 +67,7 @@ public class HealthCheckService {
      * Determines the overall system status based on component health.
      *
      * @param databaseHealthy true if database is operational
-     * @return status string: "UP", "DOWN", or "DEGRADED"
+     * @return status string: "UP" or "DOWN"
      */
     private String determineOverallStatus(boolean databaseHealthy) {
         if (!databaseHealthy) {
@@ -87,7 +87,6 @@ public class HealthCheckService {
         return switch (status) {
             case "UP" -> "Application is fully operational. All dependencies are healthy.";
             case "DOWN" -> "Application is not operational. Critical dependencies are unavailable.";
-            case "DEGRADED" -> "Application is partially operational. Some dependencies have issues.";
             default -> "Unknown status";
         };
     }

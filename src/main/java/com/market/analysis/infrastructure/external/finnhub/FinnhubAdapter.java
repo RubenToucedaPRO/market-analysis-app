@@ -53,8 +53,11 @@ public class FinnhubAdapter implements StockProviderPort {
                     })
                     .body(QuoteData.class);
 
+            if (quote == null) {
+                throw new FinnhubException("No valid data found for: " + ticker);
+            }
             quote.setSymbol(ticker);
-            if (quote == null || !quote.isValid()) {
+            if (!quote.isValid()) {
                 throw new FinnhubException("No valid data found for: " + ticker);
             }
             log.debug("Quote fetched for {}: price={}", ticker, quote.getC());
@@ -67,6 +70,7 @@ public class FinnhubAdapter implements StockProviderPort {
             throw new FinnhubException("API error for " + ticker, e);
 
         } catch (Exception e) {
+            log.warn(e.getClass().getSimpleName());
             throw new FinnhubException("Unexpected error fetching quote " + ticker + ": " + e.getMessage(), e);
         }
     }

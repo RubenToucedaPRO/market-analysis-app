@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.PageResult;
 import com.market.analysis.domain.model.ProhibitedTicker;
@@ -24,6 +25,7 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
     private final ProhibitedTickerMapper prohibitedTickerMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProhibitedTicker> findAll() {
         log.debug("Retrieving all prohibited tickers");
         return jpaProhibitedTickerRepository.findAll().stream()
@@ -32,6 +34,7 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PageResult<ProhibitedTicker> findAll(int pageNumber, int pageSize) {
         log.debug("Retrieving prohibited tickers page {} size {}", pageNumber, pageSize);
         Page<ProhibitedTickerEntity> page = jpaProhibitedTickerRepository
@@ -44,6 +47,7 @@ public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByTicker(String ticker) {
         log.debug("Checking if ticker is prohibited: {}", ticker);
         return jpaProhibitedTickerRepository.existsByTicker(ticker);

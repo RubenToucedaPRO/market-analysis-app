@@ -127,38 +127,6 @@ class SqlRuleDefinitionRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should find rule definition by code")
-    void testFindByCode() {
-        // Arrange
-        when(jpaRepository.findByCode("SMA")).thenReturn(testEntity);
-        when(mapper.toDomain(testEntity)).thenReturn(testRuleDefinition);
-
-        // Act
-        Optional<RuleDefinition> result = sqlRepository.findByCode("SMA");
-
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals("SMA", result.get().getCode());
-        verify(jpaRepository, times(1)).findByCode("SMA");
-        verify(mapper, times(1)).toDomain(testEntity);
-    }
-
-    @Test
-    @DisplayName("Should return empty when rule definition not found by code")
-    void testFindByCodeNotFound() {
-        // Arrange
-        when(jpaRepository.findByCode("UNKNOWN")).thenReturn(null);
-        when(mapper.toDomain(null)).thenReturn(null);
-
-        // Act
-        Optional<RuleDefinition> result = sqlRepository.findByCode("UNKNOWN");
-
-        // Assert
-        assertFalse(result.isPresent());
-        verify(jpaRepository, times(1)).findByCode("UNKNOWN");
-    }
-
-    @Test
     @DisplayName("Should find all rule definitions")
     void testFindAll() {
         // Arrange
