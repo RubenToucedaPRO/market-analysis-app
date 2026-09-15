@@ -94,137 +94,147 @@
         <div class="text-center mb-5">
           <h2 class="fw-bold" th:text="#{home.screenshots.title}">Capturas de la Aplicación</h2>
         </div>
-        <div id="screenshotsCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div id="screenshotsCarousel" class="carousel slide screenshots-carousel" data-bs-ride="carousel">
           <div class="carousel-inner">
             <div class="carousel-item active">
-              <div class="row g-4">
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-1.webp}" class="card-img-top" th:alt="#{home.screenshots.slide1.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide1.title}">Análisis de Tickers</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide1.description}">Panel principal de análisis técnico y seguimiento de activos.</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-2.webp}" class="card-img-top" th:alt="#{home.screenshots.slide2.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide2.title}">Ticker Apto para Trade</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide2.description}">Evaluación exitosa con plan de ejecución y ratio riesgo/beneficio.</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-3.webp}" class="card-img-top" th:alt="#{home.screenshots.slide3.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide3.title}">Detalle grafica ticker</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide3.description}">Vista detalle del gráfico del ticker a analizar.</small>
-                    </div>
-                  </div>
-                </div>
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-1.webp',
+                    alt=#{home.screenshots.slide1.alt},
+                    title=#{home.screenshots.slide1.title},
+                    description=#{home.screenshots.slide1.description})}"
+                ></th:block>
               </div>
             </div>
             <div class="carousel-item">
-              <div class="row g-4">
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-4.webp}" class="card-img-top" th:alt="#{home.screenshots.slide4.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide4.title}">Análisis IA del ticker</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide4.description}">Análisis interpretativo mediante IA</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-5.webp}" class="card-img-top" th:alt="#{home.screenshots.slide5.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide5.title}">Ticker No Apto</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide5.description}">Resultado de evaluación cuando el activo no cumple la estrategia.</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-6.webp}" class="card-img-top" th:alt="#{home.screenshots.slide6.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide6.title}">Tus Estrategias de Trading</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide6.description}">Gestiona y organiza todas tus estrategias de inversión.</small>
-                    </div>
-                  </div>
-                </div>
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-2.webp',
+                    alt=#{home.screenshots.slide2.alt},
+                    title=#{home.screenshots.slide2.title},
+                    description=#{home.screenshots.slide2.description})}"
+                ></th:block>
               </div>
             </div>
             <div class="carousel-item">
-              <div class="row g-4">
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-7.webp}" class="card-img-top" th:alt="#{home.screenshots.slide7.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide7.title}">Tickers sugeridos</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide7.description}">Tickers sugeridos acorde o proximos a los parametros de la estrategia.</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-8.webp}" class="card-img-top" th:alt="#{home.screenshots.slide8.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide8.title}">Crear Nueva Estrategia</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide8.description}">Define reglas de ejecución, gestión de riesgo y parámetros.</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-9.webp}" class="card-img-top" th:alt="#{home.screenshots.slide9.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide9.title}">Definiciones de Reglas</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide9.description}">Gestiona los indicadores técnicos disponibles para las estrategias.</small>
-                    </div>
-                  </div>
-                </div>
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-3.webp',
+                    alt=#{home.screenshots.slide3.alt},
+                    title=#{home.screenshots.slide3.title},
+                    description=#{home.screenshots.slide3.description})}"
+                ></th:block>
               </div>
             </div>
             <div class="carousel-item">
-              <div class="row g-4">
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-10.webp}" class="card-img-top" th:alt="#{home.screenshots.slide10.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide10.title}">Detalle de Regla</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide10.description}">Configuración individual de indicadores como SMA, RSI y EMA.</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="card border-0 shadow-sm">
-                    <img th:src="@{/images/screenshot-11.webp}" class="card-img-top" th:alt="#{home.screenshots.slide11.alt}" />
-                    <div class="card-body text-center">
-                      <h6 class="fw-bold" th:text="#{home.screenshots.slide11.title}">Tickers Prohibidos</h6>
-                      <small class="text-muted" th:text="#{home.screenshots.slide11.description}">Filtra automáticamente activos no deseados por keywords y reglas.</small>
-                    </div>
-                  </div>
-                </div>
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-4.webp',
+                    alt=#{home.screenshots.slide4.alt},
+                    title=#{home.screenshots.slide4.title},
+                    description=#{home.screenshots.slide4.description})}"
+                ></th:block>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-5.webp',
+                    alt=#{home.screenshots.slide5.alt},
+                    title=#{home.screenshots.slide5.title},
+                    description=#{home.screenshots.slide5.description})}"
+                ></th:block>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-6.webp',
+                    alt=#{home.screenshots.slide6.alt},
+                    title=#{home.screenshots.slide6.title},
+                    description=#{home.screenshots.slide6.description})}"
+                ></th:block>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-7.webp',
+                    alt=#{home.screenshots.slide7.alt},
+                    title=#{home.screenshots.slide7.title},
+                    description=#{home.screenshots.slide7.description})}"
+                ></th:block>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-8.webp',
+                    alt=#{home.screenshots.slide8.alt},
+                    title=#{home.screenshots.slide8.title},
+                    description=#{home.screenshots.slide8.description})}"
+                ></th:block>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-9.webp',
+                    alt=#{home.screenshots.slide9.alt},
+                    title=#{home.screenshots.slide9.title},
+                    description=#{home.screenshots.slide9.description})}"
+                ></th:block>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-10.webp',
+                    alt=#{home.screenshots.slide10.alt},
+                    title=#{home.screenshots.slide10.title},
+                    description=#{home.screenshots.slide10.description})}"
+                ></th:block>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <div class="row g-4 justify-content-center">
+                <th:block
+                  th:replace="~{fragments/screenshot-card :: card(
+                    img='screenshot-11.webp',
+                    alt=#{home.screenshots.slide11.alt},
+                    title=#{home.screenshots.slide11.title},
+                    description=#{home.screenshots.slide11.description})}"
+                ></th:block>
               </div>
             </div>
           </div>
-          <button class="carousel-control-prev" type="button" data-bs-target="#screenshotsCarousel" data-bs-slide="prev">
+          <button class="carousel-control-prev d-none d-md-flex" type="button" data-bs-target="#screenshotsCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
+            <span class="visually-hidden" th:text="#{carousel.prev}">Anterior</span>
           </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#screenshotsCarousel" data-bs-slide="next">
+          <button class="carousel-control-next d-none d-md-flex" type="button" data-bs-target="#screenshotsCarousel" data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
+            <span class="visually-hidden" th:text="#{carousel.next}">Siguiente</span>
           </button>
           <div class="carousel-indicators">
-            <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="0" class="active"></button>
-            <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="1"></button>
-            <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="2"></button>
-            <button type="button" data-bs-target="#screenshotsCarousel" data-bs-slide-to="3"></button>
+            <button
+              th:each="i : ${#numbers.sequence(0, 10)}"
+              type="button"
+              data-bs-target="#screenshotsCarousel"
+              th:attr="data-bs-slide-to=${i}"
+              th:classappend="${i == 0} ? 'active'"
+              th:aria-label="#{carousel.slide(${i + 1})}"
+            ></button>
           </div>
         </div>
       </div>

@@ -580,6 +580,28 @@ footer {
   transition: var(--transition-base);
 }
 
+/* Home screenshots carousel - one large capture per slide */
+.screenshots-carousel .screenshots-img {
+  width: 100%;
+  aspect-ratio: 1413 / 953;
+  object-fit: cover;
+}
+
+.screenshots-carousel .carousel-control-prev-icon,
+.screenshots-carousel .carousel-control-next-icon {
+  filter: invert(0.55);
+}
+
+.screenshots-carousel .carousel-indicators {
+  position: static;
+  margin-top: 1.25rem;
+}
+
+.screenshots-carousel .carousel-indicators [data-bs-target] {
+  background-color: var(--primary-color);
+  width: 2rem;
+}
+
 /* Navbar Public - Login Button */
 .navbar-nav .btn-primary {
   border-radius: 0.5rem;
