@@ -2,6 +2,8 @@ package com.market.analysis.unit.application.usecase;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,31 +60,49 @@ class ManageRuleDefinitionServiceP0Test {
     }
 
     @Test
-    @DisplayName("Should reject createRuleDefinition when requiresParam is inconsistent with catalog (SMA expects true)")
-    void testCreateRejectsInconsistentRequiresParam() {
+    @DisplayName("Should autocorrect createRuleDefinition when requiresParam is inconsistent with catalog (SMA expects true)")
+    void testCreateAutocorrectsInconsistentRequiresParam() {
         RuleDefinitionDTO dto = RuleDefinitionDTO.builder()
                 .code("SMA")
                 .name("Simple Moving Average")
-                .requiresParam(false) // wrong – SMA requires a param
+                .requiresParam(false) // wrong – SMA requires a param; backend autocorrects
                 .build();
 
-        DomainValidationException ex = assertThrows(DomainValidationException.class,
-                () -> service.createRuleDefinition(dto));
-        assertEquals("validation.rd_param_conflict", ex.getErrorCode());
+        RuleDefinition domainObj = RuleDefinition.builder()
+                .id(1L).code("SMA").name("Simple Moving Average").requiresParam(true).build();
+
+        when(ruleDefinitionRepository.existsByCode("SMA")).thenReturn(false);
+        when(ruleDefinitionDTOMapper.toDomain(org.mockito.ArgumentMatchers.any())).thenReturn(domainObj);
+        when(ruleDefinitionRepository.save(org.mockito.ArgumentMatchers.any())).thenReturn(domainObj);
+        when(ruleDefinitionDTOMapper.toDTO(domainObj)).thenReturn(dto);
+
+        service.createRuleDefinition(dto);
+
+        assertTrue(dto.isRequiresParam());
+        verify(ruleDefinitionRepository).save(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
-    @DisplayName("Should reject createRuleDefinition when requiresParam is inconsistent with catalog (PRICE expects false)")
-    void testCreateRejectsInconsistentRequiresParamForNoParamIndicator() {
+    @DisplayName("Should autocorrect createRuleDefinition when requiresParam is inconsistent with catalog (PRICE expects false)")
+    void testCreateAutocorrectsInconsistentRequiresParamForNoParamIndicator() {
         RuleDefinitionDTO dto = RuleDefinitionDTO.builder()
                 .code("PRICE")
                 .name("Current Price")
-                .requiresParam(true) // wrong – PRICE has no param
+                .requiresParam(true) // wrong – PRICE has no param; backend autocorrects
                 .build();
 
-        DomainValidationException ex = assertThrows(DomainValidationException.class,
-                () -> service.createRuleDefinition(dto));
-        assertEquals("validation.rd_param_conflict", ex.getErrorCode());
+        RuleDefinition domainObj = RuleDefinition.builder()
+                .id(1L).code("PRICE").name("Current Price").requiresParam(false).build();
+
+        when(ruleDefinitionRepository.existsByCode("PRICE")).thenReturn(false);
+        when(ruleDefinitionDTOMapper.toDomain(org.mockito.ArgumentMatchers.any())).thenReturn(domainObj);
+        when(ruleDefinitionRepository.save(org.mockito.ArgumentMatchers.any())).thenReturn(domainObj);
+        when(ruleDefinitionDTOMapper.toDTO(domainObj)).thenReturn(dto);
+
+        service.createRuleDefinition(dto);
+
+        assertFalse(dto.isRequiresParam());
+        verify(ruleDefinitionRepository).save(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
@@ -150,19 +170,26 @@ class ManageRuleDefinitionServiceP0Test {
     }
 
     @Test
-    @DisplayName("Should reject updateRuleDefinition when requiresParam conflicts with catalog")
-    void testUpdateRejectsInconsistentRequiresParam() {
+    @DisplayName("Should autocorrect updateRuleDefinition when requiresParam conflicts with catalog")
+    void testUpdateAutocorrectsInconsistentRequiresParam() {
         RuleDefinitionDTO dto = RuleDefinitionDTO.builder()
                 .id(1L)
                 .code("EMA")
                 .name("Exponential Moving Average")
-                .requiresParam(false) // wrong – EMA requires a param
+                .requiresParam(false) // wrong – EMA requires a param; backend autocorrects
                 .build();
 
-        when(ruleDefinitionRepository.existsById(1L)).thenReturn(true);
+        RuleDefinition domainObj = RuleDefinition.builder()
+                .id(1L).code("EMA").name("Exponential Moving Average").requiresParam(true).build();
 
-        DomainValidationException ex = assertThrows(DomainValidationException.class,
-                () -> service.updateRuleDefinition(dto));
-        assertEquals("validation.rd_param_conflict", ex.getErrorCode());
+        when(ruleDefinitionRepository.existsById(1L)).thenReturn(true);
+        when(ruleDefinitionDTOMapper.toDomain(org.mockito.ArgumentMatchers.any())).thenReturn(domainObj);
+        when(ruleDefinitionRepository.save(org.mockito.ArgumentMatchers.any())).thenReturn(domainObj);
+        when(ruleDefinitionDTOMapper.toDTO(domainObj)).thenReturn(dto);
+
+        service.updateRuleDefinition(dto);
+
+        assertTrue(dto.isRequiresParam());
+        verify(ruleDefinitionRepository).save(org.mockito.ArgumentMatchers.any());
     }
 }
