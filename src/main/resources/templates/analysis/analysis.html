@@ -2,7 +2,9 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="~{fragments/head :: head('Análisis - AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100">
-    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
+    <div
+      th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"
+    ></div>
     <div th:replace="~{fragments/notification :: notification}"></div>
 
     <main class="container my-5 flex-grow-1">
@@ -23,7 +25,9 @@
           <div class="d-flex align-items-center gap-3">
             <span class="stats-badge" th:if="${!tickers.isEmpty()}">
               <i class="bi bi-collection me-1"></i>
-              <span th:text="#{analysis.count(${tickers.size()})}">0 tickers analizados</span>
+              <span th:text="#{analysis.count(${tickers.size()})}"
+                >0 tickers analizados</span
+              >
             </span>
           </div>
           <div class="col-12 mt-3">
@@ -33,8 +37,11 @@
               class="row g-3"
             >
               <div class="col-md-5">
-                <label for="tickers" class="form-label fw-semibold"
-                  th:text="#{analysis.ticker_symbol}">Símbolo del Ticker</label
+                <label
+                  for="tickers"
+                  class="form-label fw-semibold"
+                  th:text="#{analysis.ticker_symbol}"
+                  >Símbolo del Ticker</label
                 >
                 <input
                   type="text"
@@ -46,8 +53,11 @@
                 />
               </div>
               <div class="col-md-5">
-                <label for="strategyId" class="form-label fw-semibold"
-                  th:text="#{analysis.strategy}">Estrategia</label
+                <label
+                  for="strategyId"
+                  class="form-label fw-semibold"
+                  th:text="#{analysis.strategy}"
+                  >Estrategia</label
                 >
                 <select
                   class="form-select"
@@ -55,7 +65,12 @@
                   th:name="strategyId"
                   required
                 >
-                  <option value="" selected disabled th:text="#{analysis.select_strategy}">
+                  <option
+                    value=""
+                    selected
+                    disabled
+                    th:text="#{analysis.select_strategy}"
+                  >
                     Selecciona una estrategia
                   </option>
                   <option
@@ -81,8 +96,12 @@
       <div id="tickersGridContainer">
         <div th:if="${tickers.isEmpty()}" class="text-center py-5">
           <i class="bi bi-inbox display-1 text-muted mb-3"></i>
-          <h5 class="text-muted" th:text="#{analysis.empty.title}">No hay tickers añadidos</h5>
-          <p class="text-muted" th:text="#{analysis.empty.description}">Comienza añadiendo un ticker para analizar</p>
+          <h5 class="text-muted" th:text="#{analysis.empty.title}">
+            No hay tickers añadidos
+          </h5>
+          <p class="text-muted" th:text="#{analysis.empty.description}">
+            Comienza añadiendo un ticker para analizar
+          </p>
         </div>
 
         <div class="row g-4">
@@ -116,11 +135,10 @@
 
                             <span
                               th:if="${ticker.valorationIA != null}"
-                              class="text-info"
+                              class="text-info cursor-help"
                               data-bs-toggle="tooltip"
                               data-bs-placement="top"
                               th:title="${ticker.valorationIA}"
-                              class="cursor-help"
                             >
                               <i class="bi bi-stars"></i>
                             </span>
@@ -137,14 +155,18 @@
                     </div>
 
                     <div class="col-lg-2 col-md-3 col-6 mb-3 mb-lg-0">
-                      <div class="data-label" th:text="#{analysis.status}">Estado</div>
+                      <div class="data-label" th:text="#{analysis.status}">
+                        Estado
+                      </div>
                       <span
                         th:if="${ticker.evaluationPassed != null and ticker.evaluationPassed}"
                         class="badge bg-success status-badge-large"
                         th:title="${ticker.evaluationSummary}"
                       >
                         <i class="bi bi-check-circle me-1"></i>
-                        <span th:text="#{analysis.status.approved}">APROBADO</span>
+                        <span th:text="#{analysis.status.approved}"
+                          >APROBADO</span
+                        >
                       </span>
                       <span
                         th:if="${ticker.evaluationPassed != null and !ticker.evaluationPassed}"
@@ -174,7 +196,11 @@
                             <div
                               class="d-flex justify-content-between align-items-center mb-1"
                             >
-                              <small class="text-muted" th:text="#{analysis.compliance}">Cumplimiento</small>
+                              <small
+                                class="text-muted"
+                                th:text="#{analysis.compliance}"
+                                >Cumplimiento</small
+                              >
                               <small
                                 class="fw-bold"
                                 th:text="${#numbers.formatDecimal(ticker.complianceRate, 1, 2) + '%'}"
@@ -182,10 +208,9 @@
                               >
                             </div>
                             <progress
-                              class="w-100"
+                              class="w-100 progress-thin"
                               th:value="${ticker.complianceRate}"
                               max="100"
-                              class="progress-thin"
                               th:attr="title=${ticker.complianceRate + '%'}"
                             ></progress>
                           </div>
@@ -196,7 +221,12 @@
                     <div class="col-lg-5 col-md-5 col-12 mb-3 mb-lg-0">
                       <div class="row g-3">
                         <div class="col-4">
-                          <div class="data-label" th:text="#{analysis.current_price}">Precio actual</div>
+                          <div
+                            class="data-label"
+                            th:text="#{analysis.current_price}"
+                          >
+                            Precio actual
+                          </div>
                           <div
                             class="data-value text-primary"
                             th:text="${#numbers.formatDecimal(ticker.currentPrice, 1, 2)}"
@@ -205,7 +235,9 @@
                           </div>
                         </div>
                         <div class="col-4">
-                          <div class="data-label" th:text="#{analysis.volume}">Volumen</div>
+                          <div class="data-label" th:text="#{analysis.volume}">
+                            Volumen
+                          </div>
                           <div
                             class="data-value"
                             th:text="${#numbers.formatInteger(ticker.volume, 0, 'POINT')}"
@@ -218,7 +250,12 @@
                           th:if="${ticker.evaluationPassed and ticker.riskRewardRatio != null}"
                         >
                           <div class="col-4">
-                            <div class="data-label" th:text="#{analysis.rr_ratio}">Ratio R:R</div>
+                            <div
+                              class="data-label"
+                              th:text="#{analysis.rr_ratio}"
+                            >
+                              Ratio R:R
+                            </div>
                             <span
                               class="badge"
                               th:classappend="${ticker.riskRewardRatio >= 2.0 ? 'bg-success' : (ticker.riskRewardRatio >= 1.0 ? 'bg-warning' : 'bg-danger')}"
@@ -227,7 +264,10 @@
                             >
                           </div>
                           <div class="col-4">
-                            <div class="data-label text-success" th:text="#{analysis.target_price}">
+                            <div
+                              class="data-label text-success"
+                              th:text="#{analysis.target_price}"
+                            >
                               Target Price
                             </div>
                             <div
@@ -238,7 +278,12 @@
                             </div>
                           </div>
                           <div class="col-4">
-                            <div class="data-label text-danger" th:text="#{analysis.stop_loss}">Stop Loss</div>
+                            <div
+                              class="data-label text-danger"
+                              th:text="#{analysis.stop_loss}"
+                            >
+                              Stop Loss
+                            </div>
                             <div
                               class="data-value fw-bold text-danger"
                               th:text="${#numbers.formatDecimal(ticker.stopLossPrice, 1, 2)}"
@@ -247,7 +292,10 @@
                             </div>
                           </div>
                           <div class="col-4">
-                            <div class="data-label text-info" th:text="#{analysis.recommended_shares}">
+                            <div
+                              class="data-label text-info"
+                              th:text="#{analysis.recommended_shares}"
+                            >
                               Acciones Sug.
                             </div>
                             <div
@@ -266,8 +314,11 @@
                             <div class="alert alert-warning p-1 mb-0 border-0">
                               <small>
                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                <span th:text="#{analysis.warning.risk_plan}">Cumple reglas pero el plan de riesgo no se pudo
-                                calcular por incongruencia en los parámetros.</span>
+                                <span th:text="#{analysis.warning.risk_plan}"
+                                  >Cumple reglas pero el plan de riesgo no se
+                                  pudo calcular por incongruencia en los
+                                  parámetros.</span
+                                >
                               </small>
                             </div>
                           </div>
@@ -278,8 +329,10 @@
                             <div class="alert alert-light p-1 mb-0 border-0">
                               <small class="text-muted fst-italic">
                                 <i class="bi bi-info-circle me-1"></i>
-                                <span th:text="#{analysis.info.not_eligible}">No cumple criterios para establecer plan de
-                                trade.</span>
+                                <span th:text="#{analysis.info.not_eligible}"
+                                  >No cumple criterios para establecer plan de
+                                  trade.</span
+                                >
                               </small>
                             </div>
                           </div>
@@ -288,7 +341,10 @@
                     </div>
 
                     <div class="col-lg-2 col-md-12">
-                      <div class="data-label mb-2 d-none d-lg-block" th:text="#{analysis.actions}">
+                      <div
+                        class="data-label mb-2 d-none d-lg-block"
+                        th:text="#{analysis.actions}"
+                      >
                         Acciones
                       </div>
                       <div
@@ -313,7 +369,9 @@
                             <span th:text="#{analysis.refresh}">Refrescar</span>
                           </button>
                         </form>
-                        <th:block th:replace="~{fragments/ai-analysis-button :: aiButton(actionUrl=@{/analysis/getValorationIA}, itemId=${ticker.id})}"></th:block>
+                        <th:block
+                          th:replace="~{fragments/ai-analysis-button :: aiButton(actionUrl=@{/analysis/getValorationIA}, itemId=${ticker.id})}"
+                        ></th:block>
                         <form
                           th:action="@{/analysis/delete}"
                           method="post"

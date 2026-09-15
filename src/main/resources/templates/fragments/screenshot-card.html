@@ -1,0 +1,17 @@
+<!-- fragments/screenshot-card.html -->
+<div
+  th:fragment="card(img, alt, title, description)"
+  class="col-12 col-lg-10 col-xl-9 mx-auto"
+>
+  <div class="card border-0 shadow-sm">
+    <img
+      th:src="@{/images/{file}(file=${img})}"
+      class="card-img-top screenshots-img"
+      th:alt="${alt}"
+    />
+    <div class="card-body text-center">
+      <h6 class="fw-bold" th:text="${title}">Título</h6>
+      <small class="text-muted" th:text="${description}">Descripción</small>
+    </div>
+  </div>
+</div>
