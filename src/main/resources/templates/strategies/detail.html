@@ -259,7 +259,7 @@
               <button
                 type="submit"
                 class="btn btn-outline-danger"
-                th:onclick="'return confirm(\'' + #{strategies.list.confirm_delete} + '\')'"
+                th:data-confirm="#{strategies.list.confirm_delete}"
               >
                 <i class="bi bi-trash me-1"></i>
                 <span th:text="#{strategy.detail.delete}">Eliminar</span>

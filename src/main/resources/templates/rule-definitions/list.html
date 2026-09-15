@@ -115,7 +115,7 @@
                         <button
                           type="submit"
                           class="btn btn-outline-danger w-100"
-                          th:onclick="'return confirm(\'' + #{ruledefinitions.list.confirm_delete} + '\')'"
+                          th:data-confirm="#{ruledefinitions.list.confirm_delete}"
                         >
                           <i class="bi bi-trash me-1"></i> <span th:text="#{ruledefinitions.list.delete}">Eliminar</span>
                         </button>
@@ -192,7 +192,7 @@
                     <button
                       type="submit"
                       class="btn btn-outline-danger w-100"
-                      th:onclick="'return confirm(\'' + #{ruledefinitions.list.confirm_delete} + '\')'"
+                      th:data-confirm="#{ruledefinitions.list.confirm_delete}"
                     >
                       <i class="bi bi-trash me-1"></i>
                       <span th:text="#{ruledefinitions.list.delete}">Eliminar</span>

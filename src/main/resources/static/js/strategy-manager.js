@@ -8,6 +8,20 @@
 // Keep track of how many rules we have
 let ruleIndex = 0;
 
+// Event listeners for data-action attributes
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-action="add-rule"]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      addRuleRow();
+    });
+  });
+  document.querySelectorAll('[data-action="remove-rule"]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      removeRuleRow(el);
+    });
+  });
+});
+
 /**
  * Initialize the rule index when page loads
  * Count existing rules on the page

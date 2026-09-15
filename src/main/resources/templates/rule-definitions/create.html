@@ -56,7 +56,7 @@
                     id="code"
                     th:field="*{code}"
                     required
-                    onchange="syncRequiresParam(this)"
+                    data-action="sync-requires-param"
                   >
                     <option value="" th:text="#{ruledefinition.form.select_indicator}">-- Seleccionar indicador --</option>
                     <option
@@ -105,7 +105,7 @@
                       type="checkbox"
                       id="requiresParam"
                       th:field="*{requiresParam}"
-                      th:onclick="${!isEdit} ? 'return false' : ''"
+                      th:disabled="${!isEdit}"
                     />
                     <label
                       class="form-check-label fw-semibold"
@@ -155,15 +155,6 @@
     <footer th:replace="~{fragments/footer :: footer}"></footer>
     <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
 
-    <script>
-      function syncRequiresParam(selectEl) {
-        const selectedOption = selectEl.options[selectEl.selectedIndex];
-        const requiresParam = selectedOption.dataset.requiresParam === "true";
-        const checkbox = document.getElementById("requiresParam");
-        if (checkbox) {
-          checkbox.checked = requiresParam;
-        }
-      }
-    </script>
+    <script th:src="@{/js/rule-definition-form.js}"></script>
   </body>
 </html>
