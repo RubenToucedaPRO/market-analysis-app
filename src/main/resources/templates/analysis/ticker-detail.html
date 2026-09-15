@@ -22,10 +22,9 @@
               </h1>
               <span
                 th:if="${ticker.valorationIA != null}"
-                class="text-info h4 mb-0"
+                class="text-info h4 mb-0 cursor-help"
                 data-bs-toggle="tooltip"
                 th:title="${ticker.valorationIA}"
-                class="cursor-help"
               >
                 <i class="bi bi-stars"></i>
               </span>
@@ -89,7 +88,7 @@
                 th:class="${ticker.evaluationPassed ? 'text-success fw-bold' : 'text-danger fw-bold'}"
               >
                 <span
-                  th:text="${ticker.evaluationPassed ? #{ticker.detail.status.passed} : #{ticker.detail.status.failed}}"
+                  th:text="${ticker.evaluationPassed} ? #{ticker.detail.status.passed} : #{ticker.detail.status.failed}"
                   >Evaluation Status</span
                 >
               </h4>

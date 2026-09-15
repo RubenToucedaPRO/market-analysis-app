@@ -342,6 +342,14 @@ body {
   padding: 4px;
 }
 
+/* Ticker logos */
+.ticker-logo-lg {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
 .ticker-symbol {
   font-size: 1.5rem;
   font-weight: 700;
@@ -588,21 +596,6 @@ footer {
 /* ============================================
    Inline Style Extractions
    ============================================ */
-
-/* Ticker logos */
-.ticker-logo-lg {
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  object-fit: contain;
-}
-
-.ticker-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  object-fit: contain;
-}
 
 /* Chart legend */
 .chart-legend-dot {
