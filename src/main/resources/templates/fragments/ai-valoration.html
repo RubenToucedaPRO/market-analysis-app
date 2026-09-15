@@ -7,7 +7,7 @@
     class="card-header bg-white border-0 py-3 d-flex align-items-center gap-2"
   >
     <i class="bi bi-stars text-info"></i>
-    <h6 class="mb-0 fw-bold">Análisis técnico</h6>
+    <h6 class="mb-0 fw-bold" th:text="#{ai.title}">Análisis técnico</h6>
   </div>
   <div
     class="card-body bg-light bg-opacity-50 p-4"
@@ -27,7 +27,7 @@
     <div class="row g-3" th:if="${structured}">
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
-          <h6 class="text-primary text-uppercase fw-bold mb-2">
+          <h6 class="text-primary text-uppercase fw-bold mb-2" th:text="#{ai.summary}">
             Resumen técnico
           </h6>
           <p class="mb-0 lh-lg text-muted" th:text="${resumen}">Resumen</p>
@@ -35,7 +35,7 @@
       </div>
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
-          <h6 class="text-success text-uppercase fw-bold mb-2">Fortalezas</h6>
+          <h6 class="text-success text-uppercase fw-bold mb-2" th:text="#{ai.strengths}">Fortalezas</h6>
           <p class="mb-0 lh-lg text-muted" th:text="${fortalezas}">
             Fortalezas
           </p>
@@ -43,13 +43,13 @@
       </div>
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
-          <h6 class="text-danger text-uppercase fw-bold mb-2">Riesgos</h6>
+          <h6 class="text-danger text-uppercase fw-bold mb-2" th:text="#{ai.risks}">Riesgos</h6>
           <p class="mb-0 lh-lg text-muted" th:text="${riesgos}">Riesgos</p>
         </div>
       </div>
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
-          <h6 class="text-info text-uppercase fw-bold mb-2">
+          <h6 class="text-info text-uppercase fw-bold mb-2" th:text="#{ai.conclusion}">
             Conclusión interpretativa
           </h6>
           <p class="mb-0 lh-lg text-muted" th:text="${conclusion}">

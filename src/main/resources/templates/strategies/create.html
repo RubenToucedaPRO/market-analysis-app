@@ -1,41 +1,17 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${isEdit} ? 'Editar Estrategia' : 'Crear Estrategia'">
-      Create Strategy - AlphaSeeker
-    </title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Bootstrap Icons -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Custom CSS -->
-    <link th:href="@{/css/styles.css}" rel="stylesheet" />
-  </head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/head :: head(${isEdit} ? #{strategy.form.edit} + ' - AlphaSeeker' : #{strategy.form.create} + ' - AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100">
-    <!-- Navigation Bar -->
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
-    <!-- Message Alert -->
+    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
     <div th:replace="~{fragments/notification :: notification}"></div>
 
-    <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <div
         class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-1"
       >
         <div>
           <h2
-            th:text="${isEdit} ? 'Editar Estrategia' : 'Crear Nueva Estrategia'"
+            th:text="${isEdit} ? #{strategy.form.edit} : #{strategy.form.create}"
           >
             Crear Nueva Estrategia
           </h2>
@@ -43,7 +19,7 @@
         <div class="mb-4 d-flex justify-content-end gap-2">
           <button type="submit" form="strategyForm" class="btn btn-primary">
             <i class="bi bi-save me-1"></i>
-            Guardar Estrategia
+            <span th:text="#{strategy.form.save}">Guardar Estrategia</span>
           </button>
         </div>
       </div>
@@ -54,21 +30,19 @@
           th:object="${strategy}"
           method="post"
         >
-          <!-- Strategy Details Card -->
           <div class="card mb-4">
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="bi bi-gear text-primary me-2"></i>
-                Detalles de la Estrategia
+                <span th:text="#{strategy.form.details}">Detalles de la Estrategia</span>
               </h5>
             </div>
             <div class="card-body">
               <div class="row g-3">
                 <input type="hidden" th:field="*{id}" />
-                <!-- Strategy Name -->
                 <div class="col-md-6">
                   <label for="strategyName" class="form-label fw-semibold"
-                    >Nombre de la Estrategia</label
+                    th:text="#{strategy.form.name}">Nombre de la Estrategia</label
                   >
                   <input
                     type="text"
@@ -80,12 +54,11 @@
                   />
                 </div>
 
-                <!-- Description -->
                 <div class="col-md-6">
                   <label
                     for="strategyDescription"
                     class="form-label fw-semibold"
-                    >Descripción</label
+                    th:text="#{strategy.form.description}">Descripción</label
                   >
                   <input
                     type="text"
@@ -100,12 +73,11 @@
             </div>
           </div>
 
-          <!-- Risk Management Card -->
           <div class="card mb-4">
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="bi bi-shield-check text-primary me-2"></i>
-                Gestión de Riesgo
+                <span th:text="#{strategy.form.risk_management}">Gestión de Riesgo</span>
               </h5>
             </div>
             <div class="card-body">
@@ -115,17 +87,15 @@
             </div>
           </div>
 
-          <!-- Execution Rules Card -->
           <div class="card">
             <div class="card-header bg-light">
               <h5 class="mb-0">
                 <i class="bi bi-list-check text-primary me-2"></i>
-                Reglas de Ejecución
+                <span th:text="#{strategy.form.execution_rules}">Reglas de Ejecución</span>
               </h5>
             </div>
             <div class="card-body">
               <div id="rules-container">
-                <!-- Existing rules will be rendered here -->
                 <th:block th:each="rule, stat : *{rules}">
                   <div
                     th:replace="~{fragments/rule-row :: ruleRow(index=${stat.index}, rule=${rule}, ruleDefinitions=${ruleDefinitions})}"
@@ -134,28 +104,20 @@
               </div>
             </div>
 
-            <!-- Add Rule Button -->
             <button
               type="button"
               class="btn btn-outline-primary w-100"
-              onclick="addRuleRow()"
+              data-action="add-rule"
             >
               <i class="bi bi-plus-circle me-1"></i>
-              Añadir Regla Condicional
+              <span th:text="#{strategy.form.add_rule}">Añadir Regla Condicional</span>
             </button>
           </div>
         </form>
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light border-top py-3 mt-auto">
-      <div class="container text-center">
-        <small class="text-muted">
-          &copy; 2026 AlphaSeeker. Todos los derechos reservados.
-        </small>
-      </div>
-    </footer>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
 
     <template id="rule-template">
       <div
@@ -163,15 +125,12 @@
       ></div>
     </template>
 
-    <!-- Bootstrap 5 JS Bundle (includes Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
 
-    <!-- Pass rule definitions to JavaScript -->
     <script th:inline="javascript">
       globalThis.ruleDefinitions = /*[[${ruleDefinitions}]]*/ [];
     </script>
 
-    <!-- Custom JavaScript -->
     <script th:src="@{/js/strategy-manager.js}"></script>
     <script th:src="@{/js/risk-management.js}"></script>
   </body>

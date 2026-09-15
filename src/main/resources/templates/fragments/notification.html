@@ -1,8 +1,7 @@
 <div
   th:fragment="notification"
   th:if="${uiNotification}"
-  class="position-fixed top-0 end-0 p-3"
-  style="z-index: 1060; min-width: 350px"
+  class="position-fixed top-0 end-0 p-3 notification-container"
 >
   <div
     th:classappend="'alert-' + ${uiNotification.type}"
@@ -23,40 +22,32 @@
         th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
       ></i>
       <div>
-        <strong th:if="${uiNotification.type == 'success'}">¡Éxito!</strong>
-        <strong th:if="${uiNotification.type == 'warning'}">Parcial</strong>
-        <strong th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}">Aviso</strong>
+        <strong th:if="${uiNotification.type == 'success'}" th:text="#{notification.success}">¡Éxito!</strong>
+        <strong th:if="${uiNotification.type == 'warning'}" th:text="#{notification.warning}">Parcial</strong>
+        <strong th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}" th:text="#{notification.error}">Aviso</strong>
         <div th:text="${uiNotification.text}" class="small"></div>
       </div>
       <button
         type="button"
         class="btn-close ms-auto"
         data-bs-dismiss="alert"
-        aria-label="Cerrar"
+        aria-label="#{notification.close.aria}"
       ></button>
     </div>
 
     <div
-      class="progress mt-2"
-      style="
-        height: 3px;
-        background-color: rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-      "
+      class="progress mt-2 notification-progress"
     >
       <div
         class="progress-bar js-notification-progress bg-success"
-        style="width: 100%"
         th:if="${uiNotification.type == 'success'}"
       ></div>
       <div
         class="progress-bar js-notification-progress bg-warning"
-        style="width: 100%"
         th:if="${uiNotification.type == 'warning'}"
       ></div>
       <div
         class="progress-bar js-notification-progress bg-danger"
-        style="width: 100%"
         th:if="${uiNotification.type != 'success' and uiNotification.type != 'warning'}"
       ></div>
     </div>

@@ -1,34 +1,12 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Error - AlphaSeeker</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Bootstrap Icons -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
-
-    <!-- Custom CSS -->
-    <link th:href="@{/css/styles.css}" rel="stylesheet" />
-  </head>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/head :: head('Error - AlphaSeeker')}"></head>
   <body class="d-flex flex-column min-vh-100">
-    <!-- Navigation Bar -->
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
 
-    <!-- Main Content -->
     <main class="container my-5 flex-grow-1">
       <div class="row justify-content-center">
         <div class="col-lg-8">
-          <!-- Error Card -->
           <div class="card shadow-sm border-danger">
             <div class="card-header bg-danger text-white">
               <div class="d-flex align-items-center">
@@ -37,24 +15,22 @@
                   <h4 class="mb-0">
                     <span th:text="${errorType} ?: 'Error'">Error</span>
                   </h4>
-                  <small>Ha ocurrido un error al procesar su solicitud</small>
+                  <small th:text="#{error.page.subtitle}">Ha ocurrido un error al procesar su solicitud</small>
                 </div>
               </div>
             </div>
             <div class="card-body">
-              <!-- User-friendly error message -->
               <div class="alert alert-danger mb-4" role="alert">
                 <p
                   class="mb-0 fs-5"
-                  th:text="${errorMessage} ?: 'Ha ocurrido un error inesperado.'"
+                  th:text="${errorMessage} ?: #{error.page.default_message}"
                 >
                   Ha ocurrido un error inesperado.
                 </p>
               </div>
 
-              <!-- Error details (only shown if available) -->
               <div th:if="${errorDetails}" class="mb-4">
-                <h6 class="text-muted">Detalles Técnicos:</h6>
+                <h6 class="text-muted" th:text="#{error.page.technical_details}">Detalles Técnicos:</h6>
                 <div class="bg-light p-3 rounded border">
                   <code class="text-dark" th:text="${errorDetails}">
                     Los detalles del error aparecerán aquí
@@ -62,33 +38,31 @@
                 </div>
               </div>
 
-              <!-- Navigation Actions -->
               <div class="d-flex gap-2 flex-wrap">
-                <button onclick="window.history.back()" class="btn btn-primary">
+                <button data-action="back" class="btn btn-primary">
                   <i class="bi bi-arrow-left me-1"></i>
-                  Volver
+                  <span th:text="#{error.page.back}">Volver</span>
                 </button>
                 <a th:href="@{/strategies}" class="btn btn-outline-primary">
                   <i class="bi bi-house me-1"></i>
-                  Inicio
+                  <span th:text="#{error.page.home}">Inicio</span>
                 </a>
                 <a th:href="@{/analysis}" class="btn btn-outline-secondary">
                   <i class="bi bi-graph-up me-1"></i>
-                  Análisis
+                  <span th:text="#{error.page.analysis}">Análisis</span>
                 </a>
               </div>
 
-              <!-- Helpful suggestions -->
               <div class="mt-4 p-3 bg-light rounded">
                 <h6 class="text-muted mb-2">
                   <i class="bi bi-lightbulb me-1"></i>
-                  Sugerencias:
+                  <span th:text="#{error.page.suggestions}">Sugerencias:</span>
                 </h6>
                 <ul class="mb-0 text-muted small">
-                  <li>Verifica si el recurso solicitado existe</li>
-                  <li>Verifica que los servicios externos estén disponibles</li>
-                  <li>Intenta refrescar la página</li>
-                  <li>Si el problema persiste, contacta con soporte</li>
+                  <li th:text="#{error.page.suggestion.exists}">Verifica si el recurso solicitado existe</li>
+                  <li th:text="#{error.page.suggestion.services}">Verifica que los servicios externos estén disponibles</li>
+                  <li th:text="#{error.page.suggestion.refresh}">Intenta refrescar la página</li>
+                  <li th:text="#{error.page.suggestion.support}">Si el problema persiste, contacta con soporte</li>
                 </ul>
               </div>
             </div>
@@ -97,16 +71,7 @@
       </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-light text-center py-3 mt-auto border-top">
-      <div class="container">
-        <span class="text-muted">
-          © 2024 AlphaSeeker - Aplicación de Análisis de Mercado
-        </span>
-      </div>
-    </footer>
-
-    <!-- Bootstrap 5 JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+    <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
   </body>
 </html>

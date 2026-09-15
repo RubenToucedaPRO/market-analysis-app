@@ -1,9 +1,22 @@
-<!-- templates/fragments/risk-management-fields.html -->
+<!-- templates/fragments/risk-management-fields.html
+     Fragment con todos los campos de gestión de riesgo de una estrategia.
+     Sin parámetros (usa th:object del form padre para binding).
+     Campos:
+       - objectiveTargetType: SELECT (PRICE/INTRADAY/...) → afecta campos visibles
+       - targetPrice/targetPct/atrMultiplier: inputs condicionales según targetType
+       - stopLossType: SELECT (PRICE/PCT/ATR/...) → afecta campos visibles
+       - stopLossPrice/stopLossPct/stopLossAtrMultiplier: inputs condicionales
+       - maxRiskPerTradePct: % capital máximo por trade
+       - maxConcurrentPositions: número máx. posiciones simultáneas
+       - positionSizingType: SELECT (FIXED/PCT_VOLATILITY/...)
+       - fixedPositionSize/positionSizePct/volatilityLookbackDays: condicionales
+     JS: risk-management.js maneja show/hide según selects (data-target-type, data-stop-type).
+     Uso: strategies/create.html y detail.html via th:replace. -->
 <div th:fragment="riskManagementFields" class="row g-3">
   <!-- Target Type -->
   <div class="col-md-4">
     <label for="objectiveTargetType" class="form-label fw-semibold"
-      >Tipo de Objetivo</label
+      ><span th:text="#{risk.target_type}">Tipo de Objetivo</span></label
     >
     <select
       class="form-select"
@@ -14,6 +27,7 @@
       <option
         value=""
         th:selected="${strategy.objective == null or strategy.objective.targetType == null}"
+        th:text="#{risk.select_type}"
       >
         Selecciona tipo...
       </option>
@@ -41,7 +55,7 @@
   <!-- Target Value -->
   <div class="col-md-2">
     <label for="objectiveTargetValue" class="form-label fw-semibold"
-      >Valor Objetivo</label
+      ><span th:text="#{risk.target_value}">Valor Objetivo</span></label
     >
     <select class="form-select d-none" id="objectiveTargetSmaSelect" disabled>
       <option value="">-- Período --</option>
@@ -62,7 +76,7 @@
   <!-- Stop-Loss Type -->
   <div class="col-md-4">
     <label for="objectiveStopLossType" class="form-label fw-semibold"
-      >Tipo de Stop Loss</label
+      ><span th:text="#{risk.stop_loss_type}">Tipo de Stop Loss</span></label
     >
     <select
       class="form-select"
@@ -73,6 +87,7 @@
       <option
         value=""
         th:selected="${strategy.objective == null or strategy.objective.stopLossType == null}"
+        th:text="#{risk.select_type}"
       >
         Selecciona tipo...
       </option>
@@ -100,7 +115,7 @@
   <!-- Stop-Loss Value -->
   <div class="col-md-2">
     <label for="objectiveStopLossValue" class="form-label fw-semibold"
-      >Valor Stop Loss</label
+      ><span th:text="#{risk.stop_loss_value}">Valor Stop Loss</span></label
     >
     <select class="form-select d-none" id="objectiveStopLossSmaSelect" disabled>
       <option value="">-- Período --</option>
@@ -121,7 +136,7 @@
   <!-- Capital to Risk -->
   <div class="col-md-4">
     <label for="objectiveCapitalToRisk" class="form-label fw-semibold"
-      >Capital a Arriesgar</label
+      ><span th:text="#{risk.capital_to_risk}">Capital a Arriesgar</span></label
     >
     <input
       type="number"
@@ -139,7 +154,7 @@
   <!-- Objective Description -->
   <div class="col-md-12">
     <label for="objectiveDescription" class="form-label fw-semibold"
-      >Descripción del Objetivo</label
+      ><span th:text="#{risk.description}">Descripción del Objetivo</span></label
     >
     <input
       type="text"
@@ -147,7 +162,7 @@
       id="objectiveDescription"
       name="objective.description"
       th:value="${strategy.objective != null ? strategy.objective.description : ''}"
-      placeholder="Describe los objetivos de riesgo de tu estrategia..."
+      th:placeholder="#{risk.description.placeholder}"
       required
     />
   </div>

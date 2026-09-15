@@ -21,6 +21,7 @@ mariadb_data/
 .idea/
 *.iml
 .vscode/
+.opencode/
 .settings/
 .classpath
 .project

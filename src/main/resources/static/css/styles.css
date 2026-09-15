@@ -376,34 +376,6 @@ body {
 }
 
 /* ============================================
-   Ticker Detail Page
-   ============================================ */
-
-.ticker-detail-logo {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-}
-
-.info-section {
-  margin-bottom: 1.5rem;
-}
-
-.info-label {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.info-value {
-  color: var(--text-muted);
-}
-
-.price-highlight {
-  font-size: 1.25rem;
-  color: var(--primary-color);
-}
-
-/* ============================================
    Empty States
    ============================================ */
 .empty-state {
@@ -572,31 +544,10 @@ footer {
     padding: 3rem 0 2rem;
   }
 
-  .home-hero-icon {
-    font-size: 4rem;
-    display: none;
-  }
-
   .home-feature-icon {
     width: 56px;
     height: 56px;
     font-size: 1.5rem;
-  }
-
-  .home-carousel .carousel-item img {
-    height: 280px;
-  }
-
-  .home-carousel-slide-caption {
-    padding: 0.75rem 1rem 0.5rem;
-  }
-
-  .home-carousel-slide-caption h5 {
-    font-size: 1rem;
-  }
-
-  .home-carousel-slide-caption p {
-    font-size: 0.8rem;
   }
 }
 
@@ -607,35 +558,6 @@ footer {
   padding: 5rem 0 4rem;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f0f4ff 100%);
   border-bottom: 1px solid var(--border-color);
-}
-
-.home-hero-icon {
-  font-size: 8rem;
-  color: var(--primary-color);
-  opacity: 0.15;
-}
-
-.home-section-divider {
-  width: 60px;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--primary-color),
-    var(--success-color)
-  );
-  border-radius: 2px;
-  margin: 1rem auto 0;
-}
-
-/* Feature Cards */
-.home-feature-card {
-  transition: var(--transition-base);
-  border-radius: 0.75rem;
-}
-
-.home-feature-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-lg) !important;
 }
 
 .home-feature-icon {
@@ -650,64 +572,6 @@ footer {
   transition: var(--transition-base);
 }
 
-.home-feature-card:hover .home-feature-icon {
-  transform: scale(1.1);
-}
-
-/* Screenshot Carousel */
-.home-carousel {
-  background: var(--white);
-}
-
-.home-carousel .carousel-item img {
-  height: 680px;
-  object-fit: contain;
-  padding: 1rem;
-  background: var(--white);
-}
-
-/* Slide caption above image */
-.home-carousel-slide-caption {
-  padding: 1.25rem 2rem 0.75rem;
-  background: var(--white);
-  text-align: center;
-}
-
-.home-carousel-slide-caption h5 {
-  color: var(--text-dark);
-  font-size: 1.15rem;
-  margin-bottom: 0.25rem;
-}
-
-.home-carousel-slide-caption p {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 0;
-}
-
-.home-carousel .carousel-indicators {
-  margin-bottom: 0.75rem;
-}
-
-.home-carousel .carousel-indicators button {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin: 0 5px;
-}
-
-.home-carousel .carousel-control-prev-icon,
-.home-carousel .carousel-control-next-icon {
-  border-radius: 50%;
-  padding: 1.25rem;
-  background-size: 50%;
-}
-
-/* CTA Section */
-.home-cta {
-  background: linear-gradient(135deg, var(--primary-color), #0a58ca);
-}
-
 /* Navbar Public - Login Button */
 .navbar-nav .btn-primary {
   border-radius: 0.5rem;
@@ -719,4 +583,80 @@ footer {
 .navbar-nav .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+/* ============================================
+   Inline Style Extractions
+   ============================================ */
+
+/* Ticker logos */
+.ticker-logo-lg {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+.ticker-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+/* Chart legend */
+.chart-legend-dot {
+  width: 16px;
+  height: 3px;
+  display: inline-block;
+}
+
+/* Chart containers */
+.chart-container {
+  height: 540px;
+  overflow: hidden;
+}
+
+.chart-inner {
+  width: 100%;
+  height: 100%;
+}
+
+/* Mini chart */
+.mini-chart-container {
+  width: 100%;
+  height: 150px;
+}
+
+/* Notification */
+.notification-container {
+  z-index: 1060;
+  min-width: 350px;
+}
+
+.notification-progress {
+  height: 3px;
+  background-color: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.notification-progress .progress-bar {
+  width: 100%;
+}
+
+/* Utilities */
+.cursor-help {
+  cursor: help;
+}
+
+.progress-thin {
+  height: 6px;
+}
+
+.text-max-width {
+  max-width: 500px;
+}
+
+.icon-xl {
+  font-size: 3rem;
 }
