@@ -1,4 +1,11 @@
-<!-- templates/fragments/rule-row.html -->
+<!-- templates/fragments/rule-row.html
+     Fragment para una fila de regla condicional en la estrategia.
+     Parámetros esperados:
+       - index: número de fila (0-based) para naming único de campos (rules[0].subjectCode, etc.)
+       - rule: objeto Rule opcional con valores actuales (null = nueva fila)
+       - ruleDefinitions: lista de definiciones para poblar selects de indicadores
+     Genera: fila con subject/target/operator/parameter + botón eliminar.
+     JS: addRuleRow()/removeRuleRow() en strategy-manager.js manejan índices dinámicos. -->
 <div
   th:fragment="ruleRow(index, rule, ruleDefinitions)"
   class="rule-row card mb-2"

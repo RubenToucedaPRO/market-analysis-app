@@ -1,3 +1,15 @@
+<!--
+  Fragment para un select de indicador (subject/target) dentro de una regla.
+  Parámetros esperados:
+    - fieldName: nombre del campo form (ej. rules[0].subjectCode)
+    - label: etiqueta visible
+    - onchangeFunction: nombre de función JS a llamar al cambiar (ej. toggleSubjectParameter(this, 0))
+    - index: índice de la regla para pasar a la función
+    - value: código de indicador preseleccionado
+    - ruleDefinitions: lista completa para poblar options (data-requires-param, data-any-param)
+  Uso en rule-row.html: th:replace con onchangeFunction=|toggleSubjectParameter(this, ${index})|
+  La función JS en strategy-manager.js muestra/oculta el campo parámetro según requiresParam.
+-->
 <div
   th:fragment="indicatorField(fieldName, label, onchangeFunction, index, value, ruleDefinitions)"
   class="col-md-2"

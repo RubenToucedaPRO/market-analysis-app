@@ -1,4 +1,17 @@
-<!-- templates/fragments/risk-management-fields.html -->
+<!-- templates/fragments/risk-management-fields.html
+     Fragment con todos los campos de gestión de riesgo de una estrategia.
+     Sin parámetros (usa th:object del form padre para binding).
+     Campos:
+       - objectiveTargetType: SELECT (PRICE/INTRADAY/...) → afecta campos visibles
+       - targetPrice/targetPct/atrMultiplier: inputs condicionales según targetType
+       - stopLossType: SELECT (PRICE/PCT/ATR/...) → afecta campos visibles
+       - stopLossPrice/stopLossPct/stopLossAtrMultiplier: inputs condicionales
+       - maxRiskPerTradePct: % capital máximo por trade
+       - maxConcurrentPositions: número máx. posiciones simultáneas
+       - positionSizingType: SELECT (FIXED/PCT_VOLATILITY/...)
+       - fixedPositionSize/positionSizePct/volatilityLookbackDays: condicionales
+     JS: risk-management.js maneja show/hide según selects (data-target-type, data-stop-type).
+     Uso: strategies/create.html y detail.html via th:replace. -->
 <div th:fragment="riskManagementFields" class="row g-3">
   <!-- Target Type -->
   <div class="col-md-4">

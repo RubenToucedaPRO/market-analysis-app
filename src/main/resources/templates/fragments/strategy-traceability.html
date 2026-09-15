@@ -1,3 +1,14 @@
+<!--
+  Fragment de trazabilidad: muestra qué tickers cumplen/no cumplen la estrategia.
+  Parámetros esperados:
+    - strategyId: Long ID de la estrategia
+    - suggestedTickers: List<TickerSuggestionDTO> que PASAN la evaluación
+    - discardedTickers: List<TickerSuggestionDTO> que FALLAN la evaluación
+    - unmappableRules: List<String> códigos de regla no mapeables a Finviz
+    - suggestedAt: Instant timestamp de la sugerencia
+  Condición de render: th:if con ANY no-null (para no mostrar tarjeta vacía).
+  Uso: strategies/detail.html th:replace con datos del servicio SuggestTickersService.
+-->
 <div
   th:fragment="strategyTraceability(strategyId, suggestedTickers, discardedTickers, unmappableRules, suggestedAt)"
   class="card mt-4"
