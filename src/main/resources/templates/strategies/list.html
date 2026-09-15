@@ -57,7 +57,7 @@
         </div>
       </div>
 
-      <div th:unless="${strategies.isEmpty()}" class="row g-4">
+      <div th:if="${not(strategies.isEmpty())}" class="row g-4">
         <div
           class="col-12 col-md-6 col-lg-4"
           th:each="strategy : ${strategies}"

@@ -60,7 +60,7 @@
             </p>
           </div>
 
-          <div th:unless="${strategy.objective == null}" class="row g-3">
+          <div th:if="${not(strategy.objective == null)}" class="row g-3">
             <div class="col-md-2">
               <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.target_type}">
                 Tipo de Objetivo
@@ -146,7 +146,7 @@
             </p>
           </div>
 
-          <div th:unless="${strategy.rules.isEmpty()}">
+          <div th:if="${not(strategy.rules.isEmpty())}">
             <div
               th:each="rule, stat : ${strategy.rules}"
               class="rule-row card mb-3"
