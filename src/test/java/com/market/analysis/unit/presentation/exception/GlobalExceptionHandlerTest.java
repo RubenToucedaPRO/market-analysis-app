@@ -159,6 +159,51 @@ class GlobalExceptionHandlerTest {
                 WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(resolvedMessage));
     }
 
+    @Test
+    @DisplayName("Should redirect to section list when referer is a POST-only edit URL")
+    void testRedirectFallsBackToSectionListForEditReferer() {
+        when(request.getHeader("Referer")).thenReturn("http://localhost:8080/strategies/edit");
+        DomainValidationException exception = new DomainValidationException("validation.target_price_null");
+
+        when(messageSource.getMessage(eq("validation.target_price_null"), any(), any(Locale.class)))
+                .thenReturn("Target price cannot be null");
+
+        String viewName = globalExceptionHandler.handleDomainValidationException(
+                exception, redirectAttributes, request);
+
+        assertEquals("redirect:/strategies", viewName);
+    }
+
+    @Test
+    @DisplayName("Should redirect to section list when referer is a POST-only delete URL")
+    void testRedirectFallsBackToSectionListForDeleteReferer() {
+        when(request.getHeader("Referer")).thenReturn("http://localhost:8080/rule-definitions/delete");
+        DomainValidationException exception = new DomainValidationException("validation.target_price_null");
+
+        when(messageSource.getMessage(eq("validation.target_price_null"), any(), any(Locale.class)))
+                .thenReturn("Target price cannot be null");
+
+        String viewName = globalExceptionHandler.handleDomainValidationException(
+                exception, redirectAttributes, request);
+
+        assertEquals("redirect:/rule-definitions", viewName);
+    }
+
+    @Test
+    @DisplayName("Should keep referer when it targets a GET view")
+    void testRedirectKeepsGetReferer() {
+        when(request.getHeader("Referer")).thenReturn("http://localhost:8080/strategies/new");
+        DomainValidationException exception = new DomainValidationException("validation.target_price_null");
+
+        when(messageSource.getMessage(eq("validation.target_price_null"), any(), any(Locale.class)))
+                .thenReturn("Target price cannot be null");
+
+        String viewName = globalExceptionHandler.handleDomainValidationException(
+                exception, redirectAttributes, request);
+
+        assertEquals("redirect:http://localhost:8080/strategies/new", viewName);
+    }
+
     // -------------------------------------------------------------------------
     // MissingIndicatorException
     // -------------------------------------------------------------------------
