@@ -297,7 +297,12 @@ public class GlobalExceptionHandler {
 
     /**
      * Centralises redirect-with-error logic: adds the error flash attribute and
-     * builds a redirect back to the HTTP Referer header, falling back to {@code /}.
+     * builds a redirect back to the HTTP Referer header, falling back to the
+     * section of the failing request (or {@code /}).
+     *
+     * <p>Referers pointing to POST-only action URLs (e.g. {@code /strategies/edit},
+     * which has no GET mapping) are sanitised to their parent section so the
+     * redirect never lands on an unmapped URL.</p>
      *
      * <p>Referers pointing to POST-only action URLs (e.g. {@code /strategies/edit},
      * which has no GET mapping) are sanitised to their parent section so the
@@ -318,12 +323,13 @@ public class GlobalExceptionHandler {
      *
      * @param req the current HTTP request
      * @return the referer URL, its parent section when it targets a POST-only
-     *         action, or the default referer when absent or unparseable
+     *         action, the section of the failing request when absent, or the
+     *         default referer when unparseable
      */
     private String safeReferer(HttpServletRequest req) {
         String referer = req.getHeader(HttpHeaders.REFERER);
         if (referer == null || referer.isBlank()) {
-            return WebConstants.DEFAULT_REFERER;
+            return sectionOf(req.getRequestURI());
         }
         try {
             String path = URI.create(referer).getPath();
@@ -336,5 +342,25 @@ public class GlobalExceptionHandler {
             return WebConstants.DEFAULT_REFERER;
         }
         return referer;
+    }
+
+    /**
+     * Resolves the section root (first path segment) of a request URI so
+     * error redirects keep the user in context instead of landing on {@code /}.
+     *
+     * @param requestUri the request URI (e.g. {@code /analysis/ticker/999})
+     * @return the section root (e.g. {@code /analysis}) or the default referer
+     */
+    private String sectionOf(String requestUri) {
+        if (requestUri == null || requestUri.isBlank()) {
+            return WebConstants.DEFAULT_REFERER;
+        }
+        String[] segments = requestUri.split("/");
+        for (String segment : segments) {
+            if (!segment.isBlank()) {
+                return "/" + segment;
+            }
+        }
+        return WebConstants.DEFAULT_REFERER;
     }
 }
