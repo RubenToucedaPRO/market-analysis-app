@@ -37,6 +37,9 @@ public final class DomainErrorCodes {
     // ── Risk / Price ─────────────────────────────────────────────────────
     public static final String TARGET_PRICE_NULL      = "validation.target_price_null";
     public static final String STOP_PRICE_NULL        = "validation.stop_price_null";
+    public static final String TARGET_PRICE_ZERO      = "validation.target_price_zero";
+    public static final String STOP_PRICE_ZERO        = "validation.stop_price_zero";
+    public static final String CAPITAL_ZERO           = "validation.capital_zero";
     public static final String TARGET_BELOW_ENTRY     = "validation.target_below_entry";
     public static final String STOP_ABOVE_ENTRY       = "validation.stop_above_entry";
     public static final String RISK_ZERO              = "validation.risk_zero";
