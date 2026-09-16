@@ -58,7 +58,7 @@ Reproducido en test antes del fix: el log mostraba exactamente el mensaje del us
   → `redirect:/strategies`; `…/rule-definitions/delete` → `redirect:/rule-definitions`;
   `…/strategies/new` se conserva; sin referer + `/analysis/ticker/999` → `redirect:/analysis`;
   sin referer + `/` → `redirect:/`.
-- Ejecución: suite completa tras fusionar `main` → `Tests run: 1027, Failures: 0, Errors: 0, Skipped: 0`.
+- Ejecución: suite completa tras fusionar `main` → `Tests run: 1029, Failures: 0, Errors: 0, Skipped: 0`.
 
 ## Advertencias de SonarQube o arquitectura
 

@@ -34,6 +34,6 @@
 
 ## Verificación
 
-- `mvn test` → `Tests run: 1027, Failures: 0, Errors: 0, BUILD SUCCESS` (verificado
+- `mvn test` → `Tests run: 1029, Failures: 0, Errors: 0, BUILD SUCCESS` (verificado
   tras fusionar `main`; incluye los 2 tests de sección de `main` y el parametrizado POST-only).
 - No se añaden los micro-tests de cobertura de `safeReferer` (queda fuera por decisión).

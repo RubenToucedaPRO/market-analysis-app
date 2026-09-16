@@ -95,7 +95,7 @@ risk.sma.long=Largo plazo
   - `mvn test -Dtest=StrategyControllerViewTest` → `Tests run: 9, Failures: 0, Errors: 0`.
   - `mvn test -Dtest='StrategyObjectiveTest,RiskRewardCalculatorTest,ManageStrategyServiceP0Test,ManageStrategyServiceTest'`
     → `Tests run: 89, Failures: 0, Errors: 0`.
-  - Suite completa tras fusionar `main`: `Tests run: 1027, Failures: 0, Errors: 0, BUILD SUCCESS`.
+  - Suite completa tras fusionar `main`: `Tests run: 1029, Failures: 0, Errors: 0, BUILD SUCCESS`.
 - Sin `lenient` Mockito; sin cambios de dominio que exijan tests nuevos de dominio.
 
 ## Advertencias SonarQube / arquitectura
