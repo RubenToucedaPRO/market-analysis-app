@@ -4,11 +4,12 @@ import java.util.List;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.UpdateStrategyResult;
 
 public interface ManageStrategyUseCase {
     StrategyDTO createStrategy(StrategyDTO strategy);
 
-    StrategyDTO updateStrategy(StrategyDTO strategy);
+    UpdateStrategyResult updateStrategy(StrategyDTO strategy);
 
     List<StrategyDTO> getAllStrategies();
 

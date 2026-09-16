@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.application.usecase.ManageStrategyService;
@@ -257,12 +258,15 @@ class ManageStrategyServiceTest {
         when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
 
         // Act
-        StrategyDTO result = manageStrategyService.updateStrategy(testStrategyDTO);
+        UpdateStrategyResult result = manageStrategyService.updateStrategy(testStrategyDTO);
 
         // Assert
         assertNotNull(result);
-        assertEquals(testStrategyDTO.getId(), result.getId());
-        assertEquals(testStrategyDTO.getName(), result.getName());
+        assertNotNull(result.getStrategy());
+        assertEquals(testStrategyDTO.getId(), result.getStrategy().getId());
+        assertEquals(testStrategyDTO.getName(), result.getStrategy().getName());
+        assertNotNull(result.getDegradedTickers());
+        assertEquals(0, result.getDegradedTickers().size());
         verify(strategyRepository, times(1)).save(any(Strategy.class));
     }
 
@@ -290,12 +294,69 @@ class ManageStrategyServiceTest {
         when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
 
         // Act
-        StrategyDTO result = manageStrategyService.updateStrategy(testStrategyDTO);
+        UpdateStrategyResult result = manageStrategyService.updateStrategy(testStrategyDTO);
 
         // Assert
         assertNotNull(result);
+        assertNotNull(result.getStrategy());
         verify(evaluateStrategyService, times(1)).evaluateStrategy(any(), any());
         verify(stockDataRepository, times(1)).updateStockData(stock);
+    }
+
+    @Test
+    @DisplayName("Should collect degraded tickers without aborting re-evaluation")
+    void testUpdateStrategyCollectsDegradedTickers() {
+        // Arrange
+        com.market.analysis.domain.model.Stock healthyStock =
+                com.market.analysis.domain.model.Stock.builder()
+                        .id(1L)
+                        .ticker("AAPL")
+                        .strategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder()
+                                .id(10L)
+                                .build())
+                        .build();
+        com.market.analysis.domain.model.Stock degradedStock =
+                com.market.analysis.domain.model.Stock.builder()
+                        .id(2L)
+                        .ticker("TSLA")
+                        .strategyEvaluation(com.market.analysis.domain.model.StrategyEvaluation.builder()
+                                .id(20L)
+                                .build())
+                        .build();
+        com.market.analysis.domain.model.StrategyEvaluation healthyEvaluation =
+                com.market.analysis.domain.model.StrategyEvaluation.builder()
+                        .id(10L)
+                        .ticker("AAPL")
+                        .compliant(true)
+                        .riskRewardRatio(java.math.BigDecimal.valueOf(2.5))
+                        .evaluatedAt(java.time.Instant.now())
+                        .build();
+        com.market.analysis.domain.model.StrategyEvaluation degradedEvaluation =
+                com.market.analysis.domain.model.StrategyEvaluation.builder()
+                        .id(20L)
+                        .ticker("TSLA")
+                        .compliant(true)
+                        .riskRewardRatio(null)
+                        .evaluatedAt(java.time.Instant.now())
+                        .build();
+
+        when(stockDataRepository.findAllByStrategyId(anyLong()))
+                .thenReturn(List.of(healthyStock, degradedStock));
+        when(strategyDTOMapper.toDomain(testStrategyDTO)).thenReturn(testStrategy);
+        when(strategyRepository.save(any(Strategy.class))).thenReturn(testStrategy);
+        when(evaluateStrategyService.evaluateStrategy(any(), any()))
+                .thenReturn(healthyEvaluation, degradedEvaluation);
+        when(strategyDTOMapper.toDTO(testStrategy)).thenReturn(testStrategyDTO);
+
+        // Act
+        UpdateStrategyResult result = manageStrategyService.updateStrategy(testStrategyDTO);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(List.of("TSLA"), result.getDegradedTickers());
+        verify(evaluateStrategyService, times(2)).evaluateStrategy(any(), any());
+        verify(stockDataRepository, times(1)).updateStockData(healthyStock);
+        verify(stockDataRepository, times(1)).updateStockData(degradedStock);
     }
 
     @Test
