@@ -92,7 +92,7 @@ public class EvaluateStrategyService {
                 recommendedShares = riskRewardCalculator
                         .calculatePositionSize(entryPrice, stopLossPrice, strategy.getObjective().getCapitalToRisk())
                         .intValue();
-            } catch (MissingIndicatorException | IllegalArgumentException e) {
+            } catch (MissingIndicatorException | DomainValidationException | IllegalArgumentException e) {
                 targetPrice = null;
                 stopLossPrice = null;
                 riskRewardRatio = null;
