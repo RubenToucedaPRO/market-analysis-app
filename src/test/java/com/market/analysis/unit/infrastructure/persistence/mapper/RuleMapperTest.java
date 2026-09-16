@@ -152,4 +152,49 @@ class RuleMapperTest {
         assertEquals(originalRule.getTargetCode(), convertedRule.getTargetCode());
         assertEquals(originalRule.getTargetParam(), convertedRule.getTargetParam());
     }
+
+    @Test
+    @DisplayName("Should map weight in both directions")
+    void testWeightMapping() {
+        // Arrange
+        Rule rule = Rule.builder()
+                .id(5L)
+                .name("Weighted Rule")
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .weight(3)
+                .build();
+
+        // Act
+        RuleEntity entity = ruleMapper.toEntity(rule);
+        Rule mappedBack = ruleMapper.toDomain(entity);
+
+        // Assert
+        assertEquals(3, entity.getWeight());
+        assertNotNull(mappedBack);
+        assertEquals(3, mappedBack.getWeight());
+    }
+
+    @Test
+    @DisplayName("Should default weight to 1 when entity weight is null (legacy rows)")
+    void testNullEntityWeightDefaultsToOne() {
+        // Arrange
+        RuleEntity entity = new RuleEntity();
+        entity.setId(6L);
+        entity.setName("Legacy Rule");
+        entity.setSubjectCode("PRICE");
+        entity.setOperator(">");
+        entity.setTargetCode("CONSTANT");
+        entity.setTargetParam(100.0);
+        entity.setWeight(null);
+
+        // Act
+        Rule rule = ruleMapper.toDomain(entity);
+
+        // Assert
+        assertNotNull(rule);
+        assertEquals(1, rule.getWeight());
+    }
 }
