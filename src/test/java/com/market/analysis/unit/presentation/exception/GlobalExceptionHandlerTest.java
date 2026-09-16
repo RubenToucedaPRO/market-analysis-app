@@ -159,6 +159,38 @@ class GlobalExceptionHandlerTest {
                 WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(resolvedMessage));
     }
 
+    @Test
+    @DisplayName("Should redirect to request section when referer is missing")
+    void testRedirectToSectionWhenRefererMissing() {
+        when(request.getHeader("Referer")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/analysis/ticker/999");
+        StockDataNotFoundException exception = new StockDataNotFoundException("ticker.not_found", 999);
+
+        when(messageSource.getMessage(eq("ticker.not_found"), any(), any(Locale.class)))
+                .thenReturn("Ticker data not found for: 999");
+
+        String viewName = globalExceptionHandler.handleStockDataNotFoundException(
+                exception, redirectAttributes, request);
+
+        assertEquals("redirect:/analysis", viewName);
+    }
+
+    @Test
+    @DisplayName("Should redirect to default referer when referer and section are missing")
+    void testRedirectToDefaultWhenNoRefererNorSection() {
+        when(request.getHeader("Referer")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/");
+        StockDataNotFoundException exception = new StockDataNotFoundException("ticker.not_found", 999);
+
+        when(messageSource.getMessage(eq("ticker.not_found"), any(), any(Locale.class)))
+                .thenReturn("Ticker data not found for: 999");
+
+        String viewName = globalExceptionHandler.handleStockDataNotFoundException(
+                exception, redirectAttributes, request);
+
+        assertEquals("redirect:" + WebConstants.DEFAULT_REFERER, viewName);
+    }
+
     // -------------------------------------------------------------------------
     // MissingIndicatorException
     // -------------------------------------------------------------------------
