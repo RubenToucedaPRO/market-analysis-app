@@ -13,6 +13,8 @@ import java.util.Locale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -157,6 +159,26 @@ class GlobalExceptionHandlerTest {
         verify(messageSource, times(1)).getMessage(eq(errorCode), eq(params), any(Locale.class));
         verify(redirectAttributes, times(1)).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(resolvedMessage));
+    }
+
+    @ParameterizedTest(name = "referer {0} redirects to {1}")
+    @DisplayName("Should resolve safe redirect target from referer")
+    @CsvSource({
+            "http://localhost:8080/strategies/edit, redirect:/strategies",
+            "http://localhost:8080/rule-definitions/delete, redirect:/rule-definitions",
+            "http://localhost:8080/strategies/new, redirect:http://localhost:8080/strategies/new"
+    })
+    void testRedirectTargetFromReferer(String referer, String expectedView) {
+        when(request.getHeader("Referer")).thenReturn(referer);
+        DomainValidationException exception = new DomainValidationException("validation.target_price_null");
+
+        when(messageSource.getMessage(eq("validation.target_price_null"), any(), any(Locale.class)))
+                .thenReturn("Target price cannot be null");
+
+        String viewName = globalExceptionHandler.handleDomainValidationException(
+                exception, redirectAttributes, request);
+
+        assertEquals(expectedView, viewName);
     }
 
     @Test

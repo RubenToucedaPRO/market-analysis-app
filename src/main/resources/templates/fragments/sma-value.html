@@ -1,0 +1,37 @@
+<!-- templates/fragments/sma-value.html
+     Muestra un valor de objetivo o stop-loss: número con 2 decimales,
+     o "SMA 50 (Medio plazo)" cuando el tipo es SMA.
+     Parámetros: type (SMA/PERCENTAGE/FIXED_PRICE), value (BigDecimal).
+     Uso: strategies/detail.html para target y stop-loss. -->
+<th:block th:fragment="smaValue(type, value)">
+  <span
+    th:if="${type != 'SMA'}"
+    th:with="formatted=${value.setScale(2, T(java.math.RoundingMode).HALF_UP).stripTrailingZeros().toPlainString()}"
+    th:text="${formatted}"
+    >50</span
+  >
+  <span th:if="${type == 'SMA'}" th:with="period=${value.stripTrailingZeros().toPlainString()}">
+    <span th:text="${'SMA ' + period}">SMA 50</span>
+    <span
+      class="text-muted small"
+      th:if="${value.intValue() == 20}"
+      th:with="horizon=#{risk.sma.short}"
+      th:text="${'(' + horizon + ')'}"
+      > (Corto plazo)</span
+    >
+    <span
+      class="text-muted small"
+      th:if="${value.intValue() == 50}"
+      th:with="horizon=#{risk.sma.medium}"
+      th:text="${'(' + horizon + ')'}"
+      > (Medio plazo)</span
+    >
+    <span
+      class="text-muted small"
+      th:if="${value.intValue() == 200}"
+      th:with="horizon=#{risk.sma.long}"
+      th:text="${'(' + horizon + ')'}"
+      > (Largo plazo)</span
+    >
+  </span>
+</th:block>

@@ -304,6 +304,10 @@ public class GlobalExceptionHandler {
      * which has no GET mapping) are sanitised to their parent section so the
      * redirect never lands on an unmapped URL.</p>
      *
+     * <p>Referers pointing to POST-only action URLs (e.g. {@code /strategies/edit},
+     * which has no GET mapping) are sanitised to their parent section so the
+     * redirect never lands on an unmapped URL.</p>
+     *
      * @param message the user-facing error message to flash
      * @param ra      the RedirectAttributes used to pass flash attributes
      * @param req     the current HTTP request (used to read the Referer header)

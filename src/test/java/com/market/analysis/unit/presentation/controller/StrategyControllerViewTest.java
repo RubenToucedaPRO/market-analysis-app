@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -28,6 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.StrategyObjectiveDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
@@ -76,6 +78,62 @@ class StrategyControllerViewTest {
                 .andExpect(content().string(containsString("subject-param-input-0")));
 
         verify(manageRuleDefinitionUseCase).getAllRuleDefinitions();
+    }
+
+    @Test
+    @DisplayName("Should render SMA selectors with i18n hints in risk management fields")
+    void shouldRenderSmaSelectorsWithI18nHintsInCreateForm() throws Exception {
+        RuleDefinitionDTO smaDefinition = RuleDefinitionDTO.builder()
+                .code("SMA")
+                .name("Simple Moving Average")
+                .requiresParam(true)
+                .anyParamAllowed(false)
+                .allowedParams(Set.of(20.0, 50.0, 200.0))
+                .build();
+
+        when(manageRuleDefinitionUseCase.getAllRuleDefinitions()).thenReturn(List.of(smaDefinition));
+
+        mockMvc.perform(get("/strategies/new"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("strategies/create"))
+                .andExpect(content().string(containsString("objectiveTargetSmaSelect")))
+                .andExpect(content().string(containsString("objectiveStopLossSmaSelect")))
+                .andExpect(content().string(containsString("objectiveTargetValueLabel")))
+                .andExpect(content().string(containsString("objectiveStopLossValueLabel")))
+                .andExpect(content().string(containsString("objectiveTargetSmaHelp")))
+                .andExpect(content().string(containsString("data-label-sma")))
+                .andExpect(content().string(containsString("Periodo SMA")));
+
+        verify(manageRuleDefinitionUseCase).getAllRuleDefinitions();
+    }
+
+    @Test
+    @DisplayName("Should render SMA target with horizon in strategy detail")
+    void shouldRenderSmaTargetWithHorizonInDetail() throws Exception {
+        StrategyDTO strategy = StrategyDTO.builder()
+                .id(1L)
+                .name("SMA Strategy")
+                .description("Desc")
+                .objective(StrategyObjectiveDTO.builder()
+                        .targetType("SMA")
+                        .targetValue(java.math.BigDecimal.valueOf(50))
+                        .stopLossType("SMA")
+                        .stopLossValue(java.math.BigDecimal.valueOf(20))
+                        .capitalToRisk(java.math.BigDecimal.valueOf(1000))
+                        .description("Risk desc")
+                        .build())
+                .rules(List.of())
+                .build();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
+
+        mockMvc.perform(get("/strategies/1"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("strategies/detail"))
+                .andExpect(content().string(containsString("SMA 50")))
+                .andExpect(content().string(containsString("SMA 20")));
+
+        verify(manageStrategyUseCase).getStrategyById(1L);
     }
 
     @Test
@@ -209,6 +267,18 @@ class StrategyControllerViewTest {
                 .andExpect(view().name("redirect:/analysis"))
                 .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
                         UiNotification.warning("No hay sugerencias aptas en snapshot para añadir.")));
+    }
+
+    @Test
+    @DisplayName("Should not route POST-only actions to detail view on GET")
+    void shouldNotRoutePostOnlyActionsToDetailView() throws Exception {
+        mockMvc.perform(get("/strategies/edit"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/strategies"));
+
+        mockMvc.perform(get("/strategies/delete"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/strategies"));
     }
 
 }

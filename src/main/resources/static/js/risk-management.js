@@ -9,6 +9,10 @@
  *   - SMA        → show <select> with allowed periods, hide <input>
  *   - PERCENTAGE → show <input> with % placeholder, hide <select>
  *   - FIXED_PRICE→ show <input> with $ placeholder, hide <select>
+ *
+ * Labels, placeholders and SMA horizon names are resolved from
+ * data-* attributes rendered by Thymeleaf (messages.properties),
+ * never from hardcoded Spanish strings.
  */
 
 /**
@@ -25,6 +29,37 @@ function getSmaAllowedPeriods() {
 }
 
 /**
+ * Resolves the horizon label (corto/medio/largo plazo) for a period.
+ *
+ * @param {number} period integer SMA period
+ * @param {HTMLSelectElement} selectEl the <select> holding i18n labels
+ */
+function getSmaHorizonLabel(period, selectEl) {
+  const labels = selectEl?.dataset ?? {};
+  if (period === 20) {
+    return labels.short || "";
+  }
+  if (period === 50) {
+    return labels.medium || "";
+  }
+  if (period === 200) {
+    return labels.long || "";
+  }
+  return "";
+}
+
+/**
+ * Builds the visible label for an SMA option (e.g. "SMA 20 - Corto plazo").
+ *
+ * @param {number} period integer SMA period
+ * @param {HTMLSelectElement} selectEl the <select> holding i18n labels
+ */
+function formatSmaOptionLabel(period, selectEl) {
+  const horizon = getSmaHorizonLabel(period, selectEl);
+  return horizon ? `SMA ${period} - ${horizon}` : `SMA ${period}`;
+}
+
+/**
  * Populates a <select> element with SMA period options.
  *
  * @param {HTMLSelectElement} selectEl  the <select> to populate
@@ -32,12 +67,14 @@ function getSmaAllowedPeriods() {
  * @param {string}           currentValue value to pre-select (if editing)
  */
 function populateSmaPeriodSelect(selectEl, periods, currentValue) {
+  const defaultOption =
+    selectEl.dataset?.defaultOption || "-- Periodo SMA --";
   selectEl.innerHTML =
-    '<option value="">-- Período --</option>' +
+    `<option value="">${defaultOption}</option>` +
     periods
       .map((p) => {
         const intVal = Number.isInteger(p) ? p : Math.round(p);
-        return `<option value="${intVal}">${intVal}</option>`;
+        return `<option value="${intVal}">${formatSmaOptionLabel(intVal, selectEl)}</option>`;
       })
       .join("");
 
@@ -48,13 +85,54 @@ function populateSmaPeriodSelect(selectEl, periods, currentValue) {
 }
 
 /**
+ * Updates label text, placeholder and SMA help tooltip for a value field.
+ *
+ * @param {HTMLSelectElement} typeSelect the type <select> with data-* i18n
+ * @param {HTMLInputElement} input the numeric <input>
+ * @param {string} selectedType current objective type
+ * @param {string} labelId id of the label <span> to update
+ * @param {string} helpId id of the SMA help tooltip icon
+ */
+function updateValueFieldHints(typeSelect, input, selectedType, labelId, helpId) {
+  const data = typeSelect.dataset || {};
+  const labelEl = document.getElementById(labelId);
+  const helpEl = document.getElementById(helpId);
+
+  if (labelEl) {
+    if (selectedType === "SMA" && data.labelSma) {
+      labelEl.textContent = data.labelSma;
+    } else if (selectedType === "PERCENTAGE" && data.labelPercentage) {
+      labelEl.textContent = data.labelPercentage;
+    } else if (selectedType === "FIXED_PRICE" && data.labelFixed) {
+      labelEl.textContent = data.labelFixed;
+    } else if (data.labelDefault) {
+      labelEl.textContent = data.labelDefault;
+    }
+  }
+
+  if (helpEl) {
+    helpEl.classList.toggle("d-none", selectedType !== "SMA");
+  }
+
+  if (selectedType === "PERCENTAGE") {
+    input.placeholder = data.placeholderPercentage || "ej., 5.00 (%)";
+  } else if (selectedType === "FIXED_PRICE") {
+    input.placeholder = data.placeholderFixed || "ej., 150.00 ($)";
+  } else if (selectedType !== "SMA") {
+    input.placeholder = data.placeholderDefault || "ej., 5.00";
+  }
+}
+
+/**
  * Handles the toggle between <select> and <input> for a given value field.
  *
  * @param {string} typeSelectId   id of the type <select> (e.g. objectiveTargetType)
  * @param {string} inputId        id of the numeric <input>
  * @param {string} selectId       id of the SMA period <select>
+ * @param {string} labelId        id of the label <span> to update
+ * @param {string} helpId         id of the SMA help tooltip icon
  */
-function handleObjectiveTypeChange(typeSelectId, inputId, selectId) {
+function handleObjectiveTypeChange(typeSelectId, inputId, selectId, labelId, helpId) {
   const typeSelect = document.getElementById(typeSelectId);
   const input = document.getElementById(inputId);
   const select = document.getElementById(selectId);
@@ -66,6 +144,8 @@ function handleObjectiveTypeChange(typeSelectId, inputId, selectId) {
   const selectedType = typeSelect.value;
   const currentInputValue = input.value;
   const currentSelectValue = select.value;
+
+  updateValueFieldHints(typeSelect, input, selectedType, labelId, helpId);
 
   if (selectedType === "SMA") {
     const periods = getSmaAllowedPeriods();
@@ -90,14 +170,6 @@ function handleObjectiveTypeChange(typeSelectId, inputId, selectId) {
     input.classList.remove("d-none");
     input.disabled = false;
     input.setAttribute("required", "required");
-
-    if (selectedType === "PERCENTAGE") {
-      input.placeholder = "ej., 5.00 (%)";
-    } else if (selectedType === "FIXED_PRICE") {
-      input.placeholder = "ej., 150.00 ($)";
-    } else {
-      input.placeholder = "ej., 5.00";
-    }
   }
 }
 
@@ -125,11 +197,15 @@ document.addEventListener("DOMContentLoaded", function () {
     "objectiveTargetType",
     "objectiveTargetValue",
     "objectiveTargetSmaSelect",
+    "objectiveTargetValueLabel",
+    "objectiveTargetSmaHelp",
   );
   handleObjectiveTypeChange(
     "objectiveStopLossType",
     "objectiveStopLossValue",
     "objectiveStopLossSmaSelect",
+    "objectiveStopLossValueLabel",
+    "objectiveStopLossSmaHelp",
   );
 
   // Wire change events on type selectors
@@ -140,6 +216,8 @@ document.addEventListener("DOMContentLoaded", function () {
         "objectiveTargetType",
         "objectiveTargetValue",
         "objectiveTargetSmaSelect",
+        "objectiveTargetValueLabel",
+        "objectiveTargetSmaHelp",
       );
     });
   }
@@ -151,6 +229,8 @@ document.addEventListener("DOMContentLoaded", function () {
         "objectiveStopLossType",
         "objectiveStopLossValue",
         "objectiveStopLossSmaSelect",
+        "objectiveStopLossValueLabel",
+        "objectiveStopLossSmaHelp",
       );
     });
   }

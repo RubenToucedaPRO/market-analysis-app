@@ -72,12 +72,11 @@
               <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.target_value}">
                 Valor Objetivo
               </p>
-              <p
-                class="mb-0"
-                th:with="value=${strategy.objective.targetValue.setScale(2, T(java.math.RoundingMode).HALF_UP).stripTrailingZeros().toPlainString()}"
-                th:text="${value}"
-              >
-                50
+              <p class="mb-0">
+                <span
+                  th:replace="~{fragments/sma-value :: smaValue(type=${strategy.objective.targetType}, value=${strategy.objective.targetValue})}"
+                  >50</span
+                >
               </p>
             </div>
 
@@ -94,12 +93,11 @@
               <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.stop_loss_value}">
                 Valor Stop Loss
               </p>
-              <p
-                class="mb-0"
-                th:with="value=${strategy.objective.stopLossValue.setScale(2, T(java.math.RoundingMode).HALF_UP).stripTrailingZeros().toPlainString()}"
-                th:text="${value}"
-              >
-                20
+              <p class="mb-0">
+                <span
+                  th:replace="~{fragments/sma-value :: smaValue(type=${strategy.objective.stopLossType}, value=${strategy.objective.stopLossValue})}"
+                  >20</span
+                >
               </p>
             </div>
 
