@@ -1,6 +1,7 @@
 package com.market.analysis.unit.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -246,6 +247,63 @@ class RuleValidateTest {
                 .operator(null)
                 .targetCode("CONSTANT")
                 .targetParam(50.0)
+                .build();
+        assertThrows(IllegalArgumentException.class, rule::validate);
+    }
+
+    // -------------------------------------------------------------------------
+    // Weight (weighted scoring)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Should default weight to 1 when not set")
+    void testDefaultWeightIsOne() {
+        Rule rule = Rule.builder()
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .build();
+        assertDoesNotThrow(rule::validate);
+        assertEquals(1, rule.getWeight());
+    }
+
+    @Test
+    @DisplayName("Should accept weight greater than 1")
+    void testValidWeight() {
+        Rule rule = Rule.builder()
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .weight(3)
+                .build();
+        assertDoesNotThrow(rule::validate);
+    }
+
+    @Test
+    @DisplayName("Should reject weight zero")
+    void testZeroWeight() {
+        Rule rule = Rule.builder()
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .weight(0)
+                .build();
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, rule::validate);
+        assertTrue(ex.getMessage().contains("weight"));
+    }
+
+    @Test
+    @DisplayName("Should reject negative weight")
+    void testNegativeWeight() {
+        Rule rule = Rule.builder()
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .weight(-2)
                 .build();
         assertThrows(IllegalArgumentException.class, rule::validate);
     }

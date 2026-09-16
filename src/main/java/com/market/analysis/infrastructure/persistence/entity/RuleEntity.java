@@ -38,6 +38,14 @@ public class RuleEntity {
     @Column(name = "target_param")
     private Double targetParam;
 
+    /**
+     * Relative importance of this rule in the weighted score.
+     * Nullable so rows created before scoring read as null and map to the
+     * domain default (1) in {@link com.market.analysis.infrastructure.persistence.mapper.RuleMapper}.
+     */
+    @Column(name = "weight")
+    private Integer weight;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "strategy_id")
     private StrategyEntity strategy;

@@ -149,6 +149,7 @@ CREATE TABLE `rules` (
   `subject_param` double DEFAULT NULL,
   `target_code` varchar(255) DEFAULT NULL,
   `target_param` double DEFAULT NULL,
+  `weight` int DEFAULT 1,
   `strategy_id` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `FK7kp45947ulv336emrbfar5oau` (`strategy_id`),

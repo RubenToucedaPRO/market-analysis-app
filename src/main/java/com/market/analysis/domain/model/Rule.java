@@ -52,6 +52,14 @@ public class Rule {
     private final Double targetParam;
 
     /**
+     * Relative importance of this rule in the weighted score (0-100).
+     * Defaults to 1 so rules created before scoring behave exactly as before.
+     * Must be 1 or greater; validated in {@link #validate()}.
+     */
+    @Builder.Default
+    private final int weight = 1;
+
+    /**
      * Validates that this rule is evaluable by the rule engine.
      * Checks that subject code, target code, their respective parameters,
      * the operator, and the role constraints (subject / target allowed) are
@@ -65,6 +73,10 @@ public class Rule {
         if (!RuleCapabilityCatalog.isOperatorSupported(operator)) {
             throw new IllegalArgumentException(
                     "Operator '" + operator + "' is not supported by the rule evaluator.");
+        }
+        if (weight < 1) {
+            throw new IllegalArgumentException(
+                    "Rule weight must be 1 or greater, but was " + weight + ".");
         }
     }
 
