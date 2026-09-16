@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
 import com.market.analysis.domain.exception.MissingIndicatorException;
 import com.market.analysis.domain.model.ObjectiveType;
@@ -650,8 +651,7 @@ class EvaluateStrategyServiceTest {
                         when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
                                         .thenReturn(BigDecimal.valueOf(160.00));
                         when(riskRewardCalculator.calculateStopLossPrice(any(), any(), any()))
-                                        .thenThrow(new IllegalArgumentException(
-                                                        "Stop-loss price (155.00) must be less than entry price (150.00) for long positions"));
+                                        .thenThrow(new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY));
 
                         // Act
                         StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
@@ -663,7 +663,7 @@ class EvaluateStrategyServiceTest {
                         assertThat(result.getRiskRewardRatio()).isNull();
                         assertThat(result.getRecommendedShares()).isNull();
                         assertThat(result.getSummary()).contains("Risk plan could not be calculated");
-                        assertThat(result.getSummary()).contains("Stop-loss price");
+                        assertThat(result.getSummary()).contains(DomainErrorCodes.STOP_ABOVE_ENTRY);
                 }
 
                 @Test
@@ -684,8 +684,7 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
                                         .thenReturn(result1, result2);
                         when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
-                                        .thenThrow(new IllegalArgumentException(
-                                                        "Target price must be greater than entry price for long positions"));
+                                        .thenThrow(new DomainValidationException(DomainErrorCodes.TARGET_BELOW_ENTRY));
 
                         // Act
                         StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
@@ -697,7 +696,7 @@ class EvaluateStrategyServiceTest {
                         assertThat(result.getRiskRewardRatio()).isNull();
                         assertThat(result.getRecommendedShares()).isNull();
                         assertThat(result.getSummary()).contains("Risk plan could not be calculated");
-                        assertThat(result.getSummary()).contains("Target price");
+                        assertThat(result.getSummary()).contains(DomainErrorCodes.TARGET_BELOW_ENTRY);
                 }
 
                 @Test
@@ -718,8 +717,7 @@ class EvaluateStrategyServiceTest {
                         when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
                                         .thenReturn(result1, result2);
                         when(riskRewardCalculator.calculateTargetPrice(any(), any(), any()))
-                                        .thenThrow(new IllegalArgumentException(
-                                                        "SMA period 99 is not supported. Only periods 20, 50, and 200 are allowed."));
+                                        .thenThrow(new DomainValidationException(DomainErrorCodes.SMA_PERIOD_UNSUPPORTED, 99));
 
                         // Act
                         StrategyEvaluation result = service.evaluateStrategy(testStrategy, testStock);
@@ -731,7 +729,99 @@ class EvaluateStrategyServiceTest {
                         assertThat(result.getRiskRewardRatio()).isNull();
                         assertThat(result.getRecommendedShares()).isNull();
                         assertThat(result.getSummary()).contains("Risk plan could not be calculated");
-                        assertThat(result.getSummary()).contains("SMA period 99");
+                        assertThat(result.getSummary()).contains(DomainErrorCodes.SMA_PERIOD_UNSUPPORTED);
+                }
+
+                @Test
+                @DisplayName("Should degrade gracefully with real calculator when fixed target is below entry")
+                void shouldDegradeGracefullyWhenFixedTargetBelowEntry() {
+                        // Arrange: real calculator reproduces reported bug (TARGET_BELOW_ENTRY via ratio)
+                        EvaluateStrategyService realService = new EvaluateStrategyService(ruleEvaluator,
+                                        new RiskRewardCalculator());
+                        Strategy fixedStrategy = Strategy.builder()
+                                        .id(1L)
+                                        .name("Momentum Strategy")
+                                        .description("Bullish momentum indicator")
+                                        .rules(List.of(rule1, rule2))
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.FIXED_PRICE)
+                                                        .targetValue(BigDecimal.valueOf(140.00))
+                                                        .stopLossType(ObjectiveType.FIXED_PRICE)
+                                                        .stopLossValue(BigDecimal.valueOf(145.00))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("Fixed objective below entry")
+                                                        .build())
+                                        .build();
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = realService.evaluateStrategy(fixedStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
+                }
+
+                @Test
+                @DisplayName("Should degrade gracefully with real calculator when fixed stop is above entry")
+                void shouldDegradeGracefullyWhenFixedStopAboveEntry() {
+                        // Arrange: real calculator reproduces STOP_ABOVE_ENTRY in stop-loss step
+                        EvaluateStrategyService realService = new EvaluateStrategyService(ruleEvaluator,
+                                        new RiskRewardCalculator());
+                        Strategy fixedStrategy = Strategy.builder()
+                                        .id(1L)
+                                        .name("Momentum Strategy")
+                                        .description("Bullish momentum indicator")
+                                        .rules(List.of(rule1, rule2))
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.FIXED_PRICE)
+                                                        .targetValue(BigDecimal.valueOf(160.00))
+                                                        .stopLossType(ObjectiveType.FIXED_PRICE)
+                                                        .stopLossValue(BigDecimal.valueOf(155.00))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("Fixed stop above entry")
+                                                        .build())
+                                        .build();
+                        RuleResult result1 = RuleResult.builder()
+                                        .rule(rule1)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+                        RuleResult result2 = RuleResult.builder()
+                                        .rule(rule2)
+                                        .passed(true)
+                                        .justification("PASSED")
+                                        .build();
+
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class)))
+                                        .thenReturn(result1, result2);
+
+                        // Act
+                        StrategyEvaluation result = realService.evaluateStrategy(fixedStrategy, testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNull();
+                        assertThat(result.getStopLossPrice()).isNull();
+                        assertThat(result.getRiskRewardRatio()).isNull();
+                        assertThat(result.getRecommendedShares()).isNull();
+                        assertThat(result.getSummary()).contains("Risk plan could not be calculated");
                 }
         }
 }

@@ -2,7 +2,6 @@ package com.market.analysis.domain.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Locale;
 
 import com.market.analysis.domain.exception.DomainErrorCodes;
 import com.market.analysis.domain.exception.DomainValidationException;
@@ -29,10 +28,6 @@ public class RiskRewardCalculator {
     private static final int RATIO_SCALE = 4;
     private static final RoundingMode PRICE_ROUNDING = RoundingMode.HALF_UP;
     private static final RoundingMode POSITION_ROUNDING = RoundingMode.DOWN;
-
-    private static final String FIELD_TARGET_PRICE = "Target price";
-    private static final String FIELD_STOP_PRICE = "Stop price";
-    private static final String FIELD_CAPITAL_TO_RISK = "Capital to risk";
 
     /**
      * Calculates the target price for a strategy based on the objective type.
@@ -98,8 +93,8 @@ public class RiskRewardCalculator {
         requireNonNull(targetPrice, DomainErrorCodes.TARGET_PRICE_NULL);
         requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
 
-        validatePositivePrice(targetPrice, FIELD_TARGET_PRICE);
-        validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
+        validatePositivePrice(targetPrice, DomainErrorCodes.TARGET_PRICE_ZERO);
+        validatePositivePrice(stopPrice, DomainErrorCodes.STOP_PRICE_ZERO);
 
         if (targetPrice.compareTo(entryPrice.value()) <= 0) {
             throw new DomainValidationException(DomainErrorCodes.TARGET_BELOW_ENTRY);
@@ -132,8 +127,8 @@ public class RiskRewardCalculator {
         requireNonNull(stopPrice, DomainErrorCodes.STOP_PRICE_NULL);
         requireNonNull(capitalToRisk, DomainErrorCodes.CAPITAL_NULL);
 
-        validatePositivePrice(stopPrice, FIELD_STOP_PRICE);
-        validatePositivePrice(capitalToRisk, FIELD_CAPITAL_TO_RISK);
+        validatePositivePrice(stopPrice, DomainErrorCodes.STOP_PRICE_ZERO);
+        validatePositivePrice(capitalToRisk, DomainErrorCodes.CAPITAL_ZERO);
 
         validateStopBelowEntry(entryPrice.value(), stopPrice);
 
@@ -210,27 +205,30 @@ public class RiskRewardCalculator {
 
     /**
      * Validates and returns a fixed price value.
-     * 
+     *
      * @param fixedPrice the fixed price value
-     * @param context    context description for error messages
+     * @param context    context description ("Target" or "Stop-loss")
      * @return the fixed price with proper scaling
      */
     private BigDecimal validateAndReturnFixedPrice(BigDecimal fixedPrice, String context) {
         requireNonNull(fixedPrice, DomainErrorCodes.FIXED_PRICE_NULL);
-        validatePositivePrice(fixedPrice, context + " fixed price");
+        String errorCode = "Target".equals(context)
+                ? DomainErrorCodes.TARGET_PRICE_ZERO
+                : DomainErrorCodes.STOP_PRICE_ZERO;
+        validatePositivePrice(fixedPrice, errorCode);
         return fixedPrice.setScale(PRICE_SCALE, PRICE_ROUNDING);
     }
 
     /**
      * Validates that a price value is positive.
-     * 
+     *
      * @param price     the price to validate
-     * @param fieldName the field name for error messages
-     * @throws IllegalArgumentException if price is not positive
+     * @param errorCode the domain error code for violations
+     * @throws DomainValidationException if price is not positive
      */
-    private void validatePositivePrice(BigDecimal price, String fieldName) {
+    private void validatePositivePrice(BigDecimal price, String errorCode) {
         if (price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException(fieldName + " must be greater than zero");
+            throw new DomainValidationException(errorCode);
         }
     }
 
@@ -239,13 +237,11 @@ public class RiskRewardCalculator {
      *
      * @param entryPrice    the entry price
      * @param stopLossPrice the stop-loss price
-     * @throws IllegalArgumentException if stop-loss price is >= entry price
+     * @throws DomainValidationException if stop-loss price is >= entry price
      */
     private void validateStopLossPrice(BigDecimal entryPrice, BigDecimal stopLossPrice) {
         if (stopLossPrice.compareTo(entryPrice) >= 0) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, "Stop-loss price (%.2f) must be less than entry price (%.2f) for long positions",
-                            stopLossPrice.doubleValue(), entryPrice.doubleValue()));
+            throw new DomainValidationException(DomainErrorCodes.STOP_ABOVE_ENTRY);
         }
     }
 

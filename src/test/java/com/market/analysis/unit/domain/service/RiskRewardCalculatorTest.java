@@ -349,8 +349,9 @@ class RiskRewardCalculatorTest {
 
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateStopLossPrice(entryPrice, objective, testStock))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Stop-loss price");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.stop_above_entry"));
         }
 
         @Test
@@ -369,8 +370,9 @@ class RiskRewardCalculatorTest {
 
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculateStopLossPrice(entryPrice, objective, testStock))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Stop-loss price");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.stop_above_entry"));
         }
 
         @Test
@@ -609,8 +611,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(
                     EntryPrice.of(BigDecimal.valueOf(100)), BigDecimal.valueOf(95), BigDecimal.ZERO))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Capital to risk must be greater than zero");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.capital_zero"));
         }
 
         @Test
@@ -619,8 +622,9 @@ class RiskRewardCalculatorTest {
             // Act & Assert
             assertThatThrownBy(() -> calculator.calculatePositionSize(
                     EntryPrice.of(BigDecimal.valueOf(100)), BigDecimal.valueOf(95), BigDecimal.valueOf(-1000)))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Capital to risk must be greater than zero");
+                    .isInstanceOf(DomainValidationException.class)
+                    .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
+                            .isEqualTo("validation.capital_zero"));
         }
     }
 
