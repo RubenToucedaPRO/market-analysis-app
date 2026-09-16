@@ -91,6 +91,8 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
   10. Trabajo secuencial: no crear la rama de una tarea nueva hasta que la PR de la
      tarea anterior esté en MERGED (salvo petición explícita del usuario). Así se evita
      ramificar desde un `main` desactualizado y acumular fusiones evitables.
+     Al quedar a la espera del merge, preguntar el estado también con menú
+     (PR mergeada / todavía no), no con pregunta abierta.
 
 ---
 
