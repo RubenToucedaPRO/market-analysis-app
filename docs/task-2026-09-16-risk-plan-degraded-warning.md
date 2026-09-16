@@ -57,12 +57,42 @@ degradados; si no, el success habitual.
   ambas evaluaciones persistidas, el bucle no aborta).
 - `StrategyControllerTest`: stub de `updateStrategy` adaptado + nuevo
   `testSaveStrategyUpdateWarnsDegradedTickers` (flash warning con los símbolos).
-- Ejecución: `mvn test` → `Tests run: 1020, Failures: 0, Errors: 0, BUILD SUCCESS`.
+- Ejecución: `mvn test` → `Tests run: 1023, Failures: 0, Errors: 0, BUILD SUCCESS`
+  (relevantes `ManageStrategyServiceTest,StrategyControllerTest`: 22/22 en verde).
 - Sin `lenient` nuevo; Mockito estricto en verde.
 
-## Advertencias y próximos pasos
+## Advertencias de SonarQube o arquitectura
 
-- Re-guardar la estrategia del reporte debe mostrar ahora el `partial` nombrando el ticker
-  en vez del error duro (ya imposible desde #147).
-- Si el aviso menciona un ticker, revisar en su detalle precio actual vs SMA objetivo:
-  con precio bajo la SMA, el plan seguirá degradado por diseño (solo largos).
+- Textos por `MessageSource` + `messages.properties` (cero hardcode en el controlador).
+- Logging SLF4J (`info` al guardar, `warn` solo si hay degradados); sin `System.out`.
+- `UpdateStrategyResult` es solo transporte (Lombok `@Data/@Builder`, sin lógica),
+  igual que el resto de DTOs de `application/dto`.
+- Complejidad trivial y anidamiento < 4; el controlador solo traduce
+  resultado → flash (sin lógica de negocio) con `null`-guard en la lista.
+- Nota: el puerto `ManageStrategyUseCase` (en `domain/port/in`) importa el DTO de
+  aplicación, pero es el patrón preexistente del proyecto (ya usaba `StrategyDTO`);
+  no se introduce una violación nueva.
+
+## Próximos pasos sugeridos
+
+### A. Probar ahora (login con `APP_SECURITY_*`, en `http://localhost:8080`)
+
+1. Ve a `/strategies`, abre la estrategia "Precio superior a 20" y pulsa
+  Guardar sin cambiar nada → debes ver una caja AMARILLA de aviso debajo del
+  menú con el texto "Estrategia actualizada. Plan de riesgo no calculable en:
+  AAPL." (AAPL está apto pero sin plan: verificado hoy en BD).
+2. Ve a `/strategies`, abre la estrategia "Precio superior a SMA20" y pulsa
+  Guardar sin cambiar nada → debes ver una caja VERDE de éxito con el texto
+  "Estrategia actualizada correctamente." (CDE tiene plan con R:R y FLEX no es
+  apto, así que no hay degradados: resultado visible DISTINTO del paso 1).
+3. Abre el detalle del ticker AAPL en Análisis → la sección de riesgo muestra
+  el aviso de plan no disponible, coherente con la caja amarilla del paso 1.
+  (Si en el paso 1 ves verde en vez de amarilla, el mercado se movió desde la
+  última evaluación: dime y lo miramos, no es un fallo de la prueba.)
+
+### B. Para interpretar el aviso (informativo, NO es una tarea)
+
+- Si la caja amarilla nombra un ticker, no es un fallo: ese ticker cumple las
+  reglas pero su precio está por debajo del objetivo, y la app (solo abre
+  largos, es decir, solo gana si el precio sube) no puede calcular su plan.
+  Se quedará degradado hasta que el precio recupere. No hay nada que arreglar.
