@@ -64,6 +64,9 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
      resultado de tests y estado del contenedor, más una checklist de pruebas web propuesta
      (ruta, pasos, datos de entrada y resultado esperado para cada caso modificado).
      No avanzar sin confirmación.
+     Pedir siempre la validación con un menú de opciones (no con pregunta abierta),
+     incluyendo el resumen de estado en el propio mensaje. Opciones mínimas:
+     validar y continuar / pedir cambios.
      Reglas para redactar la checklist (el lector es junior):
      1. Cada paso es una receta literal: URL exacta, clic/tecla exacta y resultado
         visible exacto (qué se ve en pantalla, no qué hace el código).
@@ -85,6 +88,9 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
      `git commit` con Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`),
      `git push -u origin <rama>` y `gh pr create --base main --fill`.
      Prohibido push directo a `main`, `--force` y `--amend` sobre rama ya pusheada.
+  10. Trabajo secuencial: no crear la rama de una tarea nueva hasta que la PR de la
+     tarea anterior esté en MERGED (salvo petición explícita del usuario). Así se evita
+     ramificar desde un `main` desactualizado y acumular fusiones evitables.
 
 ---
 
