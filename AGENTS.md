@@ -94,6 +94,24 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
      Al quedar a la espera del merge, preguntar el estado también con menú
      (PR mergeada / todavía no), no con pregunta abierta.
 
+- Reglas de flujo de trabajo con agentes:
+  - Una rama = un tema = un doc: cada tarea usa una sola rama, un cambio coherente
+    y un solo `task-YYYY-MM-DD-<slug>.md`. Si aparecen varios temas, se separan
+    en tareas/ramas distintas.
+  - Prohibidos los stash huérfanos: todo trabajo en curso vive en su rama y se sube
+    a `origin` (`git push -u origin <rama>`) cuanto antes. Nada existe si no está
+    en una rama publicada.
+  - Commits pequeños por tipo durante la tarea (`fix:` código, `test:` tests,
+    `docs:` documentación) en vez de un único commit gigante al final.
+  - Al retomar trabajo: consultar siempre PRs abiertas (`gh pr list --state open`),
+    ramas (`git branch -vv`) y stash (`git stash list`), y proponer por dónde
+    seguir con menú.
+  - Salud del contenedor explícita: tras `docker compose up --build -d`, la app
+    "arranca" solo si `GET /` → 200 y `market-analysis-mysql` está Healthy.
+  - No expandir alcance sin menú: si durante una tarea surge una idea que pide
+    código nuevo, se anota en "B. Ideas futuras" y se propone como tarea aparte
+    con menú; nunca se cuela dentro de la tarea actual.
+
 ---
 
 ## 4. Variables de Entorno Controladas
