@@ -1,5 +1,6 @@
 package com.market.analysis.presentation.exception;
 
+import java.net.URI;
 import java.util.Locale;
 
 import org.slf4j.Logger;
@@ -296,7 +297,12 @@ public class GlobalExceptionHandler {
 
     /**
      * Centralises redirect-with-error logic: adds the error flash attribute and
-     * builds a redirect back to the HTTP Referer header, falling back to {@code /}.
+     * builds a redirect back to the HTTP Referer header, falling back to the
+     * section of the failing request (or {@code /}).
+     *
+     * <p>Referers pointing to POST-only action URLs (e.g. {@code /strategies/edit},
+     * which has no GET mapping) are sanitised to their parent section so the
+     * redirect never lands on an unmapped URL.</p>
      *
      * @param message the user-facing error message to flash
      * @param ra      the RedirectAttributes used to pass flash attributes
@@ -305,7 +311,52 @@ public class GlobalExceptionHandler {
      */
     private String redirectWithError(String message, RedirectAttributes ra, HttpServletRequest req) {
         ra.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(message));
+        return "redirect:" + safeReferer(req);
+    }
+
+    /**
+     * Resolves a safe redirect target from the HTTP Referer header.
+     *
+     * @param req the current HTTP request
+     * @return the referer URL, its parent section when it targets a POST-only
+     *         action, the section of the failing request when absent, or the
+     *         default referer when unparseable
+     */
+    private String safeReferer(HttpServletRequest req) {
         String referer = req.getHeader(HttpHeaders.REFERER);
-        return "redirect:" + (referer != null ? referer : WebConstants.DEFAULT_REFERER);
+        if (referer == null || referer.isBlank()) {
+            return sectionOf(req.getRequestURI());
+        }
+        try {
+            String path = URI.create(referer).getPath();
+            if (path != null && (path.endsWith("/edit") || path.endsWith("/delete"))) {
+                String parent = path.substring(0, path.lastIndexOf('/'));
+                return parent.isEmpty() ? WebConstants.DEFAULT_REFERER : parent;
+            }
+        } catch (IllegalArgumentException ex) {
+            log.debug("Unparseable Referer header, falling back to default: {}", referer);
+            return WebConstants.DEFAULT_REFERER;
+        }
+        return referer;
+    }
+
+    /**
+     * Resolves the section root (first path segment) of a request URI so
+     * error redirects keep the user in context instead of landing on {@code /}.
+     *
+     * @param requestUri the request URI (e.g. {@code /analysis/ticker/999})
+     * @return the section root (e.g. {@code /analysis}) or the default referer
+     */
+    private String sectionOf(String requestUri) {
+        if (requestUri == null || requestUri.isBlank()) {
+            return WebConstants.DEFAULT_REFERER;
+        }
+        String[] segments = requestUri.split("/");
+        for (String segment : segments) {
+            if (!segment.isBlank()) {
+                return "/" + segment;
+            }
+        }
+        return WebConstants.DEFAULT_REFERER;
     }
 }
