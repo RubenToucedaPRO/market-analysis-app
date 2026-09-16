@@ -64,6 +64,9 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
      resultado de tests y estado del contenedor, más una checklist de pruebas web propuesta
      (ruta, pasos, datos de entrada y resultado esperado para cada caso modificado).
      No avanzar sin confirmación.
+     Pedir siempre la validación con un menú de opciones (no con pregunta abierta),
+     incluyendo el resumen de estado en el propio mensaje. Opciones mínimas:
+     validar y continuar / pedir cambios.
      Reglas para redactar la checklist (el lector es junior):
      1. Cada paso es una receta literal: URL exacta, clic/tecla exacta y resultado
         visible exacto (qué se ve en pantalla, no qué hace el código).
@@ -85,6 +88,29 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
      `git commit` con Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`),
      `git push -u origin <rama>` y `gh pr create --base main --fill`.
      Prohibido push directo a `main`, `--force` y `--amend` sobre rama ya pusheada.
+  10. Trabajo secuencial: no crear la rama de una tarea nueva hasta que la PR de la
+     tarea anterior esté en MERGED (salvo petición explícita del usuario). Así se evita
+     ramificar desde un `main` desactualizado y acumular fusiones evitables.
+     Al quedar a la espera del merge, preguntar el estado también con menú
+     (PR mergeada / todavía no), no con pregunta abierta.
+
+- Reglas de flujo de trabajo con agentes:
+  - Una rama = un tema = un doc: cada tarea usa una sola rama, un cambio coherente
+    y un solo `task-YYYY-MM-DD-<slug>.md`. Si aparecen varios temas, se separan
+    en tareas/ramas distintas.
+  - Prohibidos los stash huérfanos: todo trabajo en curso vive en su rama y se sube
+    a `origin` (`git push -u origin <rama>`) cuanto antes. Nada existe si no está
+    en una rama publicada.
+  - Commits pequeños por tipo durante la tarea (`fix:` código, `test:` tests,
+    `docs:` documentación) en vez de un único commit gigante al final.
+  - Al retomar trabajo: consultar siempre PRs abiertas (`gh pr list --state open`),
+    ramas (`git branch -vv`) y stash (`git stash list`), y proponer por dónde
+    seguir con menú.
+  - Salud del contenedor explícita: tras `docker compose up --build -d`, la app
+    "arranca" solo si `GET /` → 200 y `market-analysis-mysql` está Healthy.
+  - No expandir alcance sin menú: si durante una tarea surge una idea que pide
+    código nuevo, se anota en "B. Ideas futuras" y se propone como tarea aparte
+    con menú; nunca se cuela dentro de la tarea actual.
 
 ---
 
