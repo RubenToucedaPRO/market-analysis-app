@@ -40,7 +40,8 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
             throw new DomainValidationException(DomainErrorCodes.RD_CODE_NULL);
         }
 
-        validateAgainstCatalog(ruleDefinitionDto);
+        validateCodeSupported(ruleDefinitionDto);
+        alignRequiresParamFromCatalog(ruleDefinitionDto);
 
         if (ruleDefinitionRepository.existsByCode(ruleDefinitionDto.getCode())) {
             throw new DomainValidationException(DomainErrorCodes.RD_EXISTS, ruleDefinitionDto.getCode());
@@ -82,7 +83,8 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
         if (!ruleDefinitionRepository.existsById(ruleDefinitionDto.getId())) {
             throw new DomainValidationException(DomainErrorCodes.RD_NOT_FOUND, ruleDefinitionDto.getId());
         }
-        validateAgainstCatalog(ruleDefinitionDto);
+        validateCodeSupported(ruleDefinitionDto);
+        alignRequiresParamFromCatalog(ruleDefinitionDto);
         log.info("Updating rule definition with ID: {}", ruleDefinitionDto.getId());
         RuleDefinition ruleDefinition = ruleDefinitionMapper.toDomain(ruleDefinitionDto);
         RuleDefinition savedRule = ruleDefinitionRepository.save(ruleDefinition);
@@ -123,11 +125,9 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
     }
 
     /**
-     * Validates a RuleDefinitionDTO against the canonical capability catalog.
-     * Ensures the code is supported and the requiresParam flag is consistent
-     * with what the evaluator expects.
+     * Validates that the code is supported by the canonical capability catalog.
      */
-    private void validateAgainstCatalog(RuleDefinitionDTO dto) {
+    private void validateCodeSupported(RuleDefinitionDTO dto) {
         String code = dto.getCode();
         if (!RuleCapabilityCatalog.isSupported(code)) {
             log.warn("Rejected rule definition with unsupported code='{}'. Supported: {}",
@@ -135,15 +135,23 @@ public class ManageRuleDefinitionService implements ManageRuleDefinitionUseCase 
             throw new DomainValidationException(
                     DomainErrorCodes.RD_UNSUPPORTED_CODE, code);
         }
+    }
 
+    /**
+     * Aligns the {@code requiresParam} flag with the canonical capability catalog.
+     * The catalog is the single source of truth, so any client-supplied value
+     * (e.g. missing from the form because the checkbox is disabled in create mode)
+     * is autocorrected instead of rejected.
+     */
+    private void alignRequiresParamFromCatalog(RuleDefinitionDTO dto) {
+        String code = dto.getCode();
         boolean catalogRequiresParam = RuleCapabilityCatalog.getCapability(code)
                 .map(RuleCapability::isRequiresParam)
                 .orElse(false);
         if (dto.isRequiresParam() != catalogRequiresParam) {
-            log.warn("Rejected rule definition code='{}': requiresParam={} conflicts with catalog value={}",
+            log.info("Autocorrecting rule definition code='{}': requiresParam={} -> {} (catalog value)",
                     code, dto.isRequiresParam(), catalogRequiresParam);
-            throw new DomainValidationException(
-                    DomainErrorCodes.RD_PARAM_CONFLICT, code, catalogRequiresParam);
+            dto.setRequiresParam(catalogRequiresParam);
         }
     }
 
