@@ -21,6 +21,7 @@ import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.StrategyObjectiveDTO;
+import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.dto.SuggestTickersRequestDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
@@ -101,10 +102,18 @@ public class StrategyController {
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.success(message));
         } else {
-            manageStrategyUseCase.updateStrategy(strategyDTO);
-            String message = messageSource.getMessage("strategy.updated", null, locale);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success(message));
+            UpdateStrategyResult result = manageStrategyUseCase.updateStrategy(strategyDTO);
+            List<String> degraded = result.getDegradedTickers() == null ? List.of() : result.getDegradedTickers();
+            if (degraded.isEmpty()) {
+                String message = messageSource.getMessage("strategy.updated", null, locale);
+                redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                        UiNotification.success(message));
+            } else {
+                String message = messageSource.getMessage("strategy.updated.partial",
+                        new Object[]{String.join(", ", degraded)}, locale);
+                redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                        UiNotification.warning(message));
+            }
         }
         return WebConstants.REDIRECT_STRATEGIES;
     }

@@ -2,6 +2,7 @@ package com.market.analysis.unit.presentation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,6 +22,7 @@ import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
@@ -147,6 +149,11 @@ class StrategyControllerTest {
                 .description("Test Description")
                 .rules(List.of())
                 .build();
+        when(manageStrategyUseCase.updateStrategy(any(StrategyDTO.class)))
+                .thenReturn(UpdateStrategyResult.builder()
+                        .strategy(strategyDTO)
+                        .degradedTickers(List.of())
+                        .build());
         when(messageSource.getMessage("strategy.updated", null, Locale.getDefault()))
                 .thenReturn("Estrategia actualizada correctamente.");
 
@@ -157,6 +164,32 @@ class StrategyControllerTest {
         verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.success("Estrategia actualizada correctamente."));
+    }
+
+    @Test
+    @DisplayName("Should warn with degraded tickers when risk plan is missing")
+    void testSaveStrategyUpdateWarnsDegradedTickers() {
+        StrategyDTO strategyDTO = StrategyDTO.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Test Description")
+                .rules(List.of())
+                .build();
+        when(manageStrategyUseCase.updateStrategy(any(StrategyDTO.class)))
+                .thenReturn(UpdateStrategyResult.builder()
+                        .strategy(strategyDTO)
+                        .degradedTickers(List.of("TSLA", "AAPL"))
+                        .build());
+        when(messageSource.getMessage(eq("strategy.updated.partial"), any(), eq(Locale.getDefault())))
+                .thenReturn("Estrategia actualizada. Plan de riesgo no calculable en: TSLA, AAPL.");
+
+        String viewName = strategyController.saveStrategy(strategyDTO, redirectAttributes);
+
+        assertEquals("redirect:/strategies", viewName);
+        verify(messageSource).getMessage(eq("strategy.updated.partial"), any(), eq(Locale.getDefault()));
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("Estrategia actualizada. Plan de riesgo no calculable en: TSLA, AAPL."));
     }
 
     @Test
