@@ -74,10 +74,39 @@
               </p>
               <p
                 class="mb-0"
+                th:if="${strategy.objective.targetType != 'SMA'}"
                 th:with="value=${strategy.objective.targetValue.setScale(2, T(java.math.RoundingMode).HALF_UP).stripTrailingZeros().toPlainString()}"
                 th:text="${value}"
               >
                 50
+              </p>
+              <p
+                class="mb-0"
+                th:if="${strategy.objective.targetType == 'SMA'}"
+                th:with="value=${strategy.objective.targetValue.stripTrailingZeros().toPlainString()}"
+              >
+                <span th:text="${'SMA ' + value}">SMA 50</span>
+                <span
+                  class="text-muted small"
+                  th:if="${strategy.objective.targetValue.intValue() == 20}"
+                  th:text="${'(' + riskSmaShort + ')'}"
+                  th:with="riskSmaShort=#{risk.sma.short}"
+                  > (Corto plazo)</span
+                >
+                <span
+                  class="text-muted small"
+                  th:if="${strategy.objective.targetValue.intValue() == 50}"
+                  th:text="${'(' + riskSmaMedium + ')'}"
+                  th:with="riskSmaMedium=#{risk.sma.medium}"
+                  > (Medio plazo)</span
+                >
+                <span
+                  class="text-muted small"
+                  th:if="${strategy.objective.targetValue.intValue() == 200}"
+                  th:text="${'(' + riskSmaLong + ')'}"
+                  th:with="riskSmaLong=#{risk.sma.long}"
+                  > (Largo plazo)</span
+                >
               </p>
             </div>
 
@@ -96,10 +125,39 @@
               </p>
               <p
                 class="mb-0"
+                th:if="${strategy.objective.stopLossType != 'SMA'}"
                 th:with="value=${strategy.objective.stopLossValue.setScale(2, T(java.math.RoundingMode).HALF_UP).stripTrailingZeros().toPlainString()}"
                 th:text="${value}"
               >
                 20
+              </p>
+              <p
+                class="mb-0"
+                th:if="${strategy.objective.stopLossType == 'SMA'}"
+                th:with="value=${strategy.objective.stopLossValue.stripTrailingZeros().toPlainString()}"
+              >
+                <span th:text="${'SMA ' + value}">SMA 20</span>
+                <span
+                  class="text-muted small"
+                  th:if="${strategy.objective.stopLossValue.intValue() == 20}"
+                  th:with="riskSmaShort=#{risk.sma.short}"
+                  th:text="${'(' + riskSmaShort + ')'}"
+                  > (Corto plazo)</span
+                >
+                <span
+                  class="text-muted small"
+                  th:if="${strategy.objective.stopLossValue.intValue() == 50}"
+                  th:with="riskSmaMedium=#{risk.sma.medium}"
+                  th:text="${'(' + riskSmaMedium + ')'}"
+                  > (Medio plazo)</span
+                >
+                <span
+                  class="text-muted small"
+                  th:if="${strategy.objective.stopLossValue.intValue() == 200}"
+                  th:with="riskSmaLong=#{risk.sma.long}"
+                  th:text="${'(' + riskSmaLong + ')'}"
+                  > (Largo plazo)</span
+                >
               </p>
             </div>
 

@@ -49,7 +49,7 @@ public class StrategyController {
         return WebConstants.TEMPLATE_STRATEGIES_LIST;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public String viewStrategyDetail(@PathVariable("id") long strategyId, Model model) {
         StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
         model.addAttribute(WebConstants.ATTR_STRATEGY, strategyDTO);
@@ -92,6 +92,19 @@ public class StrategyController {
         return WebConstants.TEMPLATE_STRATEGIES_CREATE;
     }
 
+    /**
+     * Redirects GET access to the POST-only {@code /edit} and {@code /delete}
+     * actions back to the strategy list. Without this, such URLs fall through
+     * to the numeric detail mapping (or a 405) and surface a cryptic error
+     * instead of a safe landing page (e.g. stale tabs, error-redirect chains).
+     *
+     * @return redirect to the strategy list
+     */
+    @GetMapping({"/edit", "/delete"})
+    public String redirectPostOnlyActions() {
+        return WebConstants.REDIRECT_STRATEGIES;
+    }
+
     @PostMapping
     public String saveStrategy(@ModelAttribute StrategyDTO strategyDTO, RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
@@ -119,7 +132,7 @@ public class StrategyController {
         return WebConstants.REDIRECT_STRATEGIES;
     }
 
-    @PostMapping("/{id}/suggest-tickers")
+    @PostMapping("/{id:\\d+}/suggest-tickers")
     public String suggestTickersFromMarket(@PathVariable("id") long strategyId, RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
         if (suggestTickersUseCase.isEmpty()) {
@@ -163,7 +176,7 @@ public class StrategyController {
         return WebConstants.REDIRECT_STRATEGIES_PREFIX + strategyId;
     }
 
-    @PostMapping("/{id}/add-suggested-tickers")
+    @PostMapping("/{id:\\d+}/add-suggested-tickers")
     public String addSuggestedTickersToAnalysis(@PathVariable("id") long strategyId,
             RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();

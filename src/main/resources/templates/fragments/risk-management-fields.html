@@ -2,19 +2,18 @@
      Fragment con todos los campos de gestión de riesgo de una estrategia.
      Sin parámetros (usa th:object del form padre para binding).
      Campos:
-       - objectiveTargetType: SELECT (PRICE/INTRADAY/...) → afecta campos visibles
-       - targetPrice/targetPct/atrMultiplier: inputs condicionales según targetType
-       - stopLossType: SELECT (PRICE/PCT/ATR/...) → afecta campos visibles
-       - stopLossPrice/stopLossPct/stopLossAtrMultiplier: inputs condicionales
-       - maxRiskPerTradePct: % capital máximo por trade
-       - maxConcurrentPositions: número máx. posiciones simultáneas
-       - positionSizingType: SELECT (FIXED/PCT_VOLATILITY/...)
-       - fixedPositionSize/positionSizePct/volatilityLookbackDays: condicionales
-     JS: risk-management.js maneja show/hide según selects (data-target-type, data-stop-type).
-     Uso: strategies/create.html y detail.html via th:replace. -->
+        - objectiveTargetType: SELECT (SMA/PERCENTAGE/FIXED_PRICE) → afecta campos visibles
+        - objectiveTargetValue / objectiveTargetSmaSelect: input o select según targetType
+        - objectiveStopLossType: SELECT (SMA/PERCENTAGE/FIXED_PRICE) → afecta campos visibles
+        - objectiveStopLossValue / objectiveStopLossSmaSelect: input o select según stopLossType
+        - objectiveCapitalToRisk: % capital máximo por trade
+        - objectiveDescription: descripción del objetivo
+      JS: risk-management.js maneja show/hide según selects. Las etiquetas y
+      textos SMA se resuelven vía atributos data-* (i18n en messages.properties).
+      Uso: strategies/create.html via th:replace. -->
 <div th:fragment="riskManagementFields" class="row g-3">
   <!-- Target Type -->
-  <div class="col-md-4">
+  <div class="col-md-3">
     <label for="objectiveTargetType" class="form-label fw-semibold"
       ><span th:text="#{risk.target_type}">Tipo de Objetivo</span></label
     >
@@ -23,6 +22,13 @@
       id="objectiveTargetType"
       name="objective.targetType"
       required
+      th:data-label-default="#{risk.target_value}"
+      th:data-label-percentage="#{risk.target_value.percentage}"
+      th:data-label-fixed="#{risk.target_value.fixed}"
+      th:data-label-sma="#{risk.target_value.sma}"
+      th:data-placeholder-default="'ej., 5.00'"
+      th:data-placeholder-percentage="'ej., 5.00 (%)'"
+      th:data-placeholder-fixed="'ej., 150.00 ($)'"
     >
       <option
         value=""
@@ -53,12 +59,28 @@
   </div>
 
   <!-- Target Value -->
-  <div class="col-md-2">
+  <div class="col-md-3">
     <label for="objectiveTargetValue" class="form-label fw-semibold"
-      ><span th:text="#{risk.target_value}">Valor Objetivo</span></label
+      ><span id="objectiveTargetValueLabel" th:text="#{risk.target_value}">Valor Objetivo</span>
+      <i
+        id="objectiveTargetSmaHelp"
+        class="bi bi-info-circle text-muted ms-1 d-none"
+        data-bs-toggle="tooltip"
+        th:title="#{risk.sma.help}"
+        th:aria-label="#{risk.sma.help}"
+        role="img"
+      ></i
+    ></label>
+    <select
+      class="form-select d-none"
+      id="objectiveTargetSmaSelect"
+      disabled
+      th:data-default-option="#{risk.sma.period}"
+      th:data-short="#{risk.sma.short}"
+      th:data-medium="#{risk.sma.medium}"
+      th:data-long="#{risk.sma.long}"
     >
-    <select class="form-select d-none" id="objectiveTargetSmaSelect" disabled>
-      <option value="">-- Período --</option>
+      <option value="" th:text="#{risk.sma.period}">-- Periodo SMA --</option>
     </select>
     <input
       type="number"
@@ -74,7 +96,7 @@
   </div>
 
   <!-- Stop-Loss Type -->
-  <div class="col-md-4">
+  <div class="col-md-3">
     <label for="objectiveStopLossType" class="form-label fw-semibold"
       ><span th:text="#{risk.stop_loss_type}">Tipo de Stop Loss</span></label
     >
@@ -83,6 +105,13 @@
       id="objectiveStopLossType"
       name="objective.stopLossType"
       required
+      th:data-label-default="#{risk.stop_loss_value}"
+      th:data-label-percentage="#{risk.stop_value.percentage}"
+      th:data-label-fixed="#{risk.stop_value.fixed}"
+      th:data-label-sma="#{risk.stop_value.sma}"
+      th:data-placeholder-default="'ej., 2.00'"
+      th:data-placeholder-percentage="'ej., 2.00 (%)'"
+      th:data-placeholder-fixed="'ej., 150.00 ($)'"
     >
       <option
         value=""
@@ -113,12 +142,28 @@
   </div>
 
   <!-- Stop-Loss Value -->
-  <div class="col-md-2">
+  <div class="col-md-3">
     <label for="objectiveStopLossValue" class="form-label fw-semibold"
-      ><span th:text="#{risk.stop_loss_value}">Valor Stop Loss</span></label
+      ><span id="objectiveStopLossValueLabel" th:text="#{risk.stop_loss_value}">Valor Stop Loss</span>
+      <i
+        id="objectiveStopLossSmaHelp"
+        class="bi bi-info-circle text-muted ms-1 d-none"
+        data-bs-toggle="tooltip"
+        th:title="#{risk.sma.help}"
+        th:aria-label="#{risk.sma.help}"
+        role="img"
+      ></i
+    ></label>
+    <select
+      class="form-select d-none"
+      id="objectiveStopLossSmaSelect"
+      disabled
+      th:data-default-option="#{risk.sma.period}"
+      th:data-short="#{risk.sma.short}"
+      th:data-medium="#{risk.sma.medium}"
+      th:data-long="#{risk.sma.long}"
     >
-    <select class="form-select d-none" id="objectiveStopLossSmaSelect" disabled>
-      <option value="">-- Período --</option>
+      <option value="" th:text="#{risk.sma.period}">-- Periodo SMA --</option>
     </select>
     <input
       type="number"
