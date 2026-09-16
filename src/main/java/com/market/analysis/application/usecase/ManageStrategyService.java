@@ -1,9 +1,11 @@
 package com.market.analysis.application.usecase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.mapper.RuleDefinitionDTOMapper;
 import com.market.analysis.application.mapper.StrategyDTOMapper;
 import com.market.analysis.domain.exception.DomainErrorCodes;
@@ -42,13 +44,14 @@ public class ManageStrategyService implements ManageStrategyUseCase {
     }
 
     @Override
-    public StrategyDTO updateStrategy(StrategyDTO strategy) {
+    public UpdateStrategyResult updateStrategy(StrategyDTO strategy) {
         log.info("Updating strategy with ID: {}", strategy.getId());
         Strategy strategyDomain = strategyMapper.toDomain(strategy);
         strategyDomain.validateConsistency();
         Strategy savedStrategy = strategyRepository.save(strategyDomain);
         log.info("Strategy updated successfully with ID: {}", savedStrategy.getId());
 
+        List<String> degradedTickers = new ArrayList<>();
         List<Stock> stockDataList = stockDataRepository.findAllByStrategyId(savedStrategy.getId());
         for (Stock stock : stockDataList) {
             var evaluation = evaluateStrategyService.evaluateStrategy(savedStrategy, stock);
@@ -58,9 +61,19 @@ public class ManageStrategyService implements ManageStrategyUseCase {
             stock.setStrategyEvaluation(evaluationWithId);
             stock.setLastUpdated(evaluationWithId.getEvaluatedAt());
             stockDataRepository.updateStockData(stock);
+            if (evaluationWithId.isCompliant() && evaluationWithId.getRiskRewardRatio() == null) {
+                degradedTickers.add(evaluationWithId.getTicker());
+            }
+        }
+        if (!degradedTickers.isEmpty()) {
+            log.warn("Strategy {} updated with {} ticker(s) lacking a risk plan: {}",
+                    savedStrategy.getId(), degradedTickers.size(), degradedTickers);
         }
 
-        return strategyMapper.toDTO(savedStrategy);
+        return UpdateStrategyResult.builder()
+                .strategy(strategyMapper.toDTO(savedStrategy))
+                .degradedTickers(degradedTickers)
+                .build();
     }
 
     @Override
