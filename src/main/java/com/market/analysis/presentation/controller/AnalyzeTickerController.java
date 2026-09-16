@@ -65,7 +65,7 @@ public class AnalyzeTickerController {
         return WebConstants.REDIRECT_ANALYSIS;
     }
 
-    @PostMapping("/ticker/{id}/update")
+    @PostMapping("/ticker/{id:\\d+}/update")
     public String updateTickerFromDetail(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         performUpdate(id, redirectAttributes);
         return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
@@ -91,7 +91,7 @@ public class AnalyzeTickerController {
         return WebConstants.REDIRECT_ANALYSIS;
     }
 
-    @GetMapping("/ticker/{id}")
+    @GetMapping("/ticker/{id:\\d+}")
     public String getTickerDetail(@PathVariable Long id, Model model) {
         StockDataDTO ticker = manageAnalyzeTickerUseCase.findStockDataById(id);
         model.addAttribute(WebConstants.ATTR_TICKER, ticker);
@@ -103,7 +103,7 @@ public class AnalyzeTickerController {
      * SMA20/50/200 values for the given stock. Consumed by candle-chart.js and
      * mini-chart.js via {@code fetch()}.
      */
-    @GetMapping(value = "/ticker/{id}/candles", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/ticker/{id:\\d+}/candles", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public CandleChartDTO getCandleChart(@PathVariable Long id) {
         return manageAnalyzeTickerUseCase.findCandlesByStockId(id);
@@ -113,7 +113,7 @@ public class AnalyzeTickerController {
      * F2.8 — Thymeleaf view that renders the full interactive candlestick chart
      * with SMA20/50/200 overlays via TradingView Lightweight Charts.
      */
-    @GetMapping("/ticker/{id}/chart")
+    @GetMapping("/ticker/{id:\\d+}/chart")
     public String getTickerChart(@PathVariable Long id, Model model) {
         StockDataDTO ticker = manageAnalyzeTickerUseCase.findStockDataById(id);
         model.addAttribute(WebConstants.ATTR_TICKER, ticker);
