@@ -30,15 +30,21 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 
 ## 3. Procedimiento para Tareas de Desarrollo
 
-- Antes de generar código, verificar:
-  - Cumple Arquitectura Hexagonal y Clean Architecture estricta.
-  - Respeta SRP, DIP y patrones de diseño (Strategy, Factory, Repository).
-  - No hay lógica de negocio en Thymeleaf ni en Frontend.
+- Antes de generar código:
+  1. Sincronizar `main`: `git fetch origin && git checkout main && git pull --ff-only origin main`.
+     Abortar si `git status --porcelain` no está vacío.
+  2. Crear y cambiar a una nueva rama: `git checkout -b feature/<slug>` o `git checkout -b fix/<slug>` (`<slug>` en kebab-case).
+  3. Verificar:
+     - Cumple Arquitectura Hexagonal y Clean Architecture estricta.
+     - Respeta SRP, DIP y patrones de diseño (Strategy, Factory, Repository).
+     - No hay lógica de negocio en Thymeleaf ni en Frontend.
+
 - Para cada tarea completada:
-  1. Revisar cobertura de tests unitarios; asegurar que se cubre el comportamiento implementado.
-  2. Crear un archivo Markdown en `/docs`.
-  3. Nombrar: `task-<fecha>-<slug>.md`.
-  4. Incluir:
+  1. Ejecutar tests relevantes (`mvn test` o `mvn -Dtest=... test`); deben pasar antes de seguir.
+  2. Revisar cobertura de tests unitarios; asegurar que se cubre el comportamiento implementado.
+  3. Crear un archivo Markdown en `/docs`.
+  4. Nombrar: `task-YYYY-MM-DD-<slug>.md`.
+  5. Incluir:
      - Título descriptivo
      - Resumen de la tarea
      - Código generado (si aplica)
@@ -46,7 +52,22 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
      - Cobertura de tests y pruebas añadidas si faltan
      - Advertencias de SonarQube o arquitectura
      - Próximos pasos sugeridos
-  5. Archivo autocontenido y reconstruible sin referencia externa.
+  6. Archivo autocontenido y reconstruible sin referencia externa.
+  7. Verificación runtime solo si hay cambios que afecten a la ejecución:
+     `src/`, `pom.xml`, `Dockerfile`, `docker-compose.yml`, `config/`,
+     `src/main/resources/templates/`, `static/`, `application*.properties`.
+     Ejecutar `docker compose down && docker compose up --build -d`
+     (equivale a la task de VSCode "Reiniciar Docker") y comprobar arranque en `http://localhost:8080`.
+     Si solo se tocó `/docs` o tests puros, omitir e indicarlo en el doc de la tarea.
+  8. **Detener la ejecución y solicitar validación explícita del usuario.** Mostrar:
+     rama, `git status --short`, `git diff --stat`, doc creado en `/docs`,
+     resultado de tests y estado del contenedor, más una checklist de pruebas web propuesta
+     (ruta, pasos, datos de entrada y resultado esperado para cada caso modificado).
+     No avanzar sin confirmación.
+  9. Tras recibir la aprobación del usuario: `git add` solo de archivos intencionados,
+     `git commit` con Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`),
+     `git push -u origin <rama>` y `gh pr create --base main --fill`.
+     Prohibido push directo a `main`, `--force` y `--amend` sobre rama ya pusheada.
 
 ---
 
