@@ -2,37 +2,49 @@
 
 **Objetivo**: Entregar proyecto completo, desplegado, documentado y defendible usando OpenCode como herramienta principal.
 
-**Fecha inicio**: Martes 16 Sep 2026  
-**Fecha objetivo entrega**: Jueves 25 Sep 2026 (tag `tfm-v1.0`)
+**Día 1**: 16 Sep 2026
+**Entrega (Día 10)**: 25 Sep 2026 (tag `tfm-v1.0`)
+
+> Revisión 16 Sep: fechas por número de día (los días de semana del borrador no cuadraban).
+> Procedimiento aplicable en todo el plan: `AGENTS.md` §3
+> (rama → tests → doc → Docker si aplica → validación con menú → PR).
+> Los comandos `opencode explain/generate/...` del borrador no existen en esta
+> sesión y se sustituyen por ese procedimiento.
 
 ---
 
-## Semana 1: Core + Deploy (16-19 Sep)
+## Semana 1: Core + Deploy (Día 1-4)
 
-| Día | Bloque | Tarea | OpenCode Pattern |
-|-----|--------|-------|------------------|
-| **Mar 16** | AM | **Sesión Arquitectura** — Walkthrough `RuleEvaluator` → `AnalyzeAndPersistStockService` → `PolygonAdapter` + crear `docs/architecture-walkthrough.md` personal | `explain` + `generate` |
-| | PM | **Scoring Ponderado** — Añadir `weight` a `Rule`, `threshold` a `Strategy`, modificar `EvaluateStrategyService` → score 0-100 | `refactor --test` |
-| **Mié 17** | AM | Tests scoring + JaCoCo verify | `test --coverage --fix` |
-| | PM | **Deploy Railway** — Provision BD, vars entorno, health checks, custom domain | `bash` (manual Railway CLI) |
-| **Jue 18** | AM | **OpenAPI/Swagger** — `springdoc-openapi-starter-webmvc-ui` + documentar endpoints clave | `generate` |
-| | PM | **README Final** — Badges, URL deploy, sección "Desarrollo con IA", troubleshooting | `edit` |
-| **Vie 19** | AM | **SonarQube Local** (Docker) + Quality Gate A + fix critical | `bash` + `test` |
-| | PM | Buffer / bug fixes deploy | — |
+| Día | Bloque | Tarea | Procedimiento |
+|-----|--------|-------|---------------|
+| **Día 1** | AM | **Sesión Arquitectura** — Verificar/completar `docs/architecture-walkthrough.md` (ya existe; walkthrough `RuleEvaluator` → `AnalyzeAndPersistStockService` → `PolygonAdapter`) | explicar + completar doc |
+| | PM | **Scoring (a)** — `weight` en `Rule` + migración BD (JPA, mappers, tests) | rama → tests → doc → menú → PR |
+| **Día 2** | AM | **Scoring (b)** — `threshold` en `Strategy` + score 0-100 en `EvaluateStrategyService` + tests | rama → tests → doc → menú → PR |
+| | PM | **Scoring (c)** — Mostrar el score en vistas + **(d)** tests scoring + JaCoCo verify | rama → tests → doc → menú → PR |
+| **Día 3** | AM | Tests scoring + JaCoCo verify (cierre) | tests + doc |
+| | PM | **Deploy Railway** — Provision BD, vars entorno, health checks, custom domain | `bash` (manual Railway CLI) + doc |
+| **Día 4** | AM | **OpenAPI/Swagger** — añadir `springdoc-openapi-starter-webmvc-ui` (hoy no está en `pom.xml`) + documentar endpoints clave | rama → tests → doc → menú → PR |
+| | PM | **README Final** — Badges, URL deploy, sección "Desarrollo con IA", troubleshooting | rama → doc → menú → PR |
+| | + | **SonarQube Local** (Docker, hoy no configurado) + Quality Gate A + fix critical | `bash` + tests + doc |
+
+> Nota: SonarQube se adelantó al Día 4 PM/junto a README si el Viernes queda como buffer.
+> **Regla 10 (`AGENTS.md`)**: ninguna tarea empieza sin la PR anterior en MERGED.
+> Hay colchón entre PR y PR para tu merge. El Viernes (Día 5) queda de buffer / bug fixes deploy.
 
 ---
 
-## Semana 2: Docs Metodológicos + Defensa (22-25 Sep)
+## Semana 2: Docs Metodológicos + Defensa (Día 6-10)
 
-| Día | Bloque | Tarea | OpenCode Pattern |
-|-----|--------|-------|------------------|
-| **Lun 22** | AM | **ADRs (4)** — Hexagonal, Rule Engine, IA Boundaries, Testing Strategy | `generate --template` |
-| | PM | **Prompt Library** — `docs/prompts/` con 8-10 patrones reutilizables usados | `generate` |
-| **Mar 23** | AM | **Slides Defensa** — 12 slides: Problema → Arquitectura → IA Workflow → Demo → Métricas → Lecciones → Futuro | `generate --context` |
+| Día | Bloque | Tarea | Procedimiento |
+|-----|--------|-------|---------------|
+| **Día 6** | AM | **ADRs (4)** — Hexagonal, Rule Engine, IA Boundaries, Testing Strategy | generar desde plantilla + menú → PR |
+| | PM | **Prompt Library** — `docs/prompts/` con 8-10 patrones reutilizables usados | generar + menú → PR |
+| **Día 7** | AM | **Slides Defensa** — 12 slides: Problema → Arquitectura → IA Workflow → Demo → Métricas → Lecciones → Futuro | generar con contexto |
 | | PM | Refinamiento slides + speaker notes | — |
-| **Mié 24** | AM | **Rehearsal Grabado** — Demo end-to-end 5 min + Q&A simulado | — |
+| **Día 8** | AM | **Rehearsal Grabado** — Demo end-to-end 5 min + Q&A simulado | — |
 | | PM | Ajustes finales código/docs | — |
-| **Jue 25** | — | **Entrega** — Tag `tfm-v1.0`, repo público, URLs en README, slides link | `bash` (git tag/push) |
+| **Día 9** | — | **Buffer** — remates, re-verificación deploy + docs | — |
+| **Día 10** | — | **Entrega** — Tag `tfm-v1.0`, repo público, URLs en README, slides link | `bash` (git tag/push) |
 
 ---
 
@@ -47,6 +59,9 @@
 | Slides + Rehearsal | Backtesting histórico walk-forward |
 | SonarQube Quality Gate A | Real-time WebSocket quotes |
 
+> Regla vigente hasta la entrega: toda idea que pida código nuevo va a "Futuro",
+> no a esta semana (norma de `AGENTS.md`: no expandir alcance sin menú).
+
 > **Nota modelo predictivo**: Menciónalo en slides como *"Línea futura: servicio ML separado (Python/FastAPI) consumiendo datos persistidos vía API interna, desacoplado del motor determinista"*.
 
 ---
@@ -56,51 +71,36 @@
 | Criterio | Verificación |
 |----------|--------------|
 | **Funcional** | Scoring 0-100 funciona, deploy Railway responde, Swagger carga |
-| **Calidad** | `mvn verify` → BUILD SUCCESS, JaCoCo ≥80%, SonarQube Quality Gate A |
+| **Calidad** | `mvn verify` → BUILD SUCCESS, JaCoCo ≥80% (plugin ya en `pom.xml`), SonarQube Quality Gate A (pendiente de configurar) |
 | **Documentación** | README completo, 4 ADRs, Prompt Library, Slides 12 páginas |
 | **Entrega** | Repo público, tag `tfm-v1.0`, URLs en README, slides accesibles |
 
 ---
 
-## Comandos OpenCode Clave
+## Notas de partida verificadas el Día 1
 
-```bash
-# Mar AM - Arquitectura
-opencode explain src/main/java/com/market/analysis/domain/service/RuleEvaluator.java
-opencode explain src/main/java/com/market/analysis/application/usecase/AnalyzeAndPersistStockService.java
-opencode generate "Personal architecture walkthrough markdown" --output docs/architecture-walkthrough.md
-
-# Mar PM - Scoring
-opencode refactor "Add weight field to Rule, threshold to Strategy, weighted scoring in EvaluateStrategyService" --test
-
-# Mié AM - Tests
-opencode test --coverage --fix
-
-# Lun AM - ADRs
-opencode generate "ADR: Hexagonal Clean Architecture" --template docs/adr/template.md --output docs/adr/001-hexagonal-clean.md
-
-# Mar AM - Slides
-opencode generate "TFM defense slide deck outline 12 slides" --context README.md,docs/ --output docs/slides-outline.md
-```
+- `docs/architecture-walkthrough.md` ya existe (personal, 16 Sep): verificar/completar, no crear.
+- `Rule` (dominio) tiene campos `final` + validación en constructor: el scoring exige migración BD (tablas `rules`/`strategies` vía `script-bd.sql` + entidades JPA + mappers).
+- `terraform/` es del provider GitHub (gestión del repo), irrelevante para el deploy. README ya apunta a Railway.
+- JaCoCo presente en `pom.xml`; SonarQube y `springdoc` ausentes (a añadir en sus tareas).
 
 ---
 
 ## Decisiones Confirmadas
 
-1. **Scoring**: Opción B — ponderado 0-100 con pesos por regla + threshold por estrategia
+1. **Scoring**: Opción B — ponderado 0-100 con pesos por regla + threshold por estrategia (en 4 PRs: weight+migración, threshold+evaluador, vistas, tests+JaCoCo)
 2. **Deploy**: Railway
-3. **Sesión arquitectura**: Hoy martes 16 (AHORA)
+3. **Sesión arquitectura**: Día 1 (verificar walkthrough existente)
 4. **Features extra**: Ninguna — scope locked. Modelo predictivo solo en slides como future work.
 
 ---
 
 ## Próximo Paso Inmediato
 
-**Sesión arquitectura AHORA** (30-45 min):
-1. `opencode explain` sobre `RuleEvaluator`, `AnalyzeAndPersistStockService`, `PolygonAdapter`
-2. Crear `docs/architecture-walkthrough.md` personal
-3. Empezar scoring ponderado esta tarde
+**Sesión arquitectura Día 1** (30 min):
+1. Leer `docs/architecture-walkthrough.md` y marcar qué falta
+2. Completar huecos (si los hay) y validar contigo con menú
+3. Empezar scoring (a) esta tarde
 
-## Recuperar contexto instantáneo en nueva sessión OpenCode
-opencode read docs/tfm-closure-plan.md
-opencode read docs/architecture-walkthrough.md  
+## Recuperar contexto instantáneo en nueva sesión OpenCode
+Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`
