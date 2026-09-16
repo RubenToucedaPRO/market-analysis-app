@@ -37,7 +37,8 @@ Reproducido en test antes del fix: el log mostraba exactamente el mensaje del us
 
 - Nuevo `safeReferer(req)`: si el `Referer` apunta a una acción POST-only (path terminado en
   `/edit` o `/delete`), redirige a la sección padre (`/strategies`, `/rule-definitions`, …).
-  Referers normales se conservan; ausente o ilegible → `/`.
+  Referers normales se conservan; ausente → sección de la petición (`sectionOf()`,
+  mejora fusionada desde `main`); ilegible → `/`.
 - `redirectWithError()` lo usa; el mensaje flash de validación se preserva.
 
 ## Decisiones técnicas
@@ -53,14 +54,36 @@ Reproducido en test antes del fix: el log mostraba exactamente el mensaje del us
 - `StrategyControllerViewTest.shouldNotRoutePostOnlyActionsToDetailView` (nuevo):
   `GET /strategies/edit` y `GET /strategies/delete` → 3xx a `/strategies`.
   Antes del fix: 200 con la página de error de conversión (reproduce el bug).
-- `GlobalExceptionHandlerTest` (3 nuevos): referer `…/strategies/edit` → `redirect:/strategies`;
-  `…/rule-definitions/delete` → `redirect:/rule-definitions`; `…/strategies/new` se conserva.
-- Ejecución: `mvn test` → `Tests run: 1022, Failures: 0, Errors: 0, Skipped: 0`.
+- `GlobalExceptionHandlerTest` (5 en total tras fusionar `main`): referer `…/strategies/edit`
+  → `redirect:/strategies`; `…/rule-definitions/delete` → `redirect:/rule-definitions`;
+  `…/strategies/new` se conserva; sin referer + `/analysis/ticker/999` → `redirect:/analysis`;
+  sin referer + `/` → `redirect:/`.
+- Ejecución: suite completa tras fusionar `main` → `Tests run: 1027, Failures: 0, Errors: 0, Skipped: 0`.
 
-## Advertencias y próximos pasos
+## Advertencias de SonarQube o arquitectura
 
-- El mensaje críptico enmascaraba el error REAL de validación del guardado. Tras el fix,
-  reintentar el guardado mostrará el mensaje verdadero (p. ej. periodo SMA no soportado,
-  regla sin parámetro). Si reaparece, copiar ese mensaje para diagnosticar la causa primaria.
-- Pendiente de confirmar con el usuario si el fallo era creando o editando, y con qué
-  valores de objetivo/stop, por si hay además un problema de binding del formulario SMA.
+- `th:text`, CSRF y capas intactos; métodos nuevos con complejidad trivial y anidamiento < 4.
+- Las restricciones `{id:\\d+}` son solo enrutado (sin lógica de negocio en el controlador).
+- Tras la fusión, el fichero conserva `sectionOf()` de `main` y los tests de ambas ramas
+  (parametrizado de POST-only + 2 de sección); verificado en verde.
+
+## Próximos pasos sugeridos
+
+### A. Probar ahora (login con `APP_SECURITY_*`, en `http://localhost:8080`)
+
+1. Escribe a mano `/strategies/edit` en la barra de direcciones → NO ves página
+  de error: vuelves a `/strategies`. (Antes: página de error con el detalle
+  "For input string: edit".) Lo mismo con `/strategies/delete`.
+  Resultado visible DISTINTO del de una URL inexistente cualquiera.
+2. Provoca un error de validación al guardar con origen en una acción POST-only
+  → vuelves a la sección padre (`/strategies`) conservando el mensaje flash
+  de validación, nunca a una URL sin vista. (Caso cubierto también por los
+  tests de `Referer` de arriba.)
+
+### B. Ideas futuras (opcionales, NO hacer ahora)
+
+- El mensaje críptico enmascaraba el error REAL de validación del guardado. Si al
+  reintentar un guardado aparece un mensaje nuevo (p. ej. periodo SMA no soportado,
+  regla sin parámetro), copiar ese mensaje para diagnosticar la causa primaria.
+- No se re-renderiza el formulario con errores (cambio mayor, fuera de alcance);
+  se mantiene el patrón PRG con flash ya existente, pero a una URL válida.

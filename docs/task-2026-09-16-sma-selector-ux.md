@@ -92,9 +92,10 @@ risk.sma.long=Largo plazo
   - `shouldRenderSmaTargetWithHorizonInDetail`: objetivo SMA 50 / stop SMA 20 renderizan
     `SMA 50` y `SMA 20` en `GET /strategies/1`.
 - Ejecución:
-  - `mvn test -Dtest=StrategyControllerViewTest` → `Tests run: 8, Failures: 0, Errors: 0`.
+  - `mvn test -Dtest=StrategyControllerViewTest` → `Tests run: 9, Failures: 0, Errors: 0`.
   - `mvn test -Dtest='StrategyObjectiveTest,RiskRewardCalculatorTest,ManageStrategyServiceP0Test,ManageStrategyServiceTest'`
     → `Tests run: 89, Failures: 0, Errors: 0`.
+  - Suite completa tras fusionar `main`: `Tests run: 1027, Failures: 0, Errors: 0, BUILD SUCCESS`.
 - Sin `lenient` Mockito; sin cambios de dominio que exijan tests nuevos de dominio.
 
 ## Advertencias SonarQube / arquitectura
@@ -108,8 +109,20 @@ risk.sma.long=Largo plazo
 
 ## Próximos pasos sugeridos
 
-1. Verificación manual: crear → SMA (ver etiquetas + tooltip + opciones) → guardar →
-   detail muestra `SMA 50 (Medio plazo)` → editar preserva selección.
-2. Si se amplía el catálogo SMA en el futuro, el select lo hereda solo; añadir el horizonte
+### A. Probar ahora (login con `APP_SECURITY_*`, en `http://localhost:8080`)
+
+1. Ve a `/strategies/new`, en "Tipo de Objetivo" elige `SMA` → la etiqueta
+  cambia a "Periodo SMA", el desplegable ofrece "SMA 20 - Corto plazo",
+  "SMA 50 - Medio plazo" y "SMA 200 - Largo plazo", y aparece un icono ⓘ
+  junto a la etiqueta. Pasa el ratón por el icono → ves el texto de ayuda
+  ("...usa el valor actual de la media..."). Lo mismo vale para el Stop Loss.
+2. Ve a `/strategies/50` (estrategia "Precio superior a SMA20") → en Objetivo
+  y Stop Loss ves `SMA 50 (Medio plazo)` en vez de un número pelado.
+  Resultado visible DISTINTO del de estrategias con objetivo en % o precio
+  (que muestran el número con 2 decimales, como antes).
+
+### B. Ideas futuras (opcionales, NO hacer ahora)
+
+1. Si se amplía el catálogo SMA en el futuro, el select lo hereda solo; añadir el horizonte
    correspondiente en `getSmaHorizonLabel` + `messages.properties`.
-3. Valorar mismo patrón de etiqueta dinámica en reglas (`strategy-manager.js`) si gusta el resultado.
+2. Valorar mismo patrón de etiqueta dinámica en reglas (`strategy-manager.js`) si gusta el resultado.
