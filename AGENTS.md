@@ -64,6 +64,23 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
      resultado de tests y estado del contenedor, más una checklist de pruebas web propuesta
      (ruta, pasos, datos de entrada y resultado esperado para cada caso modificado).
      No avanzar sin confirmación.
+     Reglas para redactar la checklist (el lector es junior):
+     1. Cada paso es una receta literal: URL exacta, clic/tecla exacta y resultado
+        visible exacto (qué se ve en pantalla, no qué hace el código).
+     2. Cero jerga sin ejemplo: si aparece un término técnico (`Referer`, `redirect`,
+        `flash`), llevar al lado un ejemplo real entre paréntesis.
+     3. Cada paso debe dar un resultado visible DISTINTO de los demás. Si dos pasos
+        acaban en la misma pantalla, uno sobra o hay que cambiar el origen/datos.
+     4. Solo pasos reproducibles a mano en el navegador. Lo cubierto por tests
+        automáticos o irreproducible a mano NO va como paso: se menciona en una línea
+        en "Cobertura de tests" ("cubierto por `XxxTest`, no requiere prueba manual").
+     5. Especificar siempre el contexto: logueado o no, misma pestaña o pestaña nueva,
+        y si usa DevTools, incluir los pasos previos (`F12` → Console → `allow pasting`).
+     6. No asumir comportamientos del navegador: verificar antes de proponer
+        (ej. editar la URL a mano NO envía `Referer`; pegar en consola requiere
+        `allow pasting`). Si un paso no se ha comprobado, no se propone.
+     7. Separar en dos bloques: "A. Probar ahora" (obligatorio) y "B. Ideas futuras"
+        (opcional, no hacer ahora).
   9. Tras recibir la aprobación del usuario: `git add` solo de archivos intencionados,
      `git commit` con Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`),
      `git push -u origin <rama>` y `gh pr create --base main --fill`.
