@@ -35,7 +35,7 @@ function getSmaAllowedPeriods() {
  * @param {HTMLSelectElement} selectEl the <select> holding i18n labels
  */
 function getSmaHorizonLabel(period, selectEl) {
-  const labels = selectEl && selectEl.dataset ? selectEl.dataset : {};
+  const labels = selectEl?.dataset ?? {};
   if (period === 20) {
     return labels.short || "";
   }
@@ -68,7 +68,7 @@ function formatSmaOptionLabel(period, selectEl) {
  */
 function populateSmaPeriodSelect(selectEl, periods, currentValue) {
   const defaultOption =
-    (selectEl.dataset && selectEl.dataset.defaultOption) || "-- Periodo SMA --";
+    selectEl.dataset?.defaultOption || "-- Periodo SMA --";
   selectEl.innerHTML =
     `<option value="">${defaultOption}</option>` +
     periods

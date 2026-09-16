@@ -1,5 +1,5 @@
 <!-- templates/fragments/risk-management-fields.html
-     Fragment con todos los campos de gestión de riesgo de una estrategia.
+     Fragment con los campos de gestión de riesgo de una estrategia.
      Sin parámetros (usa th:object del form padre para binding).
      Campos:
         - objectiveTargetType: SELECT (SMA/PERCENTAGE/FIXED_PRICE) → afecta campos visibles
@@ -67,13 +67,13 @@
         class="bi bi-info-circle text-muted ms-1 d-none"
         data-bs-toggle="tooltip"
         th:title="#{risk.sma.help}"
-        th:aria-label="#{risk.sma.help}"
-        role="img"
+        aria-hidden="true"
       ></i
     ></label>
     <select
       class="form-select d-none"
       id="objectiveTargetSmaSelect"
+      aria-labelledby="objectiveTargetValueLabel"
       disabled
       th:data-default-option="#{risk.sma.period}"
       th:data-short="#{risk.sma.short}"
@@ -150,13 +150,13 @@
         class="bi bi-info-circle text-muted ms-1 d-none"
         data-bs-toggle="tooltip"
         th:title="#{risk.sma.help}"
-        th:aria-label="#{risk.sma.help}"
-        role="img"
+        aria-hidden="true"
       ></i
     ></label>
     <select
       class="form-select d-none"
       id="objectiveStopLossSmaSelect"
+      aria-labelledby="objectiveStopLossValueLabel"
       disabled
       th:data-default-option="#{risk.sma.period}"
       th:data-short="#{risk.sma.short}"
