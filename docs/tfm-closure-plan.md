@@ -6,6 +6,8 @@
 **Entrega (Día 10)**: 25 Sep 2026 (tag `tfm-v1.0`)
 
 > Revisión 16 Sep: fechas por número de día (los días de semana del borrador no cuadraban).
+> Revisión 17 Sep: scoring (a-d) terminado y mergeado (PRs #158-#161, suite
+> 1056/1056 + `mvn verify` con JaCoCo ≥80%). Siguiente: Deploy Railway (Día 3 PM).
 > Procedimiento aplicable en todo el plan: `AGENTS.md` §3
 > (rama → tests → doc → Docker si aplica → validación con menú → PR).
 > Los comandos `opencode explain/generate/...` del borrador no existen en esta
@@ -17,11 +19,11 @@
 
 | Día | Bloque | Tarea | Procedimiento |
 |-----|--------|-------|---------------|
-| **Día 1** | AM | **Sesión Arquitectura** — Verificar/completar `docs/architecture-walkthrough.md` (ya existe; walkthrough `RuleEvaluator` → `AnalyzeAndPersistStockService` → `PolygonAdapter`) | explicar + completar doc |
-| | PM | **Scoring (a)** — `weight` en `Rule` + migración BD (JPA, mappers, tests) | rama → tests → doc → menú → PR |
-| **Día 2** | AM | **Scoring (b)** — `threshold` en `Strategy` + score 0-100 en `EvaluateStrategyService` + tests | rama → tests → doc → menú → PR |
-| | PM | **Scoring (c)** — Mostrar el score en vistas + **(d)** tests scoring + JaCoCo verify | rama → tests → doc → menú → PR |
-| **Día 3** | AM | Tests scoring + JaCoCo verify (cierre) | tests + doc |
+| **Día 1** | AM | **Sesión Arquitectura** — Verificar/completar `docs/architecture-walkthrough.md` (ya existe; walkthrough `RuleEvaluator` → `AnalyzeAndPersistStockService` → `PolygonAdapter`) | ✅ hecho |
+| | PM | **Scoring (a)** — `weight` en `Rule` + migración BD (JPA, mappers, tests) | ✅ hecho (PR #158) |
+| **Día 2** | AM | **Scoring (b)** — `threshold` en `Strategy` + score 0-100 en `EvaluateStrategyService` + tests | ✅ hecho (PR #159) |
+| | PM | **Scoring (c)** — Mostrar el score en vistas + **(d)** tests scoring + JaCoCo verify | ✅ hecho (PRs #160, #161) |
+| **Día 3** | AM | Tests scoring + JaCoCo verify (cierre) | ✅ hecho en (d): 1056/1056 + `mvn verify` |
 | | PM | **Deploy Railway** — Provision BD, vars entorno, health checks, custom domain | `bash` (manual Railway CLI) + doc |
 | **Día 4** | AM | **OpenAPI/Swagger** — añadir `springdoc-openapi-starter-webmvc-ui` (hoy no está en `pom.xml`) + documentar endpoints clave | rama → tests → doc → menú → PR |
 | | PM | **README Final** — Badges, URL deploy, sección "Desarrollo con IA", troubleshooting | rama → doc → menú → PR |
@@ -97,10 +99,12 @@
 
 ## Próximo Paso Inmediato
 
-**Sesión arquitectura Día 1** (30 min):
-1. Leer `docs/architecture-walkthrough.md` y marcar qué falta
-2. Completar huecos (si los hay) y validar contigo con menú
-3. Empezar scoring (a) esta tarde
+**Deploy Railway (Día 3 PM)**:
+1. Provisionar BD MySQL/MariaDB en Railway
+2. Configurar vars de entorno (`FINNHUB_API_TOKEN`, `POLYGON_API_TOKEN`,
+   `OPENAI_API_KEY`, `SPRING_PROFILES_ACTIVE`, `APP_SECURITY_*`)
+3. Health checks + custom domain (si aplica)
+4. Documentar en `/docs` con el procedimiento `AGENTS.md` §3
 
 ## Recuperar contexto instantáneo en nueva sesión OpenCode
 Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`
