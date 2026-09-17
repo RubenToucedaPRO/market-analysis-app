@@ -47,13 +47,22 @@ public class Strategy {
      */
     private final StrategyObjective objective;
 
+    /**
+     * Minimum weighted score (0-100) required for the strategy to pass.
+     * The score is the weight-weighted percentage of passed rules.
+     * Defaults to 100 (all rules must pass) when not specified.
+     */
+    private final int threshold;
+
     @Builder
-    public Strategy(Long id, String name, String description, List<Rule> rules, StrategyObjective objective) {
+    public Strategy(Long id, String name, String description, List<Rule> rules, StrategyObjective objective,
+            Integer threshold) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.rules = rules == null ? new ArrayList<>() : new ArrayList<>(rules);
         this.objective = objective;
+        this.threshold = threshold == null ? 100 : threshold;
     }
 
     /**
@@ -94,6 +103,10 @@ public class Strategy {
             throw new DomainValidationException(DomainErrorCodes.STRATEGY_OBJECTIVE_NULL);
         }
         objective.validate();
+
+        if (threshold < 0 || threshold > 100) {
+            throw new DomainValidationException(DomainErrorCodes.STRATEGY_THRESHOLD_INVALID);
+        }
     }
 
     @Override
