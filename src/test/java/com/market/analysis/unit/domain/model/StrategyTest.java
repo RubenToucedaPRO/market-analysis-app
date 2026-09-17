@@ -374,4 +374,97 @@ class StrategyTest {
         assertNotNull(strategy.getRules());
         assertTrue(strategy.getRules().isEmpty());
     }
+
+    @Test
+    @DisplayName("Should default threshold to 100 when not specified")
+    void testBuilderDefaultsThresholdTo100() {
+        // Act
+        Strategy strategy = Strategy.builder()
+                .id(1L)
+                .name("Test")
+                .description("Test")
+                .build();
+
+        // Assert
+        assertEquals(100, strategy.getThreshold());
+    }
+
+    @Test
+    @DisplayName("Should keep explicit threshold from builder")
+    void testBuilderKeepsExplicitThreshold() {
+        // Act
+        Strategy strategy = Strategy.builder()
+                .id(1L)
+                .name("Test")
+                .description("Test")
+                .threshold(75)
+                .build();
+
+        // Assert
+        assertEquals(75, strategy.getThreshold());
+    }
+
+    @Test
+    @DisplayName("Should validate consistency and throw exception when threshold is negative")
+    void testValidateConsistencyThrowsExceptionWhenThresholdIsNegative() {
+        // Arrange
+        Strategy strategy = validStrategyWithThreshold(-1);
+
+        // Act & Assert
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
+            strategy::validateConsistency);
+        assertEquals("validation.strategy_threshold_invalid", exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Should validate consistency and throw exception when threshold exceeds 100")
+    void testValidateConsistencyThrowsExceptionWhenThresholdExceeds100() {
+        // Arrange
+        Strategy strategy = validStrategyWithThreshold(101);
+
+        // Act & Assert
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
+            strategy::validateConsistency);
+        assertEquals("validation.strategy_threshold_invalid", exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Should pass validation with boundary thresholds 0 and 100")
+    void testValidateConsistencyPassesWithBoundaryThresholds() {
+        // Act & Assert - should not throw
+        validStrategyWithThreshold(0).validateConsistency();
+        validStrategyWithThreshold(100).validateConsistency();
+    }
+
+    private Strategy validStrategyWithThreshold(Integer threshold) {
+        List<Rule> rules = List.of(
+            Rule.builder()
+                .id(1L)
+                .name("Rule 1")
+                .subjectCode("PRICE")
+                .subjectParam(null)
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .build()
+        );
+
+        StrategyObjective objective = StrategyObjective.builder()
+                .targetType(ObjectiveType.PERCENTAGE)
+                .stopLossType(ObjectiveType.PERCENTAGE)
+                .targetValue(BigDecimal.valueOf(5.0))
+                .stopLossValue(BigDecimal.valueOf(2.0))
+                .capitalToRisk(BigDecimal.valueOf(1000.0))
+                .description("Test objective")
+                .build();
+
+        return Strategy.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Description")
+                .rules(rules)
+                .objective(objective)
+                .threshold(threshold)
+                .build();
+    }
 }

@@ -62,6 +62,7 @@ public final class DomainErrorCodes {
     public static final String STRATEGY_OBJECTIVE_NULL = "validation.strategy_objective_null";
     public static final String STRATEGY_NOT_FOUND     = "strategy.not_found";
     public static final String STRATEGY_ID_REQUIRED   = "validation.strategy_id_required";
+    public static final String STRATEGY_THRESHOLD_INVALID = "validation.strategy_threshold_invalid";
 
     // ── Rule Definition ──────────────────────────────────────────────────
     public static final String RD_NULL                = "validation.rd_null";

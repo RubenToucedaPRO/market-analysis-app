@@ -1,6 +1,7 @@
 package com.market.analysis.domain.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +35,9 @@ public class EvaluateStrategyService {
     private static final String METRIC_TOTAL_RULES = "totalRules";
     private static final String METRIC_PASSED_RULES = "passedRules";
     private static final String METRIC_FAILED_RULES = "failedRules";
+    private static final String METRIC_SCORE = "score";
+    private static final String METRIC_PASSED_WEIGHT = "passedWeight";
+    private static final String METRIC_TOTAL_WEIGHT = "totalWeight";
 
     private static final String SUMMARY_TEMPLATE = "Strategy '%s' evaluation for %s: %s. ";
     private static final String RULES_PASSED_TEMPLATE = "%d/%d rules passed.";
@@ -65,7 +69,8 @@ public class EvaluateStrategyService {
         }
 
         Map<String, Object> metrics = calculateMetrics(ruleResults);
-        boolean overallPassed = determineOverallResult(ruleResults);
+        BigDecimal score = (BigDecimal) metrics.get(METRIC_SCORE);
+        boolean overallPassed = determineOverallResult(strategy, score);
         String summary = generateSummary(strategy, stock.getTicker(), ruleResults, overallPassed);
 
         AnalysisResult result = AnalysisResult.builder()
@@ -120,6 +125,8 @@ public class EvaluateStrategyService {
 
     /**
      * Calculates metrics from rule evaluation results.
+     * Includes the weight-weighted score (0-100): the percentage of total
+     * rule weight contributed by passed rules.
      */
     private Map<String, Object> calculateMetrics(List<RuleResult> ruleResults) {
         Map<String, Object> metrics = new HashMap<>();
@@ -131,15 +138,36 @@ public class EvaluateStrategyService {
         metrics.put(METRIC_PASSED_RULES, passedCount);
         metrics.put(METRIC_FAILED_RULES, totalCount - passedCount);
 
+        long totalWeight = 0;
+        long passedWeight = 0;
+        for (RuleResult ruleResult : ruleResults) {
+            int weight = ruleResult.getRule().getWeight();
+            totalWeight += weight;
+            if (ruleResult.isPassed()) {
+                passedWeight += weight;
+            }
+        }
+
+        BigDecimal score = totalWeight == 0 ? BigDecimal.ZERO
+                : BigDecimal.valueOf(passedWeight)
+                        .multiply(BigDecimal.valueOf(100))
+                        .divide(BigDecimal.valueOf(totalWeight), 2, RoundingMode.HALF_UP);
+
+        metrics.put(METRIC_SCORE, score);
+        metrics.put(METRIC_PASSED_WEIGHT, passedWeight);
+        metrics.put(METRIC_TOTAL_WEIGHT, totalWeight);
+
         return metrics;
     }
 
     /**
      * Determines the overall pass/fail status of the strategy evaluation.
-     * Currently requires ALL rules to pass (AND logic).
+     * The strategy passes when its weighted score meets the strategy threshold.
+     * The default threshold of 100 preserves the previous AND logic
+     * (all rules must pass).
      */
-    private boolean determineOverallResult(List<RuleResult> ruleResults) {
-        return ruleResults.stream().allMatch(RuleResult::isPassed);
+    private boolean determineOverallResult(Strategy strategy, BigDecimal score) {
+        return score.compareTo(BigDecimal.valueOf(strategy.getThreshold())) >= 0;
     }
 
     /**
