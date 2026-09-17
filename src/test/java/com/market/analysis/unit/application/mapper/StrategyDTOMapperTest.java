@@ -47,6 +47,7 @@ class StrategyDTOMapperTest {
                 .id(10L)
                 .name("Trend Strategy")
                 .description("A trend following strategy")
+                .threshold(75)
                 .rules(List.of(rule1))
                 .build();
 
@@ -58,6 +59,7 @@ class StrategyDTOMapperTest {
         assertEquals(10L, dto.getId());
         assertEquals("Trend Strategy", dto.getName());
         assertEquals("A trend following strategy", dto.getDescription());
+        assertEquals(75, dto.getThreshold());
         assertNotNull(dto.getRules());
         assertEquals(1, dto.getRules().size());
         assertEquals("SMA Rule", dto.getRules().get(0).getName());
@@ -81,6 +83,7 @@ class StrategyDTOMapperTest {
                 .id(10L)
                 .name("Momentum Strategy")
                 .description("A momentum based strategy")
+                .threshold(60)
                 .rules(List.of(ruleDTO1))
                 .build();
 
@@ -92,9 +95,28 @@ class StrategyDTOMapperTest {
         assertEquals(10L, strategy.getId());
         assertEquals("Momentum Strategy", strategy.getName());
         assertEquals("A momentum based strategy", strategy.getDescription());
+        assertEquals(60, strategy.getThreshold());
         assertNotNull(strategy.getRules());
         assertEquals(1, strategy.getRules().size());
         assertEquals("RSI Rule", strategy.getRules().get(0).getName());
+    }
+
+    @Test
+    @DisplayName("Should default threshold to 100 when DTO threshold is null")
+    void testDTOToStrategyDefaultsThresholdTo100() {
+        // Arrange
+        StrategyDTO dto = StrategyDTO.builder()
+                .id(10L)
+                .name("Momentum Strategy")
+                .description("A momentum based strategy")
+                .build();
+
+        // Act
+        Strategy strategy = mapper.toDomain(dto);
+
+        // Assert
+        assertNotNull(strategy);
+        assertEquals(100, strategy.getThreshold());
     }
 
     @Test

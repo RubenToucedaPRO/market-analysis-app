@@ -3,6 +3,7 @@ package com.market.analysis.infrastructure.persistence.entity;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,6 +25,9 @@ public class StrategyEntity {
     private Long id;
     private String name;
     private String description;
+
+    @Column(name = "threshold")
+    private Integer threshold;
 
     @Embedded
     private StrategyObjectiveEntity objective;

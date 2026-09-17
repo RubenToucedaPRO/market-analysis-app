@@ -15,11 +15,17 @@ document.addEventListener('DOMContentLoaded', function () {
       addRuleRow();
     });
   });
-  document.querySelectorAll('[data-action="remove-rule"]').forEach(function (el) {
-    el.addEventListener('click', function () {
-      removeRuleRow(el);
+  // Delegated listener: rows added later via addRuleRow() are covered too.
+  // (Binding each button at load left dynamically added rows without handler.)
+  const container = document.getElementById('rules-container');
+  if (container) {
+    container.addEventListener('click', function (event) {
+      const button = event.target.closest('[data-action="remove-rule"]');
+      if (button && container.contains(button)) {
+        removeRuleRow(button);
+      }
     });
-  });
+  }
 });
 
 /**

@@ -67,6 +67,7 @@ public class StrategyController {
         StrategyDTO strategy = StrategyDTO.builder()
                 .name("")
                 .description("")
+                .threshold(100)
                 .rules(new ArrayList<>(List.of(emptyRule)))
                 .objective(StrategyObjectiveDTO.builder().build())
                 .build();

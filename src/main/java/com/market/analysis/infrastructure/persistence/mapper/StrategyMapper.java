@@ -25,6 +25,7 @@ public class StrategyMapper {
                 .id(entity.getId())
                 .name(entity.getName())
                 .description(entity.getDescription())
+                .threshold(entity.getThreshold())
                 .rules(entity.getRules() != null
                         ? entity.getRules().stream()
                                 .map(ruleMapper::toDomain)
@@ -41,6 +42,7 @@ public class StrategyMapper {
         entity.setId(domain.getId());
         entity.setName(domain.getName());
         entity.setDescription(domain.getDescription());
+        entity.setThreshold(domain.getThreshold());
         entity.setObjective(toObjectiveEntity(domain.getObjective()));
 
         if (domain.getRules() != null) {

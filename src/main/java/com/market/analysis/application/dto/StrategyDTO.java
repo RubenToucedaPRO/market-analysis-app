@@ -20,6 +20,7 @@ public class StrategyDTO {
     private Long id;
     private String name;
     private String description;
+    private Integer threshold;
     private List<RuleDTO> rules;
     private StrategyObjectiveDTO objective;
 }

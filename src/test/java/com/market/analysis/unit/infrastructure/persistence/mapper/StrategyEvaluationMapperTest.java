@@ -49,6 +49,7 @@ class StrategyEvaluationMapperTest {
                     .strategyId(10L)
                     .compliant(true)
                     .complianceRate(BigDecimal.valueOf(85.50))
+                    .score(BigDecimal.valueOf(90.00))
                     .summary("Strategy passed with 85.50% compliance")
                     .evaluatedAt(evaluatedAt)
                     .priceAtEvaluation(BigDecimal.valueOf(150.25))
@@ -64,6 +65,7 @@ class StrategyEvaluationMapperTest {
             assertThat(entity.getStock()).isEqualTo(stock);
             assertThat(entity.isCompliant()).isTrue();
             assertThat(entity.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(85.50));
+            assertThat(entity.getScore()).isEqualByComparingTo(BigDecimal.valueOf(90.00));
             assertThat(entity.getSummary()).isEqualTo("Strategy passed with 85.50% compliance");
             assertThat(entity.getEvaluatedAt()).isEqualTo(evaluatedAt);
             assertThat(entity.getPriceAtEvaluation()).isEqualByComparingTo(BigDecimal.valueOf(150.25));
@@ -165,6 +167,7 @@ class StrategyEvaluationMapperTest {
             entity.setStock(stock);
             entity.setCompliant(true);
             entity.setComplianceRate(BigDecimal.valueOf(92.75));
+            entity.setScore(BigDecimal.valueOf(88.25));
             entity.setSummary("Excellent strategy performance");
             entity.setEvaluatedAt(evaluatedAt);
             entity.setPriceAtEvaluation(BigDecimal.valueOf(380.50));
@@ -180,6 +183,7 @@ class StrategyEvaluationMapperTest {
             assertThat(domain.getStrategyId()).isEqualTo(20L);
             assertThat(domain.isCompliant()).isTrue();
             assertThat(domain.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(92.75));
+            assertThat(domain.getScore()).isEqualByComparingTo(BigDecimal.valueOf(88.25));
             assertThat(domain.getSummary()).isEqualTo("Excellent strategy performance");
             assertThat(domain.getEvaluatedAt()).isEqualTo(evaluatedAt);
             assertThat(domain.getPriceAtEvaluation()).isEqualByComparingTo(BigDecimal.valueOf(380.50));

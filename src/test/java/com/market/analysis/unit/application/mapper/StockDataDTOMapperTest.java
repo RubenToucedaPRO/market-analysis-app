@@ -174,6 +174,7 @@ class StockDataDTOMapperTest {
                 .strategyName("Test Strategy")
                 .compliant(true)
                 .complianceRate(new BigDecimal("100.00"))
+                .score(new BigDecimal("100.00"))
                 .targetPrice(new BigDecimal("165.00"))
                 .stopLossPrice(new BigDecimal("145.00"))
                 .riskRewardRatio(new BigDecimal("1.5000"))
@@ -195,6 +196,7 @@ class StockDataDTOMapperTest {
         assertThat(dto.getStopLossPrice()).isEqualByComparingTo(new BigDecimal("145.00"));
         assertThat(dto.getRiskRewardRatio()).isEqualByComparingTo(new BigDecimal("1.5000"));
         assertThat(dto.getRecommendedShares()).isEqualTo(100);
+        assertThat(dto.getScore()).isEqualByComparingTo(new BigDecimal("100.00"));
     }
 
     @Test

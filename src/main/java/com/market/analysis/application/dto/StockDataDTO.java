@@ -68,6 +68,9 @@ public class StockDataDTO {
     /** Compliance rate (percentage of rules passed) */
     private BigDecimal complianceRate;
 
+    /** Weight-weighted score (0-100); null for evaluations recorded before scoring */
+    private BigDecimal score;
+
     /** Summary of the evaluation result */
     private String evaluationSummary;
 

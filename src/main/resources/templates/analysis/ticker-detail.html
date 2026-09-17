@@ -106,6 +106,20 @@
                   th:value="${ticker.complianceRate}"
                   max="100"
                 ></progress>
+                <div th:if="${ticker.score != null}">
+                  <div class="d-flex justify-content-between mb-1 mt-2">
+                    <small class="text-muted" th:text="#{ticker.detail.score}">Puntuación Ponderada</small>
+                    <small
+                      class="fw-bold"
+                      th:text="${ticker.score} + '%'"
+                    ></small>
+                  </div>
+                  <progress
+                    class="w-100"
+                    th:value="${ticker.score}"
+                    max="100"
+                  ></progress>
+                </div>
               </div>
             </div>
           </div>

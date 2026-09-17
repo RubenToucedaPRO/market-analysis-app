@@ -37,6 +37,7 @@ public class StockDataDTOMapper {
                                 .strategyId(stock.getStrategyId())
                                 .strategyName(se != null ? se.getStrategyName() : null)
                                 .complianceRate(se != null ? se.getComplianceRate() : null)
+                                .score(se != null ? se.getScore() : null)
                                 .evaluationPassed(se != null ? se.isCompliant() : null)
                                 .evaluationSummary(se != null ? se.getSummary() : null)
                                 .valorationIA(stock.getValorationIA())
