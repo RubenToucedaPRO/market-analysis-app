@@ -146,6 +146,54 @@ class StrategyEvaluationMapperTest {
             assertThat(entity.getPriceAtEvaluation()).isNull();
             assertThat(entity.getStock()).isNotNull();
         }
+
+        @Test
+        @DisplayName("Should convert domain to entity without stock with all fields")
+        void shouldConvertDomainToEntityWithoutStock() {
+            // Arrange
+            StrategyEvaluation domain = StrategyEvaluation.builder()
+                    .id(5L)
+                    .ticker("NVDA")
+                    .strategyId(7L)
+                    .strategyName("Scored Strategy")
+                    .compliant(true)
+                    .complianceRate(BigDecimal.valueOf(80.00))
+                    .score(BigDecimal.valueOf(75.00))
+                    .summary("Score 75.00 meets threshold")
+                    .evaluatedAt(Instant.now())
+                    .priceAtEvaluation(BigDecimal.valueOf(140.00))
+                    .isLatest(true)
+                    .targetPrice(BigDecimal.valueOf(150.00))
+                    .stopLossPrice(BigDecimal.valueOf(135.00))
+                    .riskRewardRatio(BigDecimal.valueOf(2.0))
+                    .recommendedShares(50)
+                    .build();
+
+            // Act
+            StrategyEvaluationEntity entity = mapper.toEntity(domain);
+
+            // Assert
+            assertThat(entity).isNotNull();
+            assertThat(entity.getId()).isEqualTo(5L);
+            assertThat(entity.getStrategyName()).isEqualTo("Scored Strategy");
+            assertThat(entity.isCompliant()).isTrue();
+            assertThat(entity.getComplianceRate()).isEqualByComparingTo(BigDecimal.valueOf(80.00));
+            assertThat(entity.getScore()).isEqualByComparingTo(BigDecimal.valueOf(75.00));
+            assertThat(entity.getTargetPrice()).isEqualByComparingTo(BigDecimal.valueOf(150.00));
+            assertThat(entity.getStopLossPrice()).isEqualByComparingTo(BigDecimal.valueOf(135.00));
+            assertThat(entity.getRiskRewardRatio()).isEqualByComparingTo(BigDecimal.valueOf(2.0));
+            assertThat(entity.getRecommendedShares()).isEqualTo(50);
+        }
+
+        @Test
+        @DisplayName("Should return null when domain is null without stock")
+        void shouldReturnNullWhenDomainIsNullWithoutStock() {
+            // Act
+            StrategyEvaluationEntity entity = mapper.toEntity(null);
+
+            // Assert
+            assertThat(entity).isNull();
+        }
     }
 
     @Nested

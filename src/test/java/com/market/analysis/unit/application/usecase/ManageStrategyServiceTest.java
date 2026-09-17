@@ -249,6 +249,64 @@ class ManageStrategyServiceTest {
     }
 
     @Test
+    @DisplayName("Should reject strategy with threshold above 100 on create")
+    void testCreateStrategyRejectsThresholdAbove100() {
+        // Arrange
+        StrategyDTO dto = StrategyDTO.builder()
+                .id(3L)
+                .name("Bad Threshold Strategy")
+                .description("Threshold 101")
+                .threshold(101)
+                .rules(List.of(testRuleDTO))
+                .build();
+
+        Strategy domain = Strategy.builder()
+                .id(3L)
+                .name("Bad Threshold Strategy")
+                .description("Threshold 101")
+                .threshold(101)
+                .rules(List.of(testRule))
+                .objective(testStrategy.getObjective())
+                .build();
+
+        when(strategyDTOMapper.toDomain(dto)).thenReturn(domain);
+
+        // Act & Assert
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
+                () -> manageStrategyService.createStrategy(dto));
+        assertEquals("validation.strategy_threshold_invalid", exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Should reject strategy with negative threshold on update")
+    void testUpdateStrategyRejectsNegativeThreshold() {
+        // Arrange
+        StrategyDTO dto = StrategyDTO.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Test Description")
+                .threshold(-1)
+                .rules(List.of(testRuleDTO))
+                .build();
+
+        Strategy domain = Strategy.builder()
+                .id(1L)
+                .name("Test Strategy")
+                .description("Test Description")
+                .threshold(-1)
+                .rules(List.of(testRule))
+                .objective(testStrategy.getObjective())
+                .build();
+
+        when(strategyDTOMapper.toDomain(dto)).thenReturn(domain);
+
+        // Act & Assert
+        DomainValidationException exception = assertThrows(DomainValidationException.class,
+                () -> manageStrategyService.updateStrategy(dto));
+        assertEquals("validation.strategy_threshold_invalid", exception.getErrorCode());
+    }
+
+    @Test
     @DisplayName("Should update strategy successfully")
     void testUpdateStrategy() {
         // Arrange

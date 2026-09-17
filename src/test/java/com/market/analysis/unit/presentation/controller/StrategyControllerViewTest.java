@@ -1,5 +1,6 @@
 package com.market.analysis.unit.presentation.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -20,6 +21,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -30,6 +32,7 @@ import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.StrategyObjectiveDTO;
+import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
@@ -279,6 +282,100 @@ class StrategyControllerViewTest {
         mockMvc.perform(get("/strategies/delete"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/strategies"));
+    }
+
+    @Test
+    @DisplayName("Should bind threshold and rule weight on strategy create")
+    void shouldBindThresholdAndWeightOnCreate() throws Exception {
+        mockMvc.perform(post("/strategies")
+                        .param("name", "Scored Strategy")
+                        .param("description", "With threshold and weights")
+                        .param("threshold", "80")
+                        .param("rules[0].name", "Heavy Rule")
+                        .param("rules[0].subjectCode", "PRICE")
+                        .param("rules[0].operator", ">")
+                        .param("rules[0].targetCode", "CONSTANT")
+                        .param("rules[0].targetParam", "100.0")
+                        .param("rules[0].weight", "3"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/strategies"));
+
+        ArgumentCaptor<StrategyDTO> captor = ArgumentCaptor.forClass(StrategyDTO.class);
+        verify(manageStrategyUseCase).createStrategy(captor.capture());
+        assertThat(captor.getValue().getThreshold()).isEqualTo(80);
+        assertThat(captor.getValue().getRules()).hasSize(1);
+        assertThat(captor.getValue().getRules().get(0).getWeight()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("Should bind threshold and rule weight on strategy update")
+    void shouldBindThresholdAndWeightOnUpdate() throws Exception {
+        StrategyDTO saved = StrategyDTO.builder().id(1L).name("Scored Strategy").build();
+        when(manageStrategyUseCase.updateStrategy(any(StrategyDTO.class)))
+                .thenReturn(UpdateStrategyResult.builder()
+                        .strategy(saved)
+                        .degradedTickers(List.of())
+                        .build());
+
+        mockMvc.perform(post("/strategies")
+                        .param("id", "1")
+                        .param("name", "Scored Strategy")
+                        .param("description", "With threshold and weights")
+                        .param("threshold", "60")
+                        .param("rules[0].name", "Light Rule")
+                        .param("rules[0].subjectCode", "PRICE")
+                        .param("rules[0].operator", ">")
+                        .param("rules[0].targetCode", "CONSTANT")
+                        .param("rules[0].targetParam", "100.0")
+                        .param("rules[0].weight", "2"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/strategies"));
+
+        ArgumentCaptor<StrategyDTO> captor = ArgumentCaptor.forClass(StrategyDTO.class);
+        verify(manageStrategyUseCase).updateStrategy(captor.capture());
+        assertThat(captor.getValue().getThreshold()).isEqualTo(60);
+        assertThat(captor.getValue().getRules()).hasSize(1);
+        assertThat(captor.getValue().getRules().get(0).getWeight()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Should render threshold and weight inputs in create form")
+    void shouldRenderThresholdAndWeightInputsInCreateForm() throws Exception {
+        when(manageRuleDefinitionUseCase.getAllRuleDefinitions()).thenReturn(List.of());
+
+        mockMvc.perform(get("/strategies/new"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"threshold\"")))
+                .andExpect(content().string(containsString("rules[0].weight")))
+                .andExpect(content().string(containsString("Umbral de Aprobación")));
+    }
+
+    @Test
+    @DisplayName("Should render threshold and rule weights in detail")
+    void shouldRenderThresholdAndWeightsInDetail() throws Exception {
+        RuleDTO rule = RuleDTO.builder()
+                .id(1L)
+                .name("Heavy Rule")
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .weight(3)
+                .build();
+        StrategyDTO strategy = StrategyDTO.builder()
+                .id(1L)
+                .name("Scored Strategy")
+                .description("Desc")
+                .threshold(75)
+                .rules(List.of(rule))
+                .build();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
+
+        mockMvc.perform(get("/strategies/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("75%")))
+                .andExpect(content().string(containsString(">3<")));
     }
 
 }
