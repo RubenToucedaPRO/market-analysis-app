@@ -34,6 +34,7 @@ class RuleDTOMapperTest {
                 .operator(">")
                 .targetCode("SMA")
                 .targetParam(200.0)
+                .weight(3)
                 .build();
 
         // Act
@@ -48,6 +49,7 @@ class RuleDTOMapperTest {
         assertEquals(">", dto.getOperator());
         assertEquals("SMA", dto.getTargetCode());
         assertEquals(200.0, dto.getTargetParam());
+        assertEquals(3, dto.getWeight());
     }
 
     @Test
@@ -62,6 +64,7 @@ class RuleDTOMapperTest {
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(70.0)
+                .weight(2)
                 .description("RSI 14 above 70")
                 .build();
 
@@ -77,6 +80,28 @@ class RuleDTOMapperTest {
         assertEquals(">", rule.getOperator());
         assertEquals("CONSTANT", rule.getTargetCode());
         assertEquals(70.0, rule.getTargetParam());
+        assertEquals(2, rule.getWeight());
+    }
+
+    @Test
+    @DisplayName("Should default weight to 1 when DTO weight is null")
+    void testDTOToRuleDefaultsWeightToOne() {
+        // Arrange
+        RuleDTO dto = RuleDTO.builder()
+                .id(1L)
+                .name("No Weight")
+                .subjectCode("PRICE")
+                .operator(">")
+                .targetCode("CONSTANT")
+                .targetParam(100.0)
+                .build();
+
+        // Act
+        Rule rule = mapper.toDomain(dto);
+
+        // Assert
+        assertNotNull(rule);
+        assertEquals(1, rule.getWeight());
     }
 
     @Test

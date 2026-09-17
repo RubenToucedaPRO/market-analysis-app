@@ -382,6 +382,7 @@ class EvaluateStrategyServiceTest {
                         // Assert
                         assertThat(result.isCompliant()).isTrue();
                         assertThat(result.getTargetPrice()).isNotNull();
+                        assertThat(result.getScore()).isEqualByComparingTo(BigDecimal.valueOf(75.00));
                         assertThat(result.getComplianceRate())
                                         .isEqualByComparingTo(BigDecimal.valueOf(50.00));
                 }

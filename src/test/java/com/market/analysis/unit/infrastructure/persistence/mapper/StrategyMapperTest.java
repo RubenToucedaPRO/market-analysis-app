@@ -74,6 +74,7 @@ class StrategyMapperTest {
                 .id(1L)
                 .name("Test Strategy")
                 .description("Test Description")
+                .threshold(80)
                 .rules(List.of(testRule))
                 .build();
 
@@ -85,6 +86,7 @@ class StrategyMapperTest {
         assertEquals(1L, entity.getId());
         assertEquals("Test Strategy", entity.getName());
         assertEquals("Test Description", entity.getDescription());
+        assertEquals(80, entity.getThreshold());
         assertNotNull(entity.getRules());
         assertEquals(1, entity.getRules().size());
     }
@@ -99,6 +101,7 @@ class StrategyMapperTest {
         entity.setId(2L);
         entity.setName("RSI Strategy");
         entity.setDescription("RSI based strategy");
+        entity.setThreshold(70);
         entity.setRules(new ArrayList<>(List.of(testRuleEntity)));
 
         // Act
@@ -109,8 +112,30 @@ class StrategyMapperTest {
         assertEquals(2L, strategy.getId());
         assertEquals("RSI Strategy", strategy.getName());
         assertEquals("RSI based strategy", strategy.getDescription());
+        assertEquals(70, strategy.getThreshold());
         assertNotNull(strategy.getRules());
         assertEquals(1, strategy.getRules().size());
+    }
+
+    @Test
+    @DisplayName("Should default threshold to 100 when entity threshold is null")
+    void testToDomainWithNullThresholdDefaultsTo100() {
+        // Arrange
+        when(ruleMapper.toDomain(any(RuleEntity.class))).thenReturn(testRule);
+
+        StrategyEntity entity = new StrategyEntity();
+        entity.setId(3L);
+        entity.setName("Legacy Strategy");
+        entity.setDescription("No threshold stored");
+        entity.setThreshold(null);
+        entity.setRules(new ArrayList<>(List.of(testRuleEntity)));
+
+        // Act
+        Strategy strategy = strategyMapper.toDomain(entity);
+
+        // Assert
+        assertNotNull(strategy);
+        assertEquals(100, strategy.getThreshold());
     }
 
     @Test
