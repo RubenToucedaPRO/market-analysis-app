@@ -338,6 +338,143 @@ class EvaluateStrategyServiceTest {
         }
 
         @Nested
+        @DisplayName("Threshold Scoring Tests")
+        class ThresholdScoringTests {
+
+                private Rule heavyRule;
+                private Rule lightRule;
+
+                @BeforeEach
+                void setUpWeights() {
+                        heavyRule = Rule.builder()
+                                        .id(10L)
+                                        .name("Heavy Rule")
+                                        .subjectCode("PRICE")
+                                        .operator(">")
+                                        .targetCode("SMA")
+                                        .targetParam(20.0)
+                                        .weight(3)
+                                        .build();
+
+                        lightRule = Rule.builder()
+                                        .id(11L)
+                                        .name("Light Rule")
+                                        .subjectCode("VOLUME")
+                                        .operator(">")
+                                        .targetCode("AVG_VOLUME")
+                                        .weight(1)
+                                        .build();
+                }
+
+                @Test
+                @DisplayName("Should pass when weighted score meets threshold")
+                void shouldPassWhenScoreMeetsThreshold() {
+                        // Arrange: 3/4 weight passes -> score 75.00, threshold 75
+                        when(ruleEvaluator.evaluate(heavyRule, testStock)).thenReturn(RuleResult.builder()
+                                        .rule(heavyRule).passed(true).justification("PASSED").build());
+                        when(ruleEvaluator.evaluate(lightRule, testStock)).thenReturn(RuleResult.builder()
+                                        .rule(lightRule).passed(false).justification("FAILED").build());
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(
+                                        strategyWithThreshold(List.of(heavyRule, lightRule), 75), testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isTrue();
+                        assertThat(result.getTargetPrice()).isNotNull();
+                        assertThat(result.getComplianceRate())
+                                        .isEqualByComparingTo(BigDecimal.valueOf(50.00));
+                }
+
+                @Test
+                @DisplayName("Should fail when weighted score is below threshold")
+                void shouldFailWhenScoreBelowThreshold() {
+                        // Arrange: 3/4 weight passes -> score 75.00, threshold 76
+                        when(ruleEvaluator.evaluate(heavyRule, testStock)).thenReturn(RuleResult.builder()
+                                        .rule(heavyRule).passed(true).justification("PASSED").build());
+                        when(ruleEvaluator.evaluate(lightRule, testStock)).thenReturn(RuleResult.builder()
+                                        .rule(lightRule).passed(false).justification("FAILED").build());
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(
+                                        strategyWithThreshold(List.of(heavyRule, lightRule), 76), testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isFalse();
+                        assertThat(result.getTargetPrice()).isNull();
+                }
+
+                @Test
+                @DisplayName("Should round score half up at boundary")
+                void shouldRoundScoreHalfUpAtBoundary() {
+                        // Arrange: 2/3 weight passes -> score 66.67
+                        List<Rule> rules = List.of(
+                                        Rule.builder().id(20L).name("R1").subjectCode("PRICE").operator(">")
+                                                        .targetCode("SMA").targetParam(20.0).weight(1).build(),
+                                        Rule.builder().id(21L).name("R2").subjectCode("PRICE").operator(">")
+                                                        .targetCode("SMA").targetParam(20.0).weight(1).build(),
+                                        Rule.builder().id(22L).name("R3").subjectCode("PRICE").operator(">")
+                                                        .targetCode("SMA").targetParam(20.0).weight(1).build());
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class))).thenReturn(
+                                        RuleResult.builder().rule(rules.get(0)).passed(true).justification("PASSED")
+                                                        .build(),
+                                        RuleResult.builder().rule(rules.get(1)).passed(true).justification("PASSED")
+                                                        .build(),
+                                        RuleResult.builder().rule(rules.get(2)).passed(false).justification("FAILED")
+                                                        .build());
+
+                        // Act & Assert: 66.67 meets 66 but not 67
+                        assertThat(service.evaluateStrategy(strategyWithThreshold(rules, 66), testStock)
+                                        .isCompliant()).isTrue();
+                }
+
+                @Test
+                @DisplayName("Should fail when rounded score is below threshold")
+                void shouldFailWhenRoundedScoreBelowThreshold() {
+                        // Arrange: 2/3 weight passes -> score 66.67, threshold 67
+                        List<Rule> rules = List.of(
+                                        Rule.builder().id(20L).name("R1").subjectCode("PRICE").operator(">")
+                                                        .targetCode("SMA").targetParam(20.0).weight(1).build(),
+                                        Rule.builder().id(21L).name("R2").subjectCode("PRICE").operator(">")
+                                                        .targetCode("SMA").targetParam(20.0).weight(1).build(),
+                                        Rule.builder().id(22L).name("R3").subjectCode("PRICE").operator(">")
+                                                        .targetCode("SMA").targetParam(20.0).weight(1).build());
+                        when(ruleEvaluator.evaluate(any(Rule.class), any(Stock.class))).thenReturn(
+                                        RuleResult.builder().rule(rules.get(0)).passed(true).justification("PASSED")
+                                                        .build(),
+                                        RuleResult.builder().rule(rules.get(1)).passed(true).justification("PASSED")
+                                                        .build(),
+                                        RuleResult.builder().rule(rules.get(2)).passed(false).justification("FAILED")
+                                                        .build());
+
+                        // Act
+                        StrategyEvaluation result = service.evaluateStrategy(
+                                        strategyWithThreshold(rules, 67), testStock);
+
+                        // Assert
+                        assertThat(result.isCompliant()).isFalse();
+                }
+
+                private Strategy strategyWithThreshold(List<Rule> rules, int threshold) {
+                        return Strategy.builder()
+                                        .id(99L)
+                                        .name("Threshold Strategy")
+                                        .description("Strategy with custom threshold")
+                                        .rules(rules)
+                                        .threshold(threshold)
+                                        .objective(StrategyObjective.builder()
+                                                        .targetType(ObjectiveType.PERCENTAGE)
+                                                        .stopLossType(ObjectiveType.PERCENTAGE)
+                                                        .targetValue(BigDecimal.valueOf(5.0))
+                                                        .stopLossValue(BigDecimal.valueOf(2.0))
+                                                        .capitalToRisk(BigDecimal.valueOf(1000.0))
+                                                        .description("Threshold objective")
+                                                        .build())
+                                        .build();
+                }
+        }
+
+        @Nested
         @DisplayName("Validation Tests")
         class ValidationTests {
 
