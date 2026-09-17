@@ -35,6 +35,7 @@ public class StrategyDTOMapper {
                 .id(strategy.getId())
                 .name(strategy.getName())
                 .description(strategy.getDescription())
+                .threshold(strategy.getThreshold())
                 .rules(ruleDTOMapper.toDTOList(strategy.getRules()))
                 .objective(toObjectiveDTO(strategy.getObjective()))
                 .build();
@@ -55,6 +56,7 @@ public class StrategyDTOMapper {
                 .id(dto.getId())
                 .name(dto.getName())
                 .description(dto.getDescription())
+                .threshold(dto.getThreshold())
                 .rules(ruleDTOMapper.toDomainList(dto.getRules()))
                 .objective(toObjectiveDomain(dto.getObjective()))
                 .build();

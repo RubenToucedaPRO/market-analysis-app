@@ -22,5 +22,6 @@ public class RuleDTO {
     private String operator;
     private String targetCode;
     private Double targetParam;
+    private Integer weight;
     private String description;
 }

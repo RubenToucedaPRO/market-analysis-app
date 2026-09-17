@@ -45,6 +45,9 @@ public class StrategyEvaluationEntity {
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal complianceRate;
 
+    @Column(name = "score", nullable = true, precision = 5, scale = 2)
+    private BigDecimal score;
+
     @Column(length = 2000)
     private String summary;
 

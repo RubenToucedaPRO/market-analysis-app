@@ -51,6 +51,13 @@ public class StrategyEvaluation {
     private BigDecimal complianceRate;
 
     /**
+     * Weight-weighted score as a percentage (0-100).
+     * Calculated from the total weight of passed rules over total rule weight.
+     * Null for evaluations recorded before scoring existed.
+     */
+    private BigDecimal score;
+
+    /**
      * Human-readable summary of the analysis.
      * Can include interpretation from IA if available.
      */

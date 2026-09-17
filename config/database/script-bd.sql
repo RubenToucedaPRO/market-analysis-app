@@ -215,6 +215,7 @@ CREATE TABLE `strategies` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `description` varchar(255) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
+  `threshold` int(11) DEFAULT 100,
   `objective_description` varchar(500) DEFAULT NULL,
   `objective_capital_to_risk` decimal(19,4) DEFAULT NULL,
   `objective_stop_loss_type` varchar(255) DEFAULT NULL,
@@ -235,6 +236,7 @@ DROP TABLE IF EXISTS `strategy_evaluations`;
 CREATE TABLE `strategy_evaluations` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `compliance_rate` decimal(5,2) NOT NULL,
+  `score` decimal(5,2) DEFAULT NULL,
   `compliant` bit(1) NOT NULL,
   `evaluated_at` datetime(6) NOT NULL,
   `latest` bit(1) NOT NULL,

@@ -213,6 +213,21 @@
                               max="100"
                               th:attr="title=${ticker.complianceRate + '%'}"
                             ></progress>
+                            <div
+                              class="d-flex justify-content-between align-items-center mb-1 mt-1"
+                              th:if="${ticker.score != null}"
+                            >
+                              <small
+                                class="text-muted"
+                                th:text="#{analysis.score}"
+                                >Puntuación</small
+                              >
+                              <small
+                                class="fw-bold"
+                                th:text="${#numbers.formatDecimal(ticker.score, 1, 2) + '%'}"
+                                >0%</small
+                              >
+                            </div>
                           </div>
                         </small>
                       </div>

@@ -27,6 +27,7 @@ public class StrategyEvaluationMapper {
         entity.setStrategyName(domain.getStrategyName());
         entity.setCompliant(domain.isCompliant());
         entity.setComplianceRate(domain.getComplianceRate());
+        entity.setScore(domain.getScore());
         entity.setSummary(domain.getSummary());
         entity.setEvaluatedAt(domain.getEvaluatedAt());
         entity.setPriceAtEvaluation(domain.getPriceAtEvaluation());
@@ -49,6 +50,7 @@ public class StrategyEvaluationMapper {
         entity.setStrategyName(domain.getStrategyName());
         entity.setCompliant(domain.isCompliant());
         entity.setComplianceRate(domain.getComplianceRate());
+        entity.setScore(domain.getScore());
         entity.setSummary(domain.getSummary());
         entity.setEvaluatedAt(domain.getEvaluatedAt());
         entity.setPriceAtEvaluation(domain.getPriceAtEvaluation());
@@ -80,6 +82,7 @@ public class StrategyEvaluationMapper {
                 .strategyId(entity.getStock().getStrategyId())
                 .compliant(entity.isCompliant())
                 .complianceRate(entity.getComplianceRate())
+                .score(entity.getScore())
                 .summary(entity.getSummary())
                 .evaluatedAt(entity.getEvaluatedAt())
                 .priceAtEvaluation(entity.getPriceAtEvaluation())

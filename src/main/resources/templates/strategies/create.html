@@ -70,6 +70,23 @@
                   />
                 </div>
               </div>
+              <div class="row g-3 mt-1">
+                <div class="col-md-4">
+                  <label for="strategyThreshold" class="form-label fw-semibold"
+                    th:text="#{strategy.form.threshold}">Umbral de Aprobación (0-100)</label
+                  >
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="strategyThreshold"
+                    th:field="*{threshold}"
+                    min="0"
+                    max="100"
+                    step="1"
+                    required
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

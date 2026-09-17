@@ -112,6 +112,7 @@ public class EvaluateStrategyService {
                 .strategyName(result.getStrategy().getName())
                 .compliant(result.isOverallPassed())
                 .complianceRate(result.calculateComplianceRate())
+                .score(score)
                 .summary(summary)
                 .evaluatedAt(result.getAnalysisTimestamp())
                 .priceAtEvaluation(stock.getCurrentPrice())

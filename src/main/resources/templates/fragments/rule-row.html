@@ -63,5 +63,22 @@
         </button>
       </div>
     </div>
+    <div class="row g-1 align-items-end mt-1">
+      <!-- Rule Weight -->
+      <div class="col-md-3">
+        <label class="form-label small text-muted">
+          <span th:text="#{rule.weight}">Peso de la Regla</span>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            th:name="|rules[${index}].weight|"
+            th:value="${rule != null and rule.weight != null ? rule.weight : 1}"
+            min="1"
+            step="1"
+            required
+          />
+        </label>
+      </div>
+    </div>
   </div>
 </div>
