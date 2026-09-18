@@ -66,3 +66,32 @@ que había en el árbol de trabajo se ha revertido en esta rama
 3. Valorar `FinnhubThrottler` explícito estilo `PolygonAdapter` solo si el `@RateLimiter`
    vuelve a fallar en silencio; con la config ya dentro del jar debería bastar.
 4. Commit `chore:` + push + PR a `main` tras validación del usuario.
+
+## Fase 2 (misma rama): throttler explícito estilo PolygonAdapter
+
+El `@RateLimiter` siguió sin frenar aun con la config ya dentro del jar
+(60 llamadas en 21s + `429 en ALX` el 2026-09-18T12:00). Causa raíz nunca
+confirmada (proxy CGLIB sí existía); ante magia que falla en silencio se
+aplica el patrón explícito ya probado en `PolygonAdapter.java:162-198`.
+
+Cambios:
+- Nueva `infrastructure/external/finnhub/FinnhubThrottler.java` (`@Component`):
+  ventana deslizante con `Deque<Instant>`, `acquire()` sincronizado que espera
+  `windowMs - elapsed` (lo que falta, no la edad) + 200ms de margen y registra
+  la llamada. Valores desde properties (`finnhub.ratelimit.max-calls=55`,
+  `finnhub.ratelimit.window-ms=65000`), compartido por `getQuote` y
+  `getCompanyProfile` al ser singleton.
+- `FinnhubAdapter`: inyecta `FinnhubThrottler`, llama `acquire()` al inicio de
+  ambos métodos; eliminados `@RateLimiter` + import.
+- `application.properties`: bloque `resilience4j.ratelimiter.instances.finnhubClient.*`
+  sustituido por `finnhub.ratelimit.*`; comentario AOP actualizado a `@Retry`
+  (OpenRouter sigue usándolo); eliminado logger `resilience4j.ratelimiter=DEBUG`.
+- Tests: nuevo `FinnhubThrottlerTest` (3 tests: sin espera dentro de cupo,
+  espera al agotar cupo, ventana deslizante libera); `FinnhubAdapterTest.setup`
+  actualizado al nuevo constructor con cupo generoso (1000/60s) para no bloquear.
+- Suite completa: **1059 tests, 0 fallos** (`mvn test`).
+
+Sonar/arquitectura: sin números mágicos (todo por properties con default),
+complejidad cognitiva baja, `ConcurrentLinkedDeque` + método `synchronized`
+(igual que Polygon), SLF4J en `debug` para la espera normal. Hexagonal intacto:
+el freno vive en Infrastructure, Domain/Application sin tocar.
