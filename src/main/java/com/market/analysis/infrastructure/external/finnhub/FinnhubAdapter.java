@@ -15,7 +15,6 @@ import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.external.finnhub.dto.CompanyData;
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
 
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +26,7 @@ public class FinnhubAdapter implements StockProviderPort {
     @Qualifier("finnhubRestClient")
     private final RestClient restClient;
     private final FinnhubMapper finnhubMapper;
+    private final FinnhubThrottler throttler;
 
     public static final String SYMBOL = "symbol";
     public static final String TOKEN = "token";
@@ -35,9 +35,9 @@ public class FinnhubAdapter implements StockProviderPort {
     private String apiToken;
 
     @Override
-    @RateLimiter(name = "finnhubClient")
     public Stock getQuote(String ticker) {
         log.debug("Fetching quote for ticker: {}", ticker);
+        throttler.acquire();
 
         try {
             // Sintaxis fluida, limpia y SIN .block()
@@ -76,8 +76,8 @@ public class FinnhubAdapter implements StockProviderPort {
     }
 
     @Override
-    @RateLimiter(name = "finnhubClient")
     public CompanyProfile getCompanyProfile(String ticker) {
+        throttler.acquire();
 
         try {
             CompanyData profile = restClient.get()

@@ -24,6 +24,7 @@ import com.market.analysis.domain.model.Stock;
 import com.market.analysis.infrastructure.exception.FinnhubException;
 import com.market.analysis.infrastructure.external.finnhub.FinnhubAdapter;
 import com.market.analysis.infrastructure.external.finnhub.FinnhubMapper;
+import com.market.analysis.infrastructure.external.finnhub.FinnhubThrottler;
 import com.market.analysis.infrastructure.external.finnhub.dto.CompanyData;
 import com.market.analysis.infrastructure.external.finnhub.dto.QuoteData;
 
@@ -40,7 +41,8 @@ class FinnhubAdapterTest {
 
         @BeforeEach
         void setup() {
-                adapter = new FinnhubAdapter(restClient, mapper);
+                // Generous budget so unit tests never block on the throttler
+                adapter = new FinnhubAdapter(restClient, mapper, new FinnhubThrottler(1_000, 60_000));
                 ReflectionTestUtils.setField(adapter, "apiToken", "test-token");
         }
 
