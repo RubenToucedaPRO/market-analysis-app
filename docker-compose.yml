@@ -52,7 +52,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - market_analysis_mysql_data:/var/lib/mysql
-      - ./config/database/script-bd.sql:/docker-entrypoint-initdb.d/script-bd.sql:ro
+      - ./src/main/resources/config/database/script-bd.sql:/docker-entrypoint-initdb.d/script-bd.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
       timeout: 20s
