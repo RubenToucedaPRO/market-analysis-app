@@ -31,6 +31,7 @@ import com.market.analysis.domain.model.Candle;
 import com.market.analysis.domain.model.HistoricalData;
 import com.market.analysis.infrastructure.exception.PolygonException;
 import com.market.analysis.infrastructure.external.polygon.PolygonAdapter;
+import com.market.analysis.infrastructure.external.polygon.PolygonThrottler;
 
 /**
  * Unit tests for PolygonAdapter.
@@ -49,7 +50,8 @@ class PolygonAdapterTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        adapter = new PolygonAdapter(restTemplate, objectMapper);
+        // Generous budget so unit tests never block on the throttler
+        adapter = new PolygonAdapter(restTemplate, objectMapper, new PolygonThrottler(1_000, 60_000));
 
         ReflectionTestUtils.setField(adapter, "apiToken", "test-api-key");
         ReflectionTestUtils.setField(adapter, "baseUrl", "https://api.polygon.io");
