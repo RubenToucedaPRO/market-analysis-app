@@ -172,8 +172,14 @@ public class StrategyController {
         List<String> responseWarnings = response == null || response.getWarnings() == null
                 ? List.of()
                 : response.getWarnings();
+        boolean emptyResult = response == null || response.getSuggestedTickers() == null
+                || response.getSuggestedTickers().isEmpty();
 
-        if (!unmappableRules.isEmpty() || !discarded.isEmpty() || !responseWarnings.isEmpty()) {
+        if (emptyResult) {
+            String message = messageSource.getMessage("strategy.suggestion.empty", null, locale);
+            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                    UiNotification.warning(message));
+        } else if (!unmappableRules.isEmpty() || !discarded.isEmpty() || !responseWarnings.isEmpty()) {
             String message = messageSource.getMessage("strategy.suggestion.partial", null, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.warning(message));
