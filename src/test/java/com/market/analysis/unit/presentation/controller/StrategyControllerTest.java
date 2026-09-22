@@ -258,6 +258,26 @@ class StrategyControllerTest {
     }
 
     @Test
+    @DisplayName("Should suggest tickers with empty notification when Finviz returns nothing")
+    void testSuggestTickersFromMarketEmpty() {
+        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
+                .suggestedTickers(List.of())
+                .unmappableRules(List.of())
+                .build();
+        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
+        when(messageSource.getMessage("strategy.suggestion.empty", null, Locale.getDefault()))
+                .thenReturn("Finviz no devolvió tickers con estos filtros: quita algún filtro o revísalos en Finviz y reintenta.");
+
+        String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(suggestTickersUseCase).suggestTickers(any());
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.warning("Finviz no devolvió tickers con estos filtros: quita algún filtro o revísalos en Finviz y reintenta."));
+    }
+
+    @Test
     @DisplayName("Should switch suggested tickers to analysis origin and redirect")
     void testAddSuggestedTickersToAnalysisSuccess() {
         when(suggestTickersUseCase.convertSuggestedTickersToAnalysis(1L)).thenReturn(2);
