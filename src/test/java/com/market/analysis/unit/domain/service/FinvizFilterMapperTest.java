@@ -53,15 +53,15 @@ class FinvizFilterMapperTest {
     void shouldMapPriceAndAverageVolumeAgainstStaticValues() {
         List<Rule> rules = List.of(
                 rule("PRICE", null, ">", "CONSTANT", 100.0),
-                rule("PRICE", null, "<", "VALUE", 80.0),
+                rule("PRICE", null, "<", "VALUE", 180.0),
                 rule("VOLUME", null, ">", "CONSTANT", 2_000_000.0),
-                rule("VOLUME", null, "<", "VALUE", 1_000_000.0),
+                rule("VOLUME", null, "<", "VALUE", 3_000_000.0),
                 rule("AVG_VOLUME", null, ">", "CONSTANT", 500000.0),
-                rule("AVG_VOLUME", null, "<", "VALUE", 250000.0));
+                rule("AVG_VOLUME", null, "<", "VALUE", 750000.0));
 
         FinvizFilterMappingResult result = mapper.map(rules);
 
-        assertThat(result.getFilters()).isEqualTo("sh_price_o100,sh_price_u80,sh_curvol_o2000,sh_curvol_u1000,sh_avgvol_o500,sh_avgvol_u250");
+        assertThat(result.getFilters()).isEqualTo("sh_price_o100,sh_price_u180,sh_curvol_o2000,sh_curvol_u3000,sh_avgvol_o500,sh_avgvol_u750");
         assertThat(result.getUnmappableRules()).isEmpty();
         assertThat(result.getWarnings()).isEmpty();
     }
@@ -94,8 +94,8 @@ class FinvizFilterMapperTest {
                 .containsExactly("PRICE >= SMA(20)", "RSI(14) > CONSTANT(70)");
         assertThat(result.getWarnings())
                 .containsExactly(
-                        "Rule 'PRICE >= SMA(20)' cannot be mapped to Finviz filters.",
-                        "Rule 'RSI(14) > CONSTANT(70)' cannot be mapped to Finviz filters.");
+                        "La regla 'PRICE >= SMA(20)' no se puede traducir a filtros de Finviz.",
+                        "La regla 'RSI(14) > CONSTANT(70)' no se puede traducir a filtros de Finviz.");
         assertThat(result.hasUnmappableRules()).isTrue();
     }
 
@@ -129,8 +129,7 @@ class FinvizFilterMapperTest {
 
     @Test
     @DisplayName("Should mark null rules as unmappable")
-    void shouldMarkNullRulesAsUnmappable() {
-        List<Rule> rules = new ArrayList<>();
+    void shouldMarkNullRulesAsUnmappable() {        List<Rule> rules = new ArrayList<>();
         rules.add(rule("PRICE", null, "<", "SMA", 200.0));
         rules.add(null);
 
@@ -138,7 +137,52 @@ class FinvizFilterMapperTest {
 
         assertThat(result.getFilters()).isEqualTo("ta_sma200_pb");
         assertThat(result.getUnmappableRules()).containsExactly("NULL_RULE");
-        assertThat(result.getWarnings()).containsExactly("Rule 'NULL_RULE' cannot be mapped to Finviz filters.");
+        assertThat(result.getWarnings()).containsExactly("La regla 'NULL_RULE' no se puede traducir a filtros de Finviz.");
+    }
+
+    @Test
+    @DisplayName("Should warn when lower and upper bounds cannot be met together")
+    void shouldWarnOnIncompatiblePriceRange() {
+        List<Rule> rules = List.of(
+                rule("PRICE", null, ">", "CONSTANT", 20000.0),
+                rule("PRICE", null, "<", "VALUE", 40.0));
+
+        FinvizFilterMappingResult result = mapper.map(rules);
+
+        assertThat(result.getFilters()).isEqualTo("sh_price_o20000,sh_price_u40");
+        assertThat(result.getUnmappableRules()).isEmpty();
+        assertThat(result.hasIncompatibleRanges()).isTrue();
+        assertThat(result.getWarnings()).containsExactly(
+                "Las reglas 'PRICE > CONSTANT(20000)' y 'PRICE < VALUE(40)' son incompatibles: ningún ticker puede cumplir ambas.");
+    }
+
+    @Test
+    @DisplayName("Should not warn when bounds leave a valid range")
+    void shouldNotWarnOnCompatiblePriceRange() {
+        List<Rule> rules = List.of(
+                rule("PRICE", null, ">", "CONSTANT", 20.0),
+                rule("PRICE", null, "<", "VALUE", 40.0));
+
+        FinvizFilterMappingResult result = mapper.map(rules);
+
+        assertThat(result.getFilters()).isEqualTo("sh_price_o20,sh_price_u40");
+        assertThat(result.getUnmappableRules()).isEmpty();
+        assertThat(result.hasIncompatibleRanges()).isFalse();
+        assertThat(result.getWarnings()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should not warn across different subjects or same-side bounds")
+    void shouldNotWarnAcrossDifferentSubjects() {
+        List<Rule> rules = List.of(
+                rule("PRICE", null, ">", "CONSTANT", 20000.0),
+                rule("VOLUME", null, "<", "CONSTANT", 1000.0),
+                rule("PRICE", null, ">", "VALUE", 10.0));
+
+        FinvizFilterMappingResult result = mapper.map(rules);
+
+        assertThat(result.getUnmappableRules()).isEmpty();
+        assertThat(result.getWarnings()).isEmpty();
     }
 
     private Rule rule(String subjectCode, Double subjectParam, String operator, String targetCode, Double targetParam) {
