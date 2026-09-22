@@ -23,6 +23,9 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/",
                     "/login",
+                    // Público para los health checks (Docker/Railway): no expone
+                    // secretos, solo estado + tiempo de respuesta de la BD.
+                    "/health",
                     "/css/**",
                     "/js/**",
                     "/images/**",
