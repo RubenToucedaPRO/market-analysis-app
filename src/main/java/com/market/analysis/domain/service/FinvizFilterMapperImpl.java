@@ -77,11 +77,12 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
         Set<String> filters = new LinkedHashSet<>();
         List<String> unmappableRules = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
+        List<RangeBound> rangeBounds = new ArrayList<>();
 
         for (Rule rule : rules) {
             if (rule == null) {
                 unmappableRules.add(NULL_RULE_LABEL);
-                warnings.add("Rule '" + NULL_RULE_LABEL + "' cannot be mapped to Finviz filters.");
+                warnings.add("La regla '" + NULL_RULE_LABEL + "' no se puede traducir a filtros de Finviz.");
                 continue;
             }
 
@@ -89,17 +90,21 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
             if (mappedFilter == null) {
                 String ruleDescriptor = describe(rule);
                 unmappableRules.add(ruleDescriptor);
-                warnings.add("Rule '" + ruleDescriptor + "' cannot be mapped to Finviz filters.");
+                warnings.add("La regla '" + ruleDescriptor + "' no se puede traducir a filtros de Finviz.");
                 continue;
             }
 
             filters.add(mappedFilter);
+            collectRangeBound(rule, rangeBounds);
         }
+
+        boolean incompatibleRanges = detectIncompatibleRanges(rangeBounds, warnings);
 
         return FinvizFilterMappingResult.builder()
                 .filters(String.join(",", filters))
                 .unmappableRules(unmappableRules)
                 .warnings(warnings)
+                .incompatibleRanges(incompatibleRanges)
                 .build();
     }
 
@@ -128,8 +133,7 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
         return candidate.targetParam();
     }
 
-    private RulePattern toPattern(Rule rule) {
-        return RulePattern.of(
+    private RulePattern toPattern(Rule rule) {        return RulePattern.of(
                 normalizeCode(rule.getSubjectCode()),
                 normalizeParam(rule.getSubjectParam()),
                 normalizeOperator(rule.getOperator()),
@@ -159,8 +163,65 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
         return OPERATOR_ALIASES.getOrDefault(normalized, normalized);
     }
 
-    private String describe(Rule rule) {
-        return formatIndicator(rule.getSubjectCode(), rule.getSubjectParam())
+    /**
+     * Remembers static range bounds (e.g. PRICE &gt; 20) for later
+     * incompatibility checks. Only successfully mapped rules with a static
+     * target (CONSTANT/VALUE) qualify; SMA crossovers are comparisons between
+     * indicators, not ranges.
+     */
+    private void collectRangeBound(Rule rule, List<RangeBound> rangeBounds) {
+        String operator = normalizeOperator(rule.getOperator());
+        String targetCode = normalizeCode(rule.getTargetCode());
+        if ((!"<".equals(operator) && !">".equals(operator))
+                || !STATIC_VALUE_TARGETS.contains(targetCode)
+                || rule.getTargetParam() == null) {
+            return;
+        }
+        rangeBounds.add(new RangeBound(
+                normalizeCode(rule.getSubjectCode()),
+                normalizeParam(rule.getSubjectParam()),
+                operator,
+                normalizeParam(rule.getTargetParam()),
+                describe(rule)));
+    }
+
+    /**
+     * Warns when lower and upper bounds on the same subject cannot be met
+     * together (e.g. PRICE &gt; 20000 with PRICE &lt; 40). Filters are kept
+     * as-is so Finviz returns empty fast; the warning explains why.
+     */
+    private boolean detectIncompatibleRanges(List<RangeBound> rangeBounds, List<String> warnings) {
+        boolean incompatible = false;
+        for (int i = 0; i < rangeBounds.size(); i++) {
+            for (int j = i + 1; j < rangeBounds.size(); j++) {
+                RangeBound first = rangeBounds.get(i);
+                RangeBound second = rangeBounds.get(j);
+                if (!first.isSameSubject(second) || first.operator.equals(second.operator)) {
+                    continue;
+                }
+                RangeBound lower = ">".equals(first.operator) ? first : second;
+                RangeBound upper = ">".equals(first.operator) ? second : first;
+                if (lower.bound >= upper.bound) {
+                    warnings.add("Las reglas '" + lower.descriptor + "' y '" + upper.descriptor
+                            + "' son incompatibles: ningún ticker puede cumplir ambas.");
+                    incompatible = true;
+                }
+            }
+        }
+        return incompatible;
+    }
+
+    private record RangeBound(String subjectCode, Double subjectParam, String operator, double bound,
+            String descriptor) {
+        private boolean isSameSubject(RangeBound other) {
+            boolean sameCode = subjectCode == null ? other.subjectCode == null : subjectCode.equals(other.subjectCode);
+            boolean sameParam = subjectParam == null ? other.subjectParam == null
+                    : subjectParam.equals(other.subjectParam);
+            return sameCode && sameParam;
+        }
+    }
+
+    private String describe(Rule rule) {        return formatIndicator(rule.getSubjectCode(), rule.getSubjectParam())
                 + " " + rule.getOperator() + " "
                 + formatIndicator(rule.getTargetCode(), rule.getTargetParam());
     }

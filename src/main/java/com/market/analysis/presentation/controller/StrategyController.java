@@ -236,6 +236,7 @@ public class StrategyController {
         model.addAttribute(WebConstants.ATTR_SUGGESTED_TICKERS, filterBySuitabilityStatus(response, TickerSuitabilityStatus.APTO));
         model.addAttribute(WebConstants.ATTR_DISCARDED_TICKERS, filterBySuitabilityStatus(response, TickerSuitabilityStatus.NO_APTO));
         model.addAttribute(WebConstants.ATTR_UNMAPPABLE_RULES, response.getUnmappableRules() == null ? List.of() : response.getUnmappableRules());
+        model.addAttribute(WebConstants.ATTR_SNAPSHOT_WARNINGS, response.getWarnings() == null ? List.of() : response.getWarnings());
         model.addAttribute(WebConstants.ATTR_SUGGESTED_AT, response.getSuggestedAt());
     }
 }

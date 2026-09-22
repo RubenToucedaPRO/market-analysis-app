@@ -218,6 +218,7 @@ class StrategyControllerTest {
                         SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build(),
                         SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()))
                 .unmappableRules(List.of("ATR(14)"))
+                .warnings(List.of("Las reglas 'A' y 'B' son incompatibles."))
                 .build();
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(Optional.of(snapshot));
 
@@ -231,6 +232,7 @@ class StrategyControllerTest {
         verify(model).addAttribute("discardedTickers", List.of(
                 SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()));
         verify(model).addAttribute("unmappableRules", List.of("ATR(14)"));
+        verify(model).addAttribute("snapshotWarnings", List.of("Las reglas 'A' y 'B' son incompatibles."));
         verify(model).addAttribute("suggestedAt", Instant.parse("2026-04-18T12:00:00Z"));
     }
 

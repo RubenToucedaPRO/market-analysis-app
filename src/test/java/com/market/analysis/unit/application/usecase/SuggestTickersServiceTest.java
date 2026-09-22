@@ -209,6 +209,29 @@ class SuggestTickersServiceTest {
         verify(suggestionSnapshotRepository).save(any());
         verify(analyzeAndPersistStockService, never()).analyzeAndPersist(any(), any(), any());
     }
+    @Test
+    @DisplayName("Should skip Finviz call when ranges are incompatible")
+    void shouldSkipFinvizWhenRangesIncompatible() {
+        Strategy strategy = buildStrategy(14L);
+        SuggestTickersRequestDTO request = SuggestTickersRequestDTO.builder()
+                .strategyId(14L)
+                .build();
+
+        when(strategyRepository.findById(14L)).thenReturn(Optional.of(strategy));
+        when(finvizFilterMapper.map(strategy)).thenReturn(FinvizFilterMappingResult.builder()
+                .filters("sh_price_o20000,sh_price_u40")
+                .warnings(List.of("Las reglas 'A' y 'B' son incompatibles."))
+                .incompatibleRanges(true)
+                .build());
+
+        SuggestTickersResponseDTO result = suggestTickersService.suggestTickers(request);
+
+        assertThat(result.getSuggestedTickers()).isEmpty();
+        assertThat(result.getWarnings()).containsExactly("Las reglas 'A' y 'B' son incompatibles.");
+        verify(finvizScreenerPort, never()).findTickers(any(), anyInt());
+        verify(analyzeAndPersistStockService, never()).analyzeAndPersist(any(), any(), any());
+        verify(suggestionSnapshotRepository).save(any());
+    }
 
     @Test
     @DisplayName("Should return latest persisted snapshot")
