@@ -18,11 +18,16 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.market.analysis.application.dto.HealthCheckResponse;
+import com.market.analysis.application.usecase.HealthCheckService;
 import com.market.analysis.infrastructure.config.SecurityConfig;
+import com.market.analysis.presentation.controller.HealthCheckController;
 import com.market.analysis.presentation.controller.HomeController;
 
+import java.time.Instant;
+
 @DisplayName("Security Integration Tests")
-@WebMvcTest(HomeController.class)
+@WebMvcTest({HomeController.class, HealthCheckController.class})
 @Import(SecurityConfig.class)
 class SecurityConfigTest {
 
@@ -31,6 +36,9 @@ class SecurityConfigTest {
 
     @MockitoBean
     private UserDetailsService userDetailsService;
+
+    @MockitoBean
+    private HealthCheckService healthCheckService;
 
     @BeforeEach
     void setUp() {
@@ -53,6 +61,22 @@ class SecurityConfigTest {
     @DisplayName("GET /login should be accessible without authentication")
     void loginPageShouldBePublic() throws Exception {
         mockMvc.perform(get("/login"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /health should be accessible without authentication")
+    void healthEndpointShouldBePublic() throws Exception {
+        when(healthCheckService.performHealthCheck()).thenReturn(HealthCheckResponse.builder()
+                .status("UP")
+                .timestamp(Instant.now())
+                .databaseHealthy(true)
+                .description("Application is fully operational. All dependencies are healthy.")
+                .details("Database: Healthy (50ms)")
+                .httpStatusCode(200)
+                .build());
+
+        mockMvc.perform(get("/health"))
                 .andExpect(status().isOk());
     }
 
