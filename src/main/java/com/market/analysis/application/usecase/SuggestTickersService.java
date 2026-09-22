@@ -79,6 +79,13 @@ public class SuggestTickersService implements SuggestTickersUseCase {
             return buildAndPersistResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
         }
 
+        if (mappingResult != null && mappingResult.hasIncompatibleRanges()) {
+            log.info("suggest_tickers_incompatible_filters strategyId={} appliedFilters={}",
+                    request.getStrategyId(),
+                    appliedFilters);
+            return buildAndPersistResponse(request.getStrategyId(), appliedFilters, unmappableRules, warnings, List.of());
+        }
+
         List<String> candidates;
         try {
             candidates = finvizScreenerPort.findTickers(appliedFilters, maxCandidates);

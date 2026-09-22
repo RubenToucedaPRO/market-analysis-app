@@ -18,6 +18,7 @@ public class FinvizFilterMappingResult {
     private final String filters;
     private final List<String> unmappableRules;
     private final List<String> warnings;
+    private final boolean incompatibleRanges;
 
     public List<String> getUnmappableRules() {
         return unmappableRules != null ? List.copyOf(unmappableRules) : List.of();
@@ -29,6 +30,10 @@ public class FinvizFilterMappingResult {
 
     public boolean hasUnmappableRules() {
         return unmappableRules != null && !unmappableRules.isEmpty();
+    }
+
+    public boolean hasIncompatibleRanges() {
+        return incompatibleRanges;
     }
 
     public static class FinvizFilterMappingResultBuilder {

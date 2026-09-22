@@ -97,5 +97,23 @@
         th:text="#{traceability.no_unmappable}">Sin reglas no mapeables.
       </p>
     </div>
+
+    <div class="mt-3">
+      <p class="form-label fw-semibold small text-muted mb-1" th:text="#{traceability.warnings}">
+        Avisos
+      </p>
+      <ul
+        id="snapshot-warnings-traceability"
+        class="mb-0"
+        th:if="${snapshotWarnings != null and !snapshotWarnings.isEmpty()}"
+      >
+        <li th:each="warning : ${snapshotWarnings}" th:text="${warning}">Aviso.</li>
+      </ul>
+      <p
+        class="text-muted small mb-0"
+        th:if="${snapshotWarnings == null or snapshotWarnings.isEmpty()}"
+        th:text="#{traceability.no_warnings}">Sin avisos.
+      </p>
+    </div>
   </div>
 </div>

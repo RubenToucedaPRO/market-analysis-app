@@ -19,6 +19,7 @@ public final class WebConstants {
     public static final String ATTR_SUGGESTED_TICKERS = "suggestedTickers";
     public static final String ATTR_DISCARDED_TICKERS = "discardedTickers";
     public static final String ATTR_UNMAPPABLE_RULES = "unmappableRules";
+    public static final String ATTR_SNAPSHOT_WARNINGS = "snapshotWarnings";
     public static final String ATTR_SUGGESTED_AT = "suggestedAt";
     public static final String ATTR_TICKER_PAGE = "tickerPage";
     public static final String ATTR_KEYWORD_PAGE = "keywordPage";
