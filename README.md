@@ -161,7 +161,24 @@ Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interp
 
 ### Variables de Entorno
 
-El proyecto utiliza un archivo `.env` en la raíz para gestionar las credenciales. A continuación se detallan las variables obligatorias y opcionales necesarias (paso 2 del proceso de ejecución):
+El proyecto utiliza un archivo `.env` en la raíz para desarrollo local con Docker (ver `.env.example` como plantilla).
+En Railway NO se usa `.env`: las variables se crean en el servicio `app` con perfil `prod`.
+
+| Variable | Requerida | Default en `application.properties` | Notas |
+|---|---|---|---|
+| `FINNHUB_API_TOKEN` | Sí | _(vacío)_ | Datos de mercado actuales |
+| `POLYGON_API_TOKEN` | Sí | _(vacío)_ | Datos históricos y OHLCV |
+| `OPENROUTER_API_KEY` | Sí | _(vacío)_ | Análisis interpretativo |
+| `APP_SECURITY_USERNAME` / `APP_SECURITY_PASSWORD` | Sí | `admin` / `admin` | Login de la app, cambiar en producción |
+| `DB_DATABASE` / `DB_USER` / `DB_PASSWORD` / `DB_ROOT_PASSWORD` | Sí (Docker local) | — | Solo contenedor MySQL local, en Railway lo gestiona el plugin MySQL |
+| `DB_URL` / `DB_USER` / `DB_PASSWORD` | Sí (prod / Railway) | — | Ej: `jdbc:mariadb://HOST:PORT/DATABASE`. Ignorado en Docker local |
+| `FINNHUB_BASE_URL` | No | `https://finnhub.io/api/v1` | Solo para override (mock/proxy) |
+| `POLYGON_BASE_URL` | No | `https://api.polygon.io/` | Solo para override (mock/proxy) |
+| `OPENROUTER_MODEL` | No | `google/gemma-4-26b-a4b-it:free` | Solo para cambiar de modelo |
+| `SPRING_PROFILES_ACTIVE` | No (local) | `dev` | En local usar `docker`, en Railway usar `prod` (`docker-compose.yml` fuerza `docker`) |
+| `DB_PORT_EXTERNAL` / `APP_PORT_EXTERNAL` | No | `3306` / `8080` | Solo mapeo de puertos local, no crear en Railway |
+| `PORT` | No | `8080` | Lo inyecta Railway solo, no definir a mano |
+| `JAVA_DEBUG_ENABLED` / `JAVA_OPTS` | No | `false` / _(vacío)_ | `true` solo para debug local (puerto 5005) |
 
 #### Configuración de APIs e Inteligencia Artificial
 ```env
@@ -170,8 +187,10 @@ POLYGON_API_TOKEN=your_token_here
 OPENROUTER_API_KEY=your_key_here
 SPRING_PROFILES_ACTIVE=docker
 
-# Opcionales para ajustar el comportamiento de la IA (OpenRouter)
-OPENROUTER_MODEL=qwen/qwen-2.5-coder-32b-instruct:free
+# Opcionales (defaults en application.properties, solo para override)
+FINNHUB_BASE_URL=https://finnhub.io/api/v1
+POLYGON_BASE_URL=https://api.polygon.io/
+OPENROUTER_MODEL=google/gemma-4-26b-a4b-it:free
 OPENROUTER_TEMPERATURE=0.2
 OPENROUTER_MAX_TOKENS=1000
 OPENROUTER_TOP_P=0.9
