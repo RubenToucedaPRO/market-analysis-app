@@ -14,7 +14,9 @@ services:
     environment:
       # Configuración para conectar con el contenedor de MySQL
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mariadb://market-analysis-mysql:3306/${DB_DATABASE}
+      # rewriteBatchedStatements: el driver MariaDB reescribe cada lote JDBC
+      # en un único INSERT múltiple (clave para saveCandlesForTicker).
+      SPRING_DATASOURCE_URL: jdbc:mariadb://market-analysis-mysql:3306/${DB_DATABASE}?rewriteBatchedStatements=true
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       FINNHUB_API_TOKEN: ${FINNHUB_API_TOKEN}
