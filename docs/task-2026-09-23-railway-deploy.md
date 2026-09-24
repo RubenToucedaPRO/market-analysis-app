@@ -45,11 +45,20 @@ Pasos previos en el repo (PRs #167 y #168):
 
 - `GET /health` → 200 `{"status":"UP","database_healthy":true,...}`.
 - Login OK, `/strategies` vacía (BD nueva), estrategia + reglas creadas OK.
-- Añadir ticker `U`: 41.6s → **5.9s** tras PR #169 + flag driver.
+- Añadir ticker: 41.6s → **5.9s** tras PR #169 + flag driver (medido 2 veces:
+  5.90s y 5.86s, estable).
+- Borrar ticker de análisis: **1.56s** (aceptable).
 - Métricas Railway: CPU ~0, RAM ~400MB plana, 177 requests sin 5xx →
   el tiempo se iba en esperas externas, no en falta de recursos.
+- Generar análisis: el cálculo técnico guarda bien; la **valoración IA** cae
+  a fallback con flash "No se pudo generar una valoracion IA valida" por
+  `RateLimitException: 429: Provider returned error` de OpenRouter
+  (cuota del modelo gratuito agotada, 4/4 intentos). Comportamiento por
+  diseño (la IA es solo complemento interpretativo + reintentos resilience4j);
+  no es bug ni problema de infraestructura. Salidas: esperar al reset de
+  cuota o cambiar `OPENROUTER_MODEL` a otro modelo gratuito con cuota.
 - Limitación conocida (documentada, fuera de alcance): APIs gratuitas
-  (turno Polygon 5/min, cola OpenRouter) + latencia BD 145ms; flujos
+  (turno Polygon 5/min, cuota OpenRouter) + latencia BD 145ms; flujos
   multi-ticker pueden tardar minutos. Uso recomendado: 1-2 tickers.
 
 ## Advertencias de SonarQube o arquitectura
