@@ -175,6 +175,7 @@ En Railway NO se usa `.env`: las variables se crean en el servicio `app` con per
 | `FINNHUB_BASE_URL` | No | `https://finnhub.io/api/v1` | Solo para override (mock/proxy) |
 | `POLYGON_BASE_URL` | No | `https://api.polygon.io/` | Solo para override (mock/proxy) |
 | `OPENROUTER_MODEL` | No | `google/gemma-4-26b-a4b-it:free` | Solo para cambiar de modelo |
+| `OPENROUTER_FALLBACK_MODELS` | No | `meta-llama/...:free,openai/...:free` | Reserva si el principal da 429 (coma) |
 | `SPRING_PROFILES_ACTIVE` | No (local) | `dev` | En local usar `docker`, en Railway usar `prod` (`docker-compose.yml` fuerza `docker`) |
 | `DB_PORT_EXTERNAL` / `APP_PORT_EXTERNAL` | No | `3306` / `8080` | Solo mapeo de puertos local, no crear en Railway |
 | `PORT` | No | `8080` | Lo inyecta Railway solo, no definir a mano |
@@ -191,6 +192,8 @@ SPRING_PROFILES_ACTIVE=docker
 FINNHUB_BASE_URL=https://finnhub.io/api/v1
 POLYGON_BASE_URL=https://api.polygon.io/
 OPENROUTER_MODEL=google/gemma-4-26b-a4b-it:free
+# Reserva si el principal devuelve 429 (separados por comas)
+#OPENROUTER_FALLBACK_MODELS=meta-llama/llama-3.3-70b-instruct:free,openai/gpt-oss-20b:free
 OPENROUTER_TEMPERATURE=0.2
 OPENROUTER_MAX_TOKENS=1000
 OPENROUTER_TOP_P=0.9
