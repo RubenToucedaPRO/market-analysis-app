@@ -6,8 +6,9 @@
 **Entrega (Día 10)**: 25 Sep 2026 (tag `tfm-v1.0`)
 
 > Revisión 16 Sep: fechas por número de día (los días de semana del borrador no cuadraban).
-> Revisión 17 Sep: scoring (a-d) terminado y mergeado (PRs #158-#161, suite
-> 1056/1056 + `mvn verify` con JaCoCo ≥80%). Siguiente: Deploy Railway (Día 3 PM).
+> Revisión 23 Sep: deploy Railway terminado y verificado (app en
+> `market-analysis-app-production.up.railway.app`, `/health` UP, fix batch
+> velas 41.6→5.9s con PR #169). Siguiente: OpenAPI/Swagger (Día 4 AM).
 > Procedimiento aplicable en todo el plan: `AGENTS.md` §3
 > (rama → tests → doc → Docker si aplica → validación con menú → PR).
 > Los comandos `opencode explain/generate/...` del borrador no existen en esta
@@ -24,7 +25,7 @@
 | **Día 2** | AM | **Scoring (b)** — `threshold` en `Strategy` + score 0-100 en `EvaluateStrategyService` + tests | ✅ hecho (PR #159) |
 | | PM | **Scoring (c)** — Mostrar el score en vistas + **(d)** tests scoring + JaCoCo verify | ✅ hecho (PRs #160, #161) |
 | **Día 3** | AM | Tests scoring + JaCoCo verify (cierre) | ✅ hecho en (d): 1056/1056 + `mvn verify` |
-| | PM | **Deploy Railway** — Provision BD, vars entorno, health checks, custom domain | `bash` (manual Railway CLI) + doc |
+| | PM | **Deploy Railway** — Provision BD, vars entorno, health checks, custom domain | ✅ hecho (PRs #167-#169, app UP en Railway, fix batch 41.6→5.9s) |
 | **Día 4** | AM | **OpenAPI/Swagger** — añadir `springdoc-openapi-starter-webmvc-ui` (hoy no está en `pom.xml`) + documentar endpoints clave | rama → tests → doc → menú → PR |
 | | PM | **README Final** — Badges, URL deploy, sección "Desarrollo con IA", troubleshooting | rama → doc → menú → PR |
 | | + | **SonarQube Local** (Docker, hoy no configurado) + Quality Gate A + fix critical | `bash` + tests + doc |
@@ -99,12 +100,10 @@
 
 ## Próximo Paso Inmediato
 
-**Deploy Railway (Día 3 PM)**:
-1. Provisionar BD MySQL/MariaDB en Railway
-2. Configurar vars de entorno (`FINNHUB_API_TOKEN`, `POLYGON_API_TOKEN`,
-   `OPENAI_API_KEY`, `SPRING_PROFILES_ACTIVE`, `APP_SECURITY_*`)
-3. Health checks + custom domain (si aplica)
-4. Documentar en `/docs` con el procedimiento `AGENTS.md` §3
+**OpenAPI/Swagger (Día 4 AM)**:
+1. Añadir `springdoc-openapi-starter-webmvc-ui` a `pom.xml` (hoy ausente)
+2. Documentar endpoints clave
+3. Procedimiento `AGENTS.md` §3 (rama → tests → doc → menú → PR)
 
 ## Recuperar contexto instantáneo en nueva sesión OpenCode
 Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`
