@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -23,6 +22,7 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.market.analysis.domain.model.Candle;
 import com.market.analysis.infrastructure.persistence.entity.CandleEntity;
@@ -42,6 +42,9 @@ class SqlCandleHistoryRepositoryTest {
 
     @Mock
     private CandleMapper candleMapper;
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
     private SqlCandleHistoryRepository sqlCandleHistoryRepository;
@@ -69,7 +72,7 @@ class SqlCandleHistoryRepositoryTest {
     void saveCandlesForTicker_emptyList_noInteractions() {
         sqlCandleHistoryRepository.saveCandlesForTicker("MSFT", List.of());
 
-        verifyNoInteractions(jpaCandleRepository, candleMapper);
+        verifyNoInteractions(jpaCandleRepository, candleMapper, jdbcTemplate);
     }
 
     @Test
@@ -77,7 +80,7 @@ class SqlCandleHistoryRepositoryTest {
     void saveCandlesForTicker_nullList_noInteractions() {
         sqlCandleHistoryRepository.saveCandlesForTicker("MSFT", null);
 
-        verifyNoInteractions(jpaCandleRepository, candleMapper);
+        verifyNoInteractions(jpaCandleRepository, candleMapper, jdbcTemplate);
     }
 
     // -------------------------------------------------------------------------
@@ -89,32 +92,40 @@ class SqlCandleHistoryRepositoryTest {
     void saveCandlesForTicker_validList_deleteBeforeSave() {
         String ticker = "AAPL";
         Candle candle = buildCandle(ticker);
-        CandleEntity entity = new CandleEntity();
-        when(candleMapper.toEntity(candle)).thenReturn(entity);
 
         sqlCandleHistoryRepository.saveCandlesForTicker(ticker, List.of(candle));
 
-        InOrder order = inOrder(jpaCandleRepository);
+        InOrder order = inOrder(jpaCandleRepository, jdbcTemplate);
         order.verify(jpaCandleRepository).deleteByTicker(ticker);
-        order.verify(jpaCandleRepository).saveAll(anyList());
+        order.verify(jdbcTemplate).batchUpdate(any(String.class), any(List.class));
     }
 
     @Test
-    @DisplayName("Should map every candle to an entity and persist it")
-    void saveCandlesForTicker_validList_mapsAndSavesAllCandles() {
+    @DisplayName("Should batch insert every candle with values in column order")
+    @SuppressWarnings("unchecked")
+    void saveCandlesForTicker_validList_batchInsertsAllCandles() {
         String ticker = "AAPL";
         Candle candle1 = buildCandle(ticker);
         Candle candle2 = buildCandle(ticker);
-        CandleEntity entity1 = new CandleEntity();
-        CandleEntity entity2 = new CandleEntity();
-
-        when(candleMapper.toEntity(candle1)).thenReturn(entity1);
-        when(candleMapper.toEntity(candle2)).thenReturn(entity2);
 
         sqlCandleHistoryRepository.saveCandlesForTicker(ticker, List.of(candle1, candle2));
 
-        verify(candleMapper, times(2)).toEntity(any(Candle.class));
-        verify(jpaCandleRepository).saveAll(List.of(entity1, entity2));
+        var batchCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(jdbcTemplate).batchUpdate(
+                org.mockito.ArgumentMatchers.contains("INSERT INTO candles"),
+                batchCaptor.capture());
+
+        List<Object[]> rows = (List<Object[]>) batchCaptor.getValue();
+        assertThat(rows).hasSize(2);
+        for (Object[] row : rows) {
+            assertThat(row[0]).isEqualTo(ticker);
+            assertThat(row[1]).isEqualTo(java.sql.Timestamp.from(candle1.getDateTime()));
+            assertThat((java.math.BigDecimal) row[2]).isEqualByComparingTo(new BigDecimal("181.00"));
+            assertThat((java.math.BigDecimal) row[3]).isEqualByComparingTo(new BigDecimal("183.50"));
+            assertThat((java.math.BigDecimal) row[4]).isEqualByComparingTo(new BigDecimal("180.00"));
+            assertThat((java.math.BigDecimal) row[5]).isEqualByComparingTo(new BigDecimal("182.75"));
+            assertThat(row[6]).isEqualTo(55_000_000L);
+        }
     }
 
     @Test
@@ -122,7 +133,6 @@ class SqlCandleHistoryRepositoryTest {
     void saveCandlesForTicker_validList_deletesExactlyOnceForTicker() {
         String ticker = "TSLA";
         Candle candle = buildCandle(ticker);
-        when(candleMapper.toEntity(candle)).thenReturn(new CandleEntity());
 
         sqlCandleHistoryRepository.saveCandlesForTicker(ticker, List.of(candle));
 

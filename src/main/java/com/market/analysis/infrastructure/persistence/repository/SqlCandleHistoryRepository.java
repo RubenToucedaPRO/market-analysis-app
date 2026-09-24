@@ -1,10 +1,12 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -29,14 +31,28 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
 
     private final JpaCandleRepository jpaCandleRepository;
     private final CandleMapper candleMapper;
+    private final JdbcTemplate jdbcTemplate;
+
+    /**
+     * Native bulk insert for candles. {@code saveAll} issues one INSERT per row
+     * (IDENTITY keys disable Hibernate batching); with ~145ms of DB latency in
+     * production that meant ~35s for 240 candles. A single JDBC batch needs one
+     * round-trip instead. For maximum effect the JDBC URL should also carry
+     * {@code rewriteBatchedStatements=true} so the MariaDB driver rewrites the
+     * batch into one multi-row INSERT.
+     */
+    private static final String INSERT_CANDLE_SQL =
+            "INSERT INTO candles (ticker, date_time, open_price, high_price, low_price, close_price, volume)"
+                    + " VALUES (?,?,?,?,?,?,?)";
 
     /**
      * Replaces the full set of candles for a given ticker in a single transaction.
      *
      * <p>The strategy is delete-then-insert: all existing candles for the ticker
-     * are deleted and the new batch is inserted atomically. If the provided list
-     * is {@code null} or empty the method is a no-op — no data is removed or
-     * written.</p>
+     * are deleted and the new batch is inserted atomically via a native JDBC
+     * batch (one round-trip per batch instead of one INSERT per row). If the
+     * provided list is {@code null} or empty the method is a no-op — no data is
+     * removed or written.</p>
      *
      * @param ticker  the ticker symbol (must not be {@code null})
      * @param candles the candles to persist; a {@code null} or empty list causes
@@ -56,13 +72,21 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
 
         jpaCandleRepository.deleteByTicker(ticker);
 
-        List<CandleEntity> entities = candles.stream()
-                .map(candleMapper::toEntity)
+        List<Object[]> batchArgs = candles.stream()
+                .map(candle -> new Object[] {
+                        candle.getTicker(),
+                        Timestamp.from(candle.getDateTime()),
+                        candle.getOpenPrice(),
+                        candle.getHighPrice(),
+                        candle.getLowPrice(),
+                        candle.getClosePrice(),
+                        candle.getVolume()
+                })
                 .toList();
 
-        jpaCandleRepository.saveAll(entities);
+        jdbcTemplate.batchUpdate(INSERT_CANDLE_SQL, batchArgs);
 
-        log.info("saveCandlesForTicker: persisted {} candle(s) for ticker={}", entities.size(), ticker);
+        log.info("saveCandlesForTicker: persisted {} candle(s) for ticker={}", batchArgs.size(), ticker);
     }
 
     @Override
