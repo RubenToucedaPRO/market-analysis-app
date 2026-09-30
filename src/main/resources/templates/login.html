@@ -26,6 +26,15 @@
               </div>
 
               <div
+                th:if="${param.locked}"
+                class="alert alert-warning d-flex align-items-center"
+                role="alert"
+              >
+                <i class="bi bi-lock-fill me-2"></i>
+                <span th:text="#{login.locked}">Demasiados intentos.</span>
+              </div>
+
+              <div
                 th:if="${param.logout}"
                 class="alert alert-success d-flex align-items-center"
                 role="alert"

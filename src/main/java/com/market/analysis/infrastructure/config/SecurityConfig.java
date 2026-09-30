@@ -1,5 +1,7 @@
 package com.market.analysis.infrastructure.config;
 
+import java.time.Clock;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,13 +13,20 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.market.analysis.infrastructure.config.security.LoginAttemptService;
+import com.market.analysis.infrastructure.config.security.LoginBlockFilter;
+import com.market.analysis.infrastructure.config.security.LoginFailureHandler;
+import com.market.analysis.infrastructure.config.security.LoginSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, LoginAttemptService loginAttemptService)
+            throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
@@ -36,14 +45,22 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/analysis", true)
+                .successHandler(new LoginSuccessHandler(loginAttemptService))
+                .failureHandler(new LoginFailureHandler(loginAttemptService))
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
-            );
+            )
+            .addFilterBefore(new LoginBlockFilter(loginAttemptService),
+                    UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public LoginAttemptService loginAttemptService() {
+        return new LoginAttemptService(Clock.systemUTC());
     }
 
     @Bean
