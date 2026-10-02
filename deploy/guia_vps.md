@@ -84,7 +84,7 @@ Host vps-tfm
   IdentityFile ~/.ssh/id_ed25519
 ```
 
-Uso: `ssh vps-tfm`. Cuando el DNS apunte (`tfm.midominio.es -> IP`), dejarás de usar la IP directamente.
+Uso: `ssh vps-tfm`. Cuando el DNS apunte (`$TFM_DOMAIN -> IP`), dejarás de usar la IP directamente.
 
 ---
 
@@ -983,7 +983,7 @@ dig +short tfm.tudominio.es
 Cuando alguien visita:
 
 ```text
-https://tfm.midominio.es
+https://$TFM_DOMAIN
 ```
 
 el DNS le indica:
@@ -1035,15 +1035,15 @@ contenido de las plantillas (`Ctrl+O Enter Ctrl+X`).
 
 QUÉ adaptar antes del primer `up` (3 cosas, nada más):
 
-1. En `edge/conf.d/tfm.conf`: `tfm.midominio.es` → tu dominio real (el de tu registro `A`).
-2. En `tfm/compose.yml`: `image: ghcr.io/tu-usuario/tfm:1.0.0` → tu imagen real del TFM.
-3. `.env`: crea `/opt/apps/tfm/.env` desde `.env.tfm.example` con `chmod 600`.
+1. En `.env`: crea `/opt/apps/tfm/.env` desde `.env.tfm.example` con `chmod 600` y **edita `TFM_DOMAIN=tu-dominio.real`**.
+2. En `tfm/compose.yml`: `image: ghcr.io/tu-usuario/tfm:1.0.0` → tu imagen real del TFM (o usa `GHCR_REPOSITORY` y `TFM_TAG` del `.env`).
+3. Los configs nginx (`tfm.conf`, `tfm-http-only.conf`) usan placeholder `${TFM_DOMAIN}`; **se renderizan automáticos** con `deploy-tfm.sh`.
    Sin ese fichero `up` falla con `env file not found` (normal, créalo).
 4. **Respalda el `.env` en Bitwarden ANTES del primer `up` (obligatorio, junior):**
-   el VPS es reemplazable, el `.env` no. Crea la nota `vps-tfm-env` y pega los 11 valores
-   (`DB_URL/DB_DATABASE/DB_USER/DB_PASSWORD/DB_ROOT_PASSWORD/APP_SECURITY_USERNAME/APP_SECURITY_PASSWORD/FINNHUB_API_TOKEN/POLYGON_API_TOKEN/OPENROUTER_API_KEY/OPENROUTER_MODEL` + fallbacks).
+   el VPS es reemplazable, el `.env` no. Crea la nota `vps-tfm-env` y pega los 14 valores
+   (`DB_URL/DB_DATABASE/DB_USER/DB_PASSWORD/DB_ROOT_PASSWORD/APP_SECURITY_USERNAME/APP_SECURITY_PASSWORD/FINNHUB_API_TOKEN/POLYGON_API_TOKEN/OPENROUTER_API_KEY/OPENROUTER_MODEL/TFM_DOMAIN/CERTBOT_EMAIL/VPS_HOST/GHCR_REPOSITORY/TFM_TAG` + fallbacks).
    Nunca en Git ni en Drive sin cifrar. Verificación: bloquea Bitwarden, reabre la nota y
-   confirma que están los 11 (los `DB_PASSWORD`/`APP_SECURITY_*` generados con `openssl rand`,
+   confirma que están los 14 (los `DB_PASSWORD`/`APP_SECURITY_*` generados con `openssl rand`,
    no `admin` ni placeholders). Sin esta copia no hay restauración posible si el VPS muere.
 
 Orden de arranque (junior: aquí todavía NO se levanta nada, eso es FASE 14):
@@ -1242,6 +1242,8 @@ wrapper (si algo falla, sabremos en qué paso fue).
 
 `tfm/deploy-tfm.sh` hace en orden: `git pull` del repo → `up mysql` (sola, sin tu
 código) → `build + up app` desde tu `Dockerfile` multistage → checks de puertos.
+**Además, renderiza automáticamente los configs de Nginx** sustituyendo `${TFM_DOMAIN}`
+en `tfm.conf` y `tfm-http-only.conf` (usa `scripts/render-nginx-config.sh`).
 Tú no escribes `docker compose` a mano: el wrapper se niega si lo ejecutas dentro
 del repo (Capa 1).
 
@@ -1252,28 +1254,33 @@ cd /opt/apps/tfm
 git clone <URL_DE_TU_REPO> ./repo
 cp /ruta/a/.env.tfm.example /opt/apps/tfm/.env  # o nano .env con tus valores
 chmod 600 /opt/apps/tfm/.env
+# IMPORTANTE: edita /opt/apps/tfm/.env y pon tu dominio real en TFM_DOMAIN
 ./deploy-tfm.sh
 # verás: commit desplegado (rollback = ese commit) → mysql healthy → Started Application → ps
+#       → configs nginx renderizados con tu TFM_DOMAIN
 ```
 
-Después la puerta (edge) en 2 tiempos, porque sin cert Nginx no arranca:
+Después la puerta (edge) en 3 pasos manuales (A/B/C), porque sin cert Nginx no arranca.
+**Los ficheros ya llevan tu dominio** (renderizados por deploy-tfm.sh):
 
 ```bash
 # Paso A — HTTP sin cert (tfm-http-only.conf, NUNCA tfm.conf completo aún):
 cd /opt/apps/edge/conf.d
 mv tfm.conf tfm.conf.full                    # aparta el completo (pide .pem que no existen)
-cp /ruta/a/tfm-http-only.conf ./tfm-http-only.conf
+# tfm-http-only.conf YA está renderizado con tu dominio
 cd /opt/apps/edge && docker compose up -d
 docker compose exec nginx getent hosts app
 # esperado: una IP (edge ve a la app por la red front compartida)
-curl -I http://tfm.midominio.es
+curl -I http://$TFM_DOMAIN
 # esperado: 200 'edge HTTP OK'. Si nginx sale 'restarting': mira logs,
 # casi seguro es 'cannot load certificate' = levantaste tfm.conf sin certs. Vuelve al paso A.
 ```
 
 ```bash
 # Paso B — Certbot (FASE HTTPS): nacen los .pem, verifica:
-ls /etc/letsencrypt/live/tfm.midominio.es/
+# certbot-first-cert.sh lee TFM_DOMAIN y CERTBOT_EMAIL de /opt/apps/tfm/.env
+./scripts/certbot-first-cert.sh
+ls /etc/letsencrypt/live/$TFM_DOMAIN/
 # esperado: fullchain.pem + privkey.pem
 ```
 
@@ -1281,10 +1288,10 @@ ls /etc/letsencrypt/live/tfm.midominio.es/
 # Paso C — server completo con HTTPS:
 cd /opt/apps/edge/conf.d
 rm tfm-http-only.conf
-mv tfm.conf.full tfm.conf
+mv tfm.conf.full tfm.conf   # tfm.conf YA está renderizado con tu dominio
 cd /opt/apps/edge && docker compose up -d
 docker compose exec nginx nginx -s reload
-curl -I https://tfm.midominio.es
+curl -I https://$TFM_DOMAIN
 # esperado: 200. Desde tu PC: nmap TU_IP (solo 22/80/443)
 ```
 
@@ -1380,7 +1387,7 @@ Nginx será nuestro "recepcionista".
 Internet hará:
 
 ```text
-https://tfm.midominio.es
+https://$TFM_DOMAIN
 ```
 
 Nginx recibirá la petición y la enviará internamente a:
@@ -1420,7 +1427,7 @@ Nginx recibe la petición y decide a qué servicio interno debe enviarla.
 Podemos tener:
 
 ```text
-tfm.midominio.es
+$TFM_DOMAIN
         |
         v
       Nginx (edge)
@@ -1436,13 +1443,13 @@ tfm.midominio.es
 No queremos que el TFM funcione solamente con:
 
 ```text
-http://tfm.midominio.es
+http://$TFM_DOMAIN
 ```
 
 Queremos:
 
 ```text
-https://tfm.midominio.es
+https://$TFM_DOMAIN
 ```
 
 HTTPS cifra la comunicación entre el navegador y el servidor.
@@ -2374,7 +2381,7 @@ systemctl --failed
 | `502 Bad Gateway` en `https://tfm...`                           | `app:8080` no responde o red `front` externa mal                    | `cd /opt/apps/tfm && docker compose ps && docker compose logs -f app`, `cd /opt/apps/edge && docker compose exec nginx getent hosts app`, `docker network ls \| grep front`                         |
 | `404` en `/.well-known/...`                                     | volumen `/var/www/certbot` no montado o bloque `:80` sin `location` | `cd /opt/apps/edge && docker compose exec nginx cat /etc/nginx/nginx.conf && docker compose exec nginx cat /etc/nginx/conf.d/tfm.conf`, `ls /var/www/certbot`, `curl http://tfm.../.well-known/...` |
 | `nginx restarting` + `cannot load certificate ... No such file` | levantaste `tfm.conf` completo sin certs emitidos                   | paso A: aparta `tfm.conf`, usa `tfm-http-only.conf`, `up -d`; el completo solo tras Certbot (paso C)                                                                                                |
-| Certbot `DNS problem / NXDOMAIN`                                | DNS A aún no propagado                                              | `dig +short tfm.midominio.es`, espera TTL, reintenta                                                                                                                                                |
+| Certbot `DNS problem / NXDOMAIN`                                | DNS A aún no propagado                                              | `dig +short $TFM_DOMAIN`, espera TTL, reintenta                                                                                                                                                |
 | `nmap` muestra `8080/3306` abiertos                             | pusiste `ports:` en tfm/mariadb (bypass UFW)                        | cambia a `expose:`, `docker compose up -d`, repite `ss -tulpn`                                                                                                                                      |
 | `permission denied docker.sock`                                 | sesión sin grupo `docker`                                           | `exit` + `ssh` de nuevo, `groups`, `docker ps`                                                                                                                                                      |
 | `ubuntu: Account expired / Permission denied` tras FASE 6       | es lo esperado si ya deshabilitaste `ubuntu`                        | usa `ssh deploy@IP`; si perdiste `deploy`, rescata por consola KVM OVH con `usermod --expiredate "" ubuntu`                                                                                         |
