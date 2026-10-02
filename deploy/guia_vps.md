@@ -1,21 +1,19 @@
-# Guía paso a paso: VPS seguro para TFM + OmniRoute (junior)
+# Guía paso a paso: VPS seguro para TFM (junior)
 
-> **Cómo leer esta guía:** está en 2 partes. **Parte I = TFM** (público, lo primero).
-> **Parte II = OmniRoute** (privado, solo cuando el TFM ya funcione). No mezcles las partes.
+> **Cómo leer esta guía:** cubre **solo el TFM** (público, obligatorio).
 > Decisión fijada: Nginx en Docker (único con `ports: 80/443`) + Certbot en host modo `webroot`.
-> Plantillas en esta carpeta: `edge/compose.yml` (puerta Nginx sola), `edge/nginx.conf` (base) + `edge/conf.d/tfm.conf` (único server hoy), `tfm/compose.yml` (app+MariaDB, sin nginx), `omniroute/compose.yml` (Parte II, standalone, `restart: no`), `omniroute/ai-up.sh`, `omniroute/ai-down.sh`, `.env.tfm.example`, `.env.omniroute.example`, `application-prod.properties.example`, `ssh-config.example`, `scripts/*`, `fail2ban/*`.
-> Los `.env` reales viven solo en el VPS (`/opt/apps/tfm/.env` y `/opt/apps/omniroute/.env`, `chmod 600`). Nunca en Git.
+> Plantillas en esta carpeta: `edge/compose.yml` (puerta Nginx sola), `edge/nginx.conf` (base) + `edge/conf.d/tfm.conf` (único server hoy), `tfm/compose.yml` (app+MariaDB, sin nginx), `.env.tfm.example`, `application-prod.properties.example`, `ssh-config.example`, `scripts/*`, `fail2ban/*`.
+> El `.env` real vive solo en el VPS (`/opt/apps/tfm/.env`, `chmod 600`). Nunca en Git.
 
-> **Objetivo Parte I:** TFM en `https://tfm.tudominio.es` con MariaDB privada y backups.
-> **Objetivo Parte II (después):** OmniRoute solo para ti por Tailscale, dormido por defecto, con `ai-up/ai-down`.
+> **Objetivo:** TFM en `https://tfm.tudominio.es` con MariaDB privada y backups.
 > 
 > Escrita para nivel junior: cada fase dice QUÉ es, CÓMO se hace (comando copiable) y CÓMO comprobar que salió bien antes de seguir.
 
 ---
 
-# 0. Arquitectura que vamos a construir (2 partes separadas)
+# 0. Arquitectura que vamos a construir
 
-**Parte I — TFM (público). Lo primero y lo único obligatorio:**
+**TFM (público):**
 
 ```text
 INTERNET
@@ -37,21 +35,6 @@ MariaDB :3306 (expose, volumen mariadb_data, solo la ve Spring)
 > despliegues otro proyecto añadirás su compose + 1 fichero en `edge/conf.d/` y recargarás
 > Nginx, sin editar ni reiniciar el stack del TFM.
 
-**Parte II — OmniRoute (privado, DESPUÉS de que el TFM funcione):**
-
-```text
-Tu PC --(red privada Tailscale WireGuard, no Internet)--> VPS:127.0.0.1:8000
-VPS: omniroute (Docker standalone, restart: no, dormido por defecto)
-   |
-   v
-OpenRouter (con OPENROUTER_API_KEY interna)
-Tú lo despiertas con: ai-up  |  lo duermes con: ai-down
-OpenCode apunta a: http://100.X.Y.Z:8000 + OMNIROUTE_API_KEY
-```
-
-OmniRoute **no** pasa por Nginx, **no** tiene dominio público `ai.*` ni Let's Encrypt.
-El registro `A` de `ai.*` que creaste puedes borrarlo. Ahorras RAM y superficie pública.
-
 ---
 
 # 1. Qué vamos a instalar
@@ -71,8 +54,6 @@ Antes de empezar, conviene saber para qué sirve cada pieza.
 | Certbot              | Obtiene/renueva certificados HTTPS de Let's Encrypt           |
 | Git                  | Descarga y actualiza el código                                |
 | GitHub Actions       | Automatiza tests/build/deploy                                 |
-| OmniRoute            | Gateway entre OpenCode y proveedores/modelos de IA            |
-| Tailscale (opcional) | Red privada para administrar/proteger servicios               |
 
 No necesitamos instalar todas estas cosas al principio.
 
@@ -652,7 +633,6 @@ Y no queremos abrir (junior: si `nmap` los muestra, algo pusiste mal con `ports:
 ```text
 3306 -> MariaDB (solo expose)
 8080 -> Spring Boot (solo expose)
-8000 -> OmniRoute (solo 127.0.0.1 en su compose aparte, Parte II)
 ```
 
 ---
@@ -682,11 +662,7 @@ Por ejemplo:
 ```text
 Spring Boot -> API de Finnhub
 Ubuntu -> actualizaciones
-OmniRoute -> OpenRouter (Parte II, cuando lo despiertas con ai-up)
 ```
-
-> Nota Tailscale (Parte II): además de este UFW, allí harás `sudo ufw allow in on tailscale0`
-> para la red privada. No abre nada a Internet.
 
 ---
 
@@ -767,12 +743,9 @@ Filas a crear (en este orden; sin protocolo TODOS se parte el deny en TCP+UDP):
 | 0         | Autorizar | TCP       | Todos     | `1024-65535`  | 22             | Ninguno    |
 | 1         | Autorizar | TCP       | Todos     | `1024-65535`  | 80             | Ninguno    |
 | 2         | Autorizar | TCP       | Todos     | `1024-65535`  | 443            | Ninguno    |
-| 3         | Autorizar | UDP       | Todos     | `1024-65535`  | 41641          | Ninguno    |
 | 10        | Denegar   | TCP       | Todos     | `1024-65535`  | `1-65535`      | Ninguno    |
 | 11        | Denegar   | UDP       | Todos     | `1024-65535`  | `1-65535`      | Ninguno    |
 
-* La 3 (UDP 41641) es para Tailscale directo de la Parte II; sin ella Tailscale tira por relés
-  (más lento, no roto). Se puede omitir si quieres mínimo.
 * El resto de protocolos (AH/ESP/GRE/ICMP) quedan denegados: el **ping dejará de responder**
   (normal y buscado, no es avería; `nmap` y `curl` siguen igual).
 
@@ -966,7 +939,6 @@ Crear (junior: un stack por carpeta; edge es la puerta, tfm la app):
 sudo mkdir -p /opt/apps/edge/conf.d
 sudo mkdir -p /opt/apps/edge/logs
 sudo mkdir -p /opt/apps/tfm
-sudo mkdir -p /opt/apps/omniroute
 sudo mkdir -p /opt/backups
 ```
 
@@ -993,7 +965,7 @@ Necesitas UN dominio para el TFM. Ejemplo junior:
 tudominio.es → subdominio tfm.tudominio.es
 ```
 
-Crea UN registro `A` (el de `ai.*` ya no hace falta, OmniRoute es Tailscale privado; si lo creaste, bórralo):
+Crea UN registro `A`:
 
 ```text
 tfm.tudominio.es -> 141.94.250.163
@@ -1053,7 +1025,7 @@ scp tfm/compose.yml deploy@IP:/opt/apps/tfm/compose.yml
 En el VPS (una vez, red compartida + propiedad):
 
 ```bash
-sudo mkdir -p /opt/apps/edge/conf.d /opt/apps/edge/logs /opt/apps/tfm /opt/apps/omniroute /opt/backups
+sudo mkdir -p /opt/apps/edge/conf.d /opt/apps/edge/logs /opt/apps/tfm /opt/backups
 sudo chown -R deploy:deploy /opt/apps /opt/backups
 docker network create front
 ```
@@ -1107,8 +1079,6 @@ tfm
  |
  +---- mariadb
  |
- +---- omniroute
- |
  +---- nginx
 ```
 
@@ -1117,7 +1087,6 @@ Dentro de esa red los servicios pueden utilizar nombres:
 ```text
 mariadb
 tfm
-omniroute
 ```
 
 En vez de utilizar IPs manualmente.
@@ -1174,8 +1143,7 @@ APP_SECURITY_USERNAME=CAMBIAR_openssl_3
 APP_SECURITY_PASSWORD=CAMBIAR_openssl_4
 ```
 
-> Plantilla completa y comentada: `.env.tfm.example` en esta carpeta (OmniRoute aparte:
-> `.env.omniroute.example` → `/opt/apps/omniroute/.env`).
+> Plantilla completa y comentada: `.env.tfm.example` en esta carpeta.
 > En el VPS: `chmod 600` cada `.env`. OJO: es `DB_USER`, no `DB_USERNAME`.
 
 Genera contraseñas aleatorias:
@@ -1461,9 +1429,6 @@ tfm.midominio.es
       app:8080
 ```
 
-y (ANTES, ya eliminado): OmniRoute NO pasa por Nginx. Iba a ser `ai.* -> omniroute:8000`,
-pero ahora es privado Tailscale (Parte II). Si ves `ai.*` en una plantilla vieja, bórralo.
-
 ---
 
 # 27. HTTPS
@@ -1488,11 +1453,11 @@ Certbot ayuda a obtener y renovar esos certificados.
 
 ---
 
-# 28. Certbot webroot en host (Parte I: solo `tfm`)
+# 28. Certbot webroot en host
 
 > No usar `certbot --nginx`: solo sirve con Nginx en host. Aquí Nginx va en Docker,
 > así que Certbot corre en host en modo `webroot` y comparte volúmenes (ver `edge/compose.yml` y `edge/conf.d/tfm.conf`).
-> Solo pedimos cert para `tfm.*`. Nada de `ai.*` (OmniRoute es Tailscale, sin Let's Encrypt).
+> Solo pedimos cert para `tfm.*`.
 
 Nginx sirve el reto en `/.well-known/acme-challenge/` desde `/var/www/certbot`:
 
@@ -1533,7 +1498,7 @@ docker compose -f /opt/apps/edge/compose.yml exec nginx nginx -s reload
 
 Tu web ya registra quién recibe `401/403` (login mal, rutas protegidas) en
 `/opt/apps/edge/logs/access.log`. Esta jail lee ese fichero y echa 1h a la IP que
-falle 10 veces en 5 min. `sshd` no se toca. (OmniRoute no pasa por aquí: es Tailscale.)
+falle 10 veces en 5 min. `sshd` no se toca.
 
 ## Requisito previo (si falta, no seguir): 2 comandos, 10 segundos
 
@@ -1602,186 +1567,6 @@ que sume 10 fallos en 5 minutos (`maxretry`/`findtime`), ciérrale el 80/443 una
 (`bantime`, `port = http,https)`”*. El SSH de esa IP seguiría funcionando (eso lo lleva
 la celda `sshd`). `unbanip TU_IP` es el perdón: saca una IP de la lista (sustituye `TU_IP`
 por la real de `Banned IP list`; con la lista vacía da error porque no hay a quién perdonar).
-
----
-
-# 29. PARTE II — OmniRoute privado (SOLO cuando el TFM ya funciona)
-
-## QUÉ es (junior)
-
-OmniRoute es tu gateway personal entre OpenCode y OpenRouter. **No es parte del TFM.**
-Vive dormido por defecto para ahorrar RAM y lo despiertas solo para desarrollar:
-
-```text
-OpenCode (tu PC)
-   |
-   | red privada Tailscale (cifrada, no Internet) + API key
-   v
-VPS 127.0.0.1:8000 → omniroute (Docker standalone, restart: no)
-   |
-   v
-OpenRouter
-```
-
-Diferencia siempre-encendido vs bajo demanda:
-
-* Siempre: responde al instante, come RAM 24/7.
-* Bajo demanda (nuestro caso): `ai-up` antes de codificar (5 seg), `ai-down` al terminar (libera RAM).
-
-## CÓMO se instala (una vez, tras TFM verde)
-
-1. Tailscale en VPS y PC (misma cuenta):
-   
-   ```bash
-   curl -fsSL https://tailscale.com/install.sh | sh
-   sudo tailscale up
-   tailscale status
-   tailscale ip -4  # VPS: anota 100.X.Y.Z
-   ```
-   
-   En VPS permite la red privada sin abrir nada a Internet:
-   
-   ```bash
-   sudo ufw allow in on tailscale0
-   ```
-2. Copiar plantilla al VPS (desde tu PC):
-   
-   ```bash
-   scp -r omniroute deploy@IP:/opt/apps/omniroute
-   # deja /opt/apps/omniroute/.env desde .env.omniroute.example con chmod 600
-   ```
-3. Despertar / dormir (en el VPS o con alias de `omniroute/alias-en-tu-pc.txt`):
-   
-   ```bash
-   /opt/apps/omniroute/ai-up.sh    # up + tailscale serve + ps
-   /opt/apps/omniroute/ai-down.sh  # stop + serve reset (ahorra RAM)
-   ```
-
-## CÓMO comprobar
-
-```bash
-curl http://100.X.Y.Z:8000/ -H "Authorization: Bearer $OMNIROUTE_API_KEY"
-# esperado: 200/404 de OmniRoute (responde), no timeout. Si timeout: ¿hiciste ai-up? ¿tailscale up en ambos?
-```
-
-## CÓMO se usa desde OpenCode
-
-Endpoint: `http://100.X.Y.Z:8000` (o `https://<vps>.tailXXX.ts.net` que da `tailscale serve`).
-Clave: `OMNIROUTE_API_KEY` (la tuya, no la de OpenRouter). Nunca publiques este endpoint: solo existe en tu tailnet.
-
----
-
-# 30. OmniRoute nunca es público (sin Nginx, sin `ai.*`)
-
-No queremos ni necesitamos:
-
-```text
-Internet -> IP_VPS:8000 -> OmniRoute   (NO)
-Internet -> ai.tudominio.es -> Nginx   (NO, eliminado)
-```
-
-Queremos (privado Tailscale + localhost):
-
-```text
-OpenCode (tailnet)
-   |
-   v
-tailscale serve -> 127.0.0.1:8000 -> omniroute (compose standalone)
-```
-
-Por eso `omniroute/compose.yml` publica `127.0.0.1:8000:8000` y `restart: no`.
-Si borraste el registro `A` de `ai.*`, bien. Si lo dejaste, no apunta a nada: ignóralo.
-
----
-
-# 31. API keys
-
-Separaremos:
-
-```text
-OMNIROUTE_API_KEY
-OPENROUTER_API_KEY
-FINNHUB_API_TOKEN
-POLYGON_API_TOKEN
-```
-
-Son secretos diferentes.
-
-Por ejemplo:
-
-```text
-OMNIROUTE_API_KEY
-```
-
-sirve para que tu cliente se autentique contra tu gateway.
-
-Mientras:
-
-```text
-OPENROUTER_API_KEY
-```
-
-sirve para autenticarte contra OpenRouter.
-
-No reutilizar una misma clave para todo.
-
----
-
-# 32. Proteger OmniRoute (privado por diseño, junior)
-
-Mínimo (sin Nginx para él):
-
-```text
-Tailscale (solo tu tailnet puede llegar)
-+
-127.0.0.1 (ni siquiera escucha en la IP pública)
-+
-OMNIROUTE_API_KEY distinta de OPENROUTER_API_KEY
-+
-apagado por defecto (ai-down)
-```
-
-Sin cortafuegos web intermedio (OmniRoute no pasa por Nginx) y sin fail2ban `nginx-401` para él
-(esa jail vigila solo el TFM público): su protección es no ser alcanzable + API key + estar apagado.
-
----
-
-# 33. Tailscale (obligatorio para OmniRoute, no opcional)
-
-Tu PC y VPS en la misma red privada:
-
-```text
-Tu PC (100.A) --tailnet cifrada--> VPS (100.B) --> 127.0.0.1:8000 omniroute
-TFM público aparte: Internet --> edge/nginx :443 --> app:8080
-```
-
-Comandos que importan (junior):
-
-```bash
-sudo tailscale up
-tailscale status   # ambos deben verse como online
-tailscale ip -4    # anota la del VPS
-sudo tailscale serve --bg http://127.0.0.1:8000  # lo hace ai-up.sh por ti
-tailscale serve status
-```
-
----
-
-# 34. FASE 16 — OpenCode (Parte II, tras ai-up)
-
-```text
-OpenCode (tu PC, en tailnet)
-   |
-   | http://100.X.Y.Z:8000 + Authorization: Bearer OMNIROUTE_API_KEY
-   v
-OmniRoute (despierto con ai-up)
-   |
-   v
-OpenRouter (con OPENROUTER_API_KEY interna, nunca en OpenCode)
-```
-
-CÓMO comprobar: primero `ai-up`, luego `curl` con la key (arriba). Si cambias de PC,
-repite `tailscale up` con la misma cuenta y usa la misma IP/key de Bitwarden.
 
 ---
 
@@ -2232,7 +2017,6 @@ No queremos:
 ```text
 3306
 8080
-PUERTO_OMNIROUTE
 ```
 
 abiertos públicamente.
@@ -2315,23 +2099,6 @@ El usuario nunca necesita conectarse directamente a:
 ```text
 IP_VPS:8080
 ```
-
----
-
-# 54. OmniRoute detrás de Tailscale (NO de Nginx)
-
-```text
-OpenCode (tailnet)
-    |
-    | http://100.X.Y.Z:8000 + API key (ai-up despierto)
-    v
-127.0.0.1:8000 -> OmniRoute (compose standalone, restart: no)
-    |
-    v
-OpenRouter
-```
-
-Si ves `ai.midominio.es -> Nginx -> OmniRoute` en apuntes viejos, está obsoleto.
 
 ---
 
@@ -2475,8 +2242,7 @@ No debemos realizar migraciones destructivas de base de datos sin backup.
 - [ ] 443 abierto
 - [ ] 3306 NO abierto
 - [ ] 8080 NO abierto
-- [ ] OmniRoute NO expuesto directamente
-- [ ] Edge OVH activo (0-3 autorizar 22/80/443+41641 UDP, 10-11 denegar resto, `nmap` verificado tras activar)
+- [ ] Edge OVH activo (0-2 autorizar 22/80/443, 10-11 denegar resto, `nmap` verificado tras activar)
 
 ## Docker
 
@@ -2505,16 +2271,6 @@ No debemos realizar migraciones destructivas de base de datos sin backup.
 - [ ] HTTPS
 - [ ] HTTP redirige a HTTPS
 - [ ] Solo Nginx expone 80/443
-
-## OmniRoute (Parte II, privado Tailscale, tras TFM verde)
-
-- [ ] `ai.*` público eliminado (sin Nginx, sin Let's Encrypt)
-- [ ] Tailscale `up` en VPS y PC, `tailscale ip -4` anotada
-- [ ] `omniroute/compose.yml` standalone, `restart: no`, `127.0.0.1:8000`
-- [ ] `.env` en `/opt/apps/omniroute/.env` con `chmod 600`
-- [ ] `ai-up` despierta + `serve`, `ai-down` duerme (RAM libre)
-- [ ] OpenCode apunta a `http://100.X:8000` + `OMNIROUTE_API_KEY` propia
-- [ ] `OPENROUTER_API_KEY` solo en VPS, nunca en OpenCode/Git
 
 ## Backups
 
@@ -2571,18 +2327,11 @@ La secuencia recomendada es:
         ↓
 14. HTTPS + FASE 15a jail nginx-401 (tras Nginx up)
         ↓
-15. Backups (TFM verde aquí = Parte I lista)
+15. Backups (TFM verde)
         ↓
-PARTE II (solo tras TFM verde):
-16. Tailscale en VPS+PC
+16. GitHub Actions (TFM)
         ↓
-17. OmniRoute privado (ai-up/ai-down, dormido por defecto)
-        ↓
-18. OpenCode → http://100.X:8000 + key
-        ↓
-19. GitHub Actions (TFM)
-        ↓
-20. Monitorización y mantenimiento
+17. Monitorización y mantenimiento
 ```
 
 ---
@@ -2627,8 +2376,6 @@ systemctl --failed
 | `nginx restarting` + `cannot load certificate ... No such file` | levantaste `tfm.conf` completo sin certs emitidos                   | paso A: aparta `tfm.conf`, usa `tfm-http-only.conf`, `up -d`; el completo solo tras Certbot (paso C)                                                                                                |
 | Certbot `DNS problem / NXDOMAIN`                                | DNS A aún no propagado                                              | `dig +short tfm.midominio.es`, espera TTL, reintenta                                                                                                                                                |
 | `nmap` muestra `8080/3306` abiertos                             | pusiste `ports:` en tfm/mariadb (bypass UFW)                        | cambia a `expose:`, `docker compose up -d`, repite `ss -tulpn`                                                                                                                                      |
-| `nmap` muestra `8000` abierto a Internet                        | OmniRoute publicado con `ports: 8000:8000`                          | debe ser `127.0.0.1:8000:8000` en `omniroute/compose.yml` (Parte II). `8000` nunca va en UFW                                                                                                        |
-| `curl http://100.X:8000` timeout                                | olvidaste `ai-up` o `tailscale up` en uno de los dos                | `ai-up` en VPS, `tailscale status` en ambos (online), reintenta                                                                                                                                     |
 | `permission denied docker.sock`                                 | sesión sin grupo `docker`                                           | `exit` + `ssh` de nuevo, `groups`, `docker ps`                                                                                                                                                      |
 | `ubuntu: Account expired / Permission denied` tras FASE 6       | es lo esperado si ya deshabilitaste `ubuntu`                        | usa `ssh deploy@IP`; si perdiste `deploy`, rescata por consola KVM OVH con `usermod --expiredate "" ubuntu`                                                                                         |
 | Perdí el `.env` y no hay copia en Bitwarden                     | sin copia no hay restore mágico                                     | regenerar tokens en proveedores + nuevas claves `openssl rand` + recrear volumen/usuarios (`ALTER USER` o `down -v` con backup previo). Con copia: restaurar fichero + `chmod 600` + `up`           |
@@ -2643,53 +2390,25 @@ Aprender estos comandos te dará una base mucho más útil que memorizar una ins
 Al terminar deberíamos tener:
 
 ```text
-                         INTERNET
-                             |
-                         HTTPS 443
-                             |
-                             v
-                         NGINX
-                       /         \
-                      /           \
-                     v             v
-                  TFM          OmniRoute
-                   |               |
-                   v               v
-                MariaDB        OpenRouter
-                   |
-                   v
-                BACKUPS
-                   |
-                   v
-             almacenamiento
+                          INTERNET
+                              |
+                          HTTPS 443
+                              |
+                              v
+                          NGINX
+                           |
+                           v
+                        TFM
+                         |
+                         v
+                      MariaDB
+                         |
+                         v
+                      BACKUPS
+                         |
+                         v
+                 almacenamiento
                 externo
-```
-
-Y (Parte II, tras TFM verde):
-
-```text
-OpenCode (tailnet)
-   |
-   v
-http://100.X.Y.Z:8000 + key (ai-up despierto)
-   |
-   v
-127.0.0.1:8000 OmniRoute (restart: no, ai-down lo duerme)
-```
-
-Mientras:
-
-```text
-Internet
-    |
-    v
-tfm.midominio.es
-    |
-    v
-Nginx
-    |
-    v
-Spring Boot
 ```
 
 Y MariaDB permanece privada:
@@ -2731,9 +2450,6 @@ Habrás trabajado con:
 - GitHub Actions
 - CI/CD
 - APIs
-- gateways de IA
-- OpenCode
-- OpenRouter
 - seguridad básica de servidores
 
 Esto convierte el despliegue en una parte importante de tu propio aprendizaje y también en una pieza interesante de tu portfolio.
