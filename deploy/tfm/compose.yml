@@ -1,0 +1,90 @@
+# PROYECTO TFM — app + datos (SIN nginx; la puerta vive en edge/).
+# Adaptado el docker-compose.yml local a producción: mismos servicios (app/mysql),
+# sin puertos públicos, con build en el VPS desde ./repo.
+# En el VPS: /opt/apps/tfm/compose.yml  (+ .env con chmod 600, + repo en ./repo)
+# Red front compartida con edge (crear una vez): docker network create front
+# Arranque SIEMPRE con ./deploy-tfm.sh (nunca cd repo && docker compose up).
+
+services:
+  app:
+    # Imagen pre-built desde GHCR (build en CI, no en VPS).
+    # Variables de entorno en VPS: GHCR_REPOSITORY, TFM_TAG
+    image: ghcr.io/${GHCR_REPOSITORY:-ruben/market-analysis-app}/tfm:${TFM_TAG:-latest}
+    container_name: market-analysis-app
+    restart: unless-stopped
+    env_file:
+      - /opt/apps/tfm/.env
+    environment:
+      # Perfil prod: tu application-prod.properties manda (DB_URL/DB_USER/DB_PASSWORD).
+      SPRING_PROFILES_ACTIVE: prod
+      # Puerto interno fijo (tu server.port usa ${PORT:8080}).
+      PORT: "8080"
+      # Detrás de edge/nginx: respeta X-Forwarded-* para URLs https correctas.
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      # Tu base deja devtools restart en true; el jar lo excluye, esto lo blinda.
+      SPRING_DEVTOOLS_RESTART_ENABLED: "false"
+      # Debug APAGADO en prod (y sin mapeo 5005: no existe puerta debug).
+      JAVA_DEBUG_ENABLED: "false"
+      # Tope JVM para VPS pequeño (sube si tienes 4GB+: "-Xmx1g").
+      JAVA_OPTS: "-Xmx512m"
+    expose:
+      # Visible solo dentro de Docker. Internet llega vía edge/nginx.
+      - "8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - front
+      - back
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mysql:
+    image: mariadb:10.11
+    container_name: market-analysis-mysql
+    # Límites heredados de tu compose local (VPS pequeño). Si sobra RAM, se relajan.
+    command: [
+      "mariadbd",
+      "--innodb-buffer-pool-size=64M",
+      "--max-connections=20",
+      "--key-buffer-size=8M"
+    ]
+    restart: unless-stopped
+    env_file:
+      - /opt/apps/tfm/.env
+    # La imagen mariadb acepta MYSQL_* (compat). Mantenemos TUS nombres del repo.
+    security_opt:
+      - no-new-privileges:true
+    expose:
+      # Sin ports: nadie fuera de Docker la necesita.
+      - "3306"
+    volumes:
+      - mysql_tfm_data:/var/lib/mysql
+      # Init de tu repo (ruta dentro del clone ./repo). Solo actúa al crear el volumen.
+      - ./repo/src/main/resources/config/database/script-bd.sql:/docker-entrypoint-initdb.d/script-bd.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      timeout: 20s
+      retries: 10
+      start_period: 10s
+    networks:
+      - back
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mysql_tfm_data:
+    name: mysql_tfm_data
+
+networks:
+  front:
+    external: true
+    name: front
+  back:
+    name: tfm_back
