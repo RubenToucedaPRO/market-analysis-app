@@ -939,6 +939,7 @@ Crear (junior: un stack por carpeta; edge es la puerta, tfm la app):
 sudo mkdir -p /opt/apps/edge/conf.d
 sudo mkdir -p /opt/apps/edge/logs
 sudo mkdir -p /opt/apps/tfm
+sudo mkdir -p /opt/apps/tfm/scripts
 sudo mkdir -p /opt/backups
 ```
 
@@ -1006,12 +1007,17 @@ Comparten la red `front` (se crea una vez). OmniRoute va aparte.
 
 ## CÓMO se hace (copiar plantillas al VPS)
 
-QUÉ copiar (2 recetas + 2 configs):
+QUÉ copiar (2 recetas + 2 configs + scripts):
 
 * Tu PC: `edge/compose.yml` → VPS: `/opt/apps/edge/compose.yml`
 * Tu PC: `edge/nginx.conf` → VPS: `/opt/apps/edge/nginx.conf`
 * Tu PC: `edge/conf.d/tfm.conf` → VPS: `/opt/apps/edge/conf.d/tfm.conf`
+* Tu PC: `edge/conf.d/tfm-http-only.conf` → VPS: `/opt/apps/edge/conf.d/tfm-http-only.conf`
 * Tu PC: `tfm/compose.yml` → VPS: `/opt/apps/tfm/compose.yml`
+* Tu PC: `tfm/deploy-tfm.sh` → VPS: `/opt/apps/tfm/deploy-tfm.sh`
+* Tu PC: `tfm/backup-mariadb.sh` → VPS: `/opt/apps/tfm/backup-mariadb.sh`
+* Tu PC: `scripts/render-nginx-config.sh` → VPS: `/opt/apps/tfm/scripts/render-nginx-config.sh`
+* Tu PC: `scripts/certbot-first-cert.sh` → VPS: `/opt/apps/tfm/scripts/certbot-first-cert.sh`
 
 Vía A — `scp` (recomendada, desde tu PC, con `/opt/apps/{edge,tfm}` ya creados):
 
@@ -1019,15 +1025,21 @@ Vía A — `scp` (recomendada, desde tu PC, con `/opt/apps/{edge,tfm}` ya creado
 scp edge/compose.yml deploy@IP:/opt/apps/edge/compose.yml
 scp edge/nginx.conf deploy@IP:/opt/apps/edge/nginx.conf
 scp edge/conf.d/tfm.conf deploy@IP:/opt/apps/edge/conf.d/tfm.conf
+scp edge/conf.d/tfm-http-only.conf deploy@IP:/opt/apps/edge/conf.d/tfm-http-only.conf
 scp tfm/compose.yml deploy@IP:/opt/apps/tfm/compose.yml
+scp tfm/deploy-tfm.sh deploy@IP:/opt/apps/tfm/deploy-tfm.sh
+scp tfm/backup-mariadb.sh deploy@IP:/opt/apps/tfm/backup-mariadb.sh
+scp scripts/render-nginx-config.sh deploy@IP:/opt/apps/tfm/scripts/render-nginx-config.sh
+scp scripts/certbot-first-cert.sh deploy@IP:/opt/apps/tfm/scripts/certbot-first-cert.sh
 ```
 
 En el VPS (una vez, red compartida + propiedad):
 
 ```bash
-sudo mkdir -p /opt/apps/edge/conf.d /opt/apps/edge/logs /opt/apps/tfm /opt/backups
+sudo mkdir -p /opt/apps/edge/conf.d /opt/apps/edge/logs
 sudo chown -R deploy:deploy /opt/apps /opt/backups
 docker network create front
+chmod +x /opt/apps/tfm/deploy-tfm.sh /opt/apps/tfm/backup-mariadb.sh /opt/apps/tfm/scripts/*.sh
 ```
 
 Vía B — `nano` + pegar (si `scp` te lía): crea los mismos 4 ficheros a mano con el
@@ -1049,6 +1061,7 @@ QUÉ adaptar antes del primer `up` (3 cosas, nada más):
 Orden de arranque (junior: aquí todavía NO se levanta nada, eso es FASE 14):
 
 ```bash
+# SOLO VALIDACIÓN (no hace up): imprime la receta resuelta
 docker compose -f /opt/apps/tfm/compose.yml config
 docker compose -f /opt/apps/edge/compose.yml config
 # esperado: imprimen la receta sin errores. Si dice env file not found → crea el .env.
