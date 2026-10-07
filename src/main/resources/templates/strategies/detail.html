@@ -357,7 +357,12 @@
             <span th:text="#{strategy.suggestion.job.running}"
               >Calculando sugerencias…</span
             >
-            <span id="suggest-job-elapsed" class="fw-semibold">0:00</span>
+            <span
+              id="suggest-job-elapsed"
+              class="fw-semibold"
+              th:text="${suggestJobElapsed}"
+              >0:00</span
+            >
           </output>
           <div id="suggest-job-alert" class="alert d-none" role="alert"></div>
 

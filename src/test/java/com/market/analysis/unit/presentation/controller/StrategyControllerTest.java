@@ -356,6 +356,7 @@ class StrategyControllerTest {
         assertEquals("strategies/detail", viewName);
         verify(model).addAttribute("suggestJobId", "job-123");
         verify(model).addAttribute(eq("suggestJobStartedAt"), any());
+        verify(model).addAttribute(eq("suggestJobElapsed"), any());
     }
 
     @Test
@@ -372,6 +373,7 @@ class StrategyControllerTest {
         assertEquals("strategies/detail", viewName);
         verify(model).addAttribute("suggestJobId", "job-abc");
         verify(model).addAttribute(eq("suggestJobStartedAt"), any());
+        verify(model).addAttribute(eq("suggestJobElapsed"), any());
     }
 
     @Test

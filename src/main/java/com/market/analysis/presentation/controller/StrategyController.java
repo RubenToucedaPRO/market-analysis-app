@@ -1,5 +1,7 @@
 package com.market.analysis.presentation.controller;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,8 +70,15 @@ public class StrategyController {
             model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ID, job.getJobId());
             model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_STARTED_AT,
                     job.getStartedAt().truncatedTo(ChronoUnit.MILLIS).toString());
+            model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ELAPSED,
+                    formatElapsed(job.getStartedAt(), java.time.Instant.now()));
         });
         return WebConstants.TEMPLATE_STRATEGIES_DETAIL;
+    }
+
+    private static String formatElapsed(Instant startedAt, Instant now) {
+        long seconds = Math.max(0, Duration.between(startedAt, now).getSeconds());
+        return (seconds / 60) + ":" + String.format("%02d", seconds % 60);
     }
 
     @GetMapping("/new")

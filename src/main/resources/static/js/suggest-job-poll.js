@@ -95,8 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  clockTimer = setInterval(function () {
+  function tickClock() {
     elapsedEl.textContent = formatElapsed();
-  }, 1000);
+  }
+
+  tickClock();
+  clockTimer = setInterval(tickClock, 1000);
   setTimeout(poll, POLL_MS);
 });
