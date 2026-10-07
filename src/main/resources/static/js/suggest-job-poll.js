@@ -73,12 +73,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return response.json();
       })
       .then(function (job) {
-        if (jobStartedAt === null && job.startedAt) {
-          var parsed = Date.parse(job.startedAt);
-          if (!isNaN(parsed)) {
-            jobStartedAt = parsed;
-          }
-        }
         if (job.status === 'DONE') {
           stopClock();
           window.location.href = detailUrl;
