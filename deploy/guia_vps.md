@@ -1680,6 +1680,70 @@ VPS
  +---> almacenamiento externo
 ```
 
+## Opción A — Copia manual a tu PC (sin instalar nada)
+
+Desde tu PC, después de cada cambio importante (o 1 vez por semana):
+
+```bash
+scp 'vps-tfm:/opt/backups/mariadb-FECHA.sql.gz' ./backups-tfm/
+gzip -t ./backups-tfm/mariadb-FECHA.sql.gz && echo COPIA OK
+```
+
+Ventaja: inmediata, sin dependencias. Inconveniente: manual, se olvida.
+
+## Opción B — Copia automática a cloud con rclone (recomendado)
+
+`rclone` copia cada madrugada `/opt/backups/*.sql.gz` a un almacenamiento cloud,
+después del backup local de las 02:30.
+
+Proveedor sugerido para un TFM: **Backblaze B2** (10 GB gratis, compatible S3;
+un backup de MBs sale ~0 €/mes). Vale Drive/S3 con el mismo esquema.
+
+1. Instalar en el VPS (una vez):
+
+```bash
+sudo apt install rclone
+```
+
+2. Crear el remoto (interactivo, una vez):
+
+```bash
+rclone config
+# Nuevo remote "b2-tfm": tipo S3-compatible, endpoint de Backblaze, keyID + applicationKey
+```
+
+El fichero `~/.config/rclone/rclone.conf` contiene secretos: `chmod 600`, nunca a Git.
+
+3. (Recomendado) Cifrado en cliente con un remote `crypt` encima:
+
+```bash
+# Nuevo remote "seguro-tfm": tipo crypt → apunta a "b2-tfm:bucket-tfm" con contraseña propia
+```
+
+Así ni el proveedor puede leer tu BD. Guarda esa contraseña en Bitwarden junto al `.env`.
+
+4. Probar copia manual:
+
+```bash
+rclone copy /opt/backups/ seguro-tfm: --include 'mariadb-*.sql.gz' --log-file /opt/backups/rclone-manual.log
+rclone ls seguro-tfm:
+# esperado: lista los mariadb-FECHA.sql.gz subidos
+```
+
+5. Automatizar con cron (después del backup local):
+
+```cron
+30 2 * * * /opt/apps/tfm/backup-mariadb.sh >> /opt/backups/backup-cron.log 2>&1
+0 3 * * * /usr/bin/rclone copy /opt/backups/ seguro-tfm: --include 'mariadb-*.sql.gz' >> /opt/backups/rclone-cron.log 2>&1
+```
+
+## CÓMO comprobar la copia externa
+
+- Al día siguiente: `rclone ls seguro-tfm:` muestra el fichero de esa madrugada.
+- `tail /opt/backups/rclone-cron.log` sin errores.
+- 1 vez al trimestre: descargar **desde el cloud** y hacer `gzip -t` + restore de prueba
+  (sección 38) con esa copia, no con la local. Así validas la cadena completa.
+
 ---
 
 # 38. Probar restauración
@@ -1701,6 +1765,66 @@ comprobar datos
 ```
 
 Un backup que nunca hemos restaurado es solamente una suposición.
+
+## CÓMO se prueba (sin tocar prod)
+
+Restauramos a una BD **temporal** (`mariadb-test`), nunca sobre `marketanalysisdb`:
+
+1. Descarga el último backup a tu PC (o trabaja en el VPS):
+
+```bash
+scp 'vps-tfm:/opt/backups/mariadb-FECHA.sql.gz' ./
+gzip -t mariadb-FECHA.sql.gz && echo COPIA OK
+```
+
+2. Levanta MariaDB temporal:
+
+```bash
+docker run -d --name mariadb-test \
+  -e MARIADB_ROOT_PASSWORD=test123 \
+  -e MARIADB_DATABASE=restoretest \
+  mariadb:10.11
+```
+
+3. Restaura dentro:
+
+```bash
+zcat mariadb-FECHA.sql.gz | docker exec -i mariadb-test mariadb -uroot -ptest123 restoretest
+```
+
+4. Comprueba tablas y conteos. Primero saca la referencia desde prod (solo lectura, en el VPS):
+
+```bash
+cd /opt/apps/tfm
+set -a; source .env; set +a
+docker exec market-analysis-mysql mariadb -u"$DB_USER" -p"$DB_PASSWORD" "$DB_DATABASE" -e "SHOW TABLES; SELECT COUNT(*) FROM strategies; SELECT COUNT(*) FROM stocks;"
+```
+
+Después ejecuta las mismas queries en la temporal y compara:
+
+```bash
+docker exec mariadb-test mariadb -uroot -ptest123 restoretest -e "SHOW TABLES; SELECT COUNT(*) FROM strategies; SELECT COUNT(*) FROM stocks;"
+```
+
+Ese es el "contra qué" se compara: mismas queries en `restoretest` vs `marketanalysisdb`.
+
+5. Limpia:
+
+```bash
+docker stop mariadb-test && docker rm mariadb-test
+```
+
+## CÓMO comprobar que salió bien
+
+- `SHOW TABLES` lista las mismas tablas en ambas (`candles`, `stocks`, `strategies`, etc.): ninguna falta.
+- Los `COUNT(*)` cuadran aprox (prod sigue escribiendo, pequeñas diferencias son normales).
+- Sin errores de sintaxis SQL en el paso 3.
+
+## Cuándo repetirlo
+
+- Tras cada cambio de versión de MariaDB.
+- Al menos 1 vez por trimestre.
+- Siempre antes de confiar un restore real.
 
 ---
 
