@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Despliegue del TFM en el VPS (junior: única vía soportada para levantar la app).
 # Uso: cd /opt/apps/tfm && ./deploy-tfm.sh
-# Hace: git pull del repo → up mysql → build+up app → checks.
+# Hace: git pull del repo → up mysql → pull+up app desde GHCR → checks.
 # NUNCA ejecutar docker compose dentro de ./repo (crearía otra BD duplicada
 # y publicaría 8080/5005 al mundo). Si lo intentas aquí por error, me niego.
 set -euo pipefail
@@ -36,7 +36,9 @@ for _ in $(seq 1 30); do
 done
 [[ "$STATUS" == "healthy" ]] || { echo "ERROR: mysql no está healthy (ver: docker compose logs mysql). No sigo con la app."; exit 1; }
 
-# --- 2/2 App (build del repo + arranque) ---
+# --- 2/2 App (pull de GHCR + arranque) ---
+# Sin este pull, 'up' reutilizaría la imagen local vieja y desplegaría código antiguo diciendo OK.
+docker compose pull app || { echo "ERROR: no pude descargar la imagen de GHCR (¿red? ¿login? ¿existe el tag?). No sigo."; exit 1; }
 docker compose up -d --build app
 echo "Esperando Started Application (hasta ~5 min en VPS pequeño)..."
 # Bucle con logs --tail (sin -f): evita el falso ERROR por SIGPIPE+pipefail
