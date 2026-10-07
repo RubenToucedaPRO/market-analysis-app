@@ -52,6 +52,7 @@ public final class WebConstants {
     // ── Pagination Query Params ────────────────────────────────────────
     public static final String PARAM_TICKER_PAGE = "?tickerPage=";
     public static final String PARAM_KEYWORD_PAGE = "&keywordPage=";
+    public static final String PARAM_SUGGEST_JOB_ID = "?jobId=";
 
     // ── Error View Attributes ───────────────────────────────────────────
     public static final String ATTR_ERROR_MESSAGE = "errorMessage";

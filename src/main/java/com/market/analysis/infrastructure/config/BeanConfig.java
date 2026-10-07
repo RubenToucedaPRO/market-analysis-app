@@ -1,14 +1,19 @@
 package com.market.analysis.infrastructure.config;
 
+import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
+import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.ProhibitedKeywordDTOMapper;
 import com.market.analysis.application.mapper.ProhibitedTickerDTOMapper;
@@ -190,6 +195,29 @@ public class BeanConfig {
                 suggestionSnapshotRepository,
                 suggestedTickerRepository,
                 stockDataRepository);
+    }
+
+    @Bean
+    public TaskExecutor suggestTickerExecutor(
+            @Value("${suggest.executor.pool-size:1}") int poolSize,
+            @Value("${suggest.executor.queue-capacity:10}") int queueCapacity,
+            @Value("${suggest.executor.thread-prefix:suggest-}") String threadPrefix) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(poolSize);
+        executor.setMaxPoolSize(poolSize);
+        executor.setQueueCapacity(queueCapacity);
+        executor.setThreadNamePrefix(threadPrefix);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean
+    public SuggestTickerJobService suggestTickerJobService(
+            SuggestTickersUseCase suggestTickersUseCase,
+            TaskExecutor suggestTickerExecutor,
+            @Value("${suggest.job.ttl-minutes:60}") long jobTtlMinutes) {
+        return new SuggestTickerJobService(suggestTickersUseCase, suggestTickerExecutor, Duration.ofMinutes(jobTtlMinutes));
     }
 
     @Bean

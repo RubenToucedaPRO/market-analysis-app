@@ -276,6 +276,21 @@
           </div>
 
           <div
+            id="suggest-job-banner"
+            th:if="${param.jobId != null}"
+            class="alert alert-info d-flex align-items-center gap-2"
+            role="status"
+            th:data-status-url="@{/strategies/suggest-jobs/{jobId}(jobId=${param.jobId[0]})}"
+            th:data-detail-url="@{/strategies/{id}(id=${strategy.id})}"
+            th:data-msg-interrupted="#{strategy.suggestion.job.interrupted}"
+          >
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            <span th:text="#{strategy.suggestion.job.running}">Calculando sugerencias…</span>
+            <span id="suggest-job-elapsed" class="fw-semibold">0:00</span>
+          </div>
+          <div id="suggest-job-alert" class="alert d-none" role="alert"></div>
+
+          <div
             th:replace="~{fragments/strategy-traceability :: strategyTraceability(strategyId=${strategy.id}, suggestedTickers=${suggestedTickers}, discardedTickers=${discardedTickers}, unmappableRules=${unmappableRules}, suggestedAt=${suggestedAt})}"
           ></div>
         </div>
@@ -284,5 +299,6 @@
 
     <footer th:replace="~{fragments/footer :: footer}"></footer>
     <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
+    <script th:src="@{/js/suggest-job-poll.js}"></script>
   </body>
 </html>
