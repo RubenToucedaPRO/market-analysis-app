@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +37,8 @@ import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
+import com.market.analysis.application.job.SuggestTickerJob;
+import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
@@ -59,6 +62,9 @@ class StrategyControllerViewTest {
 
     @MockitoBean
     private SuggestTickersUseCase suggestTickersUseCase;
+
+    @MockitoBean
+    private SuggestTickerJobService suggestTickerJobService;
 
     @Test
     @DisplayName("Should render subject parameter select for empty strategy form")
@@ -210,21 +216,15 @@ class StrategyControllerViewTest {
     }
 
     @Test
-    @DisplayName("Should add flash traceability attributes when suggesting tickers")
+    @DisplayName("Should submit async job and redirect with job id when suggesting tickers")
     void shouldAddTraceabilityFlashAttributesWhenSuggestingTickers() throws Exception {
-        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
-                .suggestedTickers(List.of(
-                        SuggestedTickerDTO.builder().ticker("AAPL").suitabilityStatus(TickerSuitabilityStatus.APTO).build(),
-                        SuggestedTickerDTO.builder().ticker("TSLA").suitabilityStatus(TickerSuitabilityStatus.NO_APTO).build()))
-                .unmappableRules(List.of("ATR(14)"))
-                .build();
-        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
+        when(suggestTickerJobService.submitSuggestionJob(1L)).thenReturn("job-xyz");
 
         mockMvc.perform(post("/strategies/1/suggest-tickers"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(view().name("redirect:/strategies/1"))
+                .andExpect(view().name("redirect:/strategies/1?jobId=job-xyz"))
                 .andExpect(flash().attribute(WebConstants.UI_NOTIFICATION_KEY,
-                        UiNotification.warning("Sugerencia parcial: revisa trazabilidad de descartes o reglas no mapeables.")));
+                        UiNotification.success("Sugerencia en curso: el análisis puede tardar varios minutos, puedes seguir navegando.")));
     }
 
     @Test
@@ -376,6 +376,59 @@ class StrategyControllerViewTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("75%")))
                 .andExpect(content().string(containsString(">3<")));
+    }
+
+    @Test
+    @DisplayName("Should submit suggestion job and redirect with job id")
+    void shouldSubmitSuggestionJobAndRedirect() throws Exception {
+        when(suggestTickerJobService.submitSuggestionJob(1L)).thenReturn("job-abc");
+
+        mockMvc.perform(post("/strategies/1/suggest-tickers"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/strategies/1?jobId=job-abc"))
+                .andExpect(flash().attributeExists("uiNotification"));
+
+        verify(suggestTickerJobService).submitSuggestionJob(1L);
+    }
+
+    @Test
+    @DisplayName("Should render job banner when detail carries a job id")
+    void shouldRenderJobBannerWithJobId() throws Exception {
+        StrategyDTO strategy = StrategyDTO.builder()
+                .id(1L)
+                .name("Banner Strategy")
+                .description("Desc")
+                .rules(List.of())
+                .build();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
+
+        mockMvc.perform(get("/strategies/1").param("jobId", "job-abc"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("suggest-job-banner")))
+                .andExpect(content().string(containsString("/strategies/suggest-jobs/job-abc")));
+    }
+
+    @Test
+    @DisplayName("Should return job status as JSON")
+    void shouldReturnSuggestJobStatus() throws Exception {
+        SuggestTickerJob job = new SuggestTickerJob("job-abc", 1L, Instant.now());
+        job.markRunning();
+        when(suggestTickerJobService.getJob("job-abc")).thenReturn(java.util.Optional.of(job));
+
+        mockMvc.perform(get("/strategies/suggest-jobs/job-abc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.jobId").value("job-abc"))
+                .andExpect(jsonPath("$.status").value("RUNNING"));
+    }
+
+    @Test
+    @DisplayName("Should return 404 for unknown job id")
+    void shouldReturnNotFoundForUnknownJob() throws Exception {
+        when(suggestTickerJobService.getJob("unknown")).thenReturn(java.util.Optional.empty());
+
+        mockMvc.perform(get("/strategies/suggest-jobs/unknown"))
+                .andExpect(status().isNotFound());
     }
 
 }
