@@ -344,6 +344,31 @@
         </div>
       </div>
 
+      <output
+        id="job-banner"
+        th:if="${iaJobId != null}"
+        class="alert alert-info d-flex align-items-center gap-2"
+        th:data-status-url="@{/analysis/ia-jobs/{jobId}(jobId=${iaJobId})}"
+        th:data-detail-url="@{/analysis/ticker/{id}(id=${ticker.id})}"
+        th:data-started-at="${iaJobStartedAt}"
+        th:data-msg-interrupted="#{ticker.ia.job.interrupted}"
+      >
+        <span
+          class="spinner-border spinner-border-sm"
+          aria-hidden="true"
+        ></span>
+        <span th:text="#{ticker.ia.job.running}"
+          >Generando análisis…</span
+        >
+        <span
+          id="job-elapsed"
+          class="fw-semibold"
+          th:text="${iaJobElapsed}"
+          >0:00</span
+        >
+      </output>
+      <div id="job-alert" class="alert d-none" role="alert"></div>
+
       <div
         th:replace="~{fragments/ai-valoration :: aiValoration(valorationIA=${ticker.valorationIA})}"
       ></div>
@@ -385,6 +410,7 @@
     <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
     <script th:src="@{/js/mini-chart.js}"></script>
     <script th:src="@{/js/validation-ia.js}"></script>
+    <script th:src="@{/js/job-poll.js}"></script>
     <script th:src="@{/js/tooltips-init.js}"></script>
   </body>
 </html>

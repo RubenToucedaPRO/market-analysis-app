@@ -10,44 +10,40 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * JSON contract for polling the state of an asynchronous suggestion job.
+ * JSON contract for polling the state of an asynchronous AI-valoration job.
  * The {@code message} is already localized by the presentation layer; terminal
  * states carry it, active states leave it null (the page shows a spinner).
+ * {@code generated} is only set on {@code DONE}: true when the LLM produced a
+ * real valuation, false when the fallback text was persisted instead.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SuggestJobStatusDTO {
+public class IaValorationJobStatusDTO {
 
     private String jobId;
-    private Long strategyId;
+    private Long tickerId;
     private String status;
     private Instant startedAt;
     private Instant finishedAt;
-    private Integer suggestedCount;
-    private Integer discardedCount;
+    private Boolean generated;
     private String message;
 
-    public static SuggestJobStatusDTO from(BackgroundJob job, String message) {
-        return SuggestJobStatusDTO.builder()
+    public static IaValorationJobStatusDTO from(BackgroundJob job, String message) {
+        return IaValorationJobStatusDTO.builder()
                 .jobId(job.getJobId())
-                .strategyId(job.getSubjectId())
+                .tickerId(job.getSubjectId())
                 .status(job.getStatus().name())
                 .startedAt(job.getStartedAt())
                 .finishedAt(job.getFinishedAt())
-                .suggestedCount(countOf(job, "suggested"))
-                .discardedCount(countOf(job, "discarded"))
+                .generated(generatedOf(job))
                 .message(message)
                 .build();
     }
 
-    private static int countOf(BackgroundJob job, String key) {
-        try {
-            String value = job.getAttribute(key);
-            return value == null ? 0 : Integer.parseInt(value);
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
+    private static Boolean generatedOf(BackgroundJob job) {
+        String value = job.getAttribute("generated");
+        return value == null ? null : Boolean.valueOf(value);
     }
 }

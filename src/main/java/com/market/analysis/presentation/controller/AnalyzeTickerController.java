@@ -1,11 +1,15 @@
 package com.market.analysis.presentation.controller;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,11 +21,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.CandleChartDTO;
+import com.market.analysis.application.dto.IaValorationJobStatusDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.job.BackgroundJob;
+import com.market.analysis.application.job.IaValorationJobService;
+import com.market.analysis.application.job.JobRejectedException;
+import com.market.analysis.application.job.JobStatus;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.ElapsedTimeFormatter;
 import com.market.analysis.presentation.util.WebConstants;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +43,7 @@ public class AnalyzeTickerController {
 
     private final ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase;
     private final ManageStrategyUseCase manageStrategyUseCase;
+    private final IaValorationJobService iaValorationJobService;
     private final MessageSource messageSource;
 
     @GetMapping
@@ -92,10 +103,28 @@ public class AnalyzeTickerController {
     }
 
     @GetMapping("/ticker/{id:\\d+}")
-    public String getTickerDetail(@PathVariable Long id, Model model) {
+    public String getTickerDetail(@PathVariable Long id,
+            @RequestParam(value = "ia", required = false) String iaResult,
+            Model model) {
         StockDataDTO ticker = manageAnalyzeTickerUseCase.findStockDataById(id);
         model.addAttribute(WebConstants.ATTR_TICKER, ticker);
+        if ("failed".equals(iaResult)) {
+            String message = messageSource.getMessage("ticker.ia.failed", null, LocaleContextHolder.getLocale());
+            model.addAttribute(WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(message));
+        }
+        resolveActiveIaJob(id).ifPresent(job -> {
+            model.addAttribute(WebConstants.ATTR_IA_JOB_ID, job.getJobId());
+            model.addAttribute(WebConstants.ATTR_IA_JOB_STARTED_AT,
+                    job.getStartedAt().truncatedTo(ChronoUnit.MILLIS).toString());
+            model.addAttribute(WebConstants.ATTR_IA_JOB_ELAPSED,
+                    ElapsedTimeFormatter.format(job.getStartedAt(), Instant.now()));
+        });
         return WebConstants.TEMPLATE_TICKER_DETAIL;
+    }
+
+    private Optional<BackgroundJob> resolveActiveIaJob(long tickerId) {
+        return iaValorationJobService.findActiveJobIdByTickerId(tickerId)
+                .flatMap(iaValorationJobService::getJob);
     }
 
     /**
@@ -123,17 +152,35 @@ public class AnalyzeTickerController {
     @PostMapping("/getValorationIA")
     public String getValorationIA(@RequestParam Long id, RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
-        boolean generated = manageAnalyzeTickerUseCase.getValorationIA(id);
-        if (generated) {
-            String message = messageSource.getMessage("ticker.ia.success", null, locale);
+        final String jobId;
+        try {
+            jobId = iaValorationJobService.submitValorationJob(id);
+        } catch (JobRejectedException ex) {
+            String message = messageSource.getMessage("ticker.ia.job.busy", null, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success(message));
-        } else {
-            String message = messageSource.getMessage("ticker.ia.failed", null, locale);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.error(message));
+                UiNotification.warning(message));
+            return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
         }
+        String message = messageSource.getMessage("ticker.ia.job.started", null, locale);
+        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+            UiNotification.success(message));
         return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
+    }
+
+    @GetMapping("/ia-jobs/{jobId}")
+    @ResponseBody
+    public ResponseEntity<IaValorationJobStatusDTO> getIaJobStatus(@PathVariable("jobId") String jobId) {
+        Locale locale = LocaleContextHolder.getLocale();
+        return iaValorationJobService.getJob(jobId)
+                .map(job -> ResponseEntity.ok(IaValorationJobStatusDTO.from(job, resolveIaJobMessage(job, locale))))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private String resolveIaJobMessage(BackgroundJob job, Locale locale) {
+        if (job.getStatus() == JobStatus.FAILED) {
+            return messageSource.getMessage("ticker.ia.failed", null, locale);
+        }
+        return null;
     }
 
 }

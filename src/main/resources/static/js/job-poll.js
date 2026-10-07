@@ -1,23 +1,25 @@
 /**
- * Suggest-ticker job polling.
- * - Only active when the detail page carries a suggest-job banner (rendered
- *   when opening detail with ?jobId= or while a job is active).
+ * Background-job polling (shared by suggest-tickers and AI-valoration flows).
+ * - Only active when the detail page carries a job banner (rendered while
+ *   a job for the shown entity is active).
  * - The elapsed clock starts from the server-rendered job start instant
  *   (data-started-at), so it survives navigation and reloads.
  * - Polls the JSON status endpoint; on DONE reloads the detail page (results
- *   are already persisted as a suggestion snapshot), on FAILED/unknown shows
- *   an inline alert. Without JS, a manual refresh shows finished results.
+ *   are already persisted), on FAILED/unknown shows an inline alert.
+ *   Without JS, a manual refresh shows finished results.
+ * - IA quirk: when DONE carries generated=false (fallback persisted), the
+ *   reload appends ?ia=failed so the page shows the error flash.
  */
 document.addEventListener('DOMContentLoaded', function () {
-  var banner = document.getElementById('suggest-job-banner');
+  var banner = document.getElementById('job-banner');
   if (!banner) {
     return;
   }
   var statusUrl = banner.dataset.statusUrl;
   var detailUrl = banner.dataset.detailUrl;
   var interruptedMsg = banner.dataset.msgInterrupted;
-  var alertBox = document.getElementById('suggest-job-alert');
-  var elapsedEl = document.getElementById('suggest-job-elapsed');
+  var alertBox = document.getElementById('job-alert');
+  var elapsedEl = document.getElementById('job-elapsed');
   if (!statusUrl || !detailUrl || !alertBox || !elapsedEl) {
     return;
   }
@@ -75,7 +77,11 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(function (job) {
         if (job.status === 'DONE') {
           stopClock();
-          window.location.href = detailUrl;
+          var target = detailUrl;
+          if (job.generated === false) {
+            target += (!detailUrl.includes('?') ? '?' : '&') + 'ia=failed';
+          }
+          window.location.href = target;
         } else if (job.status === 'FAILED') {
           stopClock();
           banner.classList.add('d-none');

@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
+import com.market.analysis.application.job.BackgroundJobService;
+import com.market.analysis.application.job.IaValorationJobService;
 import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.application.mapper.CandleDTOMapper;
 import com.market.analysis.application.mapper.ProhibitedKeywordDTOMapper;
@@ -213,11 +216,46 @@ public class BeanConfig {
     }
 
     @Bean
+    public BackgroundJobService suggestBackgroundJobs(
+            @Qualifier("suggestTickerExecutor") TaskExecutor suggestTickerExecutor,
+            @Value("${suggest.job.ttl-minutes:60}") long jobTtlMinutes) {
+        return new BackgroundJobService(suggestTickerExecutor, Duration.ofMinutes(jobTtlMinutes));
+    }
+
+    @Bean
     public SuggestTickerJobService suggestTickerJobService(
             SuggestTickersUseCase suggestTickersUseCase,
-            TaskExecutor suggestTickerExecutor,
-            @Value("${suggest.job.ttl-minutes:60}") long jobTtlMinutes) {
-        return new SuggestTickerJobService(suggestTickersUseCase, suggestTickerExecutor, Duration.ofMinutes(jobTtlMinutes));
+            @Qualifier("suggestBackgroundJobs") BackgroundJobService suggestBackgroundJobs) {
+        return new SuggestTickerJobService(suggestTickersUseCase, suggestBackgroundJobs);
+    }
+
+    @Bean
+    public TaskExecutor iaValorationExecutor(
+            @Value("${ia.executor.pool-size:1}") int poolSize,
+            @Value("${ia.executor.queue-capacity:5}") int queueCapacity,
+            @Value("${ia.executor.thread-prefix:ia-}") String threadPrefix) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(poolSize);
+        executor.setMaxPoolSize(poolSize);
+        executor.setQueueCapacity(queueCapacity);
+        executor.setThreadNamePrefix(threadPrefix);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean
+    public BackgroundJobService iaBackgroundJobs(
+            @Qualifier("iaValorationExecutor") TaskExecutor iaValorationExecutor,
+            @Value("${ia.job.ttl-minutes:60}") long jobTtlMinutes) {
+        return new BackgroundJobService(iaValorationExecutor, Duration.ofMinutes(jobTtlMinutes));
+    }
+
+    @Bean
+    public IaValorationJobService iaValorationJobService(
+            ManageAnalyzeTickerUseCase manageAnalyzeTickerUseCase,
+            @Qualifier("iaBackgroundJobs") BackgroundJobService iaBackgroundJobs) {
+        return new IaValorationJobService(manageAnalyzeTickerUseCase, iaBackgroundJobs);
     }
 
     @Bean

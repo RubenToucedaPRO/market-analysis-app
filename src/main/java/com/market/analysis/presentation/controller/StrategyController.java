@@ -1,6 +1,5 @@
 package com.market.analysis.presentation.controller;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -31,13 +30,14 @@ import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
 import com.market.analysis.application.dto.UpdateStrategyResult;
-import com.market.analysis.application.job.SuggestJobRejectedException;
-import com.market.analysis.application.job.SuggestTickerJob;
+import com.market.analysis.application.job.BackgroundJob;
+import com.market.analysis.application.job.JobRejectedException;
 import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
 import com.market.analysis.presentation.dto.UiNotification;
+import com.market.analysis.presentation.util.ElapsedTimeFormatter;
 import com.market.analysis.presentation.util.WebConstants;
 
 import lombok.RequiredArgsConstructor;
@@ -71,14 +71,9 @@ public class StrategyController {
             model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_STARTED_AT,
                     job.getStartedAt().truncatedTo(ChronoUnit.MILLIS).toString());
             model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ELAPSED,
-                    formatElapsed(job.getStartedAt(), java.time.Instant.now()));
+                    ElapsedTimeFormatter.format(job.getStartedAt(), Instant.now()));
         });
         return WebConstants.TEMPLATE_STRATEGIES_DETAIL;
-    }
-
-    private static String formatElapsed(Instant startedAt, Instant now) {
-        long seconds = Math.max(0, Duration.between(startedAt, now).getSeconds());
-        return (seconds / 60) + ":" + String.format("%02d", seconds % 60);
     }
 
     @GetMapping("/new")
@@ -178,7 +173,7 @@ public class StrategyController {
         final String jobId;
         try {
             jobId = suggestTickerJobService.submitSuggestionJob(strategyId);
-        } catch (SuggestJobRejectedException ex) {
+        } catch (JobRejectedException ex) {
             String message = messageSource.getMessage("strategy.suggestion.job.busy", null, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                     UiNotification.warning(message));
@@ -200,10 +195,10 @@ public class StrategyController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private Optional<SuggestTickerJob> resolveActiveSuggestJob(String jobIdParam, long strategyId) {
+    private Optional<BackgroundJob> resolveActiveSuggestJob(String jobIdParam, long strategyId) {
         if (jobIdParam != null && !jobIdParam.isBlank()) {
-            Optional<SuggestTickerJob> byParam = suggestTickerJobService.getJob(jobIdParam)
-                    .filter(SuggestTickerJob::isActive);
+            Optional<BackgroundJob> byParam = suggestTickerJobService.getJob(jobIdParam)
+                    .filter(BackgroundJob::isActive);
             if (byParam.isPresent()) {
                 return byParam;
             }
@@ -212,7 +207,7 @@ public class StrategyController {
                 .flatMap(suggestTickerJobService::getJob);
     }
 
-    private String resolveJobMessage(SuggestTickerJob job, Locale locale) {
+    private String resolveJobMessage(BackgroundJob job, Locale locale) {
         return switch (job.getStatus()) {
             case DONE -> messageSource.getMessage("strategy.suggestion.job.done", null, locale);
             case FAILED -> messageSource.getMessage("strategy.suggestion.job.failed", null, locale);

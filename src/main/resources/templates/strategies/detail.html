@@ -342,7 +342,7 @@
           </div>
 
           <output
-            id="suggest-job-banner"
+            id="job-banner"
             th:if="${suggestJobId != null}"
             class="alert alert-info d-flex align-items-center mt-2"
             th:data-status-url="@{/strategies/suggest-jobs/{jobId}(jobId=${suggestJobId})}"
@@ -358,13 +358,13 @@
               >Calculando sugerencias…</span
             >
             <span
-              id="suggest-job-elapsed"
+              id="job-elapsed"
               class="fw-semibold"
               th:text="${suggestJobElapsed}"
               >0:00</span
             >
           </output>
-          <div id="suggest-job-alert" class="alert d-none" role="alert"></div>
+          <div id="job-alert" class="alert d-none" role="alert"></div>
 
           <div
             th:replace="~{fragments/strategy-traceability :: strategyTraceability(strategyId=${strategy.id}, suggestedTickers=${suggestedTickers}, discardedTickers=${discardedTickers}, unmappableRules=${unmappableRules}, suggestedAt=${suggestedAt})}"
@@ -375,6 +375,6 @@
 
     <footer th:replace="~{fragments/footer :: footer}"></footer>
     <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
-    <script th:src="@{/js/suggest-job-poll.js}"></script>
+    <script th:src="@{/js/job-poll.js}"></script>
   </body>
 </html>
