@@ -24,6 +24,9 @@ public final class WebConstants {
     public static final String ATTR_SUGGEST_JOB_ID = "suggestJobId";
     public static final String ATTR_SUGGEST_JOB_STARTED_AT = "suggestJobStartedAt";
     public static final String ATTR_SUGGEST_JOB_ELAPSED = "suggestJobElapsed";
+    public static final String ATTR_IA_JOB_ID = "iaJobId";
+    public static final String ATTR_IA_JOB_STARTED_AT = "iaJobStartedAt";
+    public static final String ATTR_IA_JOB_ELAPSED = "iaJobElapsed";
     public static final String ATTR_TICKER_PAGE = "tickerPage";
     public static final String ATTR_KEYWORD_PAGE = "keywordPage";
     public static final int DEFAULT_PAGE_SIZE = 10;
@@ -47,6 +50,7 @@ public final class WebConstants {
 
     // ── Redirect URLs ───────────────────────────────────────────────────
     public static final String REDIRECT_ANALYSIS = "redirect:/analysis";
+    public static final String REDIRECT_ANALYSIS_TICKER_PREFIX = "redirect:/analysis/ticker/";
     public static final String REDIRECT_STRATEGIES = "redirect:/strategies";
     public static final String REDIRECT_STRATEGIES_PREFIX = "redirect:/strategies/";
     public static final String REDIRECT_RULE_DEFINITIONS = "redirect:/rule-definitions";

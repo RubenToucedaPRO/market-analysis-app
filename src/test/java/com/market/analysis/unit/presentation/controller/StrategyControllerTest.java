@@ -31,9 +31,9 @@ import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
-import com.market.analysis.application.job.SuggestJobRejectedException;
-import com.market.analysis.application.job.SuggestJobStatus;
-import com.market.analysis.application.job.SuggestTickerJob;
+import com.market.analysis.application.job.BackgroundJob;
+import com.market.analysis.application.job.JobRejectedException;
+import com.market.analysis.application.job.JobStatus;
 import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
@@ -270,7 +270,7 @@ class StrategyControllerTest {
     @DisplayName("Should warn when suggestion queue rejects the job")
     void testSuggestTickersFromMarketBusy() {
         when(suggestTickerJobService.submitSuggestionJob(1L))
-                .thenThrow(new SuggestJobRejectedException("full", new RuntimeException("full")));
+                .thenThrow(new JobRejectedException("full", new RuntimeException("full")));
         when(messageSource.getMessage("strategy.suggestion.job.busy", null, Locale.getDefault()))
                 .thenReturn("Cola llena.");
 
@@ -305,7 +305,7 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should return job status payload when job exists")
     void testGetSuggestJobStatusRunning() {
-        SuggestTickerJob job = new SuggestTickerJob("job-123", 1L, Instant.now());
+        BackgroundJob job = new BackgroundJob("job-123", "suggest-tickers", 1L, Instant.now());
         job.markRunning();
         when(suggestTickerJobService.getJob("job-123")).thenReturn(Optional.of(job));
 
@@ -314,13 +314,13 @@ class StrategyControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.hasBody());
         assertEquals("job-123", response.getBody().getJobId());
-        assertEquals(SuggestJobStatus.RUNNING.name(), response.getBody().getStatus());
+        assertEquals(JobStatus.RUNNING.name(), response.getBody().getStatus());
     }
 
     @Test
     @DisplayName("Should resolve localized message for failed job")
     void testGetSuggestJobStatusFailed() {
-        SuggestTickerJob job = new SuggestTickerJob("job-123", 1L, Instant.now());
+        BackgroundJob job = new BackgroundJob("job-123", "suggest-tickers", 1L, Instant.now());
         job.markRunning();
         job.fail("boom");
         when(suggestTickerJobService.getJob("job-123")).thenReturn(Optional.of(job));
@@ -346,7 +346,7 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should expose active job id from URL param in detail model")
     void testViewDetailExposesJobIdFromParam() {
-        SuggestTickerJob job = new SuggestTickerJob("job-123", 1L, Instant.now());
+        BackgroundJob job = new BackgroundJob("job-123", "suggest-tickers", 1L, Instant.now());
         job.markRunning();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
         when(suggestTickerJobService.getJob("job-123")).thenReturn(Optional.of(job));
@@ -362,7 +362,7 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should expose active job id without URL param when job is running")
     void testViewDetailExposesActiveJobWithoutParam() {
-        SuggestTickerJob job = new SuggestTickerJob("job-abc", 1L, Instant.now());
+        BackgroundJob job = new BackgroundJob("job-abc", "suggest-tickers", 1L, Instant.now());
         job.markRunning();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
         when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.of("job-abc"));
@@ -391,9 +391,9 @@ class StrategyControllerTest {
     @Test
     @DisplayName("Should ignore stale job id param when job is no longer active")
     void testViewDetailIgnoresStaleJobParam() {
-        SuggestTickerJob job = new SuggestTickerJob("job-old", 1L, Instant.now());
+        BackgroundJob job = new BackgroundJob("job-old", "suggest-tickers", 1L, Instant.now());
         job.markRunning();
-        job.complete(1, 0);
+        job.markDone();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
         when(suggestTickerJobService.getJob("job-old")).thenReturn(Optional.of(job));
         when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.empty());

@@ -37,7 +37,7 @@ import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
-import com.market.analysis.application.job.SuggestTickerJob;
+import com.market.analysis.application.job.BackgroundJob;
 import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
@@ -400,7 +400,7 @@ class StrategyControllerViewTest {
                 .description("Desc")
                 .rules(List.of())
                 .build();
-        SuggestTickerJob job = new SuggestTickerJob("job-abc", 1L, Instant.now());
+        BackgroundJob job = new BackgroundJob("job-abc", "suggest-tickers", 1L, Instant.now());
         job.markRunning();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
@@ -408,7 +408,7 @@ class StrategyControllerViewTest {
 
         mockMvc.perform(get("/strategies/1").param("jobId", "job-abc"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("suggest-job-banner")))
+                .andExpect(content().string(containsString("job-banner")))
                 .andExpect(content().string(containsString("/strategies/suggest-jobs/job-abc")))
                 .andExpect(content().string(containsString("data-started-at=")));
     }
@@ -422,7 +422,7 @@ class StrategyControllerViewTest {
                 .description("Desc")
                 .rules(List.of())
                 .build();
-        SuggestTickerJob liveJob = new SuggestTickerJob("job-live", 1L, Instant.now());
+        BackgroundJob liveJob = new BackgroundJob("job-live", "suggest-tickers", 1L, Instant.now());
         liveJob.markRunning();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
@@ -431,14 +431,14 @@ class StrategyControllerViewTest {
 
         mockMvc.perform(get("/strategies/1"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("suggest-job-banner")))
+                .andExpect(content().string(containsString("job-banner")))
                 .andExpect(content().string(containsString("/strategies/suggest-jobs/job-live")));
     }
 
     @Test
     @DisplayName("Should return job status as JSON")
     void shouldReturnSuggestJobStatus() throws Exception {
-        SuggestTickerJob job = new SuggestTickerJob("job-abc", 1L, Instant.now());
+        BackgroundJob job = new BackgroundJob("job-abc", "suggest-tickers", 1L, Instant.now());
         job.markRunning();
         when(suggestTickerJobService.getJob("job-abc")).thenReturn(java.util.Optional.of(job));
 
