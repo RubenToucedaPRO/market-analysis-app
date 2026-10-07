@@ -68,6 +68,7 @@ Hallazgo de investigación: el flujo **no hace llamadas LLM** (el tiempo viene 1
 - **Cobertura código nuevo (JaCoCo):** `SuggestJobStatus` 100%, `SuggestJobRejectedException` 100%, `SuggestTickerJob` 100% líneas (16/18 branches), `SuggestTickerJobService` 100% líneas (19/22 branches). DTO excluido por convención del proyecto (`application/dto/**` fuera del reporte en `pom.xml`), igual que `BeanConfig` (`infrastructure/config/**`).
 - **Sin `lenient` en Mockito** (stubs estrictos; el log `suggest_job_failed` visible en un test es salida esperada del path FAILED, no un fallo).
 - **Bug manual-testing** (`suggest-job-poll.js`): `banner.dataset('...')` usado como función (es propiedad) lanzaba `TypeError` antes del `setInterval` → reloj congelado en `0:00` y polling muerto. Corregido con `getAttribute` + guardia null + eliminada variable muerta `pollTimer`. Verificado con `node --check` y retest en navegador.
+- **Bug temporizador al volver** (`suggest-job-poll.js`): el reloj partía de la carga de la página, así que al volver a la estrategia reiniciaba en `0:00`. Corregido tomando como base el `startedAt` real del job (viene en el JSON de estado; fallback a carga de página si falta).
 
 ---
 

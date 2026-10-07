@@ -18,12 +18,17 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!statusUrl || !detailUrl || !alertBox || !elapsedEl) {
     return;
   }
-  var startedAt = Date.now();
+  var pageLoadedAt = Date.now();
+  var jobStartedAt = null;
   var POLL_MS = 5000;
   var clockTimer = null;
 
+  function elapsedBase() {
+    return jobStartedAt !== null ? jobStartedAt : pageLoadedAt;
+  }
+
   function formatElapsed() {
-    var seconds = Math.floor((Date.now() - startedAt) / 1000);
+    var seconds = Math.floor((Date.now() - elapsedBase()) / 1000);
     var minutes = Math.floor(seconds / 60);
     var rest = seconds % 60;
     return minutes + ':' + (rest < 10 ? '0' : '') + rest;
@@ -57,6 +62,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return response.json();
       })
       .then(function (job) {
+        if (jobStartedAt === null && job.startedAt) {
+          var parsed = Date.parse(job.startedAt);
+          if (!isNaN(parsed)) {
+            jobStartedAt = parsed;
+          }
+        }
         if (job.status === 'DONE') {
           stopClock();
           window.location.href = detailUrl;
