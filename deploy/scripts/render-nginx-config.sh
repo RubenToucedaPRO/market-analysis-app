@@ -14,5 +14,10 @@ fi
 export TFM_DOMAIN
 
 for f in /opt/apps/edge/conf.d/tfm.conf /opt/apps/edge/conf.d/tfm-http-only.conf; do
+  # Tras el Paso C solo existe tfm.conf (el http-only se borra); no fallar por eso.
+  if [[ ! -f "$f" ]]; then
+    echo "Aviso: falta $f, se omite (normal tras el Paso C)."
+    continue
+  fi
   envsubst '${TFM_DOMAIN}' < "$f" > "$f.tmp" && mv "$f.tmp" "$f"
 done

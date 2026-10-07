@@ -1254,7 +1254,8 @@ wrapper (si algo falla, sabremos en qué paso fue).
 ## QUÉ es
 
 `tfm/deploy-tfm.sh` hace en orden: `git pull` del repo → `up mysql` (sola, sin tu
-código) → `build + up app` desde tu `Dockerfile` multistage → checks de puertos.
+código) → `pull` de la imagen desde GHCR + `up app` → checks de puertos.
+Sin el `pull`, `up` reutilizaría la imagen local vieja y desplegaría código antiguo.
 **Además, renderiza automáticamente los configs de Nginx** sustituyendo `${TFM_DOMAIN}`
 en `tfm.conf` y `tfm-http-only.conf` (usa `scripts/render-nginx-config.sh`).
 Tú no escribes `docker compose` a mano: el wrapper se niega si lo ejecutas dentro
