@@ -30,8 +30,14 @@ docker compose pull app || { echo "ERROR: no pude descargar la imagen de GHCR (�
 ## 4. Cobertura de tests y pruebas
 
 - Sin cambios en `src/` → `mvn test` no afectado (la suite estaba en 1112 verdes en `main`; este cambio no toca Java).
-- `bash -n deploy/tfm/deploy-tfm.sh` → `SYNTAX OK`.
+- `bash -n deploy/tfm/deploy-tfm.sh` y `bash -n deploy/scripts/render-nginx-config.sh` → `SYNTAX OK`.
 - Validación real: el próximo `./deploy-tfm.sh` en el VPS descargará la imagen nueva (verificable con `docker images` y el commit impreso por el script). Comportamiento ante fallo de red se deduce de `set -euo pipefail` + mensaje explícito.
+
+## 7. Bug hallado en redeploy real (mismo tema, incluido aquí)
+
+Al re-desplegar tras el merge, `render-nginx-config.sh` abortó con `tfm-http-only.conf: No such file or directory` y `deploy-tfm.sh` terminó en error (la app ya estaba actualizada y sana; solo falló el paso final cosmético).
+Causa: tras el Paso C de edge solo existe `tfm.conf` (el http-only se borra con `rm`), pero el renderer exigía los dos ficheros.
+Fix: saltar ficheros inexistentes con aviso (`[[ -f "$f" ]] || continue`) en vez de petar. Así vale tanto pre-Paso-A (existen los dos) como post-Paso-C (solo `tfm.conf`).
 
 ## 5. Advertencias de SonarQube / arquitectura
 
