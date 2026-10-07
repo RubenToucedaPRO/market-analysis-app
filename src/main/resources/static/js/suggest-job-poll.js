@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return null;
     }
     var parsed = Date.parse(value);
-    return isNaN(parsed) ? null : parsed;
+    return Number.isNaN(parsed) ? null : parsed;
   }
 
   function elapsedBase() {
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch(statusUrl, { headers: { Accept: 'application/json' } })
       .then(function (response) {
         var contentType = response.headers.get('content-type') || '';
-        if (response.status === 404 || contentType.indexOf('application/json') === -1) {
+        if (response.status === 404 || !contentType.includes('application/json')) {
           throw new Error('interrupted');
         }
         return response.json();
