@@ -235,7 +235,7 @@ class StrategyControllerTest {
                 .build();
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(Optional.of(snapshot));
 
-        String viewName = strategyController.viewStrategyDetail(1L, model);
+        String viewName = strategyController.viewStrategyDetail(1L, null, model);
 
         assertEquals("strategies/detail", viewName);
         verify(manageStrategyUseCase).getStrategyById(1L);
@@ -341,6 +341,60 @@ class StrategyControllerTest {
         ResponseEntity<SuggestJobStatusDTO> response = strategyController.getSuggestJobStatus("unknown");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Should expose active job id from URL param in detail model")
+    void testViewDetailExposesJobIdFromParam() {
+        SuggestTickerJob job = new SuggestTickerJob("job-123", 1L, Instant.now());
+        job.markRunning();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.getJob("job-123")).thenReturn(Optional.of(job));
+
+        String viewName = strategyController.viewStrategyDetail(1L, "job-123", model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model).addAttribute("suggestJobId", "job-123");
+    }
+
+    @Test
+    @DisplayName("Should expose active job id without URL param when job is running")
+    void testViewDetailExposesActiveJobWithoutParam() {
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.of("job-abc"));
+
+        String viewName = strategyController.viewStrategyDetail(1L, null, model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model).addAttribute("suggestJobId", "job-abc");
+    }
+
+    @Test
+    @DisplayName("Should not expose job id when no job is active")
+    void testViewDetailWithoutActiveJob() {
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.empty());
+
+        String viewName = strategyController.viewStrategyDetail(1L, null, model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model, never()).addAttribute(eq("suggestJobId"), any());
+    }
+
+    @Test
+    @DisplayName("Should ignore stale job id param when job is no longer active")
+    void testViewDetailIgnoresStaleJobParam() {
+        SuggestTickerJob job = new SuggestTickerJob("job-old", 1L, Instant.now());
+        job.markRunning();
+        job.complete(1, 0);
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.getJob("job-old")).thenReturn(Optional.of(job));
+        when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.empty());
+
+        String viewName = strategyController.viewStrategyDetail(1L, "job-old", model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model, never()).addAttribute(eq("suggestJobId"), any());
     }
 
     @Test

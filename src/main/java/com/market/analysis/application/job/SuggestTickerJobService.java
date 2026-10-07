@@ -60,10 +60,7 @@ public class SuggestTickerJobService {
      */
     public String submitSuggestionJob(long strategyId) {
         synchronized (jobs) {
-            Optional<String> active = jobs.values().stream()
-                    .filter(job -> job.getStrategyId() == strategyId && job.isActive())
-                    .map(SuggestTickerJob::getJobId)
-                    .findFirst();
+            Optional<String> active = findActiveJob(strategyId).map(SuggestTickerJob::getJobId);
             if (active.isPresent()) {
                 log.info("suggest_job_reused jobId={} strategyId={}", active.get(), strategyId);
                 return active.get();
@@ -79,6 +76,20 @@ public class SuggestTickerJobService {
             }
             log.info("suggest_job_submitted jobId={} strategyId={}", job.getJobId(), strategyId);
             return job.getJobId();
+        }
+    }
+
+    /**
+     * Finds the active job of a strategy, if any. Used to re-attach the
+     * progress banner when the user navigates back to the detail page
+     * without the {@code ?jobId=} parameter in the URL.
+     *
+     * @param strategyId the strategy to look up
+     * @return the active job id, or empty when none is running
+     */
+    public Optional<String> findActiveJobIdByStrategyId(long strategyId) {
+        synchronized (jobs) {
+            return findActiveJob(strategyId).map(SuggestTickerJob::getJobId);
         }
     }
 
@@ -110,6 +121,12 @@ public class SuggestTickerJobService {
         if (!expired.isEmpty()) {
             log.info("suggest_job_purged count={}", expired.size());
         }
+    }
+
+    private Optional<SuggestTickerJob> findActiveJob(long strategyId) {
+        return jobs.values().stream()
+                .filter(job -> job.getStrategyId() == strategyId && job.isActive())
+                .findFirst();
     }
 
     private void runJob(SuggestTickerJob job) {

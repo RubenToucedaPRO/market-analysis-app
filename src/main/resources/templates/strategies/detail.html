@@ -343,9 +343,9 @@
 
           <output
             id="suggest-job-banner"
-            th:if="${param.jobId != null}"
+            th:if="${suggestJobId != null}"
             class="alert alert-info d-flex align-items-center mt-2"
-            th:data-status-url="@{/strategies/suggest-jobs/{jobId}(jobId=${param.jobId[0]})}"
+            th:data-status-url="@{/strategies/suggest-jobs/{jobId}(jobId=${suggestJobId})}"
             th:data-detail-url="@{/strategies/{id}(id=${strategy.id})}"
             th:data-msg-interrupted="#{strategy.suggestion.job.interrupted}"
           >

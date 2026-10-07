@@ -400,13 +400,35 @@ class StrategyControllerViewTest {
                 .description("Desc")
                 .rules(List.of())
                 .build();
+        SuggestTickerJob job = new SuggestTickerJob("job-abc", 1L, Instant.now());
+        job.markRunning();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
+        when(suggestTickerJobService.getJob("job-abc")).thenReturn(java.util.Optional.of(job));
 
         mockMvc.perform(get("/strategies/1").param("jobId", "job-abc"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("suggest-job-banner")))
                 .andExpect(content().string(containsString("/strategies/suggest-jobs/job-abc")));
+    }
+
+    @Test
+    @DisplayName("Should render job banner without job id param when job is active")
+    void shouldRenderJobBannerForActiveJobWithoutParam() throws Exception {
+        StrategyDTO strategy = StrategyDTO.builder()
+                .id(1L)
+                .name("Banner Strategy")
+                .description("Desc")
+                .rules(List.of())
+                .build();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
+        when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
+        when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(java.util.Optional.of("job-live"));
+
+        mockMvc.perform(get("/strategies/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("suggest-job-banner")))
+                .andExpect(content().string(containsString("/strategies/suggest-jobs/job-live")));
     }
 
     @Test

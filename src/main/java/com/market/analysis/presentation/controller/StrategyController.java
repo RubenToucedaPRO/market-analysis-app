@@ -57,10 +57,14 @@ public class StrategyController {
     }
 
     @GetMapping("/{id:\\d+}")
-    public String viewStrategyDetail(@PathVariable("id") long strategyId, Model model) {
+    public String viewStrategyDetail(@PathVariable("id") long strategyId,
+            @RequestParam(value = "jobId", required = false) String jobIdParam,
+            Model model) {
         StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
         model.addAttribute(WebConstants.ATTR_STRATEGY, strategyDTO);
         loadLastSuggestionSnapshot(strategyId, model);
+        resolveSuggestJobId(jobIdParam, strategyId).ifPresent(jobId ->
+                model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ID, jobId));
         return WebConstants.TEMPLATE_STRATEGIES_DETAIL;
     }
 
@@ -181,6 +185,14 @@ public class StrategyController {
         return suggestTickerJobService.getJob(jobId)
                 .map(job -> ResponseEntity.ok(SuggestJobStatusDTO.from(job, resolveJobMessage(job, locale))))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private Optional<String> resolveSuggestJobId(String jobIdParam, long strategyId) {
+        if (jobIdParam != null && !jobIdParam.isBlank()
+                && suggestTickerJobService.getJob(jobIdParam).map(SuggestTickerJob::isActive).orElse(false)) {
+            return Optional.of(jobIdParam);
+        }
+        return suggestTickerJobService.findActiveJobIdByStrategyId(strategyId);
     }
 
     private String resolveJobMessage(SuggestTickerJob job, Locale locale) {

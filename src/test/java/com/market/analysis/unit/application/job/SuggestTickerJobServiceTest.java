@@ -138,6 +138,28 @@ class SuggestTickerJobServiceTest {
     }
 
     @Test
+    @DisplayName("Should find active job id by strategy")
+    void testFindActiveJobIdByStrategyId() {
+        String jobId = jobService.submitSuggestionJob(7L);
+        jobService.submitSuggestionJob(8L);
+
+        assertEquals(Optional.of(jobId), jobService.findActiveJobIdByStrategyId(7L));
+        assertTrue(jobService.findActiveJobIdByStrategyId(99L).isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not return terminal jobs from active lookup")
+    void testFindActiveIgnoresTerminalJobs() {
+        SuggestTickerJobService directService = new SuggestTickerJobService(suggestTickersUseCase,
+                Runnable::run, Duration.ofMinutes(60));
+        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(SuggestTickersResponseDTO.builder().build());
+        String jobId = directService.submitSuggestionJob(7L);
+
+        assertEquals(SuggestJobStatus.DONE, directService.getJob(jobId).orElseThrow().getStatus());
+        assertTrue(directService.findActiveJobIdByStrategyId(7L).isEmpty());
+    }
+
+    @Test
     @DisplayName("Should purge expired terminal jobs but keep active ones")
     void testPurgeExpiredJobs() {
         SuggestTickerJobService zeroTtlService = new SuggestTickerJobService(suggestTickersUseCase,
