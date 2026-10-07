@@ -13,16 +13,16 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!banner) {
     return;
   }
-  var statusUrl = banner.getAttribute('data-status-url');
-  var detailUrl = banner.getAttribute('data-detail-url');
-  var interruptedMsg = banner.getAttribute('data-msg-interrupted');
+  var statusUrl = banner.dataset.statusUrl;
+  var detailUrl = banner.dataset.detailUrl;
+  var interruptedMsg = banner.dataset.msgInterrupted;
   var alertBox = document.getElementById('suggest-job-alert');
   var elapsedEl = document.getElementById('suggest-job-elapsed');
   if (!statusUrl || !detailUrl || !alertBox || !elapsedEl) {
     return;
   }
   var pageLoadedAt = Date.now();
-  var jobStartedAt = parseStartedAt(banner.getAttribute('data-started-at'));
+  var jobStartedAt = parseStartedAt(banner.dataset.startedAt);
   var POLL_MS = 5000;
   var clockTimer = null;
 
