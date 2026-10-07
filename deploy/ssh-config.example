@@ -1,0 +1,8 @@
+# ~/.ssh/config en tu PC — la IP del VPS es FIJA, no cambia con reboot.
+# Solo cambiaría si destruyes y recreas el VPS.
+Host vps-tfm
+  HostName IP_VPS
+  User deploy
+  IdentityFile ~/.ssh/id_ed25519
+# Uso: ssh vps-tfm
+# Cuando tengas dominio, puedes añadir: Host tfm -> HostName tfm.midominio.es

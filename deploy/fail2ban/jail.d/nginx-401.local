@@ -1,0 +1,13 @@
+# Copiar a /etc/fail2ban/jail.d/nginx-401.local en el VPS y reiniciar fail2ban.
+# Alcance sencillo: cualquier 401/403 del TFM público vía Nginx.
+# 10 fallos en 5 min -> ban 1h. Solo TFM público vía Nginx.
+
+[nginx-401]
+enabled = true
+port = http,https
+filter = nginx-401
+logpath = /opt/apps/edge/logs/access.log
+maxretry = 10
+findtime = 300
+bantime = 3600
+backend = auto
