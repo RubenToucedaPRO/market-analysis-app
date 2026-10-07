@@ -1,5 +1,6 @@
 package com.market.analysis.presentation.controller;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -63,8 +64,11 @@ public class StrategyController {
         StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
         model.addAttribute(WebConstants.ATTR_STRATEGY, strategyDTO);
         loadLastSuggestionSnapshot(strategyId, model);
-        resolveSuggestJobId(jobIdParam, strategyId).ifPresent(jobId ->
-                model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ID, jobId));
+        resolveActiveSuggestJob(jobIdParam, strategyId).ifPresent(job -> {
+            model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ID, job.getJobId());
+            model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_STARTED_AT,
+                    job.getStartedAt().truncatedTo(ChronoUnit.MILLIS).toString());
+        });
         return WebConstants.TEMPLATE_STRATEGIES_DETAIL;
     }
 
@@ -187,12 +191,16 @@ public class StrategyController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private Optional<String> resolveSuggestJobId(String jobIdParam, long strategyId) {
-        if (jobIdParam != null && !jobIdParam.isBlank()
-                && suggestTickerJobService.getJob(jobIdParam).map(SuggestTickerJob::isActive).orElse(false)) {
-            return Optional.of(jobIdParam);
+    private Optional<SuggestTickerJob> resolveActiveSuggestJob(String jobIdParam, long strategyId) {
+        if (jobIdParam != null && !jobIdParam.isBlank()) {
+            Optional<SuggestTickerJob> byParam = suggestTickerJobService.getJob(jobIdParam)
+                    .filter(SuggestTickerJob::isActive);
+            if (byParam.isPresent()) {
+                return byParam;
+            }
         }
-        return suggestTickerJobService.findActiveJobIdByStrategyId(strategyId);
+        return suggestTickerJobService.findActiveJobIdByStrategyId(strategyId)
+                .flatMap(suggestTickerJobService::getJob);
     }
 
     private String resolveJobMessage(SuggestTickerJob job, Locale locale) {

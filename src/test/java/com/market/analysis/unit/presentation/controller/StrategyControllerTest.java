@@ -355,18 +355,23 @@ class StrategyControllerTest {
 
         assertEquals("strategies/detail", viewName);
         verify(model).addAttribute("suggestJobId", "job-123");
+        verify(model).addAttribute(eq("suggestJobStartedAt"), any());
     }
 
     @Test
     @DisplayName("Should expose active job id without URL param when job is running")
     void testViewDetailExposesActiveJobWithoutParam() {
+        SuggestTickerJob job = new SuggestTickerJob("job-abc", 1L, Instant.now());
+        job.markRunning();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
         when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.of("job-abc"));
+        when(suggestTickerJobService.getJob("job-abc")).thenReturn(Optional.of(job));
 
         String viewName = strategyController.viewStrategyDetail(1L, null, model);
 
         assertEquals("strategies/detail", viewName);
         verify(model).addAttribute("suggestJobId", "job-abc");
+        verify(model).addAttribute(eq("suggestJobStartedAt"), any());
     }
 
     @Test

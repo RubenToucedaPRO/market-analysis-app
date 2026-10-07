@@ -409,7 +409,8 @@ class StrategyControllerViewTest {
         mockMvc.perform(get("/strategies/1").param("jobId", "job-abc"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("suggest-job-banner")))
-                .andExpect(content().string(containsString("/strategies/suggest-jobs/job-abc")));
+                .andExpect(content().string(containsString("/strategies/suggest-jobs/job-abc")))
+                .andExpect(content().string(containsString("data-started-at=")));
     }
 
     @Test
@@ -421,9 +422,12 @@ class StrategyControllerViewTest {
                 .description("Desc")
                 .rules(List.of())
                 .build();
+        SuggestTickerJob liveJob = new SuggestTickerJob("job-live", 1L, Instant.now());
+        liveJob.markRunning();
         when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(strategy);
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(java.util.Optional.empty());
         when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(java.util.Optional.of("job-live"));
+        when(suggestTickerJobService.getJob("job-live")).thenReturn(java.util.Optional.of(liveJob));
 
         mockMvc.perform(get("/strategies/1"))
                 .andExpect(status().isOk())

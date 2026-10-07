@@ -1,6 +1,9 @@
 /**
  * Suggest-ticker job polling.
- * - Only active when the detail page carries a suggest-job banner (?jobId=...).
+ * - Only active when the detail page carries a suggest-job banner (rendered
+ *   when opening detail with ?jobId= or while a job is active).
+ * - The elapsed clock starts from the server-rendered job start instant
+ *   (data-started-at), so it survives navigation and reloads.
  * - Polls the JSON status endpoint; on DONE reloads the detail page (results
  *   are already persisted as a suggestion snapshot), on FAILED/unknown shows
  *   an inline alert. Without JS, a manual refresh shows finished results.
@@ -19,9 +22,17 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
   var pageLoadedAt = Date.now();
-  var jobStartedAt = null;
+  var jobStartedAt = parseStartedAt(banner.getAttribute('data-started-at'));
   var POLL_MS = 5000;
   var clockTimer = null;
+
+  function parseStartedAt(value) {
+    if (!value) {
+      return null;
+    }
+    var parsed = Date.parse(value);
+    return isNaN(parsed) ? null : parsed;
+  }
 
   function elapsedBase() {
     return jobStartedAt !== null ? jobStartedAt : pageLoadedAt;
