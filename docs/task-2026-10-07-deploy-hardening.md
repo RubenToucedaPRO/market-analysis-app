@@ -11,7 +11,7 @@
 
 Publicar y endurecer la infraestructura de despliegue del TFM en VPS (OVH, Ubuntu 24.04):
 
-1. **Limpieza de la guía** (`deploy/guia_vps.md`): eliminar toda la Parte II (OmniRoute/Tailscale/OpenCode), que no forma parte del proyecto. La guía queda solo-TFM.
+1. **Limpieza de la guía** (`deploy/guia_vps.md`): eliminar contenido ajeno al TFM (restos de la guía de otro proyecto). La guía queda solo-TFM.
 2. **Parametrización**: extraer dominio, email, host, repositorio e imagen a variables del `.env` (`TFM_DOMAIN`, `CERTBOT_EMAIL`, `VPS_HOST`, `GHCR_REPOSITORY`, `TFM_TAG`) y renderizar los configs de Nginx con `envsubst` (paquete `gettext`).
 3. **Corrección de bugs reales** encontrados durante el redeploy de validación:
    - `render-nginx-config.sh` no exportaba `TFM_DOMAIN` → `envsubst` lo sustituía por vacío (`server_name ;`, Nginx en bucle `Restarting`).
@@ -88,20 +88,19 @@ TFM_TAG=latest
 
 ## 3. Decisiones técnicas tomadas
 
-1. **OmniRoute fuera del repo y de la guía.** No es parte del proyecto; mantenerlo mezclaba dos despliegues y dos superficies de seguridad. Decisión del usuario, ejecutada en toda la guía (arquitectura, UFW, firewall Edge, fail2ban, checklist, troubleshooting, estado final).
-2. **`.env` como única fuente de verdad** (`TFM_DOMAIN`, `CERTBOT_EMAIL`, `VPS_HOST`, `GHCR_REPOSITORY`, `TFM_TAG`). Un solo sitio para cambiar dominio/imagen/host.
-3. **`envsubst` (gettext) en vez de `sed`.** Sustitución exacta por nombre de variable, sin riesgo de reemplazos parciales. Requiere instalar `gettext` en el VPS (documentado).
-4. **Sin renombrar ficheros a `.template`** (petición explícita del usuario). Los `.conf` llevan el placeholder `${TFM_DOMAIN}` y se renderizan in-place. Contrapartida asumida: el render es destructivo (pierde el placeholder); si un render falla con dominio vacío hay que re-copiar las plantillas pristine antes de reintentar (documentado en el flujo A/B/C).
-5. **Imagen pre-built desde GHCR, no `build:` en el VPS.** El build lo hace GitHub Actions (workflow `docker.yml`, ya en `main` vía PR #175); el VPS solo hace `pull`+`up`. Ahorra RAM/CPU en VPS pequeño y fija versiones (`mariadb:10.11`, tag de imagen).
-6. **Se mantiene el clon `./repo` en el VPS** (decisión explícita del usuario tras valorar alternativas). Motivos: provee `script-bd.sql` al init de MariaDB vía volumen y da trazabilidad (`git log` = commit desplegado). Alternativas aparcadas: copiar solo el script (pierde trazabilidad) y Flyway (salto profesional futuro).
-7. **Sin secretos en git.** `deploy/.env` (con passwords y tokens reales) existe solo local/VPS y no está trackeado. Solo se publica `.env.tfm.example` con placeholders. Scan del diff de la PR: limpio.
-8. **Validación en vivo, no solo lectura.** Cada cambio se probó en el VPS real durante el redeploy (incluidos los 3 bugs de render/scp/mkdir, reproducidos y corregidos allí).
+1. **`.env` como única fuente de verdad** (`TFM_DOMAIN`, `CERTBOT_EMAIL`, `VPS_HOST`, `GHCR_REPOSITORY`, `TFM_TAG`). Un solo sitio para cambiar dominio/imagen/host.
+2. **`envsubst` (gettext) en vez de `sed`.** Sustitución exacta por nombre de variable, sin riesgo de reemplazos parciales. Requiere instalar `gettext` en el VPS (documentado).
+3. **Sin renombrar ficheros a `.template`** (petición explícita del usuario). Los `.conf` llevan el placeholder `${TFM_DOMAIN}` y se renderizan in-place. Contrapartida asumida: el render es destructivo (pierde el placeholder); si un render falla con dominio vacío hay que re-copiar las plantillas pristine antes de reintentar (documentado en el flujo A/B/C).
+4. **Imagen pre-built desde GHCR, no `build:` en el VPS.** El build lo hace GitHub Actions (workflow `docker.yml`, ya en `main` vía PR #175); el VPS solo hace `pull`+`up`. Ahorra RAM/CPU en VPS pequeño y fija versiones (`mariadb:10.11`, tag de imagen).
+5. **Se mantiene el clon `./repo` en el VPS** (decisión explícita del usuario tras valorar alternativas). Motivos: provee `script-bd.sql` al init de MariaDB vía volumen y da trazabilidad (`git log` = commit desplegado). Alternativas aparcadas: copiar solo el script (pierde trazabilidad) y Flyway (salto profesional futuro).
+6. **Sin secretos en git.** `deploy/.env` (con passwords y tokens reales) existe solo local/VPS y no está trackeado. Solo se publica `.env.tfm.example` con placeholders. Scan del diff de la PR: limpio.
+7. **Validación en vivo, no solo lectura.** Cada cambio se probó en el VPS real durante el redeploy (incluidos los 3 bugs de render/scp/mkdir, reproducidos y corregidos allí).
 
 ---
 
 ## 4. Cobertura de tests y pruebas
 
-- **Sin cambios en `src/`** → `mvn test` no afectado por esta PR (verificación de sanity pendiente en el merge; no hay tests que cubran `deploy/` porque son docs + shell).
+- **Sin cambios en `src/`** → `mvn test` ejecutado como sanity: **745 run, 0 failures, 0 errors, 0 skipped**. No hay tests que cubran `deploy/` (docs + shell).
 - **Scripts shell:** `bash -n` OK (`render-nginx-config.sh`); resto validados por ejecución real en VPS.
 - **Validación end-to-end en VPS real (2026-10-02, FASE 11 → 15a):**
   - `deploy-tfm.sh`: `git pull` → `mysql healthy` → `Started Application` → checks `8080/5005` no públicos → render Nginx con dominio real (verificado con `grep server_name`).
