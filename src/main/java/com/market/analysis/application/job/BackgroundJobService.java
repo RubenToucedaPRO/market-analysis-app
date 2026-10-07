@@ -33,10 +33,11 @@ public class BackgroundJobService {
     /**
      * Unit of background work. Receives the job to record flow-specific
      * outcome attributes; lifecycle transitions are handled by the service.
+     * Tasks only throw unchecked exceptions; failures mark the job FAILED.
      */
     @FunctionalInterface
     public interface JobTask {
-        void run(BackgroundJob job) throws Exception;
+        void run(BackgroundJob job);
     }
 
     private final TaskExecutor taskExecutor;
@@ -140,7 +141,7 @@ public class BackgroundJobService {
             job.markDone();
             log.info("background_job_done jobId={} kind={} subjectId={}",
                     job.getJobId(), job.getSubjectKind(), job.getSubjectId());
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             log.error("background_job_failed jobId={} kind={} subjectId={} error={}",
                     job.getJobId(), job.getSubjectKind(), job.getSubjectId(), ex.toString());
             job.fail(ex.toString());

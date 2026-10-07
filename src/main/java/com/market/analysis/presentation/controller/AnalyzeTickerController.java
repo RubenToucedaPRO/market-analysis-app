@@ -79,7 +79,7 @@ public class AnalyzeTickerController {
     @PostMapping("/ticker/{id:\\d+}/update")
     public String updateTickerFromDetail(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         performUpdate(id, redirectAttributes);
-        return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
+        return WebConstants.REDIRECT_ANALYSIS_TICKER_PREFIX + id;
     }
 
     private void performUpdate(Long id, RedirectAttributes redirectAttributes) {
@@ -152,19 +152,18 @@ public class AnalyzeTickerController {
     @PostMapping("/getValorationIA")
     public String getValorationIA(@RequestParam Long id, RedirectAttributes redirectAttributes) {
         Locale locale = LocaleContextHolder.getLocale();
-        final String jobId;
         try {
-            jobId = iaValorationJobService.submitValorationJob(id);
+            iaValorationJobService.submitValorationJob(id);
         } catch (JobRejectedException ex) {
             String message = messageSource.getMessage("ticker.ia.job.busy", null, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
                 UiNotification.warning(message));
-            return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
+            return WebConstants.REDIRECT_ANALYSIS_TICKER_PREFIX + id;
         }
         String message = messageSource.getMessage("ticker.ia.job.started", null, locale);
         redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
             UiNotification.success(message));
-        return WebConstants.REDIRECT_ANALYSIS + "/ticker/" + id;
+        return WebConstants.REDIRECT_ANALYSIS_TICKER_PREFIX + id;
     }
 
     @GetMapping("/ia-jobs/{jobId}")

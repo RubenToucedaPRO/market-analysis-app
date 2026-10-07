@@ -203,16 +203,9 @@ public class BeanConfig {
     @Bean
     public TaskExecutor suggestTickerExecutor(
             @Value("${suggest.executor.pool-size:1}") int poolSize,
-            @Value("${suggest.executor.queue-capacity:10}") int queueCapacity,
+            @Value("${suggest.executor.queue-capacity:2}") int queueCapacity,
             @Value("${suggest.executor.thread-prefix:suggest-}") String threadPrefix) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(poolSize);
-        executor.setMaxPoolSize(poolSize);
-        executor.setQueueCapacity(queueCapacity);
-        executor.setThreadNamePrefix(threadPrefix);
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
-        executor.initialize();
-        return executor;
+        return buildBoundedExecutor(poolSize, queueCapacity, threadPrefix);
     }
 
     @Bean
@@ -234,6 +227,10 @@ public class BeanConfig {
             @Value("${ia.executor.pool-size:1}") int poolSize,
             @Value("${ia.executor.queue-capacity:5}") int queueCapacity,
             @Value("${ia.executor.thread-prefix:ia-}") String threadPrefix) {
+        return buildBoundedExecutor(poolSize, queueCapacity, threadPrefix);
+    }
+
+    private static TaskExecutor buildBoundedExecutor(int poolSize, int queueCapacity, String threadPrefix) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(poolSize);
         executor.setMaxPoolSize(poolSize);

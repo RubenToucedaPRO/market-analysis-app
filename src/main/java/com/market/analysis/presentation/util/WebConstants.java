@@ -50,6 +50,7 @@ public final class WebConstants {
 
     // ── Redirect URLs ───────────────────────────────────────────────────
     public static final String REDIRECT_ANALYSIS = "redirect:/analysis";
+    public static final String REDIRECT_ANALYSIS_TICKER_PREFIX = "redirect:/analysis/ticker/";
     public static final String REDIRECT_STRATEGIES = "redirect:/strategies";
     public static final String REDIRECT_STRATEGIES_PREFIX = "redirect:/strategies/";
     public static final String REDIRECT_RULE_DEFINITIONS = "redirect:/rule-definitions";
