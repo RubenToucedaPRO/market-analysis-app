@@ -3,6 +3,7 @@ package com.market.analysis.unit.presentation.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,12 +23,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.CandleDTO;
+import com.market.analysis.application.dto.IaValorationJobStatusDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
+import com.market.analysis.application.job.BackgroundJob;
+import com.market.analysis.application.job.IaValorationJobService;
+import com.market.analysis.application.job.JobRejectedException;
+import com.market.analysis.application.job.JobStatus;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.presentation.controller.AnalyzeTickerController;
 import com.market.analysis.presentation.dto.UiNotification;
@@ -44,6 +53,9 @@ class AnalyzeTickerControllerTest {
 
     @Mock
     private com.market.analysis.domain.port.in.ManageStrategyUseCase manageStrategyUseCase;
+
+    @Mock
+    private IaValorationJobService iaValorationJobService;
 
     @Mock
     private StockDataDTOMapper stockMapper;
@@ -244,7 +256,7 @@ class AnalyzeTickerControllerTest {
         when(manageAnalyzeTickerUseCase.findStockDataById(id)).thenReturn(testStockDataDTO);
 
         // Act
-        String viewName = controller.getTickerDetail(id, model);
+        String viewName = controller.getTickerDetail(id, null, model);
 
         // Assert
         assertThat(viewName).isEqualTo("analysis/ticker-detail");
@@ -253,23 +265,58 @@ class AnalyzeTickerControllerTest {
     }
 
     @Test
-    @DisplayName("Should get AI valoration and redirect to analysis page")
+    @DisplayName("Should expose active IA job in ticker detail")
+    void testGetTickerDetailExposesActiveIaJob() {
+        Long id = 1L;
+        BackgroundJob job = new BackgroundJob("job-ia-1", "ia-valoration", id, Instant.now());
+        job.markRunning();
+        when(manageAnalyzeTickerUseCase.findStockDataById(id)).thenReturn(testStockDataDTO);
+        when(iaValorationJobService.findActiveJobIdByTickerId(id)).thenReturn(Optional.of("job-ia-1"));
+        when(iaValorationJobService.getJob("job-ia-1")).thenReturn(Optional.of(job));
+
+        String viewName = controller.getTickerDetail(id, null, model);
+
+        assertThat(viewName).isEqualTo("analysis/ticker-detail");
+        verify(model, times(1)).addAttribute("iaJobId", "job-ia-1");
+        verify(model, times(1)).addAttribute(eq("iaJobStartedAt"), any());
+        verify(model, times(1)).addAttribute(eq("iaJobElapsed"), any());
+    }
+
+    @Test
+    @DisplayName("Should show error notification on ticker detail when ia failed")
+    void testGetTickerDetailWithIaFailedParam() {
+        Long id = 1L;
+        when(manageAnalyzeTickerUseCase.findStockDataById(id)).thenReturn(testStockDataDTO);
+        when(messageSource.getMessage("ticker.ia.failed", null, Locale.getDefault()))
+                .thenReturn("No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback.");
+
+        String viewName = controller.getTickerDetail(id, "failed", model);
+
+        assertThat(viewName).isEqualTo("analysis/ticker-detail");
+        verify(model, times(1)).addAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback."));
+    }
+
+    @Test
+    @DisplayName("Should submit AI valoration job and redirect without blocking")
     void testGetValorationIA() {
         // Arrange
         Long id = 1L;
-        when(manageAnalyzeTickerUseCase.getValorationIA(id)).thenReturn(true);
-        when(messageSource.getMessage("ticker.ia.success", null, Locale.getDefault()))
-                .thenReturn("Valoración IA generada y guardada correctamente.");
+        when(iaValorationJobService.submitValorationJob(id)).thenReturn("job-ia-1");
+        when(messageSource.getMessage("ticker.ia.job.started", null, Locale.getDefault()))
+                .thenReturn("Análisis en curso.");
 
         // Act
         String viewName = controller.getValorationIA(id, redirectAttributes);
 
         // Assert
         assertThat(viewName).isEqualTo("redirect:/analysis/ticker/1");
-        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id);
+        verify(iaValorationJobService, times(1)).submitValorationJob(id);
+        verify(manageAnalyzeTickerUseCase, never()).getValorationIA(id);
         verify(redirectAttributes, times(1)).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Valoración IA generada y guardada correctamente."));
+                UiNotification.success("Análisis en curso."));
     }
 
     @Test
@@ -278,10 +325,10 @@ class AnalyzeTickerControllerTest {
         // Arrange
         Long id1 = 5L;
         Long id2 = 10L;
-        when(manageAnalyzeTickerUseCase.getValorationIA(id1)).thenReturn(true);
-        when(manageAnalyzeTickerUseCase.getValorationIA(id2)).thenReturn(true);
-        when(messageSource.getMessage("ticker.ia.success", null, Locale.getDefault()))
-                .thenReturn("Valoración IA generada y guardada correctamente.");
+        when(iaValorationJobService.submitValorationJob(id1)).thenReturn("job-ia-5");
+        when(iaValorationJobService.submitValorationJob(id2)).thenReturn("job-ia-10");
+        when(messageSource.getMessage("ticker.ia.job.started", null, Locale.getDefault()))
+                .thenReturn("Análisis en curso.");
 
         // Act
         String viewName1 = controller.getValorationIA(id1, redirectAttributes);
@@ -290,25 +337,50 @@ class AnalyzeTickerControllerTest {
         // Assert
         assertThat(viewName1).isEqualTo("redirect:/analysis/ticker/5");
         assertThat(viewName2).isEqualTo("redirect:/analysis/ticker/10");
-        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id1);
-        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id2);
+        verify(iaValorationJobService, times(1)).submitValorationJob(id1);
+        verify(iaValorationJobService, times(1)).submitValorationJob(id2);
     }
 
     @Test
-    @DisplayName("Should show error notification when AI valoration falls back")
-    void testGetValorationIAFallbackShowsErrorNotification() {
+    @DisplayName("Should warn when AI valoration queue is full")
+    void testGetValorationIABusyShowsWarningNotification() {
         Long id = 7L;
-        when(manageAnalyzeTickerUseCase.getValorationIA(id)).thenReturn(false);
-        when(messageSource.getMessage("ticker.ia.failed", null, Locale.getDefault()))
-                .thenReturn("No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback.");
+        when(iaValorationJobService.submitValorationJob(id))
+                .thenThrow(new JobRejectedException("full", new RuntimeException("full")));
+        when(messageSource.getMessage("ticker.ia.job.busy", null, Locale.getDefault()))
+                .thenReturn("Demasiados análisis en curso.");
 
         String viewName = controller.getValorationIA(id, redirectAttributes);
 
         assertThat(viewName).isEqualTo("redirect:/analysis/ticker/7");
-        verify(manageAnalyzeTickerUseCase, times(1)).getValorationIA(id);
         verify(redirectAttributes, times(1)).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.error("No se pudo generar una valoración IA válida. Se guardó un mensaje de fallback."));
+                UiNotification.warning("Demasiados análisis en curso."));
+    }
+
+    @Test
+    @DisplayName("Should return IA job status payload when job exists")
+    void testGetIaJobStatusRunning() {
+        BackgroundJob job = new BackgroundJob("job-ia-1", "ia-valoration", 7L, Instant.now());
+        job.markRunning();
+        when(iaValorationJobService.getJob("job-ia-1")).thenReturn(Optional.of(job));
+
+        ResponseEntity<IaValorationJobStatusDTO> response = controller.getIaJobStatus("job-ia-1");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.hasBody()).isTrue();
+        assertThat(response.getBody().getJobId()).isEqualTo("job-ia-1");
+        assertThat(response.getBody().getStatus()).isEqualTo(JobStatus.RUNNING.name());
+    }
+
+    @Test
+    @DisplayName("Should return 404 for unknown IA job")
+    void testGetIaJobStatusNotFound() {
+        when(iaValorationJobService.getJob("unknown")).thenReturn(Optional.empty());
+
+        ResponseEntity<IaValorationJobStatusDTO> response = controller.getIaJobStatus("unknown");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     // -------------------------------------------------------------------------

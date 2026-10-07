@@ -17,6 +17,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.market.analysis.application.job.IaValorationJobService;
 import com.market.analysis.domain.port.in.ManageAnalyzeTickerUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.presentation.controller.AnalyzeTickerController;
@@ -41,6 +42,9 @@ class AnalyzeTickerControllerRoutingTest {
 
     @MockitoBean
     private ManageStrategyUseCase manageStrategyUseCase;
+
+    @MockitoBean
+    private IaValorationJobService iaValorationJobService;
 
     @Test
     @DisplayName("Should fall back to error page without business call for non-numeric ticker ids")
