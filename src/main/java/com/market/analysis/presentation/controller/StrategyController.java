@@ -1,5 +1,8 @@
 package com.market.analysis.presentation.controller;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -7,6 +10,7 @@ import java.util.Optional;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,17 +19,21 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.RuleDefinitionDTO;
 import com.market.analysis.application.dto.StrategyDTO;
 import com.market.analysis.application.dto.StrategyObjectiveDTO;
-import com.market.analysis.application.dto.UpdateStrategyResult;
-import com.market.analysis.application.dto.SuggestTickersRequestDTO;
+import com.market.analysis.application.dto.SuggestJobStatusDTO;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
+import com.market.analysis.application.dto.UpdateStrategyResult;
+import com.market.analysis.application.job.SuggestJobRejectedException;
+import com.market.analysis.application.job.SuggestTickerJob;
+import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
@@ -42,6 +50,7 @@ public class StrategyController {
     private final ManageStrategyUseCase manageStrategyUseCase;
     private final ManageRuleDefinitionUseCase manageRuleDefinitionUseCase;
     private final Optional<SuggestTickersUseCase> suggestTickersUseCase;
+    private final SuggestTickerJobService suggestTickerJobService;
     private final MessageSource messageSource;
 
     @GetMapping
@@ -51,11 +60,25 @@ public class StrategyController {
     }
 
     @GetMapping("/{id:\\d+}")
-    public String viewStrategyDetail(@PathVariable("id") long strategyId, Model model) {
+    public String viewStrategyDetail(@PathVariable("id") long strategyId,
+            @RequestParam(value = "jobId", required = false) String jobIdParam,
+            Model model) {
         StrategyDTO strategyDTO = manageStrategyUseCase.getStrategyById(strategyId);
         model.addAttribute(WebConstants.ATTR_STRATEGY, strategyDTO);
         loadLastSuggestionSnapshot(strategyId, model);
+        resolveActiveSuggestJob(jobIdParam, strategyId).ifPresent(job -> {
+            model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ID, job.getJobId());
+            model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_STARTED_AT,
+                    job.getStartedAt().truncatedTo(ChronoUnit.MILLIS).toString());
+            model.addAttribute(WebConstants.ATTR_SUGGEST_JOB_ELAPSED,
+                    formatElapsed(job.getStartedAt(), java.time.Instant.now()));
+        });
         return WebConstants.TEMPLATE_STRATEGIES_DETAIL;
+    }
+
+    private static String formatElapsed(Instant startedAt, Instant now) {
+        long seconds = Math.max(0, Duration.between(startedAt, now).getSeconds());
+        return (seconds / 60) + ":" + String.format("%02d", seconds % 60);
     }
 
     @GetMapping("/new")
@@ -152,44 +175,49 @@ public class StrategyController {
             return WebConstants.REDIRECT_STRATEGIES_PREFIX + strategyId;
         }
 
-        SuggestTickersResponseDTO response;
+        final String jobId;
         try {
-            response = suggestTickersUseCase.get().suggestTickers(
-                    SuggestTickersRequestDTO.builder()
-                            .strategyId(strategyId)
-                            .build());
-        } catch (RuntimeException ex) {
-            String message = messageSource.getMessage("strategy.suggestion.failed", null, locale);
+            jobId = suggestTickerJobService.submitSuggestionJob(strategyId);
+        } catch (SuggestJobRejectedException ex) {
+            String message = messageSource.getMessage("strategy.suggestion.job.busy", null, locale);
             redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.error(message));
+                    UiNotification.warning(message));
             return WebConstants.REDIRECT_STRATEGIES_PREFIX + strategyId;
         }
 
-        List<SuggestedTickerDTO> discarded = filterBySuitabilityStatus(response, TickerSuitabilityStatus.NO_APTO);
-        List<String> unmappableRules = response == null || response.getUnmappableRules() == null
-                ? List.of()
-                : response.getUnmappableRules();
-        List<String> responseWarnings = response == null || response.getWarnings() == null
-                ? List.of()
-                : response.getWarnings();
-        boolean emptyResult = response == null || response.getSuggestedTickers() == null
-                || response.getSuggestedTickers().isEmpty();
+        String message = messageSource.getMessage("strategy.suggestion.job.started", null, locale);
+        redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.success(message));
+        return WebConstants.REDIRECT_STRATEGIES_PREFIX + strategyId + WebConstants.PARAM_SUGGEST_JOB_ID + jobId;
+    }
 
-        if (emptyResult) {
-            String message = messageSource.getMessage("strategy.suggestion.empty", null, locale);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.warning(message));
-        } else if (!unmappableRules.isEmpty() || !discarded.isEmpty() || !responseWarnings.isEmpty()) {
-            String message = messageSource.getMessage("strategy.suggestion.partial", null, locale);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.warning(message));
-        } else {
-            String message = messageSource.getMessage("strategy.suggestion.success", null, locale);
-            redirectAttributes.addFlashAttribute(WebConstants.UI_NOTIFICATION_KEY,
-                    UiNotification.success(message));
+    @GetMapping("/suggest-jobs/{jobId}")
+    @ResponseBody
+    public ResponseEntity<SuggestJobStatusDTO> getSuggestJobStatus(@PathVariable("jobId") String jobId) {
+        Locale locale = LocaleContextHolder.getLocale();
+        return suggestTickerJobService.getJob(jobId)
+                .map(job -> ResponseEntity.ok(SuggestJobStatusDTO.from(job, resolveJobMessage(job, locale))))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private Optional<SuggestTickerJob> resolveActiveSuggestJob(String jobIdParam, long strategyId) {
+        if (jobIdParam != null && !jobIdParam.isBlank()) {
+            Optional<SuggestTickerJob> byParam = suggestTickerJobService.getJob(jobIdParam)
+                    .filter(SuggestTickerJob::isActive);
+            if (byParam.isPresent()) {
+                return byParam;
+            }
         }
+        return suggestTickerJobService.findActiveJobIdByStrategyId(strategyId)
+                .flatMap(suggestTickerJobService::getJob);
+    }
 
-        return WebConstants.REDIRECT_STRATEGIES_PREFIX + strategyId;
+    private String resolveJobMessage(SuggestTickerJob job, Locale locale) {
+        return switch (job.getStatus()) {
+            case DONE -> messageSource.getMessage("strategy.suggestion.job.done", null, locale);
+            case FAILED -> messageSource.getMessage("strategy.suggestion.job.failed", null, locale);
+            default -> null;
+        };
     }
 
     @PostMapping("/{id:\\d+}/add-suggested-tickers")

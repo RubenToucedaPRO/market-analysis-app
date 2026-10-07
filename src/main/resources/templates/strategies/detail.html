@@ -1,8 +1,12 @@
 <!doctype html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
-  <head th:replace="~{fragments/head :: head('Detalles de la Estrategia - AlphaSeeker')}"></head>
+  <head
+    th:replace="~{fragments/head :: head('Detalles de la Estrategia - AlphaSeeker')}"
+  ></head>
   <body class="d-flex flex-column min-vh-100">
-    <div th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"></div>
+    <div
+      th:replace="~{fragments/navbar :: navbar(isAuthenticated=${true})}"
+    ></div>
     <div th:replace="~{fragments/notification :: notification}"></div>
 
     <main class="container my-5 flex-grow-1">
@@ -15,7 +19,10 @@
         <div>
           <span class="stats-badge" th:if="${!strategy.rules.isEmpty()}">
             <i class="bi bi-collection me-1"></i>
-            <span th:text="#{strategy.detail.rules_defined(${strategy.rules.size()})}">0 reglas definidas</span>
+            <span
+              th:text="#{strategy.detail.rules_defined(${strategy.rules.size()})}"
+              >0 reglas definidas</span
+            >
           </span>
         </div>
       </div>
@@ -24,28 +31,43 @@
         <div class="card-header bg-light">
           <h5 class="mb-0">
             <i class="bi bi-gear text-primary me-2"></i>
-            <span th:text="#{strategy.form.details}">Detalles de la Estrategia</span>
+            <span th:text="#{strategy.form.details}"
+              >Detalles de la Estrategia</span
+            >
           </h5>
         </div>
         <div class="card-body">
           <div class="row">
             <div class="col-md-12 mb-3">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.form.name}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.form.name}"
+              >
                 Nombre de la Estrategia
               </p>
               <p class="fs-5" th:text="${strategy.name}">Cruce Dorado</p>
             </div>
             <div class="col-md-12">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.form.description}">Descripción</p>
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.form.description}"
+              >
+                Descripción
+              </p>
               <p class="fs-6 text-muted" th:text="${strategy.description}">
                 La descripción de la estrategia se mostrará aquí.
               </p>
             </div>
             <div class="col-md-12 mt-2">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.threshold}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.detail.threshold}"
+              >
                 Umbral de Aprobación
               </p>
-              <p class="fs-6 mb-0" th:text="${strategy.threshold} + '%'">100%</p>
+              <p class="fs-6 mb-0" th:text="${strategy.threshold} + '%'">
+                100%
+              </p>
             </div>
           </div>
         </div>
@@ -55,27 +77,38 @@
         <div class="card-header bg-light">
           <h5 class="mb-0">
             <i class="bi bi-shield-check text-primary me-2"></i>
-            <span th:text="#{strategy.form.risk_management}">Gestión de Riesgo</span>
+            <span th:text="#{strategy.form.risk_management}"
+              >Gestión de Riesgo</span
+            >
           </h5>
         </div>
         <div class="card-body">
           <div th:if="${strategy.objective == null}" class="text-center py-4">
             <i class="bi bi-info-circle text-muted fs-1"></i>
-            <p class="text-muted mt-3 mb-0" th:text="#{strategy.detail.no_risk_objective}">
+            <p
+              class="text-muted mt-3 mb-0"
+              th:text="#{strategy.detail.no_risk_objective}"
+            >
               No hay objetivos de riesgo definidos para esta estrategia.
             </p>
           </div>
 
           <div th:if="${not(strategy.objective == null)}" class="row g-3">
             <div class="col-md-2">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.target_type}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.detail.target_type}"
+              >
                 Tipo de Objetivo
               </p>
               <p class="mb-0" th:text="${strategy.objective.targetType}">SMA</p>
             </div>
 
             <div class="col-md-2">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.target_value}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.detail.target_value}"
+              >
                 Valor Objetivo
               </p>
               <p class="mb-0">
@@ -87,7 +120,10 @@
             </div>
 
             <div class="col-md-2">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.stop_loss_type}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.detail.stop_loss_type}"
+              >
                 Tipo de Stop Loss
               </p>
               <p class="mb-0" th:text="${strategy.objective.stopLossType}">
@@ -96,7 +132,10 @@
             </div>
 
             <div class="col-md-2">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.stop_loss_value}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.detail.stop_loss_value}"
+              >
                 Valor Stop Loss
               </p>
               <p class="mb-0">
@@ -108,7 +147,10 @@
             </div>
 
             <div class="col-md-2">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.capital_to_risk}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.detail.capital_to_risk}"
+              >
                 Capital a Arriesgar
               </p>
               <p
@@ -121,7 +163,10 @@
             </div>
 
             <div class="col-md-12">
-              <p class="form-label fw-semibold text-muted small" th:text="#{strategy.detail.target_description}">
+              <p
+                class="form-label fw-semibold text-muted small"
+                th:text="#{strategy.detail.target_description}"
+              >
                 Descripción del Objetivo
               </p>
               <p
@@ -139,7 +184,9 @@
         <div class="card-header bg-light">
           <h5 class="mb-0">
             <i class="bi bi-list-check text-primary me-2"></i>
-            <span th:text="#{strategy.form.execution_rules}">Reglas de Ejecución</span>
+            <span th:text="#{strategy.form.execution_rules}"
+              >Reglas de Ejecución</span
+            >
           </h5>
         </div>
         <div class="card-body">
@@ -161,24 +208,32 @@
                 >
                   <h6 class="mb-0">
                     <i class="bi bi-check-circle text-success me-1"></i>
-                    <span th:text="#{strategy.detail.rule}">Regla</span> <span th:text="${stat.count}">1</span>:
+                    <span th:text="#{strategy.detail.rule}">Regla</span>
+                    <span th:text="${stat.count}">1</span>:
                     <span th:text="${rule.name}">Rule Name</span>
                     <span class="badge bg-secondary ms-1">
-                      <span th:text="#{strategy.detail.rule_weight}">Peso</span>:
+                      <span th:text="#{strategy.detail.rule_weight}">Peso</span
+                      >:
                       <span th:text="${rule.weight}">1</span>
                     </span>
                   </h6>
                 </div>
                 <div class="row g-3">
                   <div class="col-md-3">
-                    <p class="form-label small text-muted fw-semibold" th:text="#{strategy.detail.subject_indicator}">
+                    <p
+                      class="form-label small text-muted fw-semibold"
+                      th:text="#{strategy.detail.subject_indicator}"
+                    >
                       Indicador de Sujeto
                     </p>
                     <p class="mb-0" th:text="${rule.subjectCode}">PRICE</p>
                   </div>
 
                   <div class="col-md-2" th:if="${rule.subjectParam != null}">
-                    <p class="form-label small text-muted fw-semibold" th:text="#{strategy.detail.subject_param}">
+                    <p
+                      class="form-label small text-muted fw-semibold"
+                      th:text="#{strategy.detail.subject_param}"
+                    >
                       Parámetro de Sujeto
                     </p>
                     <p
@@ -191,7 +246,10 @@
                   </div>
 
                   <div class="col-md-1">
-                    <p class="form-label small text-muted fw-semibold" th:text="#{strategy.detail.operator}">
+                    <p
+                      class="form-label small text-muted fw-semibold"
+                      th:text="#{strategy.detail.operator}"
+                    >
                       Operador
                     </p>
                     <p class="mb-0">
@@ -205,14 +263,18 @@
                   </div>
 
                   <div class="col-md-3">
-                    <span class="form-label small text-muted fw-semibold" th:text="#{strategy.detail.target_indicator}"
+                    <span
+                      class="form-label small text-muted fw-semibold"
+                      th:text="#{strategy.detail.target_indicator}"
                       >Indicador de Objetivo</span
                     >
                     <p class="mb-0" th:text="${rule.targetCode}">CONSTANT</p>
                   </div>
 
                   <div class="col-md-2" th:if="${rule.targetParam != null}">
-                    <span class="form-label small text-muted fw-semibold" th:text="#{strategy.detail.target_param}"
+                    <span
+                      class="form-label small text-muted fw-semibold"
+                      th:text="#{strategy.detail.target_param}"
                       >Valor de Objetivo</span
                     >
                     <p
@@ -229,7 +291,9 @@
                   th:if="${rule.description != null and !rule.description.isEmpty()}"
                   class="mt-3"
                 >
-                  <span class="form-label small text-muted fw-semibold" th:text="#{strategy.detail.description}"
+                  <span
+                    class="form-label small text-muted fw-semibold"
+                    th:text="#{strategy.detail.description}"
                     >Descripción</span
                   >
                   <p
@@ -250,7 +314,9 @@
             >
               <button type="submit" class="btn btn-primary">
                 <i class="bi bi-lightning-charge me-1"></i>
-                <span th:text="#{strategy.detail.suggest_tickers}">Sugerir tickers desde mercado</span>
+                <span th:text="#{strategy.detail.suggest_tickers}"
+                  >Sugerir tickers desde mercado</span
+                >
               </button>
             </form>
 
@@ -275,6 +341,31 @@
             </form>
           </div>
 
+          <output
+            id="suggest-job-banner"
+            th:if="${suggestJobId != null}"
+            class="alert alert-info d-flex align-items-center mt-2"
+            th:data-status-url="@{/strategies/suggest-jobs/{jobId}(jobId=${suggestJobId})}"
+            th:data-started-at="${suggestJobStartedAt}"
+            th:data-detail-url="@{/strategies/{id}(id=${strategy.id})}"
+            th:data-msg-interrupted="#{strategy.suggestion.job.interrupted}"
+          >
+            <span
+              class="spinner-border spinner-border-sm"
+              aria-hidden="true"
+            ></span>
+            <span th:text="#{strategy.suggestion.job.running}"
+              >Calculando sugerencias…</span
+            >
+            <span
+              id="suggest-job-elapsed"
+              class="fw-semibold"
+              th:text="${suggestJobElapsed}"
+              >0:00</span
+            >
+          </output>
+          <div id="suggest-job-alert" class="alert d-none" role="alert"></div>
+
           <div
             th:replace="~{fragments/strategy-traceability :: strategyTraceability(strategyId=${strategy.id}, suggestedTickers=${suggestedTickers}, discardedTickers=${discardedTickers}, unmappableRules=${unmappableRules}, suggestedAt=${suggestedAt})}"
           ></div>
@@ -284,5 +375,6 @@
 
     <footer th:replace="~{fragments/footer :: footer}"></footer>
     <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
+    <script th:src="@{/js/suggest-job-poll.js}"></script>
   </body>
 </html>

@@ -1,8 +1,10 @@
 package com.market.analysis.unit.presentation.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -18,14 +20,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 
 import com.market.analysis.application.dto.RuleDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.SuggestJobStatusDTO;
 import com.market.analysis.application.dto.UpdateStrategyResult;
 import com.market.analysis.application.dto.SuggestTickersResponseDTO;
 import com.market.analysis.application.dto.SuggestedTickerDTO;
 import com.market.analysis.application.dto.TickerSuitabilityStatus;
+import com.market.analysis.application.job.SuggestJobRejectedException;
+import com.market.analysis.application.job.SuggestJobStatus;
+import com.market.analysis.application.job.SuggestTickerJob;
+import com.market.analysis.application.job.SuggestTickerJobService;
 import com.market.analysis.domain.port.in.ManageRuleDefinitionUseCase;
 import com.market.analysis.domain.port.in.ManageStrategyUseCase;
 import com.market.analysis.domain.port.in.SuggestTickersUseCase;
@@ -47,6 +56,9 @@ class StrategyControllerTest {
     private SuggestTickersUseCase suggestTickersUseCase;
 
     @Mock
+    private SuggestTickerJobService suggestTickerJobService;
+
+    @Mock
     private MessageSource messageSource;
 
     @Mock
@@ -65,6 +77,7 @@ class StrategyControllerTest {
                 manageStrategyUseCase,
                 manageRuleDefinitionUseCase,
                 Optional.of(suggestTickersUseCase),
+                suggestTickerJobService,
                 messageSource);
 
         testRuleDTO = RuleDTO.builder()
@@ -222,7 +235,7 @@ class StrategyControllerTest {
                 .build();
         when(suggestTickersUseCase.getLatestSuggestionSnapshot(1L)).thenReturn(Optional.of(snapshot));
 
-        String viewName = strategyController.viewStrategyDetail(1L, model);
+        String viewName = strategyController.viewStrategyDetail(1L, null, model);
 
         assertEquals("strategies/detail", viewName);
         verify(manageStrategyUseCase).getStrategyById(1L);
@@ -237,46 +250,158 @@ class StrategyControllerTest {
     }
 
     @Test
-    @DisplayName("Should suggest tickers with success notification")
-    void testSuggestTickersFromMarketSuccess() {
-        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
-                .suggestedTickers(List.of(SuggestedTickerDTO.builder()
-                        .ticker("AAPL")
-                        .suitabilityStatus(TickerSuitabilityStatus.APTO)
-                        .build()))
-                .unmappableRules(List.of())
-                .build();
-        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
-        when(messageSource.getMessage("strategy.suggestion.success", null, Locale.getDefault()))
-                .thenReturn("Sugerencias generadas correctamente desde mercado.");
+    @DisplayName("Should submit suggestion job and redirect with job id without blocking")
+    void testSuggestTickersFromMarketSubmitsJob() {
+        when(suggestTickerJobService.submitSuggestionJob(1L)).thenReturn("job-123");
+        when(messageSource.getMessage("strategy.suggestion.job.started", null, Locale.getDefault()))
+                .thenReturn("Sugerencia en curso.");
 
         String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
 
-        assertEquals("redirect:/strategies/1", viewName);
-        verify(suggestTickersUseCase).suggestTickers(any());
+        assertEquals("redirect:/strategies/1?jobId=job-123", viewName);
+        verify(suggestTickerJobService).submitSuggestionJob(1L);
+        verify(suggestTickersUseCase, never()).suggestTickers(any());
         verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.success("Sugerencias generadas correctamente desde mercado."));
+                UiNotification.success("Sugerencia en curso."));
     }
 
     @Test
-    @DisplayName("Should suggest tickers with empty notification when Finviz returns nothing")
-    void testSuggestTickersFromMarketEmpty() {
-        SuggestTickersResponseDTO response = SuggestTickersResponseDTO.builder()
-                .suggestedTickers(List.of())
-                .unmappableRules(List.of())
-                .build();
-        when(suggestTickersUseCase.suggestTickers(any())).thenReturn(response);
-        when(messageSource.getMessage("strategy.suggestion.empty", null, Locale.getDefault()))
-                .thenReturn("Finviz no devolvió tickers con estos filtros: quita algún filtro o revísalos en Finviz y reintenta.");
+    @DisplayName("Should warn when suggestion queue rejects the job")
+    void testSuggestTickersFromMarketBusy() {
+        when(suggestTickerJobService.submitSuggestionJob(1L))
+                .thenThrow(new SuggestJobRejectedException("full", new RuntimeException("full")));
+        when(messageSource.getMessage("strategy.suggestion.job.busy", null, Locale.getDefault()))
+                .thenReturn("Cola llena.");
 
         String viewName = strategyController.suggestTickersFromMarket(1L, redirectAttributes);
 
         assertEquals("redirect:/strategies/1", viewName);
-        verify(suggestTickersUseCase).suggestTickers(any());
         verify(redirectAttributes).addFlashAttribute(
                 WebConstants.UI_NOTIFICATION_KEY,
-                UiNotification.warning("Finviz no devolvió tickers con estos filtros: quita algún filtro o revísalos en Finviz y reintenta."));
+                UiNotification.warning("Cola llena."));
+    }
+
+    @Test
+    @DisplayName("Should error when suggestion use case is unavailable")
+    void testSuggestTickersFromMarketUnavailable() {
+        StrategyController controllerWithoutUseCase = new StrategyController(
+                manageStrategyUseCase,
+                manageRuleDefinitionUseCase,
+                Optional.empty(),
+                suggestTickerJobService,
+                messageSource);
+        when(messageSource.getMessage("strategy.suggestion.unavailable", null, Locale.getDefault()))
+                .thenReturn("No disponible.");
+
+        String viewName = controllerWithoutUseCase.suggestTickersFromMarket(1L, redirectAttributes);
+
+        assertEquals("redirect:/strategies/1", viewName);
+        verify(redirectAttributes).addFlashAttribute(
+                WebConstants.UI_NOTIFICATION_KEY,
+                UiNotification.error("No disponible."));
+    }
+
+    @Test
+    @DisplayName("Should return job status payload when job exists")
+    void testGetSuggestJobStatusRunning() {
+        SuggestTickerJob job = new SuggestTickerJob("job-123", 1L, Instant.now());
+        job.markRunning();
+        when(suggestTickerJobService.getJob("job-123")).thenReturn(Optional.of(job));
+
+        ResponseEntity<SuggestJobStatusDTO> response = strategyController.getSuggestJobStatus("job-123");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.hasBody());
+        assertEquals("job-123", response.getBody().getJobId());
+        assertEquals(SuggestJobStatus.RUNNING.name(), response.getBody().getStatus());
+    }
+
+    @Test
+    @DisplayName("Should resolve localized message for failed job")
+    void testGetSuggestJobStatusFailed() {
+        SuggestTickerJob job = new SuggestTickerJob("job-123", 1L, Instant.now());
+        job.markRunning();
+        job.fail("boom");
+        when(suggestTickerJobService.getJob("job-123")).thenReturn(Optional.of(job));
+        when(messageSource.getMessage("strategy.suggestion.job.failed", null, Locale.getDefault()))
+                .thenReturn("Falló.");
+
+        ResponseEntity<SuggestJobStatusDTO> response = strategyController.getSuggestJobStatus("job-123");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Falló.", response.getBody().getMessage());
+    }
+
+    @Test
+    @DisplayName("Should return 404 for unknown job")
+    void testGetSuggestJobStatusNotFound() {
+        when(suggestTickerJobService.getJob("unknown")).thenReturn(Optional.empty());
+
+        ResponseEntity<SuggestJobStatusDTO> response = strategyController.getSuggestJobStatus("unknown");
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Should expose active job id from URL param in detail model")
+    void testViewDetailExposesJobIdFromParam() {
+        SuggestTickerJob job = new SuggestTickerJob("job-123", 1L, Instant.now());
+        job.markRunning();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.getJob("job-123")).thenReturn(Optional.of(job));
+
+        String viewName = strategyController.viewStrategyDetail(1L, "job-123", model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model).addAttribute("suggestJobId", "job-123");
+        verify(model).addAttribute(eq("suggestJobStartedAt"), any());
+        verify(model).addAttribute(eq("suggestJobElapsed"), any());
+    }
+
+    @Test
+    @DisplayName("Should expose active job id without URL param when job is running")
+    void testViewDetailExposesActiveJobWithoutParam() {
+        SuggestTickerJob job = new SuggestTickerJob("job-abc", 1L, Instant.now());
+        job.markRunning();
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.of("job-abc"));
+        when(suggestTickerJobService.getJob("job-abc")).thenReturn(Optional.of(job));
+
+        String viewName = strategyController.viewStrategyDetail(1L, null, model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model).addAttribute("suggestJobId", "job-abc");
+        verify(model).addAttribute(eq("suggestJobStartedAt"), any());
+        verify(model).addAttribute(eq("suggestJobElapsed"), any());
+    }
+
+    @Test
+    @DisplayName("Should not expose job id when no job is active")
+    void testViewDetailWithoutActiveJob() {
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.empty());
+
+        String viewName = strategyController.viewStrategyDetail(1L, null, model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model, never()).addAttribute(eq("suggestJobId"), any());
+    }
+
+    @Test
+    @DisplayName("Should ignore stale job id param when job is no longer active")
+    void testViewDetailIgnoresStaleJobParam() {
+        SuggestTickerJob job = new SuggestTickerJob("job-old", 1L, Instant.now());
+        job.markRunning();
+        job.complete(1, 0);
+        when(manageStrategyUseCase.getStrategyById(1L)).thenReturn(testStrategyDTO);
+        when(suggestTickerJobService.getJob("job-old")).thenReturn(Optional.of(job));
+        when(suggestTickerJobService.findActiveJobIdByStrategyId(1L)).thenReturn(Optional.empty());
+
+        String viewName = strategyController.viewStrategyDetail(1L, "job-old", model);
+
+        assertEquals("strategies/detail", viewName);
+        verify(model, never()).addAttribute(eq("suggestJobId"), any());
     }
 
     @Test

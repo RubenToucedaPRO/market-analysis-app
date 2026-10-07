@@ -21,6 +21,9 @@ public final class WebConstants {
     public static final String ATTR_UNMAPPABLE_RULES = "unmappableRules";
     public static final String ATTR_SNAPSHOT_WARNINGS = "snapshotWarnings";
     public static final String ATTR_SUGGESTED_AT = "suggestedAt";
+    public static final String ATTR_SUGGEST_JOB_ID = "suggestJobId";
+    public static final String ATTR_SUGGEST_JOB_STARTED_AT = "suggestJobStartedAt";
+    public static final String ATTR_SUGGEST_JOB_ELAPSED = "suggestJobElapsed";
     public static final String ATTR_TICKER_PAGE = "tickerPage";
     public static final String ATTR_KEYWORD_PAGE = "keywordPage";
     public static final int DEFAULT_PAGE_SIZE = 10;
@@ -52,6 +55,7 @@ public final class WebConstants {
     // ── Pagination Query Params ────────────────────────────────────────
     public static final String PARAM_TICKER_PAGE = "?tickerPage=";
     public static final String PARAM_KEYWORD_PAGE = "&keywordPage=";
+    public static final String PARAM_SUGGEST_JOB_ID = "?jobId=";
 
     // ── Error View Attributes ───────────────────────────────────────────
     public static final String ATTR_ERROR_MESSAGE = "errorMessage";
