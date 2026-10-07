@@ -37,7 +37,7 @@ Hallazgo de investigación: el flujo **no hace llamadas LLM** (el tiempo viene 1
 |---|---|
 | `presentation/controller/StrategyController.java` | POST: crea job y `redirect:/strategies/{id}?jobId=` (+ ramas `unavailable`/`busy`); nuevo `GET /suggest-jobs/{jobId}` JSON (`200` / `404`); mensajes FAILED/DONE localizados en el controlador |
 | `presentation/util/WebConstants.java` | `PARAM_SUGGEST_JOB_ID = "?jobId="` (cero strings mágicos) |
-| `infrastructure/config/BeanConfig.java` | `TaskExecutor suggestTickerExecutor` (**1 hilo**, cola 10, `AbortPolicy`) + bean `suggestTickerJobService`; coherente con `@Value`-con-defaults del proyecto |
+| `infrastructure/config/BeanConfig.java` | `TaskExecutor suggestTickerExecutor` (**1 hilo**, cola 2, `AbortPolicy`) + bean `suggestTickerJobService`; coherente con `@Value`-con-defaults del proyecto |
 | `config/application.properties` | `suggest.executor.pool-size/queue-capacity/thread-prefix`, `suggest.job.ttl-minutes/cleanup-interval-ms` (comentados, sin secretos) |
 | `messages.properties` | 6 claves `strategy.suggestion.job.*` (started/running/done/failed/busy/interrupted); sin textos hardcodeados |
 | `templates/strategies/detail.html` | banner `alert-info` con spinner + elapsed (solo si `?jobId=`), div de alerta, `<script th:src="@{/js/suggest-job-poll.js}">`. Sin SpEL larga; el form POST sigue siendo form (cero problemas CSRF en JS: el polling es GET) |
@@ -47,7 +47,7 @@ Hallazgo de investigación: el flujo **no hace llamadas LLM** (el tiempo viene 1
 ## 3. Decisiones técnicas tomadas
 
 1. **Worker reutiliza el caso de uso existente sin tocarlo.** `SuggestTickerJobService` llama al bean `SuggestTickersUseCase` inyectado (proxy Spring → transacción nueva en el hilo worker, pues `suggestTickers()` es `@Transactional`). Cero cambios en `SuggestTickersService`, cero riesgo en reglas de negocio.
-2. **Executor de 1 hilo**, no pool amplio: el presupuesto Polygon (5/min) es compartido; en paralelo todos los jobs irían más lentos. Cola acotada (10) + `AbortPolicy` → "ocupado" explícito en vez de bloqueo silencioso.
+2. **Executor de 1 hilo**, no pool amplio: el presupuesto Polygon (5/min) es compartido; en paralelo todos los jobs irían más lentos. Cola acotada (2) + `AbortPolicy` → "ocupado" explícito en vez de bloqueo silencioso.
 3. **Dedup por estrategia** (decisión de usuario): segundo submit con job activo devuelve el mismo `jobId`. Ahorra 20 llamadas Polygon y evita resultados duplicados.
 4. **Registro en memoria** (decisión de usuario, `ConcurrentHashMap` + purga `@Scheduled`): jobs efímeros; el resultado persiste en BD igualmente. Al reiniciar el contenedor el polling recibe 404 → la página muestra "interrumpido, reintentar". Alternativa BD descartada por coste.
 5. **Progreso grueso** (spinner + tiempo, sin 12/20): evita instrumentar el servicio. El conteo fino queda como mejora futura.
