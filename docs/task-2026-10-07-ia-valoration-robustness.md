@@ -14,8 +14,9 @@ En producción, "Generar análisis" fallaba sistemáticamente (`fallbackRatio≈
 
 | Fichero | Cambio |
 |---|---|
-| `infrastructure/external/openrouter/OpenrouterAdapter.java` | El bucle de modelos rota ante 429, payload malformado (`OpenAIInvalidDataException`: `` `choices` is not set ``), 5xx/estados inesperados (`InternalServerException`, `UnexpectedStatusCodeException`) y modelo dado de baja (`NotFoundException` "unavailable for free"). Verificado en el jar que no existe superclase solo-5xx (compartiría 401/auth); resto de errores sigue en fail-fast. Verificado en local: malformado→rota, 404→rota, todos caídos→`AIServiceException` final |
-| `OpenrouterAdapterTest.java` | 3 tests: malformado→rota, 5xx→rota, todos malformados→`AIServiceException` tras intentarlo en los 3 modelos |
+| `infrastructure/external/openrouter/OpenrouterAdapter.java` | El bucle de modelos rota ante 429, payload malformado (`OpenAIInvalidDataException`: `` `choices` is not set ``), 5xx/estados inesperados (`InternalServerException`, `UnexpectedStatusCodeException`), modelo dado de baja (`NotFoundException` "unavailable for free"), modelo capado a otras apps (`PermissionDeniedException` 403) y contenido vacío (WARN + siguiente). Verificado en el jar que no existe superclase solo-5xx (compartiría 401/auth); el 401-auth sigue en fail-fast a propósito. Verificado en local: cada caso rota; todos caídos→`AIServiceException` final |
+| `OpenrouterAdapterTest.java` | 6 tests: malformado→rota, 5xx→rota, 404→rota, todos malformados→`AIServiceException`, vacío→rota, todos vacíos→`AIServiceException` (el viejo "retorna null" cambia de contrato) |
+| `application/usecase/ManageAnalyzeStockService.java` | Si la primera respuesta es nula/vacía se va directo a fallback **sin retry estricto** (el adapter ya rotó por todos; repetir quemaría cuota). Nuevo test: 1 sola llamada, sin `buildRetryPrompt` |
 | `domain/service/ValorationSections.java` (nuevo) | Regla única de frontera: cabecera válida solo si **abre línea** (tras markdown/números/espacios), insensible a mayúsculas/tildes; cuerpo por sección ≥40 chars. `isStructured` + `split` (4 cuerpos en orden, nunca null) |
 | `domain/service/PromptResponseValidator.java` | `isValid` delega en `ValorationSections.isStructured` (se elimina su `normalize` duplicado) |
 | `domain/service/PromptBuilder.java` | Línea anti-eco: no repetir descripciones ni explicar el formato |
@@ -36,7 +37,7 @@ En producción, "Generar análisis" fallaba sistemáticamente (`fallbackRatio≈
 ## 4. Cobertura de tests y pruebas
 
 - `ValorationSectionsTest`: 5 tests (incluye regresión con el eco de la captura real), `PromptResponseValidatorTest`: 9 tests, `ManageAnalyzeStockServiceTest` y controlador/vista IA intactos salvo lo descrito.
-- **Suite completa: 1153 tests, 0 failures, BUILD SUCCESS** (13 en `OpenrouterAdapterTest`: rota-malformado, rota-5xx, rota-404, todos-caídos, más los existentes).
+- **Suite completa: 1158 tests, 0 failures, BUILD SUCCESS** (17 en `OpenrouterAdapterTest`; nuevo test de servicio `sin-retry-ante-vacío` verificando 1 sola llamada).
 - **JaCoCo: `ValorationSections` 100% líneas y ramas; `PromptResponseValidator` 100%; `OpenrouterAdapter` 44/45 líneas.**
 - Validación real pendiente: desplegar imagen nueva, reintentar PL y leer el log (si sigue fallando, la respuesta cruda dirá por qué).
 
