@@ -87,6 +87,37 @@ class AnalyzeTickerControllerViewTest {
     }
 
     @Test
+    @DisplayName("Should assign each valuation section to its own card")
+    void shouldAssignValuationSectionsToCards() throws Exception {
+        StockDataDTO ticker = StockDataDTO.builder()
+                .id(1L)
+                .ticker("AAPL")
+                .currentPrice(new java.math.BigDecimal("150.50"))
+                .previousClose(new java.math.BigDecimal("149.00"))
+                .openPrice(new java.math.BigDecimal("149.50"))
+                .highOfDay(new java.math.BigDecimal("151.00"))
+                .lowOfDay(new java.math.BigDecimal("148.50"))
+                .volume(1000000L)
+                .averageVolume(900000L)
+                .evaluationPassed(Boolean.TRUE)
+                .valorationIA("""
+                        Resumen técnico: Precio 336.17 por encima de SMA20, tendencia alcista clara.
+                        Fortalezas: Precio sobre SMA20 (+0,8%) y medias alineadas al alza sostenido.
+                        Riesgos: Volumen 27% por debajo de la media, falta de convicción compradora.
+                        Conclusión interpretativa: Contexto favorable pero con cautela por el volumen.
+                        """)
+                .build();
+        when(manageAnalyzeTickerUseCase.findStockDataById(1L)).thenReturn(ticker);
+
+        mockMvc.perform(get("/analysis/ticker/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("336.17")))
+                .andExpect(content().string(containsString("medias alineadas")))
+                .andExpect(content().string(containsString("falta de convicción")))
+                .andExpect(content().string(containsString("con cautela")));
+    }
+
+    @Test
     @DisplayName("Should return IA job status as JSON")
     void shouldReturnIaJobStatus() throws Exception {
         BackgroundJob job = new BackgroundJob("job-ia-1", "ia-valoration", 1L, Instant.now());

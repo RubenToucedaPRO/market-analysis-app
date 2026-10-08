@@ -28,6 +28,7 @@ public final class WebConstants {
     public static final String ATTR_IA_JOB_STARTED_AT = "iaJobStartedAt";
     public static final String ATTR_IA_JOB_ELAPSED = "iaJobElapsed";
     public static final String ATTR_TICKER_PAGE = "tickerPage";
+    public static final String ATTR_VALORATION_SECTIONS = "valorationSections";
     public static final String ATTR_KEYWORD_PAGE = "keywordPage";
     public static final int DEFAULT_PAGE_SIZE = 10;
 

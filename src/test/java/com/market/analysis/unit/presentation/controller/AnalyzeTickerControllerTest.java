@@ -2,6 +2,7 @@ package com.market.analysis.unit.presentation.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -31,6 +32,7 @@ import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.CandleDTO;
 import com.market.analysis.application.dto.IaValorationJobStatusDTO;
 import com.market.analysis.application.dto.StockDataDTO;
+import com.market.analysis.application.dto.ValorationSectionsDTO;
 import com.market.analysis.application.mapper.StockDataDTOMapper;
 import com.market.analysis.application.job.BackgroundJob;
 import com.market.analysis.application.job.IaValorationJobService;
@@ -262,6 +264,30 @@ class AnalyzeTickerControllerTest {
         assertThat(viewName).isEqualTo("analysis/ticker-detail");
         verify(manageAnalyzeTickerUseCase, times(1)).findStockDataById(id);
         verify(model, times(1)).addAttribute("ticker", testStockDataDTO);
+    }
+
+    @Test
+    @DisplayName("Should expose split valuation sections in ticker detail")
+    void testGetTickerDetailExposesValorationSections() {
+        Long id = 1L;
+        StockDataDTO withValoration = StockDataDTO.builder()
+                .ticker("AAPL")
+                .valorationIA("""
+                        Resumen técnico: Precio 336.17 por encima de SMA20, tendencia alcista clara.
+                        Fortalezas: Precio sobre SMA20 (+0,8%) y medias alineadas al alza sostenido.
+                        Riesgos: Volumen 27% por debajo de la media, falta de convicción compradora.
+                        Conclusión interpretativa: Contexto favorable pero con cautela por el volumen.
+                        """)
+                .build();
+        when(manageAnalyzeTickerUseCase.findStockDataById(id)).thenReturn(withValoration);
+
+        String viewName = controller.getTickerDetail(id, null, model);
+
+        assertThat(viewName).isEqualTo("analysis/ticker-detail");
+        verify(model, times(1)).addAttribute(eq("valorationSections"),
+                argThat(sections -> sections instanceof ValorationSectionsDTO dto
+                        && dto.isStructured()
+                        && dto.getResumen().contains("336.17")));
     }
 
     @Test

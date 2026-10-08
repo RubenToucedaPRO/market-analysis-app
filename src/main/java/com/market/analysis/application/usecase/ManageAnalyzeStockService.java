@@ -173,7 +173,8 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 return valoration;
             }
 
-            log.warn("Invalid AI valoration format for ticker {}, retrying with strict prompt", ticker);
+            log.warn("Invalid AI valoration format for ticker {}, retrying with strict prompt. Raw response: {}",
+                    ticker, preview(valoration));
             aiRetries.incrementAndGet();
             String retryPrompt = enforcePromptSize(
                     promptResponseValidator.buildRetryPrompt(prompt),
@@ -186,7 +187,8 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
                 return retryValoration;
             }
 
-            log.warn("Invalid AI valoration format for ticker {} after retry, using fallback", ticker);
+            log.warn("Invalid AI valoration format for ticker {} after retry, using fallback. Raw response: {}",
+                    ticker, preview(retryValoration));
             aiFallbacks.incrementAndGet();
             logAiMetrics();
             return IA_FALLBACK_VALORATION;
@@ -196,6 +198,22 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             logAiMetrics();
             return IA_FALLBACK_VALORATION;
         }
+    }
+
+    /**
+     * Single-line truncated preview of a raw LLM response for failure logs.
+     * Keeps production logs readable while preserving the evidence needed
+     * to diagnose validation rejections.
+     */
+    private static String preview(String response) {
+        if (response == null) {
+            return "null";
+        }
+        String singleLine = response.replaceAll("[\\r\\n]+", " | ");
+        if (singleLine.length() <= 2000) {
+            return singleLine;
+        }
+        return singleLine.substring(0, 2000) + "…[truncated]";
     }
 
     private String enforcePromptSize(String prompt, String ticker, String stage) {

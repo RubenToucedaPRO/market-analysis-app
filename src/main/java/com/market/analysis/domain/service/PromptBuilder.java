@@ -28,6 +28,7 @@ public class PromptBuilder {
             Fortalezas: factores positivos con datos numéricos.
             Riesgos: factores negativos con datos numéricos.
             Conclusión interpretativa: valoración general.
+            No repitas estas descripciones ni expliques el formato: escribe directamente el análisis real en español en cada sección.
             """;
 
     public String buildAnalysisPrompt(Stock stock, StrategyEvaluation evaluation) {

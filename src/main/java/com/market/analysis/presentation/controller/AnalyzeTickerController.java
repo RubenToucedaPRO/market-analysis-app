@@ -24,6 +24,7 @@ import com.market.analysis.application.dto.CandleChartDTO;
 import com.market.analysis.application.dto.IaValorationJobStatusDTO;
 import com.market.analysis.application.dto.StockDataDTO;
 import com.market.analysis.application.dto.StrategyDTO;
+import com.market.analysis.application.dto.ValorationSectionsDTO;
 import com.market.analysis.application.job.BackgroundJob;
 import com.market.analysis.application.job.IaValorationJobService;
 import com.market.analysis.application.job.JobRejectedException;
@@ -108,6 +109,10 @@ public class AnalyzeTickerController {
             Model model) {
         StockDataDTO ticker = manageAnalyzeTickerUseCase.findStockDataById(id);
         model.addAttribute(WebConstants.ATTR_TICKER, ticker);
+        if (ticker.getValorationIA() != null) {
+            model.addAttribute(WebConstants.ATTR_VALORATION_SECTIONS,
+                    ValorationSectionsDTO.from(ticker.getValorationIA()));
+        }
         if ("failed".equals(iaResult)) {
             String message = messageSource.getMessage("ticker.ia.failed", null, LocaleContextHolder.getLocale());
             model.addAttribute(WebConstants.UI_NOTIFICATION_KEY, UiNotification.error(message));

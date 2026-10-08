@@ -1,15 +1,8 @@
 package com.market.analysis.domain.service;
 
-import java.util.List;
 import java.util.Objects;
 
 public class PromptResponseValidator {
-
-    private static final List<String> REQUIRED_SECTIONS = List.of(
-            "Resumen técnico:",
-            "Fortalezas:",
-            "Riesgos:",
-            "Conclusión interpretativa:");
 
     private static final String STRICT_RETRY_SUFFIX = """
             IMPORTANTE:
@@ -21,11 +14,14 @@ public class PromptResponseValidator {
             No añadas razonamiento, cadenas de pensamiento, ni texto fuera de esas secciones.
             """;
 
+    /**
+     * A response is valid only when it carries the four contract sections,
+     * each opening its own line with a non-trivial body. See
+     * {@link ValorationSections} for the shared boundary rule (also used
+     * when the view splits the persisted text into cards).
+     */
     public boolean isValid(String response) {
-        if (response == null || response.isBlank()) {
-            return false;
-        }
-        return REQUIRED_SECTIONS.stream().allMatch(response::contains);
+        return ValorationSections.isStructured(response);
     }
 
     public String buildRetryPrompt(String basePrompt) {
