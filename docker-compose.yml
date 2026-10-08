@@ -11,6 +11,12 @@ services:
     ports:
       - "127.0.0.1:${APP_PORT_EXTERNAL:-8080}:8080" #app web
       - "127.0.0.1:5005:5005" # debug, es el puerto de java por defecto para debug
+    env_file:
+      # Pasa el .env entero al contenedor para que ninguna propiedad nueva
+      # quede fuera por olvido. Las claves de 'environment' tienen precedencia
+      # y siguen mandando; si no existe .env se ignora y valen los defaults.
+      - path: .env
+        required: false
     environment:
       # Configuración para conectar con el contenedor de MySQL
       SPRING_PROFILES_ACTIVE: docker
