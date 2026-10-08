@@ -10,7 +10,11 @@ import org.springframework.util.Assert;
 import com.market.analysis.domain.port.out.ApiIAPort;
 import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.openai.client.OpenAIClient;
+import com.openai.errors.InternalServerException;
+import com.openai.errors.NotFoundException;
+import com.openai.errors.OpenAIInvalidDataException;
 import com.openai.errors.RateLimitException;
+import com.openai.errors.UnexpectedStatusCodeException;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 
@@ -79,10 +83,14 @@ public class OpenrouterAdapter implements ApiIAPort {
 
                 return content;
 
-            } catch (RateLimitException e) {
-                // 429: el modelo o su proveedor están saturados (o sin cupo). Se prueba
-                // con el siguiente modelo de la lista en vez de fallar directamente.
-                log.warn("OpenRouter rate limited model={}: {}. Trying next model...", currentModel, e.getMessage());
+            } catch (RateLimitException | OpenAIInvalidDataException | InternalServerException
+                    | UnexpectedStatusCodeException | NotFoundException e) {
+                // 429, payload malformado, 5xx/estado inesperado o modelo dado de
+                // baja (404 "unavailable"): el endpoint de ESTE modelo/proveedor
+                // no sirve ahora mismo. Se prueba con el siguiente modelo de la
+                // lista en vez de fallar directamente.
+                log.warn("OpenRouter degraded model={} exceptionType={}: {}. Trying next model...",
+                        currentModel, e.getClass().getSimpleName(), e.getMessage());
                 lastRateLimitError = new AIServiceException("Error calling OpenRouter API", e);
             } catch (Exception e) {
                 // Otros errores (clave inválida, modelo inexistente, red...) no se

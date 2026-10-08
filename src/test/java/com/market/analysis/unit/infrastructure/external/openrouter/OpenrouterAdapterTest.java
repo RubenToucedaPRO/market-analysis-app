@@ -22,6 +22,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.market.analysis.infrastructure.exception.AIServiceException;
 import com.market.analysis.infrastructure.external.openrouter.OpenrouterAdapter;
 import com.openai.client.OpenAIClient;
+import com.openai.errors.InternalServerException;
+import com.openai.errors.NotFoundException;
+import com.openai.errors.OpenAIInvalidDataException;
 import com.openai.errors.RateLimitException;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
@@ -182,6 +185,77 @@ class OpenrouterAdapterTest {
         // Act & Assert
         assertThrows(AIServiceException.class, () -> adapter.getValoration("Neutral technical snapshot"));
         verify(mockClient.chat().completions(), times(1)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should try the next model when the first returns a malformed payload")
+    void shouldFallbackToNextModelOnMalformedPayload() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion chatCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.of("Fallback outlook"));
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenThrow(mock(OpenAIInvalidDataException.class))
+                .thenReturn(chatCompletion);
+
+        // Act
+        String result = adapter.getValoration("Price is above the moving averages");
+
+        // Assert
+        assertEquals("Fallback outlook", result);
+        verify(mockClient.chat().completions(), times(2)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should try the next model on provider 5xx errors")
+    void shouldFallbackToNextModelOnServerError() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion chatCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.of("Fallback outlook"));
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenThrow(mock(InternalServerException.class))
+                .thenReturn(chatCompletion);
+
+        // Act
+        String result = adapter.getValoration("Price is above the moving averages");
+
+        // Assert
+        assertEquals("Fallback outlook", result);
+        verify(mockClient.chat().completions(), times(2)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should try the next model when the current one is retired from free tier")
+    void shouldFallbackToNextModelOnNotFound() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion chatCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.of("Fallback outlook"));
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenThrow(mock(NotFoundException.class))
+                .thenReturn(chatCompletion);
+
+        // Act
+        String result = adapter.getValoration("Price is above the moving averages");
+
+        // Assert
+        assertEquals("Fallback outlook", result);
+        verify(mockClient.chat().completions(), times(2)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should throw AIServiceException when every model returns malformed payloads")
+    void shouldThrowWhenAllModelsMalformed() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenThrow(mock(OpenAIInvalidDataException.class));
+
+        // Act & Assert
+        assertThrows(AIServiceException.class, () -> adapter.getValoration("Neutral technical snapshot"));
+        // 1 principal + 2 reservas
+        verify(mockClient.chat().completions(), times(3)).create((ChatCompletionCreateParams) any());
     }
 
     @Test

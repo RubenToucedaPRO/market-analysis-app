@@ -14,6 +14,8 @@ En producción, "Generar análisis" fallaba sistemáticamente (`fallbackRatio≈
 
 | Fichero | Cambio |
 |---|---|
+| `infrastructure/external/openrouter/OpenrouterAdapter.java` | El bucle de modelos rota ante 429, payload malformado (`OpenAIInvalidDataException`: `` `choices` is not set ``), 5xx/estados inesperados (`InternalServerException`, `UnexpectedStatusCodeException`) y modelo dado de baja (`NotFoundException` "unavailable for free"). Verificado en el jar que no existe superclase solo-5xx (compartiría 401/auth); resto de errores sigue en fail-fast. Verificado en local: malformado→rota, 404→rota, todos caídos→`AIServiceException` final |
+| `OpenrouterAdapterTest.java` | 3 tests: malformado→rota, 5xx→rota, todos malformados→`AIServiceException` tras intentarlo en los 3 modelos |
 | `domain/service/ValorationSections.java` (nuevo) | Regla única de frontera: cabecera válida solo si **abre línea** (tras markdown/números/espacios), insensible a mayúsculas/tildes; cuerpo por sección ≥40 chars. `isStructured` + `split` (4 cuerpos en orden, nunca null) |
 | `domain/service/PromptResponseValidator.java` | `isValid` delega en `ValorationSections.isStructured` (se elimina su `normalize` duplicado) |
 | `domain/service/PromptBuilder.java` | Línea anti-eco: no repetir descripciones ni explicar el formato |
@@ -34,8 +36,8 @@ En producción, "Generar análisis" fallaba sistemáticamente (`fallbackRatio≈
 ## 4. Cobertura de tests y pruebas
 
 - `ValorationSectionsTest`: 5 tests (incluye regresión con el eco de la captura real), `PromptResponseValidatorTest`: 9 tests, `ManageAnalyzeStockServiceTest` y controlador/vista IA intactos salvo lo descrito.
-- **Suite completa: 1149 tests, 0 failures, BUILD SUCCESS.**
-- **JaCoCo: `ValorationSections` 100% líneas y ramas; `PromptResponseValidator` 100%.**
+- **Suite completa: 1153 tests, 0 failures, BUILD SUCCESS** (13 en `OpenrouterAdapterTest`: rota-malformado, rota-5xx, rota-404, todos-caídos, más los existentes).
+- **JaCoCo: `ValorationSections` 100% líneas y ramas; `PromptResponseValidator` 100%; `OpenrouterAdapter` 44/45 líneas.**
 - Validación real pendiente: desplegar imagen nueva, reintentar PL y leer el log (si sigue fallando, la respuesta cruda dirá por qué).
 
 ## 5. Advertencias de SonarQube / arquitectura
