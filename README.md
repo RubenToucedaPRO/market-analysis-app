@@ -10,7 +10,7 @@ Este proyecto implementa un sistema avanzado de análisis técnico y apoyo a la 
 
 El núcleo de la aplicación concentra la lógica de negocio y actúa como orquestador de los casos de uso, integrando datos de mercado históricos y en tiempo real obtenidos de APIs externas (Finnhub y Polygon.io) con un motor de reglas técnicas y una capa de análisis asistida por inteligencia artificial. Las dependencias técnicas quedan relegadas a la periferia del sistema, evitando su propagación al dominio.
 
-![Diagrama de Arquitectura Hexagonal](/image/arquitectura_hexagonal.jpeg)
+![Diagrama de Arquitectura Hexagonal](/image/arquitectura_hexagonal.png)
 
 ### Principales componentes del sistema
 
