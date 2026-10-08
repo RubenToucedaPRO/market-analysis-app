@@ -25,6 +25,7 @@ import com.openai.client.OpenAIClient;
 import com.openai.errors.InternalServerException;
 import com.openai.errors.NotFoundException;
 import com.openai.errors.OpenAIInvalidDataException;
+import com.openai.errors.PermissionDeniedException;
 import com.openai.errors.RateLimitException;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
@@ -81,18 +82,61 @@ class OpenrouterAdapterTest {
     }
 
     @Test
-    @DisplayName("Should return null when the AI response has no content")
-    void shouldReturnNullWhenClientResponseHasEmptyContent() {
+    @DisplayName("Should try the next model when the current one returns empty content")
+    void shouldFallbackToNextModelOnEmptyContent() {
         // Arrange
         OpenrouterAdapter adapter = createAdapter();
-        ChatCompletion chatCompletion = mockClient.chat().completions().create((ChatCompletionCreateParams) any());
-        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.empty());
+        ChatCompletion emptyCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(emptyCompletion.choices().get(0).message().content()).thenReturn(Optional.empty());
+        ChatCompletion chatCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.of("Fallback outlook"));
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenReturn(emptyCompletion)
+                .thenReturn(chatCompletion);
 
         // Act
-        String result = adapter.getValoration("Neutral technical snapshot");
+        String result = adapter.getValoration("Price is above the moving averages");
 
         // Assert
-        assertEquals(null, result);
+        assertEquals("Fallback outlook", result);
+        verify(mockClient.chat().completions(), times(2)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should rotate on whitespace-only content as well")
+    void shouldFallbackToNextModelOnBlankContent() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion blankCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(blankCompletion.choices().get(0).message().content()).thenReturn(Optional.of("   "));
+        ChatCompletion chatCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.of("Fallback outlook"));
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenReturn(blankCompletion)
+                .thenReturn(chatCompletion);
+
+        // Act
+        String result = adapter.getValoration("Price is above the moving averages");
+
+        // Assert
+        assertEquals("Fallback outlook", result);
+        verify(mockClient.chat().completions(), times(2)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should throw AIServiceException when every model returns empty content")
+    void shouldThrowWhenAllModelsReturnEmpty() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion chatCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.empty());
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenReturn(chatCompletion);
+
+        // Act & Assert
+        assertThrows(AIServiceException.class, () -> adapter.getValoration("Neutral technical snapshot"));
+        // 1 principal + 2 reservas
+        verify(mockClient.chat().completions(), times(3)).create((ChatCompletionCreateParams) any());
     }
 
     @Test
@@ -242,6 +286,39 @@ class OpenrouterAdapterTest {
         // Assert
         assertEquals("Fallback outlook", result);
         verify(mockClient.chat().completions(), times(2)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should try the next model when the current one is gated to other apps")
+    void shouldFallbackToNextModelOnPermissionDenied() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        ChatCompletion chatCompletion = mock(ChatCompletion.class, Answers.RETURNS_DEEP_STUBS);
+        when(chatCompletion.choices().get(0).message().content()).thenReturn(Optional.of("Fallback outlook"));
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenThrow(mock(PermissionDeniedException.class))
+                .thenReturn(chatCompletion);
+
+        // Act
+        String result = adapter.getValoration("Price is above the moving averages");
+
+        // Assert
+        assertEquals("Fallback outlook", result);
+        verify(mockClient.chat().completions(), times(2)).create((ChatCompletionCreateParams) any());
+    }
+
+    @Test
+    @DisplayName("Should throw AIServiceException when every model is gated")
+    void shouldThrowWhenAllModelsGated() {
+        // Arrange
+        OpenrouterAdapter adapter = createAdapter();
+        when(mockClient.chat().completions().create((ChatCompletionCreateParams) any()))
+                .thenThrow(mock(PermissionDeniedException.class));
+
+        // Act & Assert
+        assertThrows(AIServiceException.class, () -> adapter.getValoration("Neutral technical snapshot"));
+        // 1 principal + 2 reservas
+        verify(mockClient.chat().completions(), times(3)).create((ChatCompletionCreateParams) any());
     }
 
     @Test
