@@ -13,6 +13,7 @@ import com.openai.client.OpenAIClient;
 import com.openai.errors.InternalServerException;
 import com.openai.errors.NotFoundException;
 import com.openai.errors.OpenAIInvalidDataException;
+import com.openai.errors.PermissionDeniedException;
 import com.openai.errors.RateLimitException;
 import com.openai.errors.UnexpectedStatusCodeException;
 import com.openai.models.chat.completions.ChatCompletion;
@@ -63,7 +64,7 @@ public class OpenrouterAdapter implements ApiIAPort {
                 topP,
                 frequencyPenalty);
 
-        AIServiceException lastRateLimitError = null;
+        AIServiceException lastModelError = null;
         for (String currentModel : models) {
             try {
                 ChatCompletionCreateParams params = ChatCompletionCreateParams.builder()
@@ -78,20 +79,25 @@ public class OpenrouterAdapter implements ApiIAPort {
                 ChatCompletion chatCompletion = client.chat().completions().create(params);
 
                 String content = chatCompletion.choices().get(0).message().content().orElse(null);
-                log.debug("AI response received model={} contentLength={}", currentModel,
-                        content == null ? 0 : content.length());
-
-                return content;
+                if (content == null || content.isBlank()) {
+                    log.warn("OpenRouter empty content model={}. Trying next model...", currentModel);
+                    lastModelError = new AIServiceException("Error calling OpenRouter API: empty content");
+                } else {
+                    log.debug("AI response received model={} contentLength={}", currentModel, content.length());
+                    return content;
+                }
 
             } catch (RateLimitException | OpenAIInvalidDataException | InternalServerException
-                    | UnexpectedStatusCodeException | NotFoundException e) {
-                // 429, payload malformado, 5xx/estado inesperado o modelo dado de
-                // baja (404 "unavailable"): el endpoint de ESTE modelo/proveedor
-                // no sirve ahora mismo. Se prueba con el siguiente modelo de la
-                // lista en vez de fallar directamente.
+                    | UnexpectedStatusCodeException | NotFoundException | PermissionDeniedException e) {
+                // 429, payload malformado, 5xx/estado inesperado, modelo dado de
+                // baja (404 "unavailable") o capado a otro tipo de app (403):
+                // el endpoint de ESTE modelo/proveedor no sirve ahora mismo.
+                // Se prueba con el siguiente modelo de la lista en vez de
+                // fallar directamente. El 401-auth sigue en fail-fast: si la
+                // clave está mal, ningún modelo va a funcionar.
                 log.warn("OpenRouter degraded model={} exceptionType={}: {}. Trying next model...",
                         currentModel, e.getClass().getSimpleName(), e.getMessage());
-                lastRateLimitError = new AIServiceException("Error calling OpenRouter API", e);
+                lastModelError = new AIServiceException("Error calling OpenRouter API", e);
             } catch (Exception e) {
                 // Otros errores (clave inválida, modelo inexistente, red...) no se
                 // arreglan cambiando de modelo: fallo rápido al fallback del caso de uso.
@@ -101,7 +107,7 @@ public class OpenrouterAdapter implements ApiIAPort {
             }
         }
 
-        throw lastRateLimitError != null ? lastRateLimitError
+        throw lastModelError != null ? lastModelError
                 : new AIServiceException("Error calling OpenRouter API: no models configured");
     }
 }

@@ -167,6 +167,15 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
         aiRequests.incrementAndGet();
         try {
             String valoration = apiIAPort.getValoration(prompt);
+            if (valoration == null || valoration.isBlank()) {
+                // Every model returned empty (the adapter already rotated through
+                // all of them): re-prompting would just burn quota repeating the
+                // same calls, so go straight to fallback without strict retry.
+                log.warn("Empty AI valoration for ticker {}, using fallback without retry", ticker);
+                aiFallbacks.incrementAndGet();
+                logAiMetrics();
+                return IA_FALLBACK_VALORATION;
+            }
             if (promptResponseValidator.isValid(valoration)) {
                 aiValidResponses.incrementAndGet();
                 logAiMetrics();
