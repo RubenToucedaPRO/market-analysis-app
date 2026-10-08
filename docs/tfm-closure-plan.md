@@ -3,7 +3,8 @@
 **Objetivo**: Entregar proyecto completo, desplegado, documentado y defendible usando OpenCode como herramienta principal.
 
 **Día 1**: 16 Sep 2026
-**Entrega (Día 10)**: 25 Sep 2026 (tag `tfm-v1.0`)
+**Entrega (Día 10 original)**: 25 Sep 2026 (superada — ver recalibración 8 Oct)
+**Entrega recalibrada**: 16 Oct 2026 (tag `tfm-v1.0`)
 
 > Revisión 16 Sep: fechas por número de día (los días de semana del borrador no cuadraban).
 > Revisión 17 Sep: scoring (a-d) terminado y mergeado (PRs #158-#161, suite
@@ -19,6 +20,14 @@
 > (rama → tests → doc → Docker si aplica → validación con menú → PR).
 > Los comandos `opencode explain/generate/...` del borrador no existen en esta
 > sesión y se sustituyen por ese procedimiento.
+> Revisión 8 Oct: mergeadas #173-#181, cero PRs abiertas, `main` en `0783599`
+> (suite 1158 tests en verde). **Login TFM ✅** (#174) y **Deploy VPS ✅** (#175
+> CI GHCR + #176 hardening; guía validada FASE11→15a: HTTPS 200, backup/restore
+> OK, fail2ban, redeploy idempotente verificado 8 Oct con `OK despliegue TFM`).
+> Imprevistos de producción 7-8 Oct (504s): suggest async (#177), pull-image en
+> `deploy-tfm.sh` (#178), IA async (#179), robustez IA (#180), `env_file` local
+> (#181). PR #170 (histórico Railway) quedó CLOSED sin merge. Calendario
+> original superado → entrega recalibrada al **16 Oct** (ver plan 8→16 Oct).
 
 ---
 
@@ -31,8 +40,9 @@
 | **Día 2** | AM | **Scoring (b)** — `threshold` en `Strategy` + score 0-100 en `EvaluateStrategyService` + tests | ✅ hecho (PR #159) |
 | | PM | **Scoring (c)** — Mostrar el score en vistas + **(d)** tests scoring + JaCoCo verify | ✅ hecho (PRs #160, #161) |
 | **Día 3** | AM | Tests scoring + JaCoCo verify (cierre) | ✅ hecho en (d): 1056/1056 + `mvn verify` |
-| | PM | **Login TFM** — 3 intentos + bloqueo 30 min en memoria (por username) + logs sin secretos | rama `feature/login-attempt-lockout` → tests → doc → menú → PR |
-| | PM | **Deploy VPS** (bloqueado hasta la guía de despliegue) — Docker/Nginx/SSL, vars entorno, `/health` | cambios en rama `chore/vps-deploy` + doc → merge → despliegue ejecutado sobre `main` |
+| | PM | **Login TFM** — 3 intentos + bloqueo 30 min en memoria (por username) + logs sin secretos | ✅ hecho (PR #174 `feature/login-attempt-lockout`, merge 30 Sep) |
+| | PM | **Deploy VPS** — Docker/Nginx/SSL, vars entorno, `/health` | ✅ hecho + endurecido (PRs #175, #176; guía `deploy/guia_vps.md` validada FASE11→15a; redeploy idempotente OK 8 Oct) |
+| **7–8 Oct** | — | **Imprevistos prod** (fuera del alcance inicial, obligados por 504s): suggest async (#177), pull-image en deploy (#178), IA async (#179), robustez IA (#180), `env_file` local (#181) | ✅ hecho, suite 1158 verde |
 | **Día 4** | AM | **OpenAPI/Swagger** — añadir `springdoc-openapi-starter-webmvc-ui` (hoy no está en `pom.xml`) + documentar endpoints clave | rama → tests → doc → menú → PR |
 | | PM | **README Final** — Badges, URL deploy, sección "Desarrollo con IA", troubleshooting | rama → doc → menú → PR |
 | | + | **SonarQube Local** (Docker, hoy no configurado) + Quality Gate A + fix critical | `bash` + tests + doc |
@@ -40,6 +50,20 @@
 > Nota: SonarQube se adelantó al Día 4 PM/junto a README si el Viernes queda como buffer.
 > **Regla 10 (`AGENTS.md`)**: ninguna tarea empieza sin la PR anterior en MERGED.
 > Hay colchón entre PR y PR para tu merge. El Viernes (Día 5) queda de buffer / bug fixes deploy.
+
+---
+
+## Recalibración 8→16 Oct (alcance completo, entrega 16 Oct)
+
+| Fecha | Bloque | Tarea | Procedimiento |
+|-------|--------|-------|---------------|
+| **8–9 Oct** | — | **OpenAPI/Swagger** (`springdoc`, hoy ausente en `pom.xml`) + **README Final** (badges, URL deploy, "Desarrollo con IA", troubleshooting) | rama → tests → doc → menú → PR (por tema) |
+| **12 Oct** | — | **SonarQube Local** (Docker) + Quality Gate A + fix critical | `bash` + tests + doc |
+| **13 Oct** | — | **ADRs (4)** + **Prompt Library** (`docs/prompts/`, 8-10 patrones) | generar + menú → PR |
+| **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | generar con contexto |
+| **15 Oct** | — | **Rehearsal Grabado** (demo 5 min + Q&A) + ajustes finales | — |
+| **16 Oct** | AM | **Buffer** — remates, re-verificación deploy + docs | — |
+| | PM | **Entrega** — Tag `tfm-v1.0`, repo público, URLs en README, slides link | `bash` (git tag/push) |
 
 ---
 
@@ -81,7 +105,7 @@
 
 | Criterio | Verificación |
 |----------|--------------|
-| **Funcional** | Scoring 0-100 funciona, deploy VPS responde (`/health` UP), login bloquea tras 3 fallos durante 30 min, Swagger carga |
+| **Funcional** | Scoring 0-100 funciona, deploy VPS responde (verificado 8 Oct: HTTPS 200 + redeploy idempotente), login bloquea tras 3 fallos durante 30 min (verificado), Swagger carga (pendiente: `springdoc` aún no en `pom.xml`) |
 | **Calidad** | `mvn verify` → BUILD SUCCESS, JaCoCo ≥80% (plugin ya en `pom.xml`), SonarQube Quality Gate A (pendiente de configurar) |
 | **Documentación** | README completo, 4 ADRs, Prompt Library, Slides 12 páginas |
 | **Entrega** | Repo público, tag `tfm-v1.0`, URLs en README, slides accesibles |
@@ -109,15 +133,14 @@
 
 ## Próximo Paso Inmediato
 
-**Login TFM + Deploy VPS (pendiente de guía)**:
-1. Login TFM (sin bloqueo): `LoginAttemptService` en memoria (3 intentos / 30 min /
-   por username) + handlers de éxito/fallo + logs WARN/INFO sin secretos +
-   mensaje `login.locked` i18n. Tests unitarios + MockMvc, doc en `/docs`.
-2. Deploy VPS (bloqueado hasta recibir la guía; se ejecuta sobre `main` una vez
-   mergeados los cambios de config): la guía debe traer SO/acceso SSH,
-   stack (Docker Compose o jar+systemd), Nginx + SSL, dominio/DNS, ubicación de
-   secretos, perfil Spring prod y healthcheck esperado (`GET /health` → 200 +
-   `database_healthy:true`). Documentar en `/docs` con el procedimiento `AGENTS.md` §3.
+**Cola real pendiente (Login y Deploy ya hechos — ver revisión 8 Oct)**:
+1. OpenAPI/Swagger: añadir `springdoc-openapi-starter-webmvc-ui` al `pom.xml` + documentar endpoints clave. Rama → tests → doc → menú → PR.
+2. README Final: badges, URL deploy (`https://tfm.rubentouceda.es`), sección "Desarrollo con IA", troubleshooting. Rama → doc → menú → PR.
+3. SonarQube Local + Quality Gate A + fix critical (12 Oct).
+4. ADRs (4) + Prompt Library (13 Oct).
+5. Slides Defensa 12 + speaker notes (14 Oct).
+6. Rehearsal grabado + ajustes (15 Oct).
+7. Buffer + tag `tfm-v1.0` (16 Oct).
 
 ## Recuperar contexto instantáneo en nueva sesión OpenCode
 Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`
