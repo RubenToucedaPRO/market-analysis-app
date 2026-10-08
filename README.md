@@ -5,6 +5,8 @@
 ![Build](https://img.shields.io/badge/Build-passing-brightgreen.svg)
 ![License](https://img.shields.io/badge/License-Academic-blue.svg)
 
+**Despliegue productivo:** https://tfm.rubentouceda.es
+
 ## 📊 Descripción General del Proyecto
 Este proyecto implementa un sistema avanzado de análisis técnico y apoyo a la toma de decisiones en la gestión de activos financieros de uso personal. La aplicación se ha diseñado siguiendo una **Arquitectura Hexagonal  con Clean Architecture estricta**, separando de forma explícita el **dominio**, los **casos de uso** y los **adaptadores de infraestructura**, con el objetivo de obtener un sistema desacoplado, mantenible y fácilmente testeable.
 
@@ -16,19 +18,19 @@ El núcleo de la aplicación concentra la lógica de negocio y actúa como orque
 
 - **Filtrado dinámico de activos**: Mecanismo previo de selección que procesa los tickers a analizar, descartando activos de alto riesgo mediante una lista negra configurable y criterios sectoriales predefinidos.
 - **Motor de estrategias declarativas**: Motor basado en reglas técnicas (medias móviles, volumen, indicadores y patrones de velas) que permite definir y evaluar estrategias de inversión de forma desacoplada de la persistencia y de las fuentes de datos.
-- **Integración de IA generativa**: Uso de modelos de lenguaje vía OpenRouter (modelo por defecto `google/gemma-4-31b-it:free`) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
+- **Integración de IA generativa**: Uso de modelos de lenguaje vía OpenRouter (modelo principal `poolside/laguna-s-2.1:free`, con rotación automática ante 429 sobre 4 modelos de reserva) para generar una síntesis cualitativa y una evaluación del binomio riesgo/beneficio a partir de los resultados técnicos calculados.
 - **Arquitectura Hexagonal**: Separación clara entre dominio, lógica de aplicación y adaptadores de infraestructura, incluyendo Spring Boot, la capa de persistencia con MariaDB y la integración con APIs externas.
 - **Interfaz web ligera**: Frontend desarrollado con Thymeleaf y Bootstrap 5, con apoyo puntual de JavaScript vanilla para interacciones específicas, manteniendo la lógica de presentación separada del núcleo del sistema.
 
 
 ### Arquitectura del Sistema
-La aplicación está construida para ser desplegada en **Railway**, enfocándose en la eficiencia de datos y la seguridad personal.
+La aplicación está desplegada en un **VPS propio** (https://tfm.rubentouceda.es) con Docker, Nginx y SSL, enfocándose en la eficiencia de datos y la seguridad personal. Ver `deploy/guia_vps.md`.
 
-- **Acceso Restringido:** Sistema de autenticación privado sin registro público.
+- **Acceso Restringido:** Sistema de autenticación privado sin registro público, con protección anti-fuerza bruta: 3 intentos fallidos = bloqueo de 30 min **por nombre de usuario** (en memoria; un login correcto resetea el contador; la IP solo se registra en logs, sin secretos).
 - **Gestión de Datos:** Integración híbrida de APIs:
     - **Finnhub:** Datos de perfil, precios en tiempo real y calendario de ganancias.
     - **Polygon.io:** Extracción de indicadores técnicos y métricas de volumen.
-    - **OpenRouter (modelo `google/gemma-4-31b-it:free`):** Análisis cualitativo avanzado.
+    - **OpenRouter (modelo principal `poolside/laguna-s-2.1:free`):** Análisis cualitativo avanzado.
 
 
 ### Flujo de Procesamiento y Análisis
@@ -79,8 +81,8 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
   Sistema gestor de base de datos relacional destinado al entorno productivo.
 
 ### Integración de IA
-- **OpenRouter (modelo `google/gemma-4-31b-it:free`)**  
-  Servicio externo utilizado para la generación de análisis interpretativo.
+- **OpenRouter (modelo principal `poolside/laguna-s-2.1:free`)**  
+  Servicio externo utilizado para la generación de análisis interpretativo, con rotación automática ante 429 sobre los modelos de reserva (`nvidia/nemotron-3-ultra-550b-a55b:free`, `poolside/laguna-xs-2.1:free`, `google/gemma-4-31b-it:free`, `google/gemma-4-26b-a4b-it:free`).
 - **Prompt engineering controlado**  
   Construcción de prompts basada exclusivamente en resultados cuantitativos generados por el sistema, sin impacto en la lógica de evaluación determinista.
 
@@ -89,6 +91,8 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
 ## 🌐 APIs Externas
 
 La aplicación integra servicios externos únicamente como **fuentes de datos** o **servicios de apoyo**, manteniendo la lógica de negocio completamente encapsulada dentro del dominio.
+
+> **Nota sobre planes gratuitos**: al ser un proyecto educativo se usan los niveles gratuitos de las APIs y de los modelos de IA (Finnhub 60 peticiones/min, Polygon 5/min, cupos diarios en OpenRouter). Por decisión consciente **las latencias altas no son un problema a optimizar**: se asumen y se gestionan con throttles, trabajos asíncronos con polling y rotación de modelos. La corrección de los resultados importa; la velocidad, no.
 
 ### Finnhub.io
 Proveedor de datos de mercado utilizado para la obtención de información actual y contextual de los activos financieros.
@@ -162,7 +166,7 @@ Servicio de modelos de lenguaje utilizado **exclusivamente para análisis interp
 ### Variables de Entorno
 
 El proyecto utiliza un archivo `.env` en la raíz para desarrollo local con Docker (ver `.env.example` como plantilla).
-En Railway NO se usa `.env`: las variables se crean en el servicio `app` con perfil `prod`.
+En el VPS productivo NO se usa `.env` del repo: las variables viven fuera del código y se inyectan en el despliegue (ver `deploy/guia_vps.md`).
 
 | Variable | Requerida | Default en `application.properties` | Notas |
 |---|---|---|---|
@@ -170,15 +174,15 @@ En Railway NO se usa `.env`: las variables se crean en el servicio `app` con per
 | `POLYGON_API_TOKEN` | Sí | _(vacío)_ | Datos históricos y OHLCV |
 | `OPENROUTER_API_KEY` | Sí | _(vacío)_ | Análisis interpretativo |
 | `APP_SECURITY_USERNAME` / `APP_SECURITY_PASSWORD` | Sí | `admin` / `admin` | Login de la app, cambiar en producción |
-| `DB_DATABASE` / `DB_USER` / `DB_PASSWORD` / `DB_ROOT_PASSWORD` | Sí (Docker local) | — | Solo contenedor MySQL local, en Railway lo gestiona el plugin MySQL |
-| `DB_URL` / `DB_USER` / `DB_PASSWORD` | Sí (prod / Railway) | — | Ej: `jdbc:mariadb://HOST:PORT/DATABASE`. Ignorado en Docker local |
+| `DB_DATABASE` / `DB_USER` / `DB_PASSWORD` / `DB_ROOT_PASSWORD` | Sí (Docker local) | — | Solo contenedor MySQL local |
+| `DB_URL` / `DB_USER` / `DB_PASSWORD` | Sí (prod / VPS) | — | Ej: `jdbc:mariadb://HOST:PORT/DATABASE`. Ignorado en Docker local |
 | `FINNHUB_BASE_URL` | No | `https://finnhub.io/api/v1` | Solo para override (mock/proxy) |
 | `POLYGON_BASE_URL` | No | `https://api.polygon.io/` | Solo para override (mock/proxy) |
-| `OPENROUTER_MODEL` | No | `google/gemma-4-26b-a4b-it:free` | Solo para cambiar de modelo |
-| `OPENROUTER_FALLBACK_MODELS` | No | `meta-llama/...:free,openai/...:free` | Reserva si el principal da 429 (coma) |
-| `SPRING_PROFILES_ACTIVE` | No (local) | `dev` | En local usar `docker`, en Railway usar `prod` (`docker-compose.yml` fuerza `docker`) |
-| `DB_PORT_EXTERNAL` / `APP_PORT_EXTERNAL` | No | `3306` / `8080` | Solo mapeo de puertos local, no crear en Railway |
-| `PORT` | No | `8080` | Lo inyecta Railway solo, no definir a mano |
+| `OPENROUTER_MODEL` | No | `poolside/laguna-s-2.1:free` | Modelo principal (default del código: `google/gemma-4-26b-a4b-it:free`; manda el entorno) |
+| `OPENROUTER_FALLBACK_MODELS` | No | `nvidia/nemotron-3-ultra-550b-a55b:free,poolside/laguna-xs-2.1:free,google/gemma-4-31b-it:free,google/gemma-4-26b-a4b-it:free` | Reserva si el principal da 429, en orden (coma) |
+| `SPRING_PROFILES_ACTIVE` | No (local) | `dev` | En local usar `docker`, en VPS usar `prod` (`docker-compose.yml` fuerza `docker`) |
+| `DB_PORT_EXTERNAL` / `APP_PORT_EXTERNAL` | No | `3306` / `8080` | Solo mapeo de puertos local |
+| `PORT` | No | `8080` | Puerto de escucha de la app |
 | `JAVA_DEBUG_ENABLED` / `JAVA_OPTS` | No | `false` / _(vacío)_ | `true` solo para debug local (puerto 5005) |
 
 #### Configuración de APIs e Inteligencia Artificial
@@ -191,9 +195,9 @@ SPRING_PROFILES_ACTIVE=docker
 # Opcionales (defaults en application.properties, solo para override)
 FINNHUB_BASE_URL=https://finnhub.io/api/v1
 POLYGON_BASE_URL=https://api.polygon.io/
-OPENROUTER_MODEL=google/gemma-4-26b-a4b-it:free
-# Reserva si el principal devuelve 429 (separados por comas)
-#OPENROUTER_FALLBACK_MODELS=meta-llama/llama-3.3-70b-instruct:free,openai/gpt-oss-20b:free
+OPENROUTER_MODEL=poolside/laguna-s-2.1:free
+# Reserva si el principal devuelve 429, en orden (separados por comas)
+OPENROUTER_FALLBACK_MODELS=nvidia/nemotron-3-ultra-550b-a55b:free,poolside/laguna-xs-2.1:free,google/gemma-4-31b-it:free,google/gemma-4-26b-a4b-it:free
 OPENROUTER_TEMPERATURE=0.2
 OPENROUTER_MAX_TOKENS=1000
 OPENROUTER_TOP_P=0.9
@@ -263,6 +267,15 @@ docker compose down
 ```
 *(Si necesitas limpiar por completo la base de datos y borrar los datos locales para forzar una reinstalación limpia del script SQL, utiliza `docker compose down -v`)*.
 
+### Integración Continua (workflows)
+
+Cada push/PR a `main` dispara validación automática en GitHub Actions (`.github/workflows/`):
+
+| Workflow | Disparador | Qué hace |
+|---|---|---|
+| `testUnitarios-workflow.yml` | push y PR a `main` (+ manual) | JDK 21 + `mvn -B verify`, publica resultados de tests y reporte JaCoCo (mínimo 80%) como comentario en la PR |
+| `docker.yml` | push a `main` | Compila la imagen Docker y la publica en GHCR (`tfm:latest` + tag por SHA, imagen que despliega el VPS) |
+
 ---
 
 
@@ -301,6 +314,7 @@ La aplicación está organizada en capas, con las dependencias apuntando siempre
 
 ### Estructura de Paquetes
 
+```text
 market-analysis-app/
 ├── .github/                   Configuración de GitHub Actions
 ├── config/                    Configuración de Spring Boot
@@ -321,10 +335,12 @@ market-analysis-app/
 ├── LICENSE                    Licencia del proyecto
 ├── pom.xml                    Configuración Maven  
 └── README.md                  Documentación principal  
+```
 
 
 ### Estructura Detallada de Paquetes
 
+```text
 src/main/java/com/market/analysis/
 
 ├── domain                         # Núcleo puro, sin dependencias
@@ -442,6 +458,7 @@ src/main/java/com/market/analysis/
 │       └── GlobalExceptionHandler.java
 │
 └── MarketAnalysisApplication.java  # Clase principal Spring Boot
+```
 
 
 ### Descripción de Capas
@@ -493,34 +510,80 @@ Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a
 - Realiza trading automático
 
 ✅ **Su propósito ES:**
-- Demostración académica de arquitectura de software
-- Estudio de integración de APIs externas
-- Práctica de patrones de diseño
+- Desarrollo con IA aplicando los conocimientos adquiridos en el Máster "Desarrollo con IA" de Big School.
+- Uso personal y educativo para la práctica de análisis técnico y evaluación de estrategias de inversión.
+- Investigación y experimentación con integración de APIs externas y modelos de lenguaje.
+- Demostración académica de arquitectura de software.
+- Práctica de patrones de diseño y principios SOLID.
 - Caso de uso educativo
-- Integración de IA generativa
+- Integración de IA generativa para análisis interpretativo de resultados cuantitativos.
 
 ---
 
 ## 🎓 Enfoque Académico (TFM)
 
 ### Competencias Demostradas
+- **Copilot + OpenCode**: Desarrollo asistido por IA con supervisión y control de calidad. Uso de Agents y prompts para guiar la generación de código y documentación.
 - **Arquitectura de Software**: Hexagonal, DDD, SOLID
 - **Clean Architecture**: Separación de capas, inversión de dependencias
 - **Domain-Driven Design**: Modelado del dominio financiero
 - **Design Patterns**: Strategy, Factory, Builder, Repository
 - **Integration**: APIs REST, WebClient reactivo, persistencia JPA
 - **AI Integration**: Prompt engineering, consulta a LLMs
-- **Testing**: Unit tests, integration tests, test containers
-- **DevOps**: CI/CD, despliegue en cloud
+- **Testing**: Unit tests (JUnit 5 + Mockito), controladores con MockMvc, JaCoCo ≥ 80%
+- **DevOps**: Docker Compose, despliegue en VPS con Nginx + SSL, workflows de CI (tests + build de imagen)
+- **Documentación**: JavaDoc, README, documentación de tareas en `/docs`
 
 ### Métricas de Calidad
-- Cobertura de tests > 80%
-- SonarQube quality gate: A
-  - S107: máximo 7 parámetros por método/constructor
-  - S3776: complejidad cognitiva < 15
-  - S134: profundidad de anidamiento < 4
+- Cobertura de tests ≥ 80% (JaCoCo, verificado con `mvn verify`)
+- SonarQube Quality Gate A (objetivo): S107 (máximo 7 parámetros en constructor), S3776 (complejidad cognitiva < 15), S134 (profundidad de anidamiento < 4)
 - Sin deuda técnica crítica
-- Documentación completa (JavaDoc + README)
+- Documentación completa (JavaDoc + README + docs de tarea en `/docs`)
+
+---
+
+## 🤖 Desarrollo con IA
+
+El proyecto se ha desarrollado con IA bajo supervisión y con desarrollo propio:
+
+- **Fase inicial con Copilot**: arranque del proyecto, estructura base y primeras iteraciones con autocompletado y sugerencias inline.
+- **Fase principal con OpenCode** (modelo Muse Spark): desarrollo por tareas con procedimiento estricto definido en `AGENTS.md` (§3) — rama por tarea → tests → doc en `/docs` → validación con menú → PR. Ninguna tarea empieza sin la PR anterior en MERGED.
+- **Desarrollo propio intercalado**: decisiones de diseño, ajustes finos, tuning de modelos/prompt y resolución de imprevistos de producción directamente por el autor.
+
+### Fronteras de la IA (diseño intencionado)
+- **Motor determinista**: la evaluación de reglas (`Rule` → `RuleEvaluator` → `EvaluateStrategyService`) y el cálculo de métricas (R:R, score 0-100, cumplimiento) son código puro y testeado. La IA nunca decide ni altera resultados.
+- **IA solo interpretativa**: los modelos de lenguaje (vía OpenRouter) generan texto a partir de métricas ya calculadas (síntesis de estrategia, valoración de ticker). Si la IA falla o devuelve 429, la evaluación numérica sigue intacta (reintentos + rotación de modelos + valoración degradada).
+- **Nunca se modifica la lógica de evaluación para contentar a la IA**: es una regla explícita del proyecto.
+
+### Trazabilidad
+Cada tarea genera un documento autocontenido en `/docs` (`task-YYYY-MM-DD-<slug>.md`) con decisiones técnicas, cobertura de tests y próximos pasos. Ver también `docs/architecture-walkthrough.md` (flujo `RuleEvaluator` → `AnalyzeAndPersistStockService` → `PolygonAdapter`) y `docs/tfm-closure-plan.md` (plan de cierre).
+
+---
+
+## 🔌 Endpoints JSON (uso interno)
+
+La aplicación es una web MVC con Thymeleaf (no expone API REST pública). Los únicos endpoints JSON son los que consumen el propio frontend (`fetch()`) y la monitorización del despliegue. No hay Swagger/OpenAPI por decisión consciente (ver `docs/tfm-closure-plan.md`: movido a Future Work hasta que exista API pública).
+
+| Método | Ruta | Auth | Uso |
+|---|---|---|---|
+| `GET` | `/health` | No (pública) | Estado de la app + BD para Nginx/VPS. Ej: `curl https://tfm.rubentouceda.es/health` |
+| `GET` | `/analysis/ticker/{id}/candles` | Sí (login) | Serie OHLCV + SMA20/50/200 para `candle-chart.js` |
+| `GET` | `/analysis/ia-jobs/{jobId}` | Sí (login) | Polling del estado de la valoración IA asíncrona |
+| `GET` | `/strategies/suggest-jobs/{jobId}` | Sí (login) | Polling del estado de las sugerencias de tickers asíncronas |
+
+---
+
+## 🛟 Troubleshooting
+
+| Síntoma | Causa probable | Solución |
+|---|---|---|
+| La app no arranca en Docker | Falta `.env` o BD no lista | `cp .env.example .env`, rellenar tokens y `docker compose up --build -d`. MariaDB tiene healthcheck: la app espera a que esté sana |
+| `403` al enviar formularios | Token CSRF ausente/caducado | Recargar la página y reenviar; los formularios usan `th:action` con CSRF de Spring Security |
+| Login bloqueado tras 3 intentos | Protección anti-fuerza bruta: 3 fallos = bloqueo de 30 min **por nombre de usuario** (no por IP; la IP solo se registra en logs) | Esperar 30 min (el bloqueo es en memoria: reiniciar la app también lo limpia; un login correcto resetea el contador). Los logs no registran secretos |
+| Sugerencias o valoración IA tardan / dan 504 | Planes gratuitos con cupos y throttles (asumido por diseño, no es un fallo) | Son trabajos asíncronos: la vista hace polling a los endpoints de estado (`ia-jobs`, `suggest-jobs`). Ante 429 de OpenRouter rota automáticamente de modelo |
+| La IA devuelve error o vacío | 429 persistente o respuesta inválida | La app degrada a valoración vacía/por defecto sin romper la evaluación numérica; revisar logs y `OPENROUTER_FALLBACK_MODELS` |
+| Puerto 8080 ocupado en local | Otro servicio lo usa | Cambiar `APP_PORT_EXTERNAL` en `.env` |
+| Redeploy en VPS | — | `deploy-tfm.sh` es idempotente (re-pull de imagen + restart). Verificar `GET /health` → 200 y `https://tfm.rubentouceda.es` → 200. Detalle en `deploy/guia_vps.md` |
 
 ---
 
@@ -535,4 +598,4 @@ Proyecto académico desarrollado con fines educativos.
 
 **Rubén Touceda**  
 Trabajo Fin de Máster - Desarrollo con IA  
-Fecha: Febrero 2026
+Fecha: Octubre 2026
