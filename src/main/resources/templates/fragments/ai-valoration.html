@@ -1,7 +1,7 @@
 <div
-  th:fragment="aiValoration(valorationIA)"
+  th:fragment="aiValoration(sections)"
   class="card border-0 shadow-sm mb-5"
-  th:if="${valorationIA != null}"
+  th:if="${sections != null}"
 >
   <div
     class="card-header bg-white border-0 py-3 d-flex align-items-center gap-2"
@@ -11,32 +11,20 @@
   </div>
   <div
     class="card-body bg-light bg-opacity-50 p-4"
-    th:with="
-          raw=${valorationIA},
-          resumenLabel='Resumen técnico:',
-          fortalezasLabel='Fortalezas:',
-          riesgosLabel='Riesgos:',
-          conclusionLabel='Conclusión interpretativa:',
-          structured=${#strings.contains(raw, resumenLabel) and #strings.contains(raw, fortalezasLabel) and #strings.contains(raw, riesgosLabel) and #strings.contains(raw, conclusionLabel)},
-          resumen=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, resumenLabel), fortalezasLabel))},
-          fortalezas=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, fortalezasLabel), riesgosLabel))},
-          riesgos=${#strings.trim(#strings.substringBefore(#strings.substringAfter(raw, riesgosLabel), conclusionLabel))},
-          conclusion=${#strings.trim(#strings.substringAfter(raw, conclusionLabel))}
-        "
   >
-    <div class="row g-3" th:if="${structured}">
+    <div class="row g-3" th:if="${sections.structured}">
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
           <h6 class="text-primary text-uppercase fw-bold mb-2" th:text="#{ai.summary}">
             Resumen técnico
           </h6>
-          <p class="mb-0 lh-lg text-muted" th:text="${resumen}">Resumen</p>
+          <p class="mb-0 lh-lg text-muted" th:text="${sections.resumen}">Resumen</p>
         </div>
       </div>
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
           <h6 class="text-success text-uppercase fw-bold mb-2" th:text="#{ai.strengths}">Fortalezas</h6>
-          <p class="mb-0 lh-lg text-muted" th:text="${fortalezas}">
+          <p class="mb-0 lh-lg text-muted" th:text="${sections.fortalezas}">
             Fortalezas
           </p>
         </div>
@@ -44,7 +32,7 @@
       <div class="col-md-6">
         <div class="p-3 bg-white rounded-3 border h-100">
           <h6 class="text-danger text-uppercase fw-bold mb-2" th:text="#{ai.risks}">Riesgos</h6>
-          <p class="mb-0 lh-lg text-muted" th:text="${riesgos}">Riesgos</p>
+          <p class="mb-0 lh-lg text-muted" th:text="${sections.riesgos}">Riesgos</p>
         </div>
       </div>
       <div class="col-md-6">
@@ -52,7 +40,7 @@
           <h6 class="text-info text-uppercase fw-bold mb-2" th:text="#{ai.conclusion}">
             Conclusión interpretativa
           </h6>
-          <p class="mb-0 lh-lg text-muted" th:text="${conclusion}">
+          <p class="mb-0 lh-lg text-muted" th:text="${sections.conclusion}">
             Conclusión
           </p>
         </div>

@@ -352,6 +352,27 @@ class ManageAnalyzeStockServiceTest {
     }
 
     @Test
+    @DisplayName("Should save fallback without retry when AI response is empty")
+    void shouldSaveFallbackWithoutRetryWhenResponseIsEmpty() {
+        Long stockId = 10L;
+        StrategyEvaluation strategyEvaluation = StrategyEvaluation.builder().strategyName("S").build();
+        Stock stock = Stock.builder().id(stockId).ticker("AAPL").strategyEvaluation(strategyEvaluation).build();
+
+        when(stockDataRepository.findById(stockId)).thenReturn(Optional.of(stock));
+        when(promptBuilder.buildAnalysisPrompt(any(), any())).thenReturn("prompt");
+        when(apiIAPort.getValoration("prompt")).thenReturn(null);
+
+        boolean generated = service.getValorationIA(stockId);
+
+        assertThat(generated).isFalse();
+        verify(apiIAPort, times(1)).getValoration(any());
+        verify(promptResponseValidator, never()).buildRetryPrompt(any());
+        verify(promptResponseValidator, never()).isValid(any());
+        assertThat(stock.getValorationIA())
+                .isEqualTo(IA_FALLBACK_VALORATION);
+    }
+
+    @Test
     @DisplayName("Should throw StockDataNotFoundException when stock does not exist")
     void shouldThrowWhenStockNotFound() {
         when(stockDataRepository.findById(999L)).thenReturn(Optional.empty());
