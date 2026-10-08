@@ -544,11 +544,11 @@ Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a
 
 ## 🤖 Desarrollo con IA
 
-El proyecto se ha desarrollado con IA bajo supervisión y con desarrollo propio en todo momento, en tres fases:
+El proyecto se ha desarrollado con IA bajo supervisión y con desarrollo propio:
 
-1. **Fase inicial con Copilot**: arranque del proyecto, estructura base y primeras iteraciones con autocompletado y sugerencias inline.
-2. **Fase principal con OpenCode** (modelo Muse Spark): desarrollo por tareas con procedimiento estricto definido en `AGENTS.md` (§3) — rama por tarea → tests → doc en `/docs` → validación con menú → PR. Ninguna tarea empieza sin la PR anterior en MERGED.
-3. **Desarrollo propio intercalado**: decisiones de diseño, ajustes finos, tuning de modelos/prompt y resolución de imprevistos de producción directamente por el autor.
+- **Fase inicial con Copilot**: arranque del proyecto, estructura base y primeras iteraciones con autocompletado y sugerencias inline.
+- **Fase principal con OpenCode** (modelo Muse Spark): desarrollo por tareas con procedimiento estricto definido en `AGENTS.md` (§3) — rama por tarea → tests → doc en `/docs` → validación con menú → PR. Ninguna tarea empieza sin la PR anterior en MERGED.
+- **Desarrollo propio intercalado**: decisiones de diseño, ajustes finos, tuning de modelos/prompt y resolución de imprevistos de producción directamente por el autor.
 
 ### Fronteras de la IA (diseño intencionado)
 - **Motor determinista**: la evaluación de reglas (`Rule` → `RuleEvaluator` → `EvaluateStrategyService`) y el cálculo de métricas (R:R, score 0-100, cumplimiento) son código puro y testeado. La IA nunca decide ni altera resultados.
