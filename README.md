@@ -305,6 +305,7 @@ La aplicación está organizada en capas, con las dependencias apuntando siempre
 
 ### Estructura de Paquetes
 
+```text
 market-analysis-app/
 ├── .github/                   Configuración de GitHub Actions
 ├── config/                    Configuración de Spring Boot
@@ -325,10 +326,12 @@ market-analysis-app/
 ├── LICENSE                    Licencia del proyecto
 ├── pom.xml                    Configuración Maven  
 └── README.md                  Documentación principal  
+```
 
 
 ### Estructura Detallada de Paquetes
 
+```text
 src/main/java/com/market/analysis/
 
 ├── domain                         # Núcleo puro, sin dependencias
@@ -446,6 +449,7 @@ src/main/java/com/market/analysis/
 │       └── GlobalExceptionHandler.java
 │
 └── MarketAnalysisApplication.java  # Clase principal Spring Boot
+```
 
 
 ### Descripción de Capas
