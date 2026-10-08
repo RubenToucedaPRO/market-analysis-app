@@ -28,6 +28,10 @@
 > `deploy-tfm.sh` (#178), IA async (#179), robustez IA (#180), `env_file` local
 > (#181). PR #170 (histórico Railway) quedó CLOSED sin merge. Calendario
 > original superado → entrega recalibrada al **16 Oct** (ver plan 8→16 Oct).
+> Revisión 8 Oct (2): **OpenAPI/Swagger movido a Future Work** — la app es
+> Thymeleaf MVC (formularios con redirect), no REST; el "Try it out" no aporta
+> prueba práctica (302/403/CSRF). Se sustituye por tabla de endpoints JSON en
+> README Final (sin dependencia `springdoc`).
 
 ---
 
@@ -43,8 +47,8 @@
 | | PM | **Login TFM** — 3 intentos + bloqueo 30 min en memoria (por username) + logs sin secretos | ✅ hecho (PR #174 `feature/login-attempt-lockout`, merge 30 Sep) |
 | | PM | **Deploy VPS** — Docker/Nginx/SSL, vars entorno, `/health` | ✅ hecho + endurecido (PRs #175, #176; guía `deploy/guia_vps.md` validada FASE11→15a; redeploy idempotente OK 8 Oct) |
 | **7–8 Oct** | — | **Imprevistos prod** (fuera del alcance inicial, obligados por 504s): suggest async (#177), pull-image en deploy (#178), IA async (#179), robustez IA (#180), `env_file` local (#181) | ✅ hecho, suite 1158 verde |
-| **Día 4** | AM | **OpenAPI/Swagger** — añadir `springdoc-openapi-starter-webmvc-ui` (hoy no está en `pom.xml`) + documentar endpoints clave | rama → tests → doc → menú → PR |
-| | PM | **README Final** — Badges, URL deploy, sección "Desarrollo con IA", troubleshooting | rama → doc → menú → PR |
+| **Día 4** | AM | **OpenAPI/Swagger descartado** — movido a Future Work (ver revisión 8 Oct (2)); no se añade `springdoc` | — |
+| | PM | **README Final** — Badges, URL deploy, sección "Desarrollo con IA", troubleshooting + tabla endpoints JSON (`/health`, `/candles`, jobs) | rama → doc → menú → PR |
 | | + | **SonarQube Local** (Docker, hoy no configurado) + Quality Gate A + fix critical | `bash` + tests + doc |
 
 > Nota: SonarQube se adelantó al Día 4 PM/junto a README si el Viernes queda como buffer.
@@ -57,7 +61,7 @@
 
 | Fecha | Bloque | Tarea | Procedimiento |
 |-------|--------|-------|---------------|
-| **8–9 Oct** | — | **OpenAPI/Swagger** (`springdoc`, hoy ausente en `pom.xml`) + **README Final** (badges, URL deploy, "Desarrollo con IA", troubleshooting) | rama → tests → doc → menú → PR (por tema) |
+| **8–9 Oct** | — | **README Final** (badges, URL deploy, "Desarrollo con IA", troubleshooting + tabla endpoints JSON; `springdoc` descartado → Future Work) | rama → doc → menú → PR |
 | **12 Oct** | — | **SonarQube Local** (Docker) + Quality Gate A + fix critical | `bash` + tests + doc |
 | **13 Oct** | — | **ADRs (4)** + **Prompt Library** (`docs/prompts/`, 8-10 patrones) | generar + menú → PR |
 | **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | generar con contexto |
@@ -89,7 +93,7 @@
 | Scoring ponderado 0-100 | Modelo predictivo Python/ML |
 | Deploy VPS funcional | Alertas email/Telegram |
 | Login hardening (3 intentos / 30 min / logs sin secretos) | Portfolio tracking |
-| OpenAPI + Swagger UI | Portfolio tracking |
+| Tabla endpoints JSON en README | OpenAPI + Swagger UI |
 | ADRs + Prompt Library | Multi-strategy watchlist |
 | Slides + Rehearsal | Backtesting histórico walk-forward |
 | SonarQube Quality Gate A | Real-time WebSocket quotes |
@@ -105,7 +109,7 @@
 
 | Criterio | Verificación |
 |----------|--------------|
-| **Funcional** | Scoring 0-100 funciona, deploy VPS responde (verificado 8 Oct: HTTPS 200 + redeploy idempotente), login bloquea tras 3 fallos durante 30 min (verificado), Swagger carga (pendiente: `springdoc` aún no en `pom.xml`) |
+| **Funcional** | Scoring 0-100 funciona, deploy VPS responde (verificado 8 Oct: HTTPS 200 + redeploy idempotente), login bloquea tras 3 fallos durante 30 min (verificado), endpoints JSON documentados en README (Swagger movido a Future Work 8 Oct, sin `springdoc`) |
 | **Calidad** | `mvn verify` → BUILD SUCCESS, JaCoCo ≥80% (plugin ya en `pom.xml`), SonarQube Quality Gate A (pendiente de configurar) |
 | **Documentación** | README completo, 4 ADRs, Prompt Library, Slides 12 páginas |
 | **Entrega** | Repo público, tag `tfm-v1.0`, URLs en README, slides accesibles |
@@ -117,7 +121,7 @@
 - `docs/architecture-walkthrough.md` ya existe (personal, 16 Sep): verificar/completar, no crear.
 - `Rule` (dominio) tiene campos `final` + validación en constructor: el scoring exige migración BD (tablas `rules`/`strategies` vía `script-bd.sql` + entidades JPA + mappers).
 - `terraform/` es del provider GitHub (gestión del repo), irrelevante para el deploy. README apuntaba a Railway; pasa a VPS.
-- JaCoCo presente en `pom.xml`; SonarQube y `springdoc` ausentes (a añadir en sus tareas).
+- JaCoCo presente en `pom.xml`; SonarQube ausente (a añadir en su tarea). `springdoc` descartado el 8 Oct (Future Work, no se añade).
 
 ---
 
@@ -128,19 +132,19 @@
 3. **Sesión arquitectura**: Día 1 (verificar walkthrough existente)
 4. **Login TFM**: 3 intentos + bloqueo 30 min + en memoria (por username) + logs sin secretos
 5. **Features extra**: Ninguna más — scope locked. Modelo predictivo solo en slides como future work.
+6. **OpenAPI/Swagger descartado** (8 Oct): app Thymeleaf MVC, no REST — se documentan los 4 endpoints JSON (`/health`, `/candles`, 2× jobs) con tabla en README; `springdoc` queda como future work para cuando exista API pública (p. ej. servicio ML Python separado).
 
 ---
 
 ## Próximo Paso Inmediato
 
-**Cola real pendiente (Login y Deploy ya hechos — ver revisión 8 Oct)**:
-1. OpenAPI/Swagger: añadir `springdoc-openapi-starter-webmvc-ui` al `pom.xml` + documentar endpoints clave. Rama → tests → doc → menú → PR.
-2. README Final: badges, URL deploy (`https://tfm.rubentouceda.es`), sección "Desarrollo con IA", troubleshooting. Rama → doc → menú → PR.
-3. SonarQube Local + Quality Gate A + fix critical (12 Oct).
-4. ADRs (4) + Prompt Library (13 Oct).
-5. Slides Defensa 12 + speaker notes (14 Oct).
-6. Rehearsal grabado + ajustes (15 Oct).
-7. Buffer + tag `tfm-v1.0` (16 Oct).
+**Cola real pendiente (Login y Deploy ya hechos — ver revisión 8 Oct; Swagger a Future Work — ver revisión 8 Oct (2))**:
+1. README Final: badges, URL deploy (`https://tfm.rubentouceda.es`), sección "Desarrollo con IA", troubleshooting + tabla endpoints JSON. Rama → doc → menú → PR.
+2. SonarQube Local + Quality Gate A + fix critical (12 Oct).
+3. ADRs (4) + Prompt Library (13 Oct).
+4. Slides Defensa 12 + speaker notes (14 Oct).
+5. Rehearsal grabado + ajustes (15 Oct).
+6. Buffer + tag `tfm-v1.0` (16 Oct).
 
 ## Recuperar contexto instantáneo en nueva sesión OpenCode
 Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`
