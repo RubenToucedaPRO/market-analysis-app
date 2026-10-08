@@ -267,6 +267,15 @@ docker compose down
 ```
 *(Si necesitas limpiar por completo la base de datos y borrar los datos locales para forzar una reinstalación limpia del script SQL, utiliza `docker compose down -v`)*.
 
+### Integración Continua (workflows)
+
+Cada push/PR a `main` dispara validación automática en GitHub Actions (`.github/workflows/`):
+
+| Workflow | Disparador | Qué hace |
+|---|---|---|
+| `testUnitarios-workflow.yml` | push y PR a `main` (+ manual) | JDK 21 + `mvn -B verify`, publica resultados de tests y reporte JaCoCo (mínimo 80%) como comentario en la PR |
+| `docker.yml` | push a `main` | Compila la imagen Docker y la publica en GHCR (`tfm:latest` + tag por SHA, imagen que despliega el VPS) |
+
 ---
 
 
@@ -501,17 +510,20 @@ Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a
 - Realiza trading automático
 
 ✅ **Su propósito ES:**
-- Demostración académica de arquitectura de software
-- Estudio de integración de APIs externas
-- Práctica de patrones de diseño
+- Desarrollo con IA aplicando los conocimientos adquiridos en el Máster "Desarrollo con IA" de Big School.
+- Uso personal y educativo para la práctica de análisis técnico y evaluación de estrategias de inversión.
+- Investigación y experimentación con integración de APIs externas y modelos de lenguaje.
+- Demostración académica de arquitectura de software.
+- Práctica de patrones de diseño y principios SOLID.
 - Caso de uso educativo
-- Integración de IA generativa
+- Integración de IA generativa para análisis interpretativo de resultados cuantitativos.
 
 ---
 
 ## 🎓 Enfoque Académico (TFM)
 
 ### Competencias Demostradas
+- **Copilot + OpenCode**: Desarrollo asistido por IA con supervisión y control de calidad. Uso de Agents y prompts para guiar la generación de código y documentación.
 - **Arquitectura de Software**: Hexagonal, DDD, SOLID
 - **Clean Architecture**: Separación de capas, inversión de dependencias
 - **Domain-Driven Design**: Modelado del dominio financiero
@@ -519,7 +531,8 @@ Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a
 - **Integration**: APIs REST, WebClient reactivo, persistencia JPA
 - **AI Integration**: Prompt engineering, consulta a LLMs
 - **Testing**: Unit tests (JUnit 5 + Mockito), controladores con MockMvc, JaCoCo ≥ 80%
-- **DevOps**: Docker Compose, despliegue en VPS con Nginx + SSL
+- **DevOps**: Docker Compose, despliegue en VPS con Nginx + SSL, workflows de CI (tests + build de imagen)
+- **Documentación**: JavaDoc, README, documentación de tareas en `/docs`
 
 ### Métricas de Calidad
 - Cobertura de tests ≥ 80% (JaCoCo, verificado con `mvn verify`)
@@ -531,7 +544,7 @@ Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a
 
 ## 🤖 Desarrollo con IA
 
-El proyecto se ha desarrollado en tres fases, con supervisión y desarrollo propio en todo momento:
+El proyecto se ha desarrollado con IA bajo supervisión y con desarrollo propio en todo momento, en tres fases:
 
 1. **Fase inicial con Copilot**: arranque del proyecto, estructura base y primeras iteraciones con autocompletado y sugerencias inline.
 2. **Fase principal con OpenCode** (modelo Muse Spark): desarrollo por tareas con procedimiento estricto definido en `AGENTS.md` (§3) — rama por tarea → tests → doc en `/docs` → validación con menú → PR. Ninguna tarea empieza sin la PR anterior en MERGED.

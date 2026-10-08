@@ -43,6 +43,10 @@ endpoints JSON) + eliminación de `readme_aux.md`.
      (Corrección tras 2ª validación: nota de planes gratuitos en "APIs Externas"
      — latencias altas asumidas por diseño en proyecto educativo — y fila de
      504s reenmarcada como comportamiento esperado, no fallo.)
+     (Corrección tras 3ª validación: "Su propósito ES" incluye como punto
+     principal el desarrollo con IA del Máster Big School; nueva subsección
+     "Integración Continua" con los 2 workflows reales verificados +
+     mención en competencias DevOps.)
 - `readme_aux.md` eliminado (`git rm`, 413 líneas): contenido duplicado y
   desactualizado respecto al README (estructura con HTMX, integraciones
   OpenAI/Anthropic/Google inexistentes, Railway, `pom.xml pendiente`). Verificado
