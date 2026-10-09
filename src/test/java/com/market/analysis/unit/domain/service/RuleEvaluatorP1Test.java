@@ -507,9 +507,9 @@ class RuleEvaluatorP1Test {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"!=", "NOT_EQUALS"})
-        @DisplayName("Not-equal operators resolve for PRICE != CONSTANT(200)")
-        void notEqualOperatorsPass(String operator) {
+        @ValueSource(strings = {"<", "<=", "LESS_THAN", "LESS_THAN_OR_EQUAL", "!=", "NOT_EQUALS"})
+        @DisplayName("Less-than and not-equal operators resolve without exception for PRICE vs CONSTANT(200)")
+        void lessThanAndNotEqualOperatorsPass(String operator) {
             Rule rule = Rule.builder()
                     .subjectCode("PRICE")
                     .operator(operator)
