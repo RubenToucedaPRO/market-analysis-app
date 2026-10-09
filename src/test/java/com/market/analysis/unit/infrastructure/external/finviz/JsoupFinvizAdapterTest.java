@@ -47,9 +47,10 @@ class JsoupFinvizAdapterTest {
         List<String> tickers = adapter.findTickers("ta_sma20_pa", 5);
 
         assertThat(tickers).containsExactly("AAPL", "MSFT", "GOOGL", "NVDA", "AMZN");
-        assertThat(requestedUrls).anyMatch(url -> url.contains("&r=21"));
-        assertThat(requestedUrls).anyMatch(url -> url.contains("&r=41"));
-        assertThat(requestedUrls).allMatch(url -> url.contains("f=geo_usa,ind_stocksonly,ta_sma20_pa"));
+        assertThat(requestedUrls)
+                .anyMatch(url -> url.contains("&r=21"))
+                .anyMatch(url -> url.contains("&r=41"))
+                .allMatch(url -> url.contains("f=geo_usa,ind_stocksonly,ta_sma20_pa"));
         assertThat(usedUserAgents).containsOnly("test-agent");
         assertThat(usedTimeouts).containsOnly(5000);
     }
