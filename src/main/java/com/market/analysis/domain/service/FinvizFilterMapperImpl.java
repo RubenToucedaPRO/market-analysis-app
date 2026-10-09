@@ -86,16 +86,7 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
                 continue;
             }
 
-            String mappedFilter = resolveMappedFilter(rule);
-            if (mappedFilter == null) {
-                String ruleDescriptor = describe(rule);
-                unmappableRules.add(ruleDescriptor);
-                warnings.add("La regla '" + ruleDescriptor + "' no se puede traducir a filtros de Finviz.");
-                continue;
-            }
-
-            filters.add(mappedFilter);
-            collectRangeBound(rule, rangeBounds);
+            mapSingleRule(rule, filters, unmappableRules, warnings, rangeBounds);
         }
 
         boolean incompatibleRanges = detectIncompatibleRanges(rangeBounds, warnings);
@@ -108,6 +99,20 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
                 .build();
     }
 
+    private void mapSingleRule(Rule rule, Set<String> filters, List<String> unmappableRules, List<String> warnings,
+            List<RangeBound> rangeBounds) {
+        String mappedFilter = resolveMappedFilter(rule);
+        if (mappedFilter == null) {
+            String ruleDescriptor = describe(rule);
+            unmappableRules.add(ruleDescriptor);
+            warnings.add("La regla '" + ruleDescriptor + "' no se puede traducir a filtros de Finviz.");
+            return;
+        }
+
+        filters.add(mappedFilter);
+        collectRangeBound(rule, rangeBounds);
+    }
+
     private String resolveMappedFilter(Rule rule) {
         RulePattern candidate = toPattern(rule);
         for (Map.Entry<RulePattern, String> entry : MAPPINGS.entrySet()) {
@@ -115,7 +120,14 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
                 if (!entry.getKey().appendTargetParam) {
                     return entry.getValue();
                 }
-                return entry.getValue() + formatParam(resolveTargetParamForFilter(candidate));
+                Double targetParam = resolveTargetParamForFilter(candidate);
+                if (targetParam == null) {
+                    // Unreachable while matches() holds (it requires a non-null
+                    // target param for append mappings); guard kept so formatParam
+                    // provably never receives null.
+                    return entry.getValue();
+                }
+                return entry.getValue() + formatParam(targetParam);
             }
         }
         return null;
@@ -194,21 +206,24 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
         boolean incompatible = false;
         for (int i = 0; i < rangeBounds.size(); i++) {
             for (int j = i + 1; j < rangeBounds.size(); j++) {
-                RangeBound first = rangeBounds.get(i);
-                RangeBound second = rangeBounds.get(j);
-                if (!first.isSameSubject(second) || first.operator.equals(second.operator)) {
-                    continue;
-                }
-                RangeBound lower = ">".equals(first.operator) ? first : second;
-                RangeBound upper = ">".equals(first.operator) ? second : first;
-                if (lower.bound >= upper.bound) {
-                    warnings.add("Las reglas '" + lower.descriptor + "' y '" + upper.descriptor
-                            + "' son incompatibles: ningún ticker puede cumplir ambas.");
-                    incompatible = true;
-                }
+                incompatible |= checkRangePair(rangeBounds.get(i), rangeBounds.get(j), warnings);
             }
         }
         return incompatible;
+    }
+
+    private boolean checkRangePair(RangeBound first, RangeBound second, List<String> warnings) {
+        if (!first.isSameSubject(second) || first.operator.equals(second.operator)) {
+            return false;
+        }
+        RangeBound lower = ">".equals(first.operator) ? first : second;
+        RangeBound upper = ">".equals(first.operator) ? second : first;
+        if (lower.bound >= upper.bound) {
+            warnings.add("Las reglas '" + lower.descriptor + "' y '" + upper.descriptor
+                    + "' son incompatibles: ningún ticker puede cumplir ambas.");
+            return true;
+        }
+        return false;
     }
 
     private record RangeBound(String subjectCode, Double subjectParam, String operator, double bound,
