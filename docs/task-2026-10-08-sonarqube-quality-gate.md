@@ -2,7 +2,7 @@
 
 ## Título
 SonarQube Community local con Docker, Quality Gate OK, cero issues abiertas
-(63→0) y cobertura en código nuevo 98.3% (adelanta el bloque del 12 Oct).
+(63→0) y cobertura en código nuevo ≥94% (adelanta el bloque del 12 Oct).
 
 ## Resumen
 - Rama `feature/sonarqube-quality-gate` (desde `main` post-#185, limpio, 0 PRs).
@@ -35,7 +35,7 @@ SonarQube Community local con Docker, Quality Gate OK, cero issues abiertas
 - **`pom.xml`**: `sonar.coverage.exclusions` que refleja los excludes de JaCoCo
   (imprescindible: sin esto Sonar exige cobertura a ficheros que JaCoCo ignora
   — VOs de `domain/model`, DTOs, configs — y el gate no puede pasar).
-- **Resultado final**: gate OK (new_coverage 98.3%, 0 violaciones, duplicación
+- **Resultado final**: gate OK (new_coverage ≥94.8%, 0 violaciones, duplicación
   0.0), 0 issues abiertas (63→0), ratings A/A/A, 0 vulnerabilidades,
   0 hotspots, suite **1163/1163** (1158 + 5 tests nuevos) + JaCoCo OK,
   cobertura global 89.0%.
@@ -105,7 +105,7 @@ SonarQube Community local con Docker, Quality Gate OK, cero issues abiertas
 - **Incidente new_coverage**: el gate pedía 80% y daba 60-72% con JaCoCo
   local al 99%: JaCoCo excluye `domain/model`, DTOs y configs, pero SonarQube
   les exigía cobertura. Solución: `sonar.coverage.exclusions` en el `pom`
-  reflejando los excludes (gate 98.3%, global 89.0%).
+  reflejando los excludes (gate OK, global 89.0%).
 - Nota: el exclude JaCoCo `domain/exceptions/**` (plural) no coincide con el
   paquete real `domain/exception` (singular) y no excluye nada; en Sonar se
   usó la ruta correcta. Queda como higiene futura alinear el `pom`.
