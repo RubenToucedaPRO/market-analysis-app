@@ -35,7 +35,7 @@ class RuleDefinitionSanitizationRunnerTest {
 
     @Test
     @DisplayName("Should delete rule definitions with unsupported codes")
-    void testRemovesUnsupportedCode() throws Exception {
+    void testRemovesUnsupportedCode) {
         RuleDefinition invalid = RuleDefinition.builder()
                 .id(1L).code("VWAP").name("VWAP").requiresParam(false).build();
 
@@ -49,7 +49,7 @@ class RuleDefinitionSanitizationRunnerTest {
 
     @Test
     @DisplayName("Should not touch valid rule definitions with correct requiresParam")
-    void testLeavesValidDefinitionUnchanged() throws Exception {
+    void testLeavesValidDefinitionUnchanged) {
         RuleDefinition validSma = RuleDefinition.builder()
                 .id(2L).code("SMA").name("Simple Moving Average").requiresParam(true).build();
 
@@ -63,7 +63,7 @@ class RuleDefinitionSanitizationRunnerTest {
 
     @Test
     @DisplayName("Should correct requiresParam when it conflicts with the catalog (SMA: false -> true)")
-    void testCorrectsRequiresParamMismatch() throws Exception {
+    void testCorrectsRequiresParamMismatch) {
         RuleDefinition wrongFlag = RuleDefinition.builder()
                 .id(3L).code("SMA").name("Simple Moving Average")
                 .requiresParam(false) // wrong – SMA requires a param
@@ -81,7 +81,7 @@ class RuleDefinitionSanitizationRunnerTest {
 
     @Test
     @DisplayName("Should correct requiresParam when it conflicts with the catalog (PRICE: true -> false)")
-    void testCorrectsRequiresParamForNoParamIndicator() throws Exception {
+    void testCorrectsRequiresParamForNoParamIndicator) {
         RuleDefinition wrongFlag = RuleDefinition.builder()
                 .id(4L).code("PRICE").name("Current Price")
                 .requiresParam(true) // wrong – PRICE has no param
@@ -99,7 +99,7 @@ class RuleDefinitionSanitizationRunnerTest {
 
     @Test
     @DisplayName("Should handle empty repository without errors")
-    void testRunsWithEmptyRepository() throws Exception {
+    void testRunsWithEmptyRepository) {
         when(ruleDefinitionRepository.findAll()).thenReturn(List.of());
 
         runner.run();
@@ -110,7 +110,7 @@ class RuleDefinitionSanitizationRunnerTest {
 
     @Test
     @DisplayName("Should process multiple definitions – remove invalid, correct mismatched, leave valid")
-    void testProcessesMixedDefinitions() throws Exception {
+    void testProcessesMixedDefinitions) {
         RuleDefinition invalid = RuleDefinition.builder()
                 .id(1L).code("STOCH").name("Stochastic").requiresParam(true).build();
         RuleDefinition wrongFlag = RuleDefinition.builder()

@@ -33,7 +33,7 @@ class ProhibitedKeywordSeedRunnerTest {
 
     @Test
     @DisplayName("Should seed default keywords when repository is empty")
-    void shouldSeedDefaultKeywordsWhenRepositoryIsEmpty() throws Exception {
+    void shouldSeedDefaultKeywordsWhenRepositoryIsEmpty) {
         when(prohibitedKeywordRepository.findAll()).thenReturn(List.of());
 
         runner.run();
@@ -52,7 +52,7 @@ class ProhibitedKeywordSeedRunnerTest {
 
     @Test
     @DisplayName("Should skip seed when repository already has keywords")
-    void shouldSkipSeedWhenRepositoryAlreadyHasKeywords() throws Exception {
+    void shouldSkipSeedWhenRepositoryAlreadyHasKeywords) {
         when(prohibitedKeywordRepository.findAll()).thenReturn(List.of(
                 ProhibitedKeyword.builder().keyword("ETF").active(true).build()));
 

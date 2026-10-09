@@ -3,7 +3,6 @@ package com.market.analysis.unit.application.usecase;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -307,7 +306,7 @@ class ManageAnalyzeStockServiceTest {
         boolean generated = service.getValorationIA(stockId);
 
         assertThat(generated).isTrue();
-        verify(apiIAPort, times(1)).getValoration(eq(oversizedPrompt.substring(0, MAX_PROMPT_CHARS)));
+        verify(apiIAPort, times(1)).getValoration(oversizedPrompt.substring(0, MAX_PROMPT_CHARS));
     }
 
     @Test
