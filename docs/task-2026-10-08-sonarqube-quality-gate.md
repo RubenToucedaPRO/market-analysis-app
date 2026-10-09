@@ -122,6 +122,11 @@ SonarQube Community local con Docker, Quality Gate OK, cero issues abiertas
   regresión mayor a 7 días del TFM); la app es un entregable académico
   congelado, no un sistema con necesidad de ventana de soporte. Propuesto como
   línea de trabajo futuro en slides. No aparece en el servidor (0 issues).
+- Duplicación aceptada (no bloqueante): CPD marca `Stock`/`StockDataDTO`/
+  `StockEntity` (~40%) y `StrategyEvaluationMapper` (~29%) por secuencias de
+  tokens idénticas, pero es el mismo dato en 3 capas (dominio/transporte/JPA):
+  fusionarlos rompería la separación hexagonal que defiende el TFM. Gate en
+  verde (0.9% global, 0.0% en nuevo < 3%). Respuesta preparada para el tribunal.
 - Dominio sigue sin imports de Spring/Jakarta.
 
 ## Próximos pasos sugeridos
