@@ -3,8 +3,13 @@ package com.market.analysis.unit.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.market.analysis.domain.service.PromptResponseValidator;
 
@@ -13,42 +18,32 @@ class PromptResponseValidatorTest {
 
     private final PromptResponseValidator validator = new PromptResponseValidator();
 
-    @Test
-    @DisplayName("Should validate response containing all required sections")
-    void shouldValidateResponseContainingAllRequiredSections() {
-        String response = """
-                Resumen técnico: Tendencia alcista moderada con precio por encima de SMA20 y SMA50.
-                Fortalezas: Precio sobre SMA20 y SMA50 con volumen ligeramente por encima de media.
-                Riesgos: Volumen ligeramente por debajo de media en las últimas sesiones diarias.
-                Conclusión interpretativa: El contexto es favorable pero con cautela por el volumen.
-                """;
-
-        assertThat(validator.isValid(response)).isTrue();
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("sectionValidationCases")
+    @DisplayName("Should validate responses per required sections")
+    void shouldValidateResponsesPerRequiredSections(String caseName, String response, boolean expected) {
+        assertThat(validator.isValid(response)).isEqualTo(expected);
     }
 
-    @Test
-    @DisplayName("Should invalidate response missing required sections")
-    void shouldInvalidateResponseMissingRequiredSections() {
-        String response = """
-                Resumen técnico: Tendencia lateral.
-                Fortalezas: Volumen alto.
-                """;
-
-        assertThat(validator.isValid(response)).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should accept markdown bold and headings around sections")
-    void shouldAcceptMarkdownVariants() {
-        String response = """
-                **Resumen técnico:** Tendencia alcista moderada con precio sobre las medias móviles.
-                ## Fortalezas:
-                Precio sobre SMA20 y SMA50 con volumen ligeramente por encima de media diaria.
-                > Riesgos: Volumen bajo en las últimas sesiones con falta de convicción compradora.
-                `Conclusión interpretativa:` Favorable con cautela por el bajo volumen negociado.
-                """;
-
-        assertThat(validator.isValid(response)).isTrue();
+    private static Stream<Arguments> sectionValidationCases() {
+        return Stream.of(
+                Arguments.of("all sections present", """
+                        Resumen técnico: Tendencia alcista moderada con precio por encima de SMA20 y SMA50.
+                        Fortalezas: Precio sobre SMA20 y SMA50 con volumen ligeramente por encima de media.
+                        Riesgos: Volumen ligeramente por debajo de media en las últimas sesiones diarias.
+                        Conclusión interpretativa: El contexto es favorable pero con cautela por el volumen.
+                        """, true),
+                Arguments.of("missing sections", """
+                        Resumen técnico: Tendencia lateral.
+                        Fortalezas: Volumen alto.
+                        """, false),
+                Arguments.of("markdown variants", """
+                        **Resumen técnico:** Tendencia alcista moderada con precio sobre las medias móviles.
+                        ## Fortalezas:
+                        Precio sobre SMA20 y SMA50 con volumen ligeramente por encima de media diaria.
+                        > Riesgos: Volumen bajo en las últimas sesiones con falta de convicción compradora.
+                        `Conclusión interpretativa:` Favorable con cautela por el bajo volumen negociado.
+                        """, true));
     }
 
     @Test

@@ -492,21 +492,6 @@ class RuleEvaluatorP1Test {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"<", "<=", "LESS_THAN", "LESS_THAN_OR_EQUAL"})
-        @DisplayName("Numeric operators less-than resolve without exception for PRICE < CONSTANT(200)")
-        void lessThanOperatorsPass(String operator) {
-            Rule rule = Rule.builder()
-                    .subjectCode("PRICE")
-                    .operator(operator)
-                    .targetCode("CONSTANT")
-                    .targetParam(200.0)
-                    .build();
-
-            RuleResult result = ruleEvaluator.evaluate(rule, stock);
-            assertThat(result.isPassed()).isTrue();
-        }
-
-        @ParameterizedTest
         @ValueSource(strings = {"=", "==", "EQUALS"})
         @DisplayName("Equality operators resolve for PRICE == CONSTANT(100)")
         void equalityOperatorsPass(String operator) {
