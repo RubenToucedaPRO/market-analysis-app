@@ -13,12 +13,13 @@ ser reproducibles y el TFM perdería su base cuantitativa.
 Frontera estricta, verificable en código:
 - El motor (`Rule` → `RuleEvaluator` → `EvaluateStrategyService`) y las
   métricas (R:R, score, cumplimiento) **nunca** llaman a la IA.
-- La IA (`OpenrouterAdapter`, modelo principal `poolside/laguna-s-2.1:free`
-  + 4 reservas con rotación ante 429) solo redacta texto a partir de métricas
-  ya calculadas (`PromptBuilder` + `PromptResponseValidator` con reintento).
-- Todo fallo de IA degrada a fallback amistoso persistido
-  (`IA_FALLBACK_VALORATION`), con métricas (`ai_valoration_metrics`) y aviso
-  en la vista; la evaluación numérica queda intacta.
+- **Éxito**: la IA (`OpenrouterAdapter`, modelo principal
+  `poolside/laguna-s-2.1:free` + 4 reservas con rotación ante 429) redacta texto
+  a partir de métricas ya calculadas (`PromptBuilder` + `PromptResponseValidator`
+  con reintento).
+- **Fallo total** (los 5 modelos fallan): se persiste el fallback amistoso
+  ("…Reintenta más tarde"), con métricas (`ai_valoration_metrics`) y aviso en
+  la vista; la evaluación numérica queda intacta.
 - Regla de trabajo: jamás se modifica la lógica de evaluación para contentar
   a la IA (norma de `AGENTS.md`).
 
