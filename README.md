@@ -556,7 +556,7 @@ El proyecto se ha desarrollado con IA bajo supervisión y con desarrollo propio:
 - **Nunca se modifica la lógica de evaluación para contentar a la IA**: es una regla explícita del proyecto.
 
 ### Trazabilidad
-Cada tarea genera un documento autocontenido en `/docs` (`task-YYYY-MM-DD-<slug>.md`) con decisiones técnicas, cobertura de tests y próximos pasos. Ver también `docs/architecture-walkthrough.md` (flujo `RuleEvaluator` → `AnalyzeAndPersistStockService` → `PolygonAdapter`) y `docs/tfm-closure-plan.md` (plan de cierre).
+Cada tarea genera un documento autocontenido en `/docs` (`task-YYYY-MM-DD-<slug>.md`) con decisiones técnicas, cobertura de tests y próximos pasos. Ver también `docs/architecture-walkthrough.md` (flujo `RuleEvaluator` → `AnalyzeAndPersistStockService` → `PolygonAdapter`), `docs/tfm-closure-plan.md` (plan de cierre), `docs/adr/` (4 decisiones de arquitectura) y `docs/prompts/` (patrones reutilizables de desarrollo con IA).
 
 ---
 

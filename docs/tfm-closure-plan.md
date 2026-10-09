@@ -35,6 +35,9 @@
 > Revisión 8 Oct (3): **SonarQube ✅** — Community Build 26.9 en Docker
 > (`docker-compose.sonar.yml`), gate OK, ratings A/A/A, 0 BLOCKER/CRITICAL/BUG
 > (suite 1158 verde, JaCoCo check OK). Siguiente: ADRs + Prompt Library (13 Oct).
+> Revisión 13 Oct: PRs #186 (SonarQube + lote smells, 63→0 issues) y #187
+> (fallback IA amistoso) mergeadas. **ADRs (4) + Prompt Library ✅**
+> (`docs/adr/`, `docs/prompts/`). Siguiente: Slides Defensa (14 Oct).
 
 ---
 
@@ -66,7 +69,7 @@
 |-------|--------|-------|---------------|
 | **8–9 Oct** | — | **README Final** (badges, URL deploy, "Desarrollo con IA", troubleshooting + tabla endpoints JSON; `springdoc` descartado → Future Work) | rama → doc → menú → PR |
 | **12 Oct** | — | **SonarQube Local** (Docker) + Quality Gate A + fix critical | ✅ hecho 8 Oct (adelantado): Community 26.9 + gate OK + 0 critical |
-| **13 Oct** | — | **ADRs (4)** + **Prompt Library** (`docs/prompts/`, 8-10 patrones) | generar + menú → PR |
+| **13 Oct** | — | **ADRs (4)** + **Prompt Library** (`docs/prompts/`, 8-10 patrones) | ✅ hecho: `docs/adr/` + `docs/prompts/` (9 patrones) |
 | **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | generar con contexto |
 | **15 Oct** | — | **Rehearsal Grabado** (demo 5 min + Q&A) + ajustes finales | — |
 | **16 Oct** | AM | **Buffer** — remates, re-verificación deploy + docs | — |
@@ -141,11 +144,10 @@
 
 ## Próximo Paso Inmediato
 
-**Cola real pendiente (Login, Deploy, Swagger→Future Work, README y SonarQube ya hechos — ver revisiones 8 Oct)**:
-1. ADRs (4) + Prompt Library (13 Oct).
-2. Slides Defensa 12 + speaker notes (14 Oct).
-3. Rehearsal grabado + ajustes (15 Oct).
-4. Buffer + tag `tfm-v1.0` (16 Oct).
+**Cola real pendiente (hasta ADRs+Prompts hecho — ver revisiones)**:
+1. Slides Defensa 12 + speaker notes (14 Oct).
+2. Rehearsal grabado + ajustes (15 Oct).
+3. Buffer + tag `tfm-v1.0` (16 Oct).
 
 ## Recuperar contexto instantáneo en nueva sesión OpenCode
 Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`
