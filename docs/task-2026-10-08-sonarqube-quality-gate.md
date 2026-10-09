@@ -61,7 +61,14 @@ SonarQube Community local con Docker, Quality Gate OK, cero issues abiertas
 8. Tests: asserts reales (S2699), `isNotEmpty` (S5841), lambdas de una sola
    invocación (S5778), 3 tríos parametrizados (S5976), fusión de duplicado
    (S4144), limpieza throws/imports/fields/asserts (S1130/S1128/S1068/S6068/
-   S8924/S8714), supresión justificada S2925, 5 tests nuevos de cobertura.
+   S8924/S8714/S1612/S5853), supresión justificada S2925, 5 tests nuevos de cobertura.
+9. Deduplicación throttlers (a petición del usuario en esta PR):
+   `PolygonThrottler`/`FinnhubThrottler` eran el mismo algoritmo con 3
+   diferencias (claves/defaults de config y nombre en log). Nueva clase común
+   `infrastructure/external/shared/SlidingWindowThrottler` (algoritmo una sola
+   vez) + subclases finas que conservan inyección (`@Component`), firmas de
+   constructor (tests intactos) y mensajes de log idénticos. Adapters sin
+   cambios. Gate sigue OK (new_coverage 93.9%, 0 violaciones), 0 issues.
 
 ## Decisiones técnicas tomadas
 - Scanner vía coordenadas Maven completas y fijadas
