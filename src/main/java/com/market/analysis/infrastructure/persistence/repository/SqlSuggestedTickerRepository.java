@@ -1,13 +1,13 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.port.out.SuggestedTickerRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class SqlSuggestedTickerRepository  implements SuggestedTickerRepository {
 

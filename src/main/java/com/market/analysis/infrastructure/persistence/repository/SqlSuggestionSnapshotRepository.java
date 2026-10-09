@@ -2,7 +2,7 @@ package com.market.analysis.infrastructure.persistence.repository;
 
 import java.util.Optional;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.SuggestionSnapshot;
@@ -11,7 +11,7 @@ import com.market.analysis.infrastructure.persistence.mapper.SuggestionSnapshotM
 
 import lombok.RequiredArgsConstructor;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class SqlSuggestionSnapshotRepository implements SuggestionSnapshotRepository {
 

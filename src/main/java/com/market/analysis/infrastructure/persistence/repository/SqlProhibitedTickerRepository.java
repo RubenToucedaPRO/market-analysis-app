@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.PageResult;
@@ -16,7 +16,7 @@ import com.market.analysis.infrastructure.persistence.mapper.ProhibitedTickerMap
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class SqlProhibitedTickerRepository implements ProhibitedTickerRepository {
