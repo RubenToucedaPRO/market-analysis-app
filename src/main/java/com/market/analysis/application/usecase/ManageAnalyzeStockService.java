@@ -203,7 +203,8 @@ public class ManageAnalyzeStockService implements ManageAnalyzeTickerUseCase {
             return IA_FALLBACK_VALORATION;
         } catch (RuntimeException ex) {
             aiFallbacks.incrementAndGet();
-            log.error("Error getting AI valoration for ticker {}, using fallback", ticker, ex);
+            log.warn("Error getting AI valoration for ticker {}, using fallback. {}: {}", ticker,
+                    ex.getClass().getSimpleName(), ex.getMessage());
             logAiMetrics();
             return IA_FALLBACK_VALORATION;
         }
