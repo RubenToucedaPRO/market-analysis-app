@@ -345,7 +345,7 @@ public class StockHistoricalService {
         return BigDecimal.valueOf(atr).setScale(SMA_SCALE, RoundingMode.HALF_UP);
     }
 
-    /*
+    /**
      * Calculates the Simple Moving Average (SMA) for a list of prices.
      *
      * @param prices List of closing prices
