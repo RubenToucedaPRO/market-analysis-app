@@ -1,7 +1,6 @@
 package com.market.analysis.domain.service;
 
 import java.text.Normalizer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -63,11 +62,7 @@ public final class ValorationSections {
                 }
             }
         }
-        List<String> bodies = new ArrayList<>(4);
-        for (StringBuilder accumulator : accumulators) {
-            bodies.add(accumulator.toString().trim());
-        }
-        return bodies;
+        return accumulators.stream().map(x -> x.toString().trim()).toList();
     }
 
     /**
