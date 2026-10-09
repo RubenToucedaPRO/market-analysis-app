@@ -159,6 +159,44 @@ class JsoupFinvizAdapterTest {
     }
 
     @Test
+    @DisplayName("Should keep paginating on full pages and stop when no progress is made")
+    void shouldKeepPagingOnFullPagesAndStopWithoutProgress() {
+        List<String> requestedUrls = new ArrayList<>();
+        JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
+                "https://finviz.com/screener.ashx",
+                "test-agent",
+                5000,
+            1,
+            "geo_usa",
+            "ind_stocksonly",
+                (url, userAgent, timeoutMs) -> {
+                    requestedUrls.add(url);
+                    if (requestedUrls.size() == 1) {
+                        return Jsoup.parse(buildFullPage(21));
+                    }
+                    if (requestedUrls.size() == 2) {
+                        return Jsoup.parse(buildFullPage(41));
+                    }
+                    return parseFixture("fixtures/finviz/screener-page-3.html");
+                });
+
+        List<String> tickers = adapter.findTickers("ta_sma20_pa", 100);
+
+        assertThat(tickers).hasSize(21);
+        assertThat(requestedUrls).hasSize(3);
+    }
+
+    private static String buildFullPage(int nextRow) {
+        StringBuilder rows = new StringBuilder();
+        for (char suffix = 'A'; suffix <= 'T'; suffix++) {
+            String ticker = "ST" + suffix;
+            rows.append("<tr><td>1</td><td><a class=\"tab-link\" href=\"/screener.ashx?t=")
+                    .append(ticker).append("\">").append(ticker).append("</a></td></tr>");
+        }
+        return "<table><tbody>" + rows + "</tbody></table><a href=\"/screener.ashx?f=x&r=" + nextRow + "\">next</a>";
+    }
+
+    @Test
     @DisplayName("Should prepend mandatory geo and industry filters even when the request already has filters")
     void shouldAlwaysPrependMandatoryFilters() {
         List<String> requestedUrls = new ArrayList<>();
