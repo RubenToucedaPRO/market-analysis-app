@@ -109,6 +109,12 @@ SonarQube Community local con Docker, Quality Gate OK, cero issues abiertas
 - Nota: el exclude JaCoCo `domain/exceptions/**` (plural) no coincide con el
   paquete real `domain/exception` (singular) y no excluye nada; en Sonar se
   usó la ruta correcta. Queda como higiene futura alinear el `pom`.
+- Riesgo aceptado (no bloqueante): SonarLint avisa en `pom.xml:1` de que el
+  soporte OSS de Spring Boot 3.5.x terminó el 2026-06-30 (solo comercial vía
+  Tanzu). No se migra a Boot 4.x antes de la entrega (alcance bloqueado,
+  regresión mayor a 7 días del TFM); la app es un entregable académico
+  congelado, no un sistema con necesidad de ventana de soporte. Propuesto como
+  línea de trabajo futuro en slides. No aparece en el servidor (0 issues).
 - Dominio sigue sin imports de Spring/Jakarta.
 
 ## Próximos pasos sugeridos
