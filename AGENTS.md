@@ -189,7 +189,7 @@ Este documento contiene las reglas, buenas prácticas y procedimientos que el as
 ## 8. Consideraciones Finales para el Asistente
 
 - Respetar siempre la **Arquitectura Hexagonal** aplicando **Clean Architecture** y **SRP**.
-- Respetar la version de Java 21 y Spring Boot 3.5.10
+- Respetar la version de Java 21 y Spring Boot 3.5.16
 - IA **solo como análisis interpretativo**.
 - No ejecutar cambios automáticos en la lógica de evaluación.
 - Documentar cada tarea inmediatamente en `/docs`.

@@ -53,7 +53,7 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
 ### Backend
 - **Java 21 (LTS)**  
   Lenguaje principal del sistema, seleccionado por su estabilidad, soporte a largo plazo y características modernas del ecosistema JVM.
-- **Spring Boot 3.5.14**  
+- **Spring Boot 3.5.16**  
   Framework principal para el desarrollo backend, facilitando la configuración, la inyección de dependencias y el desarrollo estructurado de la aplicación.
 - **Spring Data JPA**  
   Capa de persistencia relacional desacoplada del dominio mediante el uso de repositorios.
