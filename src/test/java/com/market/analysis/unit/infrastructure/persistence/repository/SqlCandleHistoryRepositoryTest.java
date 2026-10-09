@@ -215,6 +215,30 @@ class SqlCandleHistoryRepositoryTest {
         verify(candleMapper, times(2)).toDomain(any(CandleEntity.class));
     }
 
+    @Test
+    @DisplayName("findLatestCandleByTicker: should map and return the latest entity")
+    void findLatestCandleByTicker_existingEntity_returnsMappedCandle() {
+        String ticker = "AAPL";
+        CandleEntity entity = new CandleEntity();
+        Candle candle = buildCandle(ticker);
+
+        when(jpaCandleRepository.findTopByTickerOrderByDateTimeDesc(ticker)).thenReturn(entity);
+        when(candleMapper.toDomain(entity)).thenReturn(candle);
+
+        assertThat(sqlCandleHistoryRepository.findLatestCandleByTicker(ticker)).contains(candle);
+    }
+
+    @Test
+    @DisplayName("findLatestCandleByTicker: should return empty when no candle exists")
+    void findLatestCandleByTicker_noEntity_returnsEmpty() {
+        String ticker = "AAPL";
+
+        when(jpaCandleRepository.findTopByTickerOrderByDateTimeDesc(ticker)).thenReturn(null);
+
+        assertThat(sqlCandleHistoryRepository.findLatestCandleByTicker(ticker)).isEmpty();
+        verify(candleMapper, never()).toDomain(any());
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------

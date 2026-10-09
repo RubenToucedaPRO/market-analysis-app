@@ -191,7 +191,8 @@ class RiskRewardCalculatorTest {
         @DisplayName("Should throw exception when entry price is negative")
         void shouldThrowExceptionWhenEntryPriceIsNegative() {
             // Act & Assert
-            assertThatThrownBy(() -> EntryPrice.of(BigDecimal.valueOf(-100)))
+            BigDecimal negativePrice = BigDecimal.valueOf(-100);
+            assertThatThrownBy(() -> EntryPrice.of(negativePrice))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Entry price must be greater than zero");
         }
@@ -408,8 +409,9 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenTargetPriceIsNull() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal stopPrice = BigDecimal.valueOf(95);
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(entryPrice,
-                    null, BigDecimal.valueOf(95)))
+                    null, stopPrice))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.target_price_null"));
@@ -420,8 +422,10 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenTargetPriceLessThanOrEqualToEntryPrice() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal targetPrice = BigDecimal.valueOf(100);
+            BigDecimal stopPrice = BigDecimal.valueOf(95);
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(
-                    entryPrice, BigDecimal.valueOf(100), BigDecimal.valueOf(95)))
+                    entryPrice, targetPrice, stopPrice))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.target_below_entry"));
@@ -432,8 +436,10 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenStopPriceGreaterThanOrEqualToEntryPrice() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal targetPrice = BigDecimal.valueOf(110);
+            BigDecimal stopPrice = BigDecimal.valueOf(100);
             assertThatThrownBy(() -> calculator.calculateRiskRewardRatio(
-                    entryPrice, BigDecimal.valueOf(110), BigDecimal.valueOf(100)))
+                    entryPrice, targetPrice, stopPrice))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.stop_above_entry"));
@@ -479,8 +485,9 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenStopPriceIsNull() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal capitalToRisk = BigDecimal.valueOf(1000);
             assertThatThrownBy(() -> calculator.calculatePositionSize(entryPrice,
-                    null, BigDecimal.valueOf(1000)))
+                    null, capitalToRisk))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.stop_price_null"));
@@ -491,8 +498,9 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenCapitalToRiskIsNull() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal stopPrice = BigDecimal.valueOf(95);
             assertThatThrownBy(() -> calculator.calculatePositionSize(entryPrice,
-                    BigDecimal.valueOf(95), null))
+                    stopPrice, null))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.capital_null"));
@@ -503,8 +511,10 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenStopPriceGreaterThanOrEqualToEntryPrice() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal stopPrice = BigDecimal.valueOf(100);
+            BigDecimal capitalToRisk = BigDecimal.valueOf(1000);
             assertThatThrownBy(() -> calculator.calculatePositionSize(
-                    entryPrice, BigDecimal.valueOf(100), BigDecimal.valueOf(1000)))
+                    entryPrice, stopPrice, capitalToRisk))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.stop_above_entry"));
@@ -515,8 +525,9 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenCapitalToRiskIsZero() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal stopPrice = BigDecimal.valueOf(95);
             assertThatThrownBy(() -> calculator.calculatePositionSize(
-                    entryPrice, BigDecimal.valueOf(95), BigDecimal.ZERO))
+                    entryPrice, stopPrice, BigDecimal.ZERO))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.capital_zero"));
@@ -527,8 +538,10 @@ class RiskRewardCalculatorTest {
         void shouldThrowExceptionWhenCapitalToRiskIsNegative() {
             // Act & Assert
             EntryPrice entryPrice = EntryPrice.of(BigDecimal.valueOf(100));
+            BigDecimal stopPrice = BigDecimal.valueOf(95);
+            BigDecimal negativeCapital = BigDecimal.valueOf(-1000);
             assertThatThrownBy(() -> calculator.calculatePositionSize(
-                    entryPrice, BigDecimal.valueOf(95), BigDecimal.valueOf(-1000)))
+                    entryPrice, stopPrice, negativeCapital))
                     .isInstanceOf(DomainValidationException.class)
                     .satisfies(ex -> assertThat(((DomainValidationException) ex).getErrorCode())
                             .isEqualTo("validation.capital_zero"));

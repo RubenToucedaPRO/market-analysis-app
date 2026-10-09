@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.market.analysis.domain.model.FinvizFilterMappingResult;
@@ -120,29 +121,27 @@ public class FinvizFilterMapperImpl implements FinvizFilterMapper {
                 if (!entry.getKey().appendTargetParam) {
                     return entry.getValue();
                 }
-                Double targetParam = resolveTargetParamForFilter(candidate);
-                if (targetParam == null) {
-                    // Unreachable while matches() holds (it requires a non-null
-                    // target param for append mappings); guard kept so formatParam
-                    // provably never receives null.
-                    return entry.getValue();
-                }
-                return entry.getValue() + formatParam(targetParam);
+                // Optional makes the empty case explicit: entry value alone when
+                // there is no target param, suffixed filter otherwise. No branch
+                // can receive null into formatParam.
+                return resolveTargetParamForFilter(candidate)
+                        .map(targetParam -> entry.getValue() + formatParam(targetParam))
+                        .orElse(entry.getValue());
             }
         }
         return null;
     }
 
-    private Double resolveTargetParamForFilter(RulePattern candidate) {
+    private Optional<Double> resolveTargetParamForFilter(RulePattern candidate) {
         if (candidate.targetParam() == null) {
-            return null;
+            return Optional.empty();
         }
 
         if (THOUSAND_SCALED_SUBJECTS.contains(candidate.subjectCode())
                 && STATIC_VALUE_TARGETS.contains(candidate.targetCode())) {
-            return candidate.targetParam() / 1000.0;
+            return Optional.of(candidate.targetParam() / 1000.0);
         }
-        return candidate.targetParam();
+        return Optional.of(candidate.targetParam());
     }
 
     private RulePattern toPattern(Rule rule) {        return RulePattern.of(

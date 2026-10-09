@@ -137,6 +137,28 @@ class JsoupFinvizAdapterTest {
     }
 
     @Test
+    @DisplayName("Should stop paginating when the page is not full and has no next link")
+    void shouldStopWhenPageIsNotFullAndHasNoNextLink() {
+        List<String> requestedUrls = new ArrayList<>();
+        JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
+                "https://finviz.com/screener.ashx",
+                "test-agent",
+                5000,
+            1,
+            "geo_usa",
+            "ind_stocksonly",
+                (url, userAgent, timeoutMs) -> {
+                    requestedUrls.add(url);
+                    return parseFixture("fixtures/finviz/screener-page-3.html");
+                });
+
+        List<String> tickers = adapter.findTickers("ta_sma20_pa", 100);
+
+        assertThat(tickers).containsExactly("AMZN");
+        assertThat(requestedUrls).hasSize(1);
+    }
+
+    @Test
     @DisplayName("Should prepend mandatory geo and industry filters even when the request already has filters")
     void shouldAlwaysPrependMandatoryFilters() {
         List<String> requestedUrls = new ArrayList<>();

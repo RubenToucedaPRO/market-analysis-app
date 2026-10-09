@@ -157,6 +157,20 @@ class FinvizFilterMapperTest {
     }
 
     @Test
+    @DisplayName("Should warn on incompatible bounds regardless of rule order")
+    void shouldWarnOnIncompatiblePriceRangeReversedOrder() {
+        List<Rule> rules = List.of(
+                rule("PRICE", null, "<", "VALUE", 40.0),
+                rule("PRICE", null, ">", "CONSTANT", 20000.0));
+
+        FinvizFilterMappingResult result = mapper.map(rules);
+
+        assertThat(result.hasIncompatibleRanges()).isTrue();
+        assertThat(result.getWarnings()).containsExactly(
+                "Las reglas 'PRICE > CONSTANT(20000)' y 'PRICE < VALUE(40)' son incompatibles: ningún ticker puede cumplir ambas.");
+    }
+
+    @Test
     @DisplayName("Should not warn when bounds leave a valid range")
     void shouldNotWarnOnCompatiblePriceRange() {
         List<Rule> rules = List.of(
