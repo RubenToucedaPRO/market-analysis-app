@@ -1,6 +1,6 @@
 package com.market.analysis.infrastructure.persistence.repository;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import com.market.analysis.domain.model.Stock;
 import com.market.analysis.domain.model.StrategyEvaluation;
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  * Adapts the domain repository interface to Spring Data JPA,
  * following Clean Architecture hexagonal pattern.
  */
-@Component
+@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class SqlStrategyEvaluationRepository implements StrategyEvaluationRepository {

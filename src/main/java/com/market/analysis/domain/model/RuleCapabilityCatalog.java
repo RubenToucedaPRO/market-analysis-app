@@ -36,81 +36,81 @@ public final class RuleCapabilityCatalog {
             Map.entry(IndicatorCode.PRICE.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getCurrentPrice(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.SMA.getCode(),
                     RuleCapability.withAllowedParams(
                             Set.of(20.0, 50.0, 200.0),
                             RuleCapabilityCatalog::resolveSma,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.EMA.getCode(),
                     RuleCapability.withAllowedParams(
                             Set.of(9.0, 12.0, 20.0, 26.0, 50.0, 200.0),
                             RuleCapabilityCatalog::resolveEma,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.RSI.getCode(),
                     RuleCapability.withAllowedParams(
                             Set.of(14.0, 30.0),
                             RuleCapabilityCatalog::resolveRsi,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.MACD_LINE.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getMacdLine(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.MACD_SIGNAL.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getMacdSignal(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.MACD_HIST.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getMacdHistogram(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.BB_UPPER.getCode(),
                     RuleCapability.withAllowedParams(
                             Set.of(20.0),
                             (param, s) -> param != null && param.intValue() == 20 ? s.getBbUpper20() : null,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.BB_LOWER.getCode(),
                     RuleCapability.withAllowedParams(
                             Set.of(20.0),
                             (param, s) -> param != null && param.intValue() == 20 ? s.getBbLower20() : null,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.ATR.getCode(),
                     RuleCapability.withAllowedParams(
                             Set.of(14.0),
                             (param, s) -> param != null && param.intValue() == 14 ? s.getAtr14() : null,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.VOLUME.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getVolume() != null ? BigDecimal.valueOf(s.getVolume()) : null,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.AVG_VOLUME.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getAverageVolume() != null ? BigDecimal.valueOf(s.getAverageVolume()) : null,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.OPEN.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getOpenPrice(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.HIGH.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getHighOfDay(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.LOW.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getLowOfDay(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.PREV_CLOSE.getCode(),
                     RuleCapability.noParam(
                             (param, s) -> s.getPreviousClose(),
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.CONSTANT.getCode(),
                     RuleCapability.anyParam(
                             (param, s) -> param != null ? BigDecimal.valueOf(param) : null,
-                            VALID_OPERATORS, true, true)),
+                            true, true)),
             Map.entry(IndicatorCode.VALUE.getCode(),
                     RuleCapability.anyParam(
                             (param, s) -> param != null ? BigDecimal.valueOf(param) : null,
-                            VALID_OPERATORS, true, true))
+                            true, true))
     );
 
     private RuleCapabilityCatalog() {

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -75,39 +76,48 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
         while (uniqueTickers.size() < maxResults) {
             String requestUrl = buildUrl(filters, rowStart);
             Document page = fetchPageWithRetry(requestUrl, rowStart);
-            if (page == null) {
-                break;
-            }
-
-            List<String> pageTickers = extractTickers(page);
-            if (pageTickers.isEmpty()) {
-                log.info("finviz_screener_empty_page rowStart={} url={}", rowStart, requestUrl);
-                break;
-            }
-
             int before = uniqueTickers.size();
-            uniqueTickers.addAll(pageTickers);
-            if (uniqueTickers.size() >= maxResults) {
+            rowStart = advancePaging(page, requestUrl, rowStart, uniqueTickers, maxResults, before);
+            if (rowStart < 0) {
                 break;
             }
-
-            int nextStart = rowStart + PAGE_SIZE;
-            boolean hasExplicitNext = hasNextPage(page, nextStart);
-            boolean pageLooksFull = pageTickers.size() >= PAGE_SIZE;
-            if (!hasExplicitNext && !pageLooksFull) {
-                break;
-            }
-
-            if (before == uniqueTickers.size() && !hasExplicitNext) {
-                break;
-            }
-
-            rowStart = nextStart;
         }
 
         return uniqueTickers.stream()
                 .limit(maxResults)
                 .toList();
+    }
+
+    /**
+     * Processes one screener page and returns the next {@code rowStart}, or {@code -1}
+     * when pagination must stop (fetch failure, empty page, target reached or no
+     * further pages). Keeps a single exit point in the fetch loop.
+     */
+    private int advancePaging(Document page, String requestUrl, int rowStart, Set<String> uniqueTickers,
+            int maxResults, int before) {
+        if (page == null) {
+            return -1;
+        }
+
+        List<String> pageTickers = extractTickers(page);
+        if (pageTickers.isEmpty()) {
+            log.info("finviz_screener_empty_page rowStart={} url={}", rowStart, requestUrl);
+            return -1;
+        }
+
+        uniqueTickers.addAll(pageTickers);
+        if (uniqueTickers.size() >= maxResults) {
+            return -1;
+        }
+
+        int nextStart = rowStart + PAGE_SIZE;
+        boolean hasExplicitNext = hasNextPage(page, nextStart);
+        boolean pageLooksFull = pageTickers.size() >= PAGE_SIZE;
+        if ((!hasExplicitNext && !pageLooksFull) || (before == uniqueTickers.size() && !hasExplicitNext)) {
+            return -1;
+        }
+
+        return nextStart;
     }
 
     private Document fetchPageWithRetry(String requestUrl, int rowStart) {
@@ -151,7 +161,7 @@ public class JsoupFinvizAdapter implements FinvizScreenerPort {
         return page.select(ApiConstants.FINVIZ_SELECTOR_TABLE_ROWS)
                 .stream()
                 .map(this::extractTickerFromRow)
-                .filter(symbol -> symbol != null)
+                .filter(Objects::nonNull)
                 .filter(symbol -> !symbol.isBlank())
                 .filter(symbol -> TICKER_PATTERN.matcher(symbol).matches())
                 .toList();

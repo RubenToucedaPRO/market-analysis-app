@@ -53,7 +53,7 @@ La selección tecnológica prioriza la **estabilidad**, la **mantenibilidad** y 
 ### Backend
 - **Java 21 (LTS)**  
   Lenguaje principal del sistema, seleccionado por su estabilidad, soporte a largo plazo y características modernas del ecosistema JVM.
-- **Spring Boot 3.5.14**  
+- **Spring Boot 3.5.16**  
   Framework principal para el desarrollo backend, facilitando la configuración, la inyección de dependencias y el desarrollo estructurado de la aplicación.
 - **Spring Data JPA**  
   Capa de persistencia relacional desacoplada del dominio mediante el uso de repositorios.
@@ -536,7 +536,7 @@ Implementa los detalles técnicos necesarios para ejecutar el sistema, siempre a
 
 ### Métricas de Calidad
 - Cobertura de tests ≥ 80% (JaCoCo, verificado con `mvn verify`)
-- SonarQube Quality Gate A (objetivo): S107 (máximo 7 parámetros en constructor), S3776 (complejidad cognitiva < 15), S134 (profundidad de anidamiento < 4)
+- SonarQube Quality Gate A (verificado, Community Build local): S107 (máximo 7 parámetros en constructor), S3776 (complejidad cognitiva < 15), S134 (profundidad de anidamiento < 4)
 - Sin deuda técnica crítica
 - Documentación completa (JavaDoc + README + docs de tarea en `/docs`)
 

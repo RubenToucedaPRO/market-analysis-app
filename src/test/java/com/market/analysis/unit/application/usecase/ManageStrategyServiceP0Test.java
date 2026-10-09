@@ -1,5 +1,6 @@
 package com.market.analysis.unit.application.usecase;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -210,8 +211,10 @@ class ManageStrategyServiceP0Test {
         when(strategyRepository.save(strategy)).thenReturn(strategy);
         when(strategyMapper.toDTO(strategy)).thenReturn(dto);
 
-        // Should not throw
-        service.createStrategy(dto);
+        // Should not throw and must return the mapped DTO
+        StrategyDTO result = service.createStrategy(dto);
+        assertEquals("S", result.getName());
+        assertEquals("D", result.getDescription());
     }
 
     @Test
@@ -231,8 +234,10 @@ class ManageStrategyServiceP0Test {
         when(strategyRepository.save(strategy)).thenReturn(strategy);
         when(strategyMapper.toDTO(strategy)).thenReturn(dto);
 
-        // Should not throw
-        service.createStrategy(dto);
+        // Should not throw and must return the mapped DTO
+        StrategyDTO result = service.createStrategy(dto);
+        assertEquals("S", result.getName());
+        assertEquals("D", result.getDescription());
     }
 
     // -------------------------------------------------------------------------

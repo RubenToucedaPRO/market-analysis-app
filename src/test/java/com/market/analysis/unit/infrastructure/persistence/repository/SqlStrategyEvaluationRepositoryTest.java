@@ -1,6 +1,7 @@
 package com.market.analysis.unit.infrastructure.persistence.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -129,12 +130,10 @@ class SqlStrategyEvaluationRepositoryTest {
             when(jpaStockRepository.findById(999L)).thenReturn(Optional.empty());
 
             // Act & Assert
-            try {
-                repository.save(testDomainEvaluation, unknownStock);
-                org.junit.jupiter.api.Assertions.fail("Should have thrown EntityNotFoundException");
-            } catch (jakarta.persistence.EntityNotFoundException e) {
-                assertThat(e.getMessage()).contains("Stock not found");
-            }
+            jakarta.persistence.EntityNotFoundException ex = assertThrows(
+                    jakarta.persistence.EntityNotFoundException.class,
+                    () -> repository.save(testDomainEvaluation, unknownStock));
+            assertThat(ex.getMessage()).contains("Stock not found");
         }
 
         @Test

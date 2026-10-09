@@ -3,7 +3,7 @@ package com.market.analysis.infrastructure.persistence.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import com.market.analysis.domain.exception.EntityInUseException;
 import com.market.analysis.domain.model.RuleDefinition;
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * SQL implementation of the RuleDefinitionRepository port.
  * Adapts between the domain RuleDefinition and the persistence layer.
  */
-@Component
+@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class SqlRuleDefinitionRepository implements RuleDefinitionRepository {

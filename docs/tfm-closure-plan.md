@@ -32,6 +32,9 @@
 > Thymeleaf MVC (formularios con redirect), no REST; el "Try it out" no aporta
 > prueba práctica (302/403/CSRF). Se sustituye por tabla de endpoints JSON en
 > README Final (sin dependencia `springdoc`).
+> Revisión 8 Oct (3): **SonarQube ✅** — Community Build 26.9 en Docker
+> (`docker-compose.sonar.yml`), gate OK, ratings A/A/A, 0 BLOCKER/CRITICAL/BUG
+> (suite 1158 verde, JaCoCo check OK). Siguiente: ADRs + Prompt Library (13 Oct).
 
 ---
 
@@ -62,7 +65,7 @@
 | Fecha | Bloque | Tarea | Procedimiento |
 |-------|--------|-------|---------------|
 | **8–9 Oct** | — | **README Final** (badges, URL deploy, "Desarrollo con IA", troubleshooting + tabla endpoints JSON; `springdoc` descartado → Future Work) | rama → doc → menú → PR |
-| **12 Oct** | — | **SonarQube Local** (Docker) + Quality Gate A + fix critical | `bash` + tests + doc |
+| **12 Oct** | — | **SonarQube Local** (Docker) + Quality Gate A + fix critical | ✅ hecho 8 Oct (adelantado): Community 26.9 + gate OK + 0 critical |
 | **13 Oct** | — | **ADRs (4)** + **Prompt Library** (`docs/prompts/`, 8-10 patrones) | generar + menú → PR |
 | **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | generar con contexto |
 | **15 Oct** | — | **Rehearsal Grabado** (demo 5 min + Q&A) + ajustes finales | — |
@@ -110,7 +113,7 @@
 | Criterio | Verificación |
 |----------|--------------|
 | **Funcional** | Scoring 0-100 funciona, deploy VPS responde (verificado 8 Oct: HTTPS 200 + redeploy idempotente), login bloquea tras 3 fallos durante 30 min (verificado), endpoints JSON documentados en README (Swagger movido a Future Work 8 Oct, sin `springdoc`) |
-| **Calidad** | `mvn verify` → BUILD SUCCESS, JaCoCo ≥80% (plugin ya en `pom.xml`), SonarQube Quality Gate A (pendiente de configurar) |
+| **Calidad** | `mvn verify` → BUILD SUCCESS, JaCoCo ≥80% (plugin ya en `pom.xml`), SonarQube Quality Gate A ✅ (verificado 8 Oct: gate OK, ratings A/A/A, 0 BLOCKER/CRITICAL) |
 | **Documentación** | README completo, 4 ADRs, Prompt Library, Slides 12 páginas |
 | **Entrega** | Repo público, tag `tfm-v1.0`, URLs en README, slides accesibles |
 
@@ -138,13 +141,11 @@
 
 ## Próximo Paso Inmediato
 
-**Cola real pendiente (Login y Deploy ya hechos — ver revisión 8 Oct; Swagger a Future Work — ver revisión 8 Oct (2))**:
-1. README Final: badges, URL deploy (`https://tfm.rubentouceda.es`), sección "Desarrollo con IA", troubleshooting + tabla endpoints JSON. Rama → doc → menú → PR.
-2. SonarQube Local + Quality Gate A + fix critical (12 Oct).
-3. ADRs (4) + Prompt Library (13 Oct).
-4. Slides Defensa 12 + speaker notes (14 Oct).
-5. Rehearsal grabado + ajustes (15 Oct).
-6. Buffer + tag `tfm-v1.0` (16 Oct).
+**Cola real pendiente (Login, Deploy, Swagger→Future Work, README y SonarQube ya hechos — ver revisiones 8 Oct)**:
+1. ADRs (4) + Prompt Library (13 Oct).
+2. Slides Defensa 12 + speaker notes (14 Oct).
+3. Rehearsal grabado + ajustes (15 Oct).
+4. Buffer + tag `tfm-v1.0` (16 Oct).
 
 ## Recuperar contexto instantáneo en nueva sesión OpenCode
 Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`

@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.Stock;
@@ -18,7 +18,7 @@ import com.market.analysis.infrastructure.persistence.mapper.StockMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class SqlStockDataRepository implements StockDataRepository {

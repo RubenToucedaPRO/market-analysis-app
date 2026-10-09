@@ -97,6 +97,7 @@ class ManageRuleDefinitionServiceP2Test {
 
         List<RuleCapabilityDTO> capabilities = service.getCatalogCapabilities();
 
+        assertThat(capabilities).isNotEmpty();
         assertThat(capabilities).extracting(RuleCapabilityDTO::getCode)
                 .doesNotContain("EMA");
     }

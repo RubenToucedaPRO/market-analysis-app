@@ -1,0 +1,32 @@
+# SonarQube Community Build — análisis local de calidad (TFM).
+#
+# Uso:
+#   docker compose -f docker-compose.sonar.yml up -d
+#   # esperar a que http://localhost:9000/api/system/status devuelva {"status":"UP"}
+#   mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+#     -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<TOKEN>
+#   docker compose -f docker-compose.sonar.yml down   # parar (los datos persisten en el volumen)
+#
+# Primer arranque: entrar en http://localhost:9000 con admin/admin, generar un
+# token de análisis (Administration > Security > Users > Tokens) y usarlo como
+# -Dsonar.token. No interfiere con `docker-compose.yml` de la app (fichero separado).
+name: market-analysis-sonar
+
+services:
+  sonarqube:
+    # Digest fijado el 2026-10-08 (Community Build vigente; ver doc de tarea).
+    image: sonarqube:community@sha256:c0f1160bccfa435db4168c2d7df69af3c3ea7bfeb87395613014048fb33a68c1
+    container_name: market-analysis-sonarqube
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:

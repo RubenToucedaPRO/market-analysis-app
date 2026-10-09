@@ -79,21 +79,21 @@ class StrategyTest {
                 .rules(rules)
                 .build();
 
-        // Act
-        List<Rule> retrievedRules = strategy.getRules();
-
-        // Assert
-        assertThrows(UnsupportedOperationException.class, () -> {
-            retrievedRules.add(Rule.builder()
-                    .id(2L)
-                    .name("Rule 2")
-                    .subjectCode("PRICE")
+        Rule newRule = Rule.builder()
+                .id(2L)
+                .name("Rule 2")
+                .subjectCode("PRICE")
                 .subjectParam(null)
                 .operator(">")
                 .targetCode("CONSTANT")
                 .targetParam(100.0)
-                    .build());
-        });
+                .build();
+
+        // Act
+        List<Rule> retrievedRules = strategy.getRules();
+
+        // Assert
+        assertThrows(UnsupportedOperationException.class, () -> retrievedRules.add(newRule));
     }
 
     @Test

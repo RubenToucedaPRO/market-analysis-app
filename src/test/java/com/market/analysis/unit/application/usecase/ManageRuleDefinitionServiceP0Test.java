@@ -122,8 +122,9 @@ class ManageRuleDefinitionServiceP0Test {
                     .thenReturn(RuleDefinition.builder().id(1L).code(code).name(code).requiresParam(false).build());
             when(ruleDefinitionDTOMapper.toDTO(org.mockito.ArgumentMatchers.any())).thenReturn(dto);
 
-            // Should not throw
-            service.createRuleDefinition(dto);
+            // Should not throw and must return the mapped DTO
+            RuleDefinitionDTO result = service.createRuleDefinition(dto);
+            assertEquals(code, result.getCode());
         }
     }
 
@@ -144,8 +145,10 @@ class ManageRuleDefinitionServiceP0Test {
         when(ruleDefinitionRepository.save(org.mockito.ArgumentMatchers.any())).thenReturn(domainObj);
         when(ruleDefinitionDTOMapper.toDTO(domainObj)).thenReturn(dto);
 
-        // Should not throw
-        service.createRuleDefinition(dto);
+        // Should not throw and must return the mapped DTO
+        RuleDefinitionDTO result = service.createRuleDefinition(dto);
+        assertEquals("SMA", result.getCode());
+        assertTrue(result.isRequiresParam());
     }
 
     // -------------------------------------------------------------------------

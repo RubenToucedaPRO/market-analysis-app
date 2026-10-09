@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
  * Encapsulates bulk save operations, keeping HTTP and JPA concerns separated
  * from PolygonAdapter.
  */
-@Component
+@Repository
 @RequiredArgsConstructor
 public class SqlCandleHistoryRepository implements CandleHistoryRepository {
 
@@ -45,6 +45,8 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
             "INSERT INTO candles (ticker, date_time, open_price, high_price, low_price, close_price, volume)"
                     + " VALUES (?,?,?,?,?,?,?)";
 
+    private static final String TICKER_REQUIRED_MESSAGE = "ticker must not be null or blank";
+
     /**
      * Replaces the full set of candles for a given ticker in a single transaction.
      *
@@ -60,7 +62,7 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
      */
     @Transactional
     public void saveCandlesForTicker(String ticker, List<Candle> candles) {
-        Assert.hasText(ticker, "ticker must not be null or blank");
+        Assert.hasText(ticker, TICKER_REQUIRED_MESSAGE);
 
         if (candles == null || candles.isEmpty()) {
             log.debug("saveCandlesForTicker: skipping persistence for ticker={} — candle list is null or empty",
@@ -92,14 +94,14 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
     @Override
     @Transactional
     public void deleteCandlesByTicker(String ticker) {
-        Assert.hasText(ticker, "ticker must not be null or blank");
+        Assert.hasText(ticker, TICKER_REQUIRED_MESSAGE);
         jpaCandleRepository.deleteByTicker(ticker);
     }
 
      @Override
      @Transactional(readOnly = true)
      public List<Candle> findCandlesByTicker(String ticker) {
-        Assert.hasText(ticker, "ticker must not be null or blank");
+        Assert.hasText(ticker, TICKER_REQUIRED_MESSAGE);
         log.debug("findCandlesByTicker: querying candles for ticker={}", ticker);
         List<Candle> candles = jpaCandleRepository.findByTickerOrderByDateTimeAsc(ticker)
                 .stream()
@@ -112,7 +114,7 @@ public class SqlCandleHistoryRepository implements CandleHistoryRepository {
      @Override
      @Transactional(readOnly = true)
      public Optional<Candle> findLatestCandleByTicker(String ticker) {
-        Assert.hasText(ticker, "ticker must not be null or blank");
+        Assert.hasText(ticker, TICKER_REQUIRED_MESSAGE);
         log.debug("findLatestCandleByTicker: querying latest candle for ticker={}", ticker);
         CandleEntity entity = jpaCandleRepository.findTopByTickerOrderByDateTimeDesc(ticker);
         Optional<Candle> result = Optional.ofNullable(entity).map(candleMapper::toDomain);

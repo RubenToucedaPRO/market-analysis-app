@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,8 @@ public class PolygonAdapter implements HistoricalProviderPort {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final PolygonThrottler throttler;
+
+    private static final ZoneId NEW_YORK_ZONE = ZoneId.of("America/New_York");
 
     private static final int SIZE_HISTORICAL = 300;
 
@@ -132,7 +135,7 @@ public class PolygonAdapter implements HistoricalProviderPort {
     }
 
     private URI buildUri(String ticker, int size) {
-        LocalDate toDate = LocalDate.now();
+        LocalDate toDate = LocalDate.now(NEW_YORK_ZONE);
         // Subtract 350 days to ensure we get enough trading days for SMA200
         LocalDate fromDate = toDate.minusDays(350);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(ApiConstants.POLYGON_DATE_PATTERN);

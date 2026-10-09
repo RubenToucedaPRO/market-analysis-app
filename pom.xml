@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
+        <version>3.5.16</version>
         <relativePath />
     </parent>
 
@@ -21,6 +21,11 @@
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- Must mirror the JaCoCo excludes below: files JaCoCo ignores would
+             otherwise count as 0% covered in SonarQube (e.g. domain/model VOs).
+             Uses source paths (SonarQube syntax), not .class patterns. -->
+        <sonar.coverage.exclusions>
+            src/main/java/com/market/analysis/MarketAnalysisApplication.java,src/main/java/com/market/analysis/infrastructure/config/**,src/main/java/com/market/analysis/application/dto/**,src/main/java/com/market/analysis/presentation/dto/**,src/main/java/com/market/analysis/domain/model/**,src/main/java/com/market/analysis/domain/exception/**,**/*DTO.java,**/*Config.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>

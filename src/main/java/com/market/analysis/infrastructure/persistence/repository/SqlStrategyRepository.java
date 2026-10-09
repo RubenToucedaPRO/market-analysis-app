@@ -3,7 +3,7 @@ package com.market.analysis.infrastructure.persistence.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.market.analysis.domain.model.Strategy;
@@ -14,7 +14,7 @@ import com.market.analysis.infrastructure.persistence.mapper.StrategyMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 @Slf4j
 public class SqlStrategyRepository implements StrategyRepository { // Tu interfaz de dominio

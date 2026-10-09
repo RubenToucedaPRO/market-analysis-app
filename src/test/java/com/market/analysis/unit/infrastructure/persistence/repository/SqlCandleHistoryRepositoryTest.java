@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -97,7 +98,7 @@ class SqlCandleHistoryRepositoryTest {
 
         InOrder order = inOrder(jpaCandleRepository, jdbcTemplate);
         order.verify(jpaCandleRepository).deleteByTicker(ticker);
-        order.verify(jdbcTemplate).batchUpdate(any(String.class), any(List.class));
+        order.verify(jdbcTemplate).batchUpdate(any(String.class), anyList());
     }
 
     @Test
@@ -213,6 +214,30 @@ class SqlCandleHistoryRepositoryTest {
 
         assertThat(result).containsExactly(candle1, candle2);
         verify(candleMapper, times(2)).toDomain(any(CandleEntity.class));
+    }
+
+    @Test
+    @DisplayName("findLatestCandleByTicker: should map and return the latest entity")
+    void findLatestCandleByTicker_existingEntity_returnsMappedCandle() {
+        String ticker = "AAPL";
+        CandleEntity entity = new CandleEntity();
+        Candle candle = buildCandle(ticker);
+
+        when(jpaCandleRepository.findTopByTickerOrderByDateTimeDesc(ticker)).thenReturn(entity);
+        when(candleMapper.toDomain(entity)).thenReturn(candle);
+
+        assertThat(sqlCandleHistoryRepository.findLatestCandleByTicker(ticker)).contains(candle);
+    }
+
+    @Test
+    @DisplayName("findLatestCandleByTicker: should return empty when no candle exists")
+    void findLatestCandleByTicker_noEntity_returnsEmpty() {
+        String ticker = "AAPL";
+
+        when(jpaCandleRepository.findTopByTickerOrderByDateTimeDesc(ticker)).thenReturn(null);
+
+        assertThat(sqlCandleHistoryRepository.findLatestCandleByTicker(ticker)).isEmpty();
+        verify(candleMapper, never()).toDomain(any());
     }
 
     // -------------------------------------------------------------------------

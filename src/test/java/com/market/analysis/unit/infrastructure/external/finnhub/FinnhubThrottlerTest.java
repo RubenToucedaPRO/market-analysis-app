@@ -37,6 +37,9 @@ class FinnhubThrottlerTest {
         }
 
         @Test
+        // S2925 suppressed: this test verifies wall-clock window sliding, which
+        // inherently requires a real wait (bounded 400ms, 2x margin over the window).
+        @SuppressWarnings("java:S2925")
         void shouldAllowImmediateCallAfterWindowSlides() throws InterruptedException {
                 FinnhubThrottler throttler = new FinnhubThrottler(1, 200);
 

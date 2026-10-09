@@ -1,12 +1,10 @@
 package com.market.analysis.unit.infrastructure.persistence.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.market.analysis.domain.model.ApiCallLog;
 import com.market.analysis.infrastructure.persistence.entity.ApiCallLogEntity;
 import com.market.analysis.infrastructure.persistence.mapper.ApiCallLogMapper;
 import com.market.analysis.infrastructure.persistence.repository.JpaApiCallRateRepository;
@@ -36,27 +33,6 @@ class SqlApiCallRateRepositoryTest {
 
     @InjectMocks
     private SqlApiCallRateRepository repository;
-
-    private ApiCallLogEntity testEntity;
-    private ApiCallLog testDomain;
-    private Instant testTimestamp;
-
-    @BeforeEach
-    void setUp() {
-        testTimestamp = Instant.parse("2026-02-14T10:00:00Z");
-
-        testEntity = ApiCallLogEntity.builder()
-                .id(1L)
-                .ticker("AAPL")
-                .ocurredAt(testTimestamp)
-                .build();
-
-        testDomain = ApiCallLog.builder()
-                .id(1L)
-                .ticker("AAPL")
-                .ocurredAt(testTimestamp)
-                .build();
-    }
 
     @Test
     @DisplayName("Should save API call log with ticker and timestamp")

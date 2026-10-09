@@ -47,9 +47,10 @@ class JsoupFinvizAdapterTest {
         List<String> tickers = adapter.findTickers("ta_sma20_pa", 5);
 
         assertThat(tickers).containsExactly("AAPL", "MSFT", "GOOGL", "NVDA", "AMZN");
-        assertThat(requestedUrls).anyMatch(url -> url.contains("&r=21"));
-        assertThat(requestedUrls).anyMatch(url -> url.contains("&r=41"));
-        assertThat(requestedUrls).allMatch(url -> url.contains("f=geo_usa,ind_stocksonly,ta_sma20_pa"));
+        assertThat(requestedUrls)
+                .anyMatch(url -> url.contains("&r=21"))
+                .anyMatch(url -> url.contains("&r=41"))
+                .allMatch(url -> url.contains("f=geo_usa,ind_stocksonly,ta_sma20_pa"));
         assertThat(usedUserAgents).containsOnly("test-agent");
         assertThat(usedTimeouts).containsOnly(5000);
     }
@@ -133,6 +134,66 @@ class JsoupFinvizAdapterTest {
         List<String> tickers = adapter.findTickers("ta_sma20_pa", 0);
 
         assertThat(tickers).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should stop paginating when the page is not full and has no next link")
+    void shouldStopWhenPageIsNotFullAndHasNoNextLink() {
+        List<String> requestedUrls = new ArrayList<>();
+        JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
+                "https://finviz.com/screener.ashx",
+                "test-agent",
+                5000,
+            1,
+            "geo_usa",
+            "ind_stocksonly",
+                (url, userAgent, timeoutMs) -> {
+                    requestedUrls.add(url);
+                    return parseFixture("fixtures/finviz/screener-page-3.html");
+                });
+
+        List<String> tickers = adapter.findTickers("ta_sma20_pa", 100);
+
+        assertThat(tickers).containsExactly("AMZN");
+        assertThat(requestedUrls).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Should keep paginating on full pages and stop when no progress is made")
+    void shouldKeepPagingOnFullPagesAndStopWithoutProgress() {
+        List<String> requestedUrls = new ArrayList<>();
+        JsoupFinvizAdapter adapter = new JsoupFinvizAdapter(
+                "https://finviz.com/screener.ashx",
+                "test-agent",
+                5000,
+            1,
+            "geo_usa",
+            "ind_stocksonly",
+                (url, userAgent, timeoutMs) -> {
+                    requestedUrls.add(url);
+                    if (requestedUrls.size() == 1) {
+                        return Jsoup.parse(buildFullPage(21));
+                    }
+                    if (requestedUrls.size() == 2) {
+                        return Jsoup.parse(buildFullPage(41));
+                    }
+                    return parseFixture("fixtures/finviz/screener-page-3.html");
+                });
+
+        List<String> tickers = adapter.findTickers("ta_sma20_pa", 100);
+
+        assertThat(tickers).hasSize(21);
+        assertThat(requestedUrls).hasSize(3);
+    }
+
+    private static String buildFullPage(int nextRow) {
+        StringBuilder rows = new StringBuilder();
+        for (char suffix = 'A'; suffix <= 'T'; suffix++) {
+            String ticker = "ST" + suffix;
+            rows.append("<tr><td>1</td><td><a class=\"tab-link\" href=\"/screener.ashx?t=")
+                    .append(ticker).append("\">").append(ticker).append("</a></td></tr>");
+        }
+        return "<table><tbody>" + rows + "</tbody></table><a href=\"/screener.ashx?f=x&r=" + nextRow + "\">next</a>";
     }
 
     @Test
