@@ -25,6 +25,12 @@ public class ValorationSectionsDTO {
     private String fortalezas;
     private String riesgos;
     private String conclusion;
+    /**
+     * Raw stored text, always populated. Shown as-is when the valuation is not
+     * structured (e.g. the friendly fallback persisted when every LLM failed),
+     * so the view never renders an empty card.
+     */
+    private String raw;
 
     public static ValorationSectionsDTO from(String raw) {
         List<String> parts = ValorationSections.split(raw);
@@ -35,6 +41,7 @@ public class ValorationSectionsDTO {
                 .fortalezas(structured ? parts.get(1) : "")
                 .riesgos(structured ? parts.get(2) : "")
                 .conclusion(structured ? parts.get(3) : "")
+                .raw(raw)
                 .build();
     }
 }
