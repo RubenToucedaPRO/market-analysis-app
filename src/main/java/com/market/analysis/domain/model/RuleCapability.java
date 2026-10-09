@@ -12,12 +12,13 @@ import java.util.Set;
  *   <li>An {@link IndicatorResolver} that knows how to extract the indicator
  *       value from a {@link Stock} instance, removing magic-string switch
  *       statements from the evaluator (P1 task 6).</li>
- *   <li>The set of comparison operators that are valid for this indicator
- *       (P1 task 5).</li>
  *   <li>Role flags ({@code subjectAllowed} / {@code targetAllowed}) that
  *       express whether the indicator can appear as the subject or target of a
  *       rule (P1 task 5).</li>
  * </ul>
+ *
+ * <p>Operator validation lives in {@code RuleCapabilityCatalog}
+ * ({@code VALID_OPERATORS}); capabilities intentionally do not duplicate it.</p>
  */
 public final class RuleCapability {
 
@@ -25,7 +26,6 @@ public final class RuleCapability {
     private final boolean anyParamAllowed;
     private final Set<Double> allowedParams;
     private final IndicatorResolver resolver;
-    private final Set<String> allowedOperators;
     private final boolean subjectAllowed;
     private final boolean targetAllowed;
 
@@ -34,14 +34,12 @@ public final class RuleCapability {
             boolean anyParamAllowed,
             Set<Double> allowedParams,
             IndicatorResolver resolver,
-            Set<String> allowedOperators,
             boolean subjectAllowed,
             boolean targetAllowed) {
         this.requiresParam = requiresParam;
         this.anyParamAllowed = anyParamAllowed;
         this.allowedParams = allowedParams;
         this.resolver = resolver;
-        this.allowedOperators = allowedOperators;
         this.subjectAllowed = subjectAllowed;
         this.targetAllowed = targetAllowed;
     }
@@ -49,51 +47,45 @@ public final class RuleCapability {
     /**
      * Creates a capability for an indicator that does not require a parameter.
      *
-     * @param resolver        indicator value resolver
-     * @param allowedOperators operators valid for this indicator
-     * @param subjectAllowed  whether the indicator may appear as rule subject
-     * @param targetAllowed   whether the indicator may appear as rule target
+     * @param resolver       indicator value resolver
+     * @param subjectAllowed whether the indicator may appear as rule subject
+     * @param targetAllowed  whether the indicator may appear as rule target
      */
     public static RuleCapability noParam(
             IndicatorResolver resolver,
-            Set<String> allowedOperators,
             boolean subjectAllowed,
             boolean targetAllowed) {
-        return new RuleCapability(false, false, Set.of(), resolver, allowedOperators, subjectAllowed, targetAllowed);
+        return new RuleCapability(false, false, Set.of(), resolver, subjectAllowed, targetAllowed);
     }
 
     /**
      * Creates a capability for an indicator that requires one of a fixed set of parameters.
      *
-     * @param allowedParams   the accepted parameter values
-     * @param resolver        indicator value resolver
-     * @param allowedOperators operators valid for this indicator
-     * @param subjectAllowed  whether the indicator may appear as rule subject
-     * @param targetAllowed   whether the indicator may appear as rule target
+     * @param allowedParams  the accepted parameter values
+     * @param resolver       indicator value resolver
+     * @param subjectAllowed whether the indicator may appear as rule subject
+     * @param targetAllowed  whether the indicator may appear as rule target
      */
     public static RuleCapability withAllowedParams(
             Set<Double> allowedParams,
             IndicatorResolver resolver,
-            Set<String> allowedOperators,
             boolean subjectAllowed,
             boolean targetAllowed) {
-        return new RuleCapability(true, false, Set.copyOf(allowedParams), resolver, allowedOperators, subjectAllowed, targetAllowed);
+        return new RuleCapability(true, false, Set.copyOf(allowedParams), resolver, subjectAllowed, targetAllowed);
     }
 
     /**
      * Creates a capability for an indicator that requires a parameter but accepts any numeric value.
      *
-     * @param resolver        indicator value resolver
-     * @param allowedOperators operators valid for this indicator
-     * @param subjectAllowed  whether the indicator may appear as rule subject
-     * @param targetAllowed   whether the indicator may appear as rule target
+     * @param resolver       indicator value resolver
+     * @param subjectAllowed whether the indicator may appear as rule subject
+     * @param targetAllowed  whether the indicator may appear as rule target
      */
     public static RuleCapability anyParam(
             IndicatorResolver resolver,
-            Set<String> allowedOperators,
             boolean subjectAllowed,
             boolean targetAllowed) {
-        return new RuleCapability(true, true, Set.of(), resolver, allowedOperators, subjectAllowed, targetAllowed);
+        return new RuleCapability(true, true, Set.of(), resolver, subjectAllowed, targetAllowed);
     }
 
     /**

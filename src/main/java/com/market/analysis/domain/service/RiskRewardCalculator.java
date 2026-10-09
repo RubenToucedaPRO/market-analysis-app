@@ -45,7 +45,7 @@ public class RiskRewardCalculator {
         requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
         return switch (objective.getTargetType()) {
-            case SMA -> resolveSmaValue(objective.getTargetValue(), stock, "target");
+            case SMA -> resolveSmaValue(objective.getTargetValue(), stock);
             case PERCENTAGE -> calculatePercentagePrice(entryPrice.value(), objective.getTargetValue(), true);
             case FIXED_PRICE -> validateAndReturnFixedPrice(objective.getTargetValue(), "Target");
         };
@@ -68,7 +68,7 @@ public class RiskRewardCalculator {
         requireNonNull(stock, DomainErrorCodes.STOCK_NULL);
 
         BigDecimal stopLossPrice = switch (objective.getStopLossType()) {
-            case SMA -> resolveSmaValue(objective.getStopLossValue(), stock, "stop-loss");
+            case SMA -> resolveSmaValue(objective.getStopLossValue(), stock);
             case PERCENTAGE -> calculatePercentagePrice(entryPrice.value(), objective.getStopLossValue(), false);
             case FIXED_PRICE -> validateAndReturnFixedPrice(objective.getStopLossValue(), "Stop-loss");
         };
@@ -148,14 +148,12 @@ public class RiskRewardCalculator {
      * 
      * @param periodValue the SMA period (must be a period supported by the catalog)
      * @param stock       the stock data containing SMA values
-     * @param context     context description for error messages (e.g., "target",
-     *                    "stop-loss")
      * @return the SMA value with proper scaling
      * @throws DomainValidationException if period is not supported by the catalog
      * @throws MissingIndicatorException if the required SMA value is null in stock
      *                                   data
      */
-    private BigDecimal resolveSmaValue(BigDecimal periodValue, Stock stock, String context) {
+    private BigDecimal resolveSmaValue(BigDecimal periodValue, Stock stock) {
         requireNonNull(periodValue, DomainErrorCodes.SMA_PERIOD_NULL);
 
         int period = periodValue.intValue();
