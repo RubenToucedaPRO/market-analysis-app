@@ -70,7 +70,7 @@
 | **8–9 Oct** | — | **README Final** (badges, URL deploy, "Desarrollo con IA", troubleshooting + tabla endpoints JSON; `springdoc` descartado → Future Work) | rama → doc → menú → PR |
 | **12 Oct** | — | **SonarQube Local** (Docker) + Quality Gate A + fix critical | ✅ hecho 8 Oct (adelantado): Community 26.9 + gate OK + 0 critical |
 | **13 Oct** | — | **ADRs (4)** + **Prompt Library** (`docs/prompts/`, 8-10 patrones) | ✅ hecho: `docs/adr/` + `docs/prompts/` (9 patrones) |
-| **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | generar con contexto |
+| **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | ✅ hecho: `docs/slides/defensa-tfm.md` (Marp) + PDF + PPTX |
 | **15 Oct** | — | **Rehearsal Grabado** (demo 5 min + Q&A) + ajustes finales | — |
 | **16 Oct** | AM | **Buffer** — remates, re-verificación deploy + docs | — |
 | | PM | **Entrega** — Tag `tfm-v1.0`, repo público, URLs en README, slides link | `bash` (git tag/push) |
@@ -144,10 +144,9 @@
 
 ## Próximo Paso Inmediato
 
-**Cola real pendiente (hasta ADRs+Prompts hecho — ver revisiones)**:
-1. Slides Defensa 12 + speaker notes (14 Oct).
-2. Rehearsal grabado + ajustes (15 Oct).
-3. Buffer + tag `tfm-v1.0` (16 Oct).
+**Cola real pendiente (hasta Slides hecho)**:
+1. Rehearsal grabado + ajustes (15 Oct).
+2. Buffer + tag `tfm-v1.0` (16 Oct).
 
 ## Recuperar contexto instantáneo en nueva sesión OpenCode
 Leer `docs/tfm-closure-plan.md`, `AGENTS.md` §3 y `docs/architecture-walkthrough.md`
