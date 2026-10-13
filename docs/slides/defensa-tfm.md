@@ -39,12 +39,7 @@ Proyecto real de uso personal: seleccionar acciones para el análisis fundamenta
 
 1. **Motor determinista**: reglas técnicas → score 0-100 + R:R + cumplimiento
 2. **IA solo interpretativa**: redacta la síntesis desde métricas ya calculadas
-
-Si la IA falla (429, vacíos), la evaluación numérica **sigue intacta** y la
-vista muestra un aviso amistoso con fallback.
-
-Lo que nunca hace la aplicación: decidir por ti. La decisión final es
-siempre humana, con el análisis fundamental.
+3. **Uso de API externas**: Finviz, Polygon, Finnhub, OpenRouter todas sin coste
 
 
 ---
@@ -63,6 +58,22 @@ El recorrido de una acción, de candidata a evaluada:
 
 ---
 
+
+# Motor de reglas + puntuación
+
+- Cada **regla** es una condición simple ("el precio supera la media de
+  50 días"): responde sí o no y lo justifica con números.
+- Una **estrategia** exige varias reglas **a la vez**, cada una con su
+  **peso**; superar la **nota mínima** da la puntuación (0-100).
+- El **catálogo** lista cada indicador con su ficha: valores admitidos
+  (la media acepta 20, 50 o 200 días), cálculo y usos permitidos.
+- Guardián y auditoría: rechaza lo imposible antes de calcular y registra
+  qué regla falló y por qué.
+
+
+---
+
+
 # Arquitectura hexagonal
 
 ![Diagrama de arquitectura hexagonal](../../image/arquitectura_hexagonal.png)
@@ -75,18 +86,6 @@ de proveedor significa tocar un solo adaptador.
 
 ---
 
-# Motor de reglas + scoring
-
-- `Rule`: condición autocontenida → booleano + justificación
-- `Strategy`: composición AND + `threshold`; cada regla tiene `weight`
-- **Catálogo de capacidades**: la ficha técnica de cada indicador — qué
-  parámetros acepta (SMA: 20, 50, 200), cómo se calcula y qué roles permite
-- Actúa como guardián: rechaza `SMA(100)` antes de evaluar, sin fallos
-  silenciosos en mitad del cálculo
-- Todo queda auditado: qué regla falló y por qué
-
-
----
 
 # Fronteras de la IA (diseño intencionado)
 
