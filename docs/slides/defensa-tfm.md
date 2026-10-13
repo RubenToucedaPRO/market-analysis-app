@@ -135,13 +135,43 @@ Frontera sagrada: **la IA propone, la persona dispone**.
 
 ---
 
-# La aplicación
+# La aplicación (1/4): alta y evaluación
 
-![Panel de tickers w:560px](../../src/main/resources/static/images/screenshot-1.webp) ![Detalle con velas e IA w:560px](../../src/main/resources/static/images/screenshot-4.webp)
+![Panel de análisis w:1000px](<Imagenes/11-Analisis.png>)
 
-En <https://tfm.rubentouceda.es> (usuario y contraseña de prueba en el
-formulario de entrega): panel con estado APROBADO/FALLIDO, R:R y plan de
-trade; detalle con velas, SMA y síntesis IA en 4 secciones (o aviso si falla).
+Se escribe el ticker, se elige estrategia y se pulsa Añadir (en
+<https://tfm.rubentouceda.es>, con usuario de prueba del formulario). La app
+descarga datos, evalúa las reglas y calcula score, R:R y plan de trade.
+FEIM: APROBADO 100%, R:R 8,58. CBLL: FALLIDO 77,78% — se descarta aquí.
+
+---
+
+# La aplicación (2/4): detalle del candidato
+
+![Detalle FEIM w:560px](<Imagenes/12-Detalle analissi ticker ok.png>) ![Generando análisis w:560px](<Imagenes/13-Generacion analisis IA.png>)
+
+El detalle muestra veredicto, cumplimiento, plan (entrada, target, stop-loss)
+y velas. "Generar análisis" lanza la IA en segundo plano con banner de
+progreso: se puede seguir navegando.
+
+---
+
+# La aplicación (3/4): síntesis IA
+
+![Síntesis IA en 4 secciones w:950px](<Imagenes/14-Resultado analisis IA.png>)
+
+La IA redacta 4 secciones citando las métricas (R:R 8,58:1, stop 74,05…).
+Si todos los modelos fallan, en su lugar aparece un aviso amistoso y la
+evaluación numérica queda intacta.
+
+---
+
+# La aplicación (4/4): gráfico y descarte
+
+![Gráfico con SMA h:380px](<Imagenes/15-Grafico ticker.png>) ![Descarte explicado h:380px](<Imagenes/16-Ticker analisis fallido.png>)
+
+Gráfico completo con SMA 20/50/200 para el estudio visual. Y el descarte
+también informa: CBLL explica qué 2 reglas fallaron (Precio\<SMA20, RSI14).
 
 
 ---
