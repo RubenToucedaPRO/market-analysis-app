@@ -1,11 +1,15 @@
 ---
 marp: true
-theme: default
+theme: alpha-tfm
 paginate: true
 footer: "TFM · Motor de Análisis Técnico · Rubén Touceda"
 ---
 
 <!-- _class: lead -->
+<!-- _backgroundColor: #0d6efd -->
+<!-- _color: white -->
+<!-- _footer: "" -->
+<!-- _paginate: false -->
 
 # Motor de Análisis Técnico de Acciones
 
