@@ -111,9 +111,12 @@ Nota: Este slide blinda la pregunta "¿y la IA no se equivoca?". Respuesta: pued
 - **Datos**: H2 (dev) · MariaDB (prod) · Finnhub / Polygon / Finviz / OpenRouter
 - **Calidad**: 1165 tests, JaCoCo ≥80%, **SonarQube A** (63→0 issues), CI en PRs
 - **Despliegue**: Docker + VPS propio con Nginx/SSL → <https://tfm.rubentouceda.es>
+- Se evaluó Railway, pero la comunicación con la base de datos era lenta;
+  el VPS además amplió conocimientos (endurecimiento, fail2ban, backups,
+  red y certificados gestionados a mano)
 
 <!--
-Nota: Si preguntan por qué VPS y no Railway: control total, reproducible con Docker, healthchecks y pipeline GHCR. Los números (1165, 63→0) son tu prueba de "buen proyecto de software", no un fichero de 10.000 líneas.
+Nota: Se probó Railway primero, pero la latencia con la base de datos penalizaba cada consulta; el VPS dio control total y, sobre todo, aprendizaje de verdad en seguridad (fail2ban, backups, red, certificados). Los números (1165, 63→0) son tu prueba de "buen proyecto de software", no un fichero de 10.000 líneas.
 -->
 
 ---
