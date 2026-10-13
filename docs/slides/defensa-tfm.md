@@ -13,9 +13,8 @@ footer: "TFM · Motor de Análisis Técnico · Rubén Touceda"
 
 **Rubén Touceda** · Máster Desarrollo con IA (Big School) · Octubre 2026
 
-<!--
-Nota: Preséntate en 20 segundos: ingeniero que invierte por hobby y quería decisiones con base cuantitativa, no corazonadas. El proyecto es real y personal: lo usas tú. Eso responde al "proyecto original que te ilusione" del TFM.
--->
+Proyecto real de uso personal: seleccionar acciones para el análisis fundamental.
+
 
 ---
 
@@ -29,9 +28,6 @@ Nota: Preséntate en 20 segundos: ingeniero que invierte por hobby y quería dec
   ratio riesgo/beneficio + entrada + stop-loss…
 - …para quedarme solo con las mejores y dedicarles el análisis fundamental
 
-<!--
-Nota: Cuenta tu rutina real: tarde de domingo en Finviz, 40 candidatas, pestaña por pestaña. La app automatiza justo ese primer corte que hacías a mano — lo de invertir viene mucho después, tras el análisis fundamental de históricos y beneficios de las elegidas.
--->
 
 ---
 
@@ -43,24 +39,23 @@ Nota: Cuenta tu rutina real: tarde de domingo en Finviz, 40 candidatas, pestaña
 Si la IA falla (429, vacíos), la evaluación numérica **sigue intacta** y la
 vista muestra un aviso amistoso con fallback.
 
-<!--
-Nota: Esta es LA frase del TFM: determinista para decidir, IA para interpretar. Si el tribunal se queda con una idea, que sea esta. Anticípate: "¿y si falla la IA?" → "nada se rompe, lo veréis en la demo".
--->
+Lo que nunca hace la aplicación: decidir por ti. La decisión final es
+siempre humana, con el análisis fundamental.
+
 
 ---
 
 # ¿Cómo funciona?
 
-1. Ingesta de tickers o sugerencias (Finviz) con filtro de seguridad
+El recorrido de una acción, de candidata a evaluada:
+
+1. Ingesta de tickers o sugerencias automáticas (scrapper propio de Finviz) con filtro de seguridad
 2. Enriquecimiento: OHLCV + SMA 20/50/200 y volumen (Polygon/Finnhub)
 3. Evaluación declarativa: `Precio > SMA(50)` AND `Volumen > Media(20)`
 4. Cálculo de R:R y score ponderado 0-100 por estrategia
 5. Análisis IA a petición (async, con rotación de modelos ante 429)
 6. Persistencia y seguimiento
 
-<!--
-Nota: Recorre el flujo señalando que cada paso es un caso de uso independiente (ManageAnalyzeTicker, SuggestTickers, EvaluateStrategy…). Si preguntan "¿dónde está la lógica?", respuesta: en el dominio, nunca en los controladores.
--->
 
 ---
 
@@ -68,9 +63,11 @@ Nota: Recorre el flujo señalando que cada paso es un caso de uso independiente 
 
 ![Diagrama de arquitectura hexagonal](../../image/arquitectura_hexagonal.png)
 
-<!--
-Nota: Explica de fuera a dentro: Thymeleaf/MVC solo presenta; Application orquesta casos de uso; Domain (Rule, Strategy, RuleEvaluator) no importa nada de Spring — verificado; Infrastructure adapta JPA, APIs e IA. Cambiar de proveedor = tocar un adapter.
--->
+De fuera adentro: Thymeleaf solo presenta; Application orquesta los casos de
+uso; el Dominio (`Rule`, `Strategy`, `RuleEvaluator`) no depende de ningún
+framework; Infrastructure adapta la base de datos, las APIs y la IA. Cambiar
+de proveedor significa tocar un solo adaptador.
+
 
 ---
 
@@ -78,13 +75,12 @@ Nota: Explica de fuera a dentro: Thymeleaf/MVC solo presenta; Application orques
 
 - `Rule`: condición autocontenida → booleano + justificación
 - `Strategy`: composición AND + `threshold`; cada regla tiene `weight`
-- Catálogo de capacidades: qué indicador acepta qué parámetros (rechaza
-  `SMA(100)` antes de evaluar, sin fallos silenciosos)
+- **Catálogo de capacidades**: la ficha técnica de cada indicador — qué
+  parámetros acepta (SMA: 20, 50, 200), cómo se calcula y qué roles permite
+- Actúa como guardián: rechaza `SMA(100)` antes de evaluar, sin fallos
+  silenciosos en mitad del cálculo
 - Todo queda auditado: qué regla falló y por qué
 
-<!--
-Nota: Enseña un ejemplo vivo si puedes: estrategia PRICE > SMA50 con threshold 70. El scoring ponderado fue el bloque central del cierre (4 PRs). El catálogo es el "guardián" contra combinaciones imposibles.
--->
 
 ---
 
@@ -98,10 +94,9 @@ Nota: Enseña un ejemplo vivo si puedes: estrategia PRICE > SMA50 con threshold 
 
 Modelo principal `laguna-s-2.1` + 4 reservas · Planes gratuitos: latencias
 altas **asumidas por diseño**, importa la corrección, no la velocidad.
+Caso real: los 5 modelos fallaron con 429 y la evaluación siguió intacta
+con aviso amistoso.
 
-<!--
-Nota: Este slide blinda la pregunta "¿y la IA no se equivoca?". Respuesta: puede fallar el texto, nunca los números. Menciona el caso real de tus logs: los 5 modelos en 429 y la app siguió funcionando con fallback.
--->
 
 ---
 
@@ -115,39 +110,33 @@ Nota: Este slide blinda la pregunta "¿y la IA no se equivoca?". Respuesta: pued
   el VPS además amplió conocimientos (endurecimiento, fail2ban, backups,
   red y certificados gestionados a mano)
 
-<!--
-Nota: Se probó Railway primero, pero la latencia con la base de datos penalizaba cada consulta; el VPS dio control total y, sobre todo, aprendizaje de verdad en seguridad (fail2ban, backups, red, certificados). Los números (1165, 63→0) son tu prueba de "buen proyecto de software", no un fichero de 10.000 líneas.
--->
 
 ---
 
-# Desarrollo con IA: 3 fases
+# Desarrollo con IA: 2 fases + sello propio
 
-1. **Copilot**: arranque, estructura base, autocompletado
-2. **OpenCode supervisado**: 1 rama = 1 tema = 1 doc = 1 PR, validación con
-   menú, sin avanzar sin aprobación (~25 PRs, `docs/` con trazabilidad total)
-3. **Desarrollo propio**: diseño, tuning, imprevistos de producción
+1. **Copilot**: arranque y estructura con autocompletado, siempre supervisado
+2. **OpenCode**: 1 rama = 1 tema = 1 doc = 1 PR, validación con menú
+   (~40 PRs en el cierre, `docs/` con trazabilidad total)
+
+En ambas fases hubo **desarrollo propio permanente**: se modificaban las
+propuestas del agente, se hacían partes a mano y se resolvían imprevistos
+y tuning.
 
 Frontera sagrada: **la IA propone, la persona dispone**.
 
-<!--
-Nota: Aquí demuestras lo que el máster evalúa: no "código escupido por IA", sino proceso disciplinado. Cita artefactos: AGENTS.md §3, docs/prompts/ (9 patrones), ADRs. El tribunal valora originalidad + disfrute: di qué parte disfrutaste más.
--->
 
 ---
 
-# Demo (5 min)
+# La aplicación
 
-En <https://tfm.rubentouceda.es>:
+![Panel de análisis de tickers](../../src/main/resources/static/images/screenshot-1.webp)
 
-1. Login → `/analysis`: ingesta de un ticker y su evaluación con score
-2. Detalle del ticker: velas + SMA + plan de riesgo
-3. Generar análisis IA → banner con progreso → síntesis en 4 secciones
-4. `/strategies`: crear estrategia y ver sugerencias
+En <https://tfm.rubentouceda.es> (usuario y contraseña de prueba en el
+formulario de entrega): panel con estado APROBADO/FALLIDO, R:R y plan de
+trade; detalle con velas y SMA; estrategias configurables; análisis IA en
+4 secciones o aviso amistoso si falla.
 
-<!--
-Nota: Ten abierta también la URL local por si falla la red en la defensa. Si la IA da 429 en directo, perfecto: enseñas el fallback amistoso (es una feature, no un fallo). No enseñes más de 4 pantallas.
--->
 
 ---
 
@@ -159,9 +148,6 @@ Nota: Ten abierta también la URL local por si falla la red en la defensa. Si la
 - Servicio ML separado (Python/FastAPI) desacoplado del motor
 - Migración Spring Boot 4.x (fin del soporte OSS 3.5.x)
 
-<!--
-Nota: Sé honesto con lo que NO hace (el disclaimer está en el README). Cada futuro enlaza con una decisión ya tomada: Swagger descartado a posta, ML desacoplado por hexagonal, Boot 4.x como riesgo aceptado documentado.
--->
 
 ---
 
@@ -170,11 +156,8 @@ Nota: Sé honesto con lo que NO hace (el disclaimer está en el README). Cada fu
 - ✅ README que se entiende sin abrir código
 - ✅ Código supervisado en GitHub
 - ✅ Despliegue productivo funcionando
-- ✅ Estas slides + speaker notes versionadas
+- ✅ Estas slides versionadas
 - ⬜ Formulario final con las URLs
 
-**Gracias** — preguntas.
+**Gracias.**
 
-<!--
-Nota: Cierra con las 5 piezas del TFM marcadas y pide preguntas. Ten a mano: repo, deploy, PDF de slides y formulario. Termina con qué te llevas del máster en una frase.
--->
