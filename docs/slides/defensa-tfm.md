@@ -135,7 +135,53 @@ Frontera sagrada: **la IA propone, la persona dispone**.
 
 ---
 
-# La aplicación (1/4): alta y evaluación
+# La aplicación (1/9): acceso
+
+![Portada w:560px](<Imagenes/1-Inicio.png>) ![Login w:560px](<Imagenes/2-Login.png>)
+
+Portada pública con las 4 áreas. El resto exige login (usuario de prueba en
+el formulario de entrega), con bloqueo anti-fuerza bruta tras 3 fallos.
+
+---
+
+# La aplicación (2/9): reglas
+
+![Catálogo de reglas w:560px](<Imagenes/4-Reglas.png>) ![Alta de regla w:560px](<Imagenes/6-Alta regla.png>)
+
+El catálogo administrable (PRICE, SMA, RSI, VOLUMEN…) dice qué parámetro
+necesita cada indicador. El alta es guiada: al elegir indicador, la pantalla
+activa o apaga el parámetro sola.
+
+---
+
+# La aplicación (3/9): estrategias
+
+![Lista de estrategias w:560px](<Imagenes/7-Estrategias.png>) ![Detalle de estrategia w:560px](<Imagenes/9-Estrategia.png>)
+
+"El sandwich": compra en pullback sobre SMA50, 9 reglas, umbral 100%, con
+objetivo (SMA20), stop (SMA50) y capital a arriesgar definidos.
+
+---
+
+# La aplicación (4/9): alta de estrategia
+
+![Alta de estrategia h:400px](<Imagenes/8-Alta estrategia.png>)
+
+Nombre y descripción, nota mínima de aprobación (0-100), gestión de riesgo
+y reglas de ejecución con su peso individual.
+
+---
+
+# La aplicación (5/9): filtro de seguridad
+
+![Filtro de prohibidos h:400px](<Imagenes/10-Filtro prohibidos.png>)
+
+Antes de gastar un céntimo de cuota: 13 tickers vetados (trusts, farma,
+ETFs, apalancados 2X/3X…) y keywords gestionables que filtran solos.
+
+---
+
+# La aplicación (6/9): alta y evaluación
 
 ![Panel de análisis w:1000px](<Imagenes/11-Analisis.png>)
 
@@ -146,7 +192,7 @@ FEIM: APROBADO 100%, R:R 8,58. CBLL: FALLIDO 77,78% — se descarta aquí.
 
 ---
 
-# La aplicación (2/4): detalle del candidato
+# La aplicación (7/9): detalle del candidato
 
 ![Detalle FEIM w:560px](<Imagenes/12-Detalle analissi ticker ok.png>) ![Generando análisis w:560px](<Imagenes/13-Generacion analisis IA.png>)
 
@@ -156,7 +202,7 @@ progreso: se puede seguir navegando.
 
 ---
 
-# La aplicación (3/4): síntesis IA
+# La aplicación (8/9): síntesis IA
 
 ![Síntesis IA en 4 secciones w:950px](<Imagenes/14-Resultado analisis IA.png>)
 
@@ -166,7 +212,7 @@ evaluación numérica queda intacta.
 
 ---
 
-# La aplicación (4/4): gráfico y descarte
+# La aplicación (9/9): gráfico y descarte
 
 ![Gráfico con SMA h:380px](<Imagenes/15-Grafico ticker.png>) ![Descarte explicado h:380px](<Imagenes/16-Ticker analisis fallido.png>)
 
