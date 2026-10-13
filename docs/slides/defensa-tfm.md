@@ -61,14 +61,18 @@ El recorrido de una acción, de candidata a evaluada:
 
 # Motor de reglas + puntuación
 
-- Cada **regla** es una condición simple ("el precio supera la media de
-  50 días"): responde sí o no y lo justifica con números.
-- Una **estrategia** exige varias reglas **a la vez**, cada una con su
-  **peso**; superar la **nota mínima** da la puntuación (0-100).
-- El **catálogo** lista cada indicador con su ficha: valores admitidos
-  (la media acepta 20, 50 o 200 días), cálculo y usos permitidos.
-- Guardián y auditoría: rechaza lo imposible antes de calcular y registra
-  qué regla falló y por qué.
+- Cada **regla** es una condición simple sobre el mercado, del tipo "el precio
+  está por encima de la media de 50 días". Responde sí o no, y explica por
+  qué enseñando los números.
+- Una **estrategia** junta varias reglas que deben cumplirse **todas a la
+  vez**. Cada regla tiene un **peso** (su importancia) y la estrategia una
+  **nota mínima**: el resultado es una puntuación de 0 a 100.
+- El **catálogo** es la lista cerrada de indicadores disponibles, con la ficha
+  de cada uno: qué valores acepta (la media admite 20, 50 o 200 días),
+  cómo se calcula y dónde puede usarse.
+- Actúa como guardián: si pides una media de 100 días, lo rechaza antes de
+  calcular nada, en vez de fallar en silencio a mitad del cálculo.
+- Todo queda registrado: se puede ver regla por regla cuáles se cumplieron.
 
 
 ---
