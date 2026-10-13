@@ -21,15 +21,16 @@ Nota: Preséntate en 20 segundos: ingeniero que invierte por hobby y quería dec
 
 # El problema
 
-- Invertir por intuición, foros o titulares: **sin base cuantitativa**
-- Las herramientas existentes o son cajas negras o exigen programar
-- La IA generativa sola **inventa**: no es reproducible ni auditable
-
-**Pregunta del proyecto**: ¿se puede evaluar una estrategia técnica de forma
-determinista, explicable… y que la IA solo la interprete?
+- Filtraba acciones en Finviz por parámetros, pero luego tocaba ir **una a
+  una** clasificándolas como más o menos interesantes
+- Ese triaje manual no escala: decenas de candidatas pidiendo **análisis
+  fundamental** (históricos, beneficios, ganancias)
+- Faltaba un **prefiltro cuantitativo**: que cada acción se evalúe sola con
+  ratio riesgo/beneficio + entrada + stop-loss…
+- …para quedarme solo con las mejores y dedicarles el análisis fundamental
 
 <!--
-Nota: Cuenta el problema en 30 segundos con un ejemplo: "Precio > SMA50 y volumen alto, ¿cuándo se cumplió y con qué riesgo/beneficio?" Sin números no hay decisión, solo opinión.
+Nota: Cuenta tu rutina real: tarde de domingo en Finviz, 40 candidatas, pestaña por pestaña. La app automatiza justo ese primer corte que hacías a mano — lo de invertir viene mucho después, tras el análisis fundamental de históricos y beneficios de las elegidas.
 -->
 
 ---
