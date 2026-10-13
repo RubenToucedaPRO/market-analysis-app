@@ -134,12 +134,11 @@ Frontera sagrada: **la IA propone, la persona dispone**.
 
 # La aplicación
 
-![Panel de análisis de tickers](../../src/main/resources/static/images/screenshot-1.webp)
+![Panel de tickers w:560px](../../src/main/resources/static/images/screenshot-1.webp) ![Detalle con velas e IA w:560px](../../src/main/resources/static/images/screenshot-4.webp)
 
 En <https://tfm.rubentouceda.es> (usuario y contraseña de prueba en el
 formulario de entrega): panel con estado APROBADO/FALLIDO, R:R y plan de
-trade; detalle con velas y SMA; estrategias configurables; análisis IA en
-4 secciones o aviso amistoso si falla.
+trade; detalle con velas, SMA y síntesis IA en 4 secciones (o aviso si falla).
 
 
 ---
