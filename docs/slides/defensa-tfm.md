@@ -1,17 +1,4 @@
----
-marp: true
-theme: alpha-tfm
-paginate: true
-footer: "TFM · Motor de Análisis Técnico · Rubén Touceda"
----
-
-<!-- _class: lead -->
-<!-- _backgroundColor: #0d6efd -->
-<!-- _color: white -->
-<!-- _footer: "" -->
-<!-- _paginate: false -->
-
-# Motor de Análisis Técnico de Acciones
+# Alphaseeker - Motor de Análisis Técnico de Acciones
 
 ## Evaluación determinista + IA solo interpretativa
 
@@ -27,7 +14,7 @@ Proyecto real de uso personal: seleccionar acciones para el análisis fundamenta
 - Filtraba acciones en Finviz por parámetros, pero luego tocaba ir **una a
   una** clasificándolas como más o menos interesantes
 - Ese triaje manual no escala: decenas de candidatas pidiendo **análisis
-  fundamental** (históricos, beneficios, ganancias)
+  fundamental** (históricos, beneficios, ganancias...)
 - Faltaba un **prefiltro cuantitativo**: que cada acción se evalúe sola con
   ratio riesgo/beneficio + entrada + stop-loss…
 - …para quedarme solo con las mejores y dedicarles el análisis fundamental
@@ -39,7 +26,7 @@ Proyecto real de uso personal: seleccionar acciones para el análisis fundamenta
 
 1. **Motor determinista**: reglas técnicas → score 0-100 + R:R + cumplimiento
 2. **IA solo interpretativa**: redacta la síntesis desde métricas ya calculadas
-3. **Uso de API externas**: Finviz, Polygon, Finnhub, OpenRouter todas sin coste
+3. **Uso de API externas**: Finviz, Polygon, Finnhub, OpenRouter. Todas sin coste aunque suponga limitar la velocidad de respuesta (planes gratuitos)
 
 
 ---
@@ -48,9 +35,9 @@ Proyecto real de uso personal: seleccionar acciones para el análisis fundamenta
 
 El recorrido de una acción, de candidata a evaluada:
 
-1. Ingesta de tickers o sugerencias automáticas (scrapper propio de Finviz) con filtro de seguridad
+1. Ingesta de tickers o sugerencias automáticas (scrapper propio de Finviz async) con filtro de seguridad
 2. Enriquecimiento: OHLCV + SMA 20/50/200 y volumen (Polygon/Finnhub)
-3. Evaluación declarativa: `Precio > SMA(50)` AND `Volumen > Media(20)`
+3. Evaluación declarativa: Ej: `Precio > SMA(50)` AND `Volumen > Media(20)`
 4. Cálculo de R:R y score ponderado 0-100 por estrategia
 5. Análisis IA a petición (async, con rotación de modelos ante 429)
 6. Persistencia y seguimiento
@@ -68,7 +55,7 @@ El recorrido de una acción, de candidata a evaluada:
   vez**. Cada regla tiene un **peso** (su importancia) y la estrategia una
   **nota mínima**: el resultado es una puntuación de 0 a 100.
 - El **catálogo** es la lista cerrada de indicadores disponibles, con la ficha
-  de cada uno: qué valores acepta (la media admite 20, 50 o 200 días),
+  de cada uno: qué valores acepta (por ejemplo la SMA admite 20, 50 o 200 días),
   cómo se calcula y dónde puede usarse.
 - Actúa como guardián: si pides una media de 100 días, lo rechaza antes de
   calcular nada, en vez de fallar en silencio a mitad del cálculo.
@@ -90,23 +77,6 @@ de proveedor significa tocar un solo adaptador.
 
 ---
 
-
-# Fronteras de la IA (diseño intencionado)
-
-| Motor determinista | IA interpretativa |
-|---|---|
-| Evalúa reglas y métricas | Redacta síntesis desde métricas |
-| Reproducible, testeable | No decide, no valida, no señaliza |
-| 1165 tests lo cubren | Si falla → fallback + aviso |
-
-Modelo principal `laguna-s-2.1` + 4 reservas · Planes gratuitos: latencias
-altas **asumidas por diseño**, importa la corrección, no la velocidad.
-Caso real: los 5 modelos fallaron con 429 y la evaluación siguió intacta
-con aviso amistoso.
-
-
----
-
 # Stack y calidad
 
 - **Backend**: Java 21 · Spring Boot · JPA · WebClient · Thymeleaf + Bootstrap 5
@@ -120,50 +90,68 @@ con aviso amistoso.
 
 ---
 
-# Desarrollo con IA: 2 fases + sello propio
+# Desarrollo con IA + Sello Propio
 
-1. **Copilot**: arranque y estructura con autocompletado, siempre supervisado
-2. **OpenCode**: 1 rama = 1 tema = 1 doc = 1 PR, validación con menú
-   (~40 PRs en el cierre, `docs/` con trazabilidad total)
+### 1. Ecosistema de Asistentes
+* **Copilot:** Autocompletado en editor y creación automatizada de ramas y apertura de PRs para revisión iterativa mediante comentarios.
+* **OpenCode:** Modos *Plan* y *Build* según criticidad (análisis arquitectónico, resolución de dudas complejas e implementación de componentes completos).
 
-En ambas fases hubo **desarrollo propio permanente**: se modificaban las
-propuestas del agente, se hacían partes a mano y se resolvían imprevistos
-y tuning.
+### 2. Marco de Control y Metodología
+* **Regla de oro:** `1 Rama = 1 Tema = 1 Documento (/doc) = 1 PR`.
+* **Directrices:** Contextualización del agente mediante directivas en `agents.md`.
+* **CI/CD estricto:** GitHub Actions (compilación + tests unitarios obligatorios) y análisis estático con SonarQube para autorizar el *merge* a `main`.
 
-Frontera sagrada: **la IA propone, la persona dispone**.
+### 3. El Sello Propio
+* **Criterio humano:** Refactorización manual de propuestas, ajuste fino (*tuning*) y resolución de imprevistos.
+* **Cobertura garantizada:** Modificación e incorporación de tests unitarios específicos para auditar el código generado.
 
+> *"La IA propone, el desarrollador dispone."*
 
----
-
-# La aplicación (1/9): acceso
-
-![Portada w:560px](<Imagenes/1-Inicio.png>) ![Login w:560px](<Imagenes/2-Login.png>)
-
-Portada pública con las 4 áreas. El resto exige login (usuario de prueba en
-el formulario de entrega), con bloqueo anti-fuerza bruta tras 3 fallos.
 
 ---
 
-# La aplicación (2/9): reglas
+# La aplicación: Acceso
+
+![Portada w:560px](<Imagenes/1-Inicio.png>)
+
+Portada pública con las 4 áreas que la componen, el resto exige login.
+
+---
+
+# La aplicación: Login
+
+![Login w:560px](<Imagenes/2-Login.png>)
+
+Login (usuario de prueba en el formulario de entrega), con bloqueo anti-fuerza bruta tras 3 fallos. A los 3 fallos siguientes, se bloquea 30 minutos dicho username y se muestra un aviso.
+
+---
+
+# La aplicación: Reglas
 
 ![Catálogo de reglas w:560px](<Imagenes/4-Reglas.png>) ![Alta de regla w:560px](<Imagenes/6-Alta regla.png>)
 
-El catálogo administrable (PRICE, SMA, RSI, VOLUMEN…) dice qué parámetro
-necesita cada indicador. El alta es guiada: al elegir indicador, la pantalla
-activa o apaga el parámetro sola.
+Se dispone de un catálogo de indicadores definidos por código (PRICE, SMA, RSI, VOLUMEN…) y nos permite darlos de alta en la aplicación. El alta es guiada: al elegir indicador, la pantalla activa o apaga el parámetro sola. Estos indicadores son los que luego se usan para construir estrategias en las reglas.
 
 ---
 
-# La aplicación (3/9): estrategias
+# La aplicación: Estrategias
 
-![Lista de estrategias w:560px](<Imagenes/7-Estrategias.png>) ![Detalle de estrategia w:560px](<Imagenes/9-Estrategia.png>)
+![Lista de estrategias w:560px](<Imagenes/7-Estrategias.png>)
 
-"El sandwich": compra en pullback sobre SMA50, 9 reglas, umbral 100%, con
+Aqui se pueden definir y listar todas las estrategias.
+Ejemplo: "El sandwich": compra en pullback sobre SMA50, 9 reglas, umbral 100%, con
 objetivo (SMA20), stop (SMA50) y capital a arriesgar definidos.
 
 ---
 
-# La aplicación (4/9): alta de estrategia
+# La aplicacion: Detalle de estrategia
+![Detalle de estrategia w:560px](<Imagenes/9-Estrategia.png>)
+
+Vista detalles de la estrategia, con sus reglas y pesos individuales, nota mínima de aprobación y gestión de riesgo.
+
+--- 
+
+# La aplicación: Alta de estrategia
 
 ![Alta de estrategia h:400px](<Imagenes/8-Alta estrategia.png>)
 
@@ -172,16 +160,15 @@ y reglas de ejecución con su peso individual.
 
 ---
 
-# La aplicación (5/9): filtro de seguridad
+# La aplicación: Filtro de seguridad
 
 ![Filtro de prohibidos h:400px](<Imagenes/10-Filtro prohibidos.png>)
 
-Antes de gastar un céntimo de cuota: 13 tickers vetados (trusts, farma,
-ETFs, apalancados 2X/3X…) y keywords gestionables que filtran solos.
+Se pueden definir filtros para evitar acciones de riesgo (p.ej. ETF, trust, warrants, etc.) y que no se evalúen nunca. Optimizamos el tiempo de análisis y evitamos acciones volatiles. El filtro se aplica en la ingesta de tickers y en la evaluación de estrategias.
 
 ---
 
-# La aplicación (6/9): alta y evaluación
+# La aplicación: alta y evaluación
 
 ![Panel de análisis w:1000px](<Imagenes/11-Analisis.png>)
 
@@ -192,33 +179,47 @@ FEIM: APROBADO 100%, R:R 8,58. CBLL: FALLIDO 77,78% — se descarta aquí.
 
 ---
 
-# La aplicación (7/9): detalle del candidato
+# La aplicación: detalle del candidato
 
-![Detalle FEIM w:560px](<Imagenes/12-Detalle analissi ticker ok.png>) ![Generando análisis w:560px](<Imagenes/13-Generacion analisis IA.png>)
+![Detalle FEIM w:560px](<Imagenes/12-Detalle analissi ticker ok.png>)
 
 El detalle muestra veredicto, cumplimiento, plan (entrada, target, stop-loss)
 y velas. "Generar análisis" lanza la IA en segundo plano con banner de
 progreso: se puede seguir navegando.
 
 ---
+# La aplicación (7/9): análisis IA
 
-# La aplicación (8/9): síntesis IA
+![Generando análisis w:560px](<Imagenes/13-Generacion analisis IA.png>)
+
+Se lanza la IA en segundo plano, con banner de progreso y rotación de modelos ante fallo.
+
+---
+
+# La aplicación: síntesis IA
 
 ![Síntesis IA en 4 secciones w:950px](<Imagenes/14-Resultado analisis IA.png>)
 
 La IA redacta 4 secciones citando las métricas (R:R 8,58:1, stop 74,05…).
-Si todos los modelos fallan, en su lugar aparece un aviso amistoso y la
-evaluación numérica queda intacta.
+
+Modelo principal `laguna-s-2.1` + 4 reservas · Planes gratuitos: latencias altas **asumidas por diseño**, importa la corrección, no la velocidad. Llamada a la IA en segundo plano, con banner de progreso y rotación de modelos ante fallo.
+
 
 ---
 
-# La aplicación (9/9): gráfico y descarte
+# La aplicación: gráfico
 
-![Gráfico con SMA h:380px](<Imagenes/15-Grafico ticker.png>) ![Descarte explicado h:380px](<Imagenes/16-Ticker analisis fallido.png>)
+![Gráfico con SMA h:380px](<Imagenes/15-Grafico ticker.png>)
 
-Gráfico completo con SMA 20/50/200 para el estudio visual. Y el descarte
-también informa: CBLL explica qué 2 reglas fallaron (Precio\<SMA20, RSI14).
+Gráfico completo con SMA 20/50/200 para el estudio visual antes de proceder al análisis fundamental.
 
+
+---
+
+# La aplicación: descarte
+Ante un ticker que no cumple la estrategia, se muestra el veredicto y el detalle de las reglas fallidas. En este caso, CBLL falla con 77,78% y se descarta y explica qué 2 reglas fallaron (Precio\<SMA20, RSI14).
+
+![Descarte explicado h:380px](<Imagenes/16-Ticker analisis fallido.png>)
 
 ---
 
@@ -229,17 +230,7 @@ también informa: CBLL explica qué 2 reglas fallaron (Precio\<SMA20, RSI14).
 - OpenAPI pública cuando haya API REST real
 - Servicio ML separado (Python/FastAPI) desacoplado del motor
 - Migración Spring Boot 4.x (fin del soporte OSS 3.5.x)
-
-
----
-
-# Cierre: las 5 piezas
-
-- ✅ README que se entiende sin abrir código
-- ✅ Código supervisado en GitHub
-- ✅ Despliegue productivo funcionando
-- ✅ Estas slides versionadas
-- ⬜ Formulario final con las URLs
-
-**Gracias.**
+- Actualización datos en tiempo real (WebSocket) y alertas.
+- Indicadores adicionales y estrategias más complejas
+- Integración en grafico puntos de entrada y salida, soporte y resistencia, etc.
 
