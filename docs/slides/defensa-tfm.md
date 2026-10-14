@@ -1,4 +1,4 @@
-# Alphaseeker - Motor de Análisis Técnico de Acciones
+# AlphaSeeker - Motor de Análisis Técnico de Acciones
 
 ## Evaluación determinista + IA solo interpretativa
 
@@ -97,9 +97,9 @@ de proveedor significa tocar un solo adaptador.
 * **OpenCode:** Modos *Plan* y *Build* según criticidad (análisis arquitectónico, resolución de dudas complejas e implementación de componentes completos).
 
 ### 2. Marco de Control y Metodología
-* **Regla de oro:** `1 Rama = 1 Tema = 1 Documento (/doc) = 1 PR`.
-* **Directrices:** Contextualización del agente mediante directivas en `agents.md`.
-* **CI/CD estricto:** GitHub Actions (compilación + tests unitarios obligatorios) y análisis estático con SonarQube para autorizar el *merge* a `main`.
+* **Regla de oro:** `1 Rama = 1 Tema = 1 Documento (/docs) = 1 PR`.
+* **Directrices:** Contextualización del agente mediante directivas en `AGENTS.md`.
+* **CI/CD:** GitHub Actions (compilación + tests en cada PR) y Quality Gate SonarQube verificado antes de mergear a `main`.
 
 ### 3. El Sello Propio
 * **Criterio humano:** Refactorización manual de propuestas, ajuste fino (*tuning*) y resolución de imprevistos.
@@ -122,7 +122,7 @@ Portada pública con las 4 áreas que la componen, el resto exige login.
 
 ![Login w:560px](<Imagenes/2-Login.png>)
 
-Login (usuario de prueba en el formulario de entrega), con bloqueo anti-fuerza bruta tras 3 fallos. A los 3 fallos siguientes, se bloquea 30 minutos dicho username y se muestra un aviso.
+Login (usuario de prueba en el formulario de entrega), con bloqueo anti-fuerza bruta: tras 3 fallos, el usuario queda bloqueado 30 minutos y se muestra un aviso.
 
 ---
 
@@ -130,7 +130,7 @@ Login (usuario de prueba en el formulario de entrega), con bloqueo anti-fuerza b
 
 ![Catálogo de reglas w:560px](<Imagenes/4-Reglas.png>) ![Alta de regla w:560px](<Imagenes/6-Alta regla.png>)
 
-Se dispone de un catálogo de indicadores definidos por código (PRICE, SMA, RSI, VOLUMEN…) y nos permite darlos de alta en la aplicación. El alta es guiada: al elegir indicador, la pantalla activa o apaga el parámetro sola. Estos indicadores son los que luego se usan para construir estrategias en las reglas.
+El catálogo válido vive en código (PRICE, SMA, RSI, VOLUMEN…) y la tabla permite gestionarlo: alta, edición y borrado. El alta es guiada: al elegir indicador, la pantalla activa o apaga el parámetro sola. Con estos indicadores se construyen las reglas de las estrategias.
 
 ---
 
@@ -138,13 +138,13 @@ Se dispone de un catálogo de indicadores definidos por código (PRICE, SMA, RSI
 
 ![Lista de estrategias w:560px](<Imagenes/7-Estrategias.png>)
 
-Aqui se pueden definir y listar todas las estrategias.
+Aquí se pueden definir y listar todas las estrategias.
 Ejemplo: "El sandwich": compra en pullback sobre SMA50, 9 reglas, umbral 100%, con
 objetivo (SMA20), stop (SMA50) y capital a arriesgar definidos.
 
 ---
 
-# La aplicacion: Detalle de estrategia
+# La aplicación: Detalle de estrategia
 ![Detalle de estrategia w:560px](<Imagenes/9-Estrategia.png>)
 
 Vista detalles de la estrategia, con sus reglas y pesos individuales, nota mínima de aprobación y gestión de riesgo.
@@ -164,7 +164,7 @@ y reglas de ejecución con su peso individual.
 
 ![Filtro de prohibidos h:400px](<Imagenes/10-Filtro prohibidos.png>)
 
-Se pueden definir filtros para evitar acciones de riesgo (p.ej. ETF, trust, warrants, etc.) y que no se evalúen nunca. Optimizamos el tiempo de análisis y evitamos acciones volatiles. El filtro se aplica en la ingesta de tickers y en la evaluación de estrategias.
+Se pueden definir filtros para evitar acciones de riesgo (p.ej. ETF, trust, apalancados 2X/3X, etc.) y que no se evalúen nunca. Optimizamos el tiempo de análisis y evitamos acciones volátiles. El filtro se aplica en la ingesta de tickers y en la evaluación de estrategias.
 
 ---
 
@@ -188,7 +188,7 @@ y velas. "Generar análisis" lanza la IA en segundo plano con banner de
 progreso: se puede seguir navegando.
 
 ---
-# La aplicación (7/9): análisis IA
+# La aplicación: análisis IA
 
 ![Generando análisis w:560px](<Imagenes/13-Generacion analisis IA.png>)
 
@@ -201,8 +201,6 @@ Se lanza la IA en segundo plano, con banner de progreso y rotación de modelos a
 ![Síntesis IA en 4 secciones w:950px](<Imagenes/14-Resultado analisis IA.png>)
 
 La IA redacta 4 secciones citando las métricas (R:R 8,58:1, stop 74,05…).
-
-Modelo principal `laguna-s-2.1` + 4 reservas · Planes gratuitos: latencias altas **asumidas por diseño**, importa la corrección, no la velocidad. Llamada a la IA en segundo plano, con banner de progreso y rotación de modelos ante fallo.
 
 
 ---
@@ -232,5 +230,12 @@ Ante un ticker que no cumple la estrategia, se muestra el veredicto y el detalle
 - Migración Spring Boot 4.x (fin del soporte OSS 3.5.x)
 - Actualización datos en tiempo real (WebSocket) y alertas.
 - Indicadores adicionales y estrategias más complejas
-- Integración en grafico puntos de entrada y salida, soporte y resistencia, etc.
+- Integración en gráfico puntos de entrada y salida, soporte y resistencia, etc.
+
+---
+
+# Gracias
+
+- Código en GitHub y aplicación funcionando en https://tfm.rubentouceda.es
+- Resto de URLs (slides, formulario) en la documentación de entrega
 
