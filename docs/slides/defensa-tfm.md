@@ -1,3 +1,76 @@
+---
+marp: true
+paginate: true
+footer: "TFM · Motor de Análisis Técnico · Rubén Touceda"
+---
+
+<style>
+:root {
+  --brand: #0d6efd;
+  --ink: #212529;
+  --muted: #6c757d;
+  --soft: #f1f6ff;
+}
+section {
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  color: var(--ink);
+  padding: 56px 64px;
+}
+section h1 {
+  color: var(--brand);
+  border-bottom: 3px solid var(--brand);
+  padding-bottom: 10px;
+  font-size: 1.5em;
+}
+section h2 {
+  color: var(--ink);
+  font-size: 1.05em;
+}
+section footer {
+  color: var(--muted);
+  font-size: 0.55em;
+}
+section a {
+  color: var(--brand);
+}
+section table {
+  font-size: 0.8em;
+}
+section thead th {
+  background: var(--soft);
+  border-bottom: 2px solid var(--brand);
+}
+section code {
+  background: var(--soft);
+  color: #0a58ca;
+}
+section pre {
+  background: #212529;
+  border-radius: 8px;
+}
+section pre code {
+  background: transparent;
+  color: #f8f9fa;
+}
+section.lead {
+  text-align: center;
+}
+section.lead h1 {
+  border-bottom: none;
+  font-size: 1.9em;
+}
+section.lead h2 {
+  color: inherit;
+  opacity: 0.9;
+}
+</style>
+
+<!-- _class: lead -->
+<!-- _backgroundColor: #0d6efd -->
+<!-- _color: white -->
+<!-- _footer: "" -->
+<!-- _paginate: false -->
+
 # AlphaSeeker - Motor de Análisis Técnico de Acciones
 
 ## Evaluación determinista + IA solo interpretativa
