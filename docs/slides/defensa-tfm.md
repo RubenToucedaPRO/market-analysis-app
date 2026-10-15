@@ -95,6 +95,7 @@ Organización de fuera hacia adentro para máxima adaptabilidad:
 - **Backend**: Java 21 · Spring Boot · JPA · WebClient · Thymeleaf + Bootstrap 5
 - **Datos**: H2 (dev) · MariaDB (prod) · Finnhub / Polygon / Finviz / OpenRouter
 - **Calidad**: 1165 tests, JaCoCo ≥80%, **SonarQube A** (63→0 issues), CI en PRs
+- **Patrones**: Strategy (reglas), Repository (persistencia), Factory (catálogo), Builder (DTOs), Template Method (throttlers)
 - **Despliegue**: Docker + VPS propio con Nginx/SSL. Se optó por VPS sobre Railway para mejor latencia con BBDD y endurecimiento manual (fail2ban).
 
 
