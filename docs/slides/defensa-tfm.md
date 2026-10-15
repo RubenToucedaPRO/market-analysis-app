@@ -65,14 +65,15 @@ El recorrido de una acción, de candidata a evaluada:
 ---
 
 
-# Arquitectura hexagonal
+# Arquitectura hexagonal y clean architecture
 
 ![Diagrama de arquitectura hexagonal](../../image/arquitectura_hexagonal.png)
 
-De fuera adentro: Thymeleaf solo presenta; Application orquesta los casos de
-uso; el Dominio (`Rule`, `Strategy`, `RuleEvaluator`) no depende de ningún
-framework; Infrastructure adapta la base de datos, las APIs y la IA. Cambiar
-de proveedor significa tocar un solo adaptador.
+Organización de fuera hacia adentro para máxima adaptabilidad:
+- Thymeleaf solo presenta
+- Application orquesta los casos de uso
+- Dominio (`Rule`, `Strategy`, `RuleEvaluator`) no depende de ningún framework
+- Infrastructure adapta la base de datos, las APIs y la IA. Cambiar de proveedor significa tocar un solo adaptador.
 
 
 ---
@@ -82,10 +83,7 @@ de proveedor significa tocar un solo adaptador.
 - **Backend**: Java 21 · Spring Boot · JPA · WebClient · Thymeleaf + Bootstrap 5
 - **Datos**: H2 (dev) · MariaDB (prod) · Finnhub / Polygon / Finviz / OpenRouter
 - **Calidad**: 1165 tests, JaCoCo ≥80%, **SonarQube A** (63→0 issues), CI en PRs
-- **Despliegue**: Docker + VPS propio con Nginx/SSL → <https://tfm.rubentouceda.es>
-- Se evaluó Railway, pero la comunicación con la base de datos era lenta;
-  el VPS además amplió conocimientos (endurecimiento, fail2ban, backups,
-  red y certificados gestionados a mano)
+- **Despliegue**: Docker + VPS propio con Nginx/SSL. Se optó por VPS sobre Railway para mejor latencia con BBDD y endurecimiento manual (fail2ban).
 
 
 ---
@@ -114,7 +112,7 @@ de proveedor significa tocar un solo adaptador.
 
 ![Portada w:560px](<Imagenes/1-Inicio.png>)
 
-Portada pública con las 4 áreas que la componen, el resto exige login.
+Portada pública con las 4 áreas que la componen, el acceso al panel exige login.
 
 ---
 
@@ -128,9 +126,18 @@ Login (usuario de prueba en el formulario de entrega), con bloqueo anti-fuerza b
 
 # La aplicación: Reglas
 
-![Catálogo de reglas w:560px](<Imagenes/4-Reglas.png>) ![Alta de regla w:560px](<Imagenes/6-Alta regla.png>)
+![Catálogo de reglas w:560px](<Imagenes/4-Reglas.png>)
 
-El catálogo válido vive en código (PRICE, SMA, RSI, VOLUMEN…) y la tabla permite gestionarlo: alta, edición y borrado. El alta es guiada: al elegir indicador, la pantalla activa o apaga el parámetro sola. Con estos indicadores se construyen las reglas de las estrategias.
+El catálogo válido vive en código (PRICE, SMA, RSI, VOLUMEN…) y la UI permite gestionar las reglas disponibles en la aplicación.
+
+---
+
+
+# La aplicación: Alta de Reglas
+
+![Alta de regla w:560px](<Imagenes/6-Alta regla.png>)
+
+Alta de regla para su empleo en la aplicación en base al catálogo disponible.
 
 ---
 
@@ -147,7 +154,7 @@ objetivo (SMA20), stop (SMA50) y capital a arriesgar definidos.
 # La aplicación: Detalle de estrategia
 ![Detalle de estrategia w:560px](<Imagenes/9-Estrategia.png>)
 
-Vista detalles de la estrategia, con sus reglas y pesos individuales, nota mínima de aprobación y gestión de riesgo.
+Vista completa de la estrategia: reglas individuales con sus pesos, nota mínima de aprobación y plan de gestión de riesgo asociado.
 
 --- 
 
@@ -164,16 +171,15 @@ y reglas de ejecución con su peso individual.
 
 ![Filtro de prohibidos h:400px](<Imagenes/10-Filtro prohibidos.png>)
 
-Se pueden definir filtros para evitar acciones de riesgo (p.ej. ETF, trust, apalancados 2X/3X, etc.) y que no se evalúen nunca. Optimizamos el tiempo de análisis y evitamos acciones volátiles. El filtro se aplica en la ingesta de tickers y en la evaluación de estrategias.
+Bloqueo preventivo de activos de alto riesgo (ETFs, trusts, apalancados 2X/3X) para optimizar tiempos de análisis y reducir volatilidad no deseada.
 
 ---
 
-# La aplicación: alta y evaluación
+# La aplicación: Panel de análisis y evaluación
 
 ![Panel de análisis w:1000px](<Imagenes/11-Analisis.png>)
 
-Se escribe el ticker, se elige estrategia y se pulsa Añadir (en
-<https://tfm.rubentouceda.es>, con usuario de prueba del formulario). La app
+Se escribe el ticker, se elige estrategia y se pulsa "Añadir". La app
 descarga datos, evalúa las reglas y calcula score, R:R y plan de trade.
 FEIM: APROBADO 100%, R:R 8,58. CBLL: FALLIDO 77,78% — se descarta aquí.
 
@@ -192,7 +198,7 @@ progreso: se puede seguir navegando.
 
 ![Generando análisis w:560px](<Imagenes/13-Generacion analisis IA.png>)
 
-Se lanza la IA en segundo plano, con banner de progreso y rotación de modelos ante fallo.
+Lanzamiento en segundo plano “Generar Análisis” con banner de progreso no bloqueante. Incluye rotación automática de LLMs si el proveedor falla.
 
 ---
 
@@ -200,7 +206,7 @@ Se lanza la IA en segundo plano, con banner de progreso y rotación de modelos a
 
 ![Síntesis IA en 4 secciones w:950px](<Imagenes/14-Resultado analisis IA.png>)
 
-La IA redacta 4 secciones citando las métricas (R:R 8,58:1, stop 74,05…).
+La IA redacta 4 secciones interpretativas contextualizando las métricas deterministas reales (Ej: R:R 8,58:1, stop 74,05). Cita las métricas calculadas, sin inventar resultados.
 
 
 ---
@@ -209,28 +215,34 @@ La IA redacta 4 secciones citando las métricas (R:R 8,58:1, stop 74,05…).
 
 ![Gráfico con SMA h:380px](<Imagenes/15-Grafico ticker.png>)
 
-Gráfico completo con SMA 20/50/200 para el estudio visual antes de proceder al análisis fundamental.
+Integración de gráficos de velas con capas de medias móviles (SMA 20/50/200) para confirmación visual antes del análisis fundamental humano.
 
 
 ---
 
 # La aplicación: descarte
-Ante un ticker que no cumple la estrategia, se muestra el veredicto y el detalle de las reglas fallidas. En este caso, CBLL falla con 77,78% y se descarta y explica qué 2 reglas fallaron (Precio\<SMA20, RSI14).
 
 ![Descarte explicado h:380px](<Imagenes/16-Ticker analisis fallido.png>)
+
+Transparencia total. Si un ticker se descarta, el sistema detalla exactamente qué reglas específicas fallaron (Precio<SMA20, RSI14).
 
 ---
 
 # Limitaciones y futuro
 
-**Hoy no hace**: recomendar inversión · operar · tiempo real · notificaciones
+**Hoy no hace**: 
+- Recomendar inversión o dar consejo financiero
+- Operar automáticamente en brokers
+- Actualización de precios en tiempo real de milisegundos
+- Sistema de alertas y notificaciones
+
 **Líneas futuras**:
-- OpenAPI pública cuando haya API REST real
-- Servicio ML separado (Python/FastAPI) desacoplado del motor
+- OpenAPI pública cuando haya API REST real.
+- Servicio ML separado (Python/FastAPI) desacoplado.
 - Migración Spring Boot 4.x (fin del soporte OSS 3.5.x)
 - Actualización datos en tiempo real (WebSocket) y alertas.
-- Indicadores adicionales y estrategias más complejas
-- Integración en gráfico puntos de entrada y salida, soporte y resistencia, etc.
+- Indicadores adicionales y estrategias más complejas.
+- Integración en gráfico puntos de entrada y salida, soportes y resistencias, etc.
 
 ---
 

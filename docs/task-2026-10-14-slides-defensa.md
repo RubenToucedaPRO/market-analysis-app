@@ -16,8 +16,11 @@ Deck de defensa: 12 slides + speaker notes en Marp, exportado a PDF y PPTX.
   impuesta por el TFM (§15): Marp es decisión propia documentada aquí.
 - Re-exportar tras cambios:
   `marp --pdf|--pptx --allow-local-files docs/slides/defensa-tfm.md -o ...`
-- Pendiente (usuario): subir PDF a Drive/Slides para la URL de entrega y
+- Pendiente (usuario): subir a Drive para la URL de entrega y
   añadirla al README + formulario (§9 Requisitos-TFM).
+- Nota 13 Oct: deck reescrito a ~24 slides autónomas con walkthrough visual
+  completo (14 capturas del usuario); PDF/PPTX eliminados del repo a petición
+  (entrega vía Drive); fuente Marp + tema versionados, re-export reproducible.
 - Verificado: 12 slides, 12 notas (PPTX), diagrama hexagonal incrustado,
   PDF válido de 12 páginas.
 

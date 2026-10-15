@@ -70,7 +70,7 @@
 | **8–9 Oct** | — | **README Final** (badges, URL deploy, "Desarrollo con IA", troubleshooting + tabla endpoints JSON; `springdoc` descartado → Future Work) | rama → doc → menú → PR |
 | **12 Oct** | — | **SonarQube Local** (Docker) + Quality Gate A + fix critical | ✅ hecho 8 Oct (adelantado): Community 26.9 + gate OK + 0 critical |
 | **13 Oct** | — | **ADRs (4)** + **Prompt Library** (`docs/prompts/`, 8-10 patrones) | ✅ hecho: `docs/adr/` + `docs/prompts/` (9 patrones) |
-| **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | ✅ hecho: `docs/slides/defensa-tfm.md` (Marp) + PDF + PPTX |
+| **14 Oct** | — | **Slides Defensa** (12 slides + speaker notes) | ✅ hecho: `docs/slides/defensa-tfm.md` (Marp, fuente versionada; PDF/PPTX vía Drive, no en repo) |
 | **15 Oct** | — | **Rehearsal Grabado** (demo 5 min + Q&A) + ajustes finales | — |
 | **16 Oct** | AM | **Buffer** — remates, re-verificación deploy + docs | — |
 | | PM | **Entrega** — Tag `tfm-v1.0`, repo público, URLs en README, slides link | `bash` (git tag/push) |
